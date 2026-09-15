@@ -1,0 +1,90 @@
+.week-calendar {
+  overflow-x: auto;
+}
+
+.week-calendar__grid {
+  display: grid;
+  grid-template-columns: 52px repeat(7, minmax(94px, 1fr));
+  gap: 3px;
+  min-width: 700px;
+}
+
+.week-calendar__day {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-text-faint);
+  text-align: center;
+  padding-bottom: var(--space-1);
+}
+
+.week-calendar__hour {
+  grid-column: 1;
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
+  text-align: right;
+  padding-right: var(--space-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.week-calendar__cell {
+  height: 34px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-soft);
+  cursor: pointer;
+  padding: 0;
+  transition: border-color var(--transition), background var(--transition);
+}
+
+.week-calendar__cell:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+/* Sombreado de los bloques que el usuario declaró como disponibles. */
+.week-calendar__cell.is-available {
+  background: rgba(109, 94, 252, 0.09);
+  border-color: rgba(109, 94, 252, 0.3);
+}
+
+.week-calendar__session {
+  z-index: 2;
+  align-self: stretch;
+  justify-self: start;
+  min-height: 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-align: left;
+  overflow: hidden;
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+
+.week-calendar__session:hover,
+.week-calendar__session.is-selected {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.week-calendar__session.is-selected {
+  outline: 2px solid var(--color-text);
+  outline-offset: -2px;
+}
+
+.week-calendar__session-title {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.week-calendar__session-meta {
+  font-size: 0.68rem;
+  color: var(--color-text-muted);
+}

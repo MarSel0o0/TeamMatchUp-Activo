@@ -1,0 +1,71 @@
+/**
+ * Design tokens.
+ *
+ * Todo el color, el espaciado y la tipografía de la aplicación salen de aquí.
+ * Ningún componente debería escribir un valor hexadecimal a mano: así el tema
+ * se puede ajustar (o duplicar en claro) desde un solo archivo.
+ */
+:root {
+  /* Superficies */
+  --color-bg: #0d0f17;
+  --color-bg-soft: #131622;
+  --color-surface: #171b2a;
+  --color-surface-raised: #1d2235;
+  --color-border: #252b41;
+  --color-border-strong: #333b57;
+
+  /* Texto */
+  --color-text: #e9ecf7;
+  --color-text-muted: #98a0bd;
+  --color-text-faint: #6b7396;
+
+  /* Marca y estados */
+  --color-primary: #6d5efc;
+  --color-primary-hover: #7f72fd;
+  --color-primary-soft: rgba(109, 94, 252, 0.16);
+  --color-success: #28e0a4;
+  --color-success-soft: rgba(40, 224, 164, 0.14);
+  --color-warning: #f2b544;
+  --color-warning-soft: rgba(242, 181, 68, 0.14);
+  --color-danger: #ef6f7b;
+  --color-danger-soft: rgba(239, 111, 123, 0.14);
+
+  /* Colores por juego */
+  --color-game-lol: #c8963e;
+  --color-game-r6: #3ea0c8;
+  --color-game-cs2: #d97a45;
+
+  /* Espaciado */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+
+  /* Bordes y sombras */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-full: 999px;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.45);
+
+  /* Tipografía */
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, 'SFMono-Regular', 'Menlo', monospace;
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.9375rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: 2.25rem;
+
+  /* Layout */
+  --sidebar-width: 244px;
+  --content-max: 1180px;
+  --transition: 150ms ease;
+}

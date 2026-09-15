@@ -1,0 +1,16 @@
+.match-filters {
+  position: sticky;
+  top: var(--space-5);
+}
+
+.match-filters__value {
+  float: right;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 900px) {
+  .match-filters {
+    position: static;
+  }
+}
