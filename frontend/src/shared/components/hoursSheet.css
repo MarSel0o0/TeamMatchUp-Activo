@@ -65,16 +65,25 @@
   background: var(--pen-wash);
 }
 
+/* Sola en la página, tu disponibilidad es el contenido: se pinta entera. */
 .hours__cell[data-marked] {
   background: var(--pen);
   border-right-color: var(--pen);
   border-bottom-color: var(--pen);
 }
 
-.hours__cell[data-shared] {
-  background: var(--ok);
-  border-right-color: var(--ok);
-  border-bottom-color: var(--ok);
+/* Junto a la de otro jugador, tus horas bajan a lavado y dejan ver el reglado:
+   lo que debe gritar es el traslape, no tu propio calendario. */
+.hours[data-compare] .hours__cell[data-marked] {
+  background: var(--pen-wash-strong);
+  border-right-color: var(--rule-hair);
+  border-bottom-color: var(--rule-hair);
+}
+
+.hours[data-compare] .hours__cell[data-shared] {
+  background: var(--pen);
+  border-right-color: var(--pen);
+  border-bottom-color: var(--pen);
 }
 
 .hours__cell:disabled {
@@ -114,8 +123,13 @@
   background: var(--pen);
 }
 
+.hours[data-compare] .hours__swatch[data-marked] {
+  background: var(--pen-wash-strong);
+  border: 1px solid var(--rule-strong);
+}
+
 .hours__swatch[data-shared] {
-  background: var(--ok);
+  background: var(--pen);
 }
 
 @media (max-width: 640px) {

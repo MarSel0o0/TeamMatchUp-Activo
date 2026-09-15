@@ -73,7 +73,13 @@ export function HoursSheet({
   };
 
   return (
-    <div className={`hours${compact ? ' hours--compact' : ''}${readOnly ? ' hours--locked' : ''}`}>
+    <div
+      className={`hours${compact ? ' hours--compact' : ''}${readOnly ? ' hours--locked' : ''}`}
+      // Con una segunda disponibilidad encima, lo saturado pasa a ser el
+      // traslape: es el dato que la vista existe para mostrar. Sin comparación,
+      // las horas propias son el contenido y se pintan enteras.
+      data-compare={shared ? '' : undefined}
+    >
       <div className="hours__grid">
         <span className="hours__corner" />
         {WEEK_DAYS.map((day) => (
@@ -126,7 +132,7 @@ export function HoursSheet({
         </span>
         {compareWith ? (
           <span className="hours__key-item">
-            <i className="hours__swatch" data-shared /> En común
+            <i className="hours__swatch" data-shared /> Horas en común
           </span>
         ) : null}
         {!readOnly ? (

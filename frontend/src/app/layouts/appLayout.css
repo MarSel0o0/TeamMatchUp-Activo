@@ -1,6 +1,6 @@
 .shell {
   display: grid;
-  grid-template-columns: var(--shell-nav) 1fr;
+  grid-template-columns: var(--shell-nav) minmax(0, 1fr);
   min-height: 100%;
   background: var(--paper);
 }
@@ -167,7 +167,7 @@
 
 @media (max-width: 960px) {
   .shell {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .shell__bar {

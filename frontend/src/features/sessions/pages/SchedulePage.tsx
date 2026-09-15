@@ -222,6 +222,7 @@ export default function SchedulePage() {
           open
           draft={draft}
           availableGames={myGames}
+          onCreated={setSelectedId}
           onClose={() => setDraft(null)}
         />
       ) : null}

@@ -27,12 +27,16 @@
   /* --- La tinta ---------------------------------------------------------- */
   --ink: #eceae4;
   --ink-2: #99a3ab;
-  --ink-3: #68737d;
+  --ink-3: #818b95;
 
   /* --- Tinta de bolígrafo: lo que el usuario escribe ---------------------- */
   --pen: #4f86e8;
   --pen-bright: #6e9df0;
+  /* Relleno de botón: el azul se oscurece hasta que el blanco encima pasa 4.5:1. */
+  --pen-solid: #3f6fd0;
+  --pen-solid-hover: #4a7ce0;
   --pen-wash: rgba(79, 134, 232, 0.14);
+  --pen-wash-strong: rgba(79, 134, 232, 0.28);
   --pen-edge: rgba(79, 134, 232, 0.42);
 
   /* --- Tinta de sello: estados sellados y acciones destructivas ----------- */

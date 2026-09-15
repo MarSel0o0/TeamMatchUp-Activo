@@ -127,6 +127,24 @@ a {
   font-size: var(--t-doc);
 }
 
+/* Las variantes responsivas viven junto a la regla base: en un chunk aparte
+   perderían la cascada contra ella, porque un media query no suma especificidad. */
+@media (max-width: 1080px) {
+  .doc-title--xl {
+    font-size: var(--t-h1);
+  }
+}
+
+/* En un teléfono el nombre no cabe a este cuerpo: se comprime por el eje de
+   ancho de la fuente variable en vez de empujar el documento de lado. */
+@media (max-width: 460px) {
+  .doc-title--xl {
+    font-size: var(--t-h2);
+    font-variation-settings: 'wght' 780, 'wdth' 72;
+    letter-spacing: -0.02em;
+  }
+}
+
 .sheet-title {
   font-size: var(--t-h3);
   font-variation-settings: 'wght' 680, 'wdth' 88;
@@ -169,6 +187,7 @@ a {
 
 .sheet {
   position: relative;
+  min-width: 0;
   background: var(--paper-raised);
   border: 1px solid var(--rule);
   border-radius: 3px;
@@ -185,7 +204,7 @@ a {
   inset: 0 auto 0 0;
   width: var(--sprocket);
   background:
-    radial-gradient(circle at center, var(--paper-sunk) 2.6px, transparent 2.9px) 0 0 / 100% 22px,
+    radial-gradient(circle at center, var(--rule-strong) 2.6px, transparent 2.9px) 0 0 / 100% 22px,
     var(--paper-margin);
   border-right: 1px solid var(--rule);
   border-radius: 3px 0 0 3px;
@@ -215,6 +234,7 @@ a {
 
 .sheet__body {
   padding: var(--s5);
+  min-width: 0;
 }
 
 .sheet__body--flush {
@@ -393,18 +413,18 @@ a.btn--pen:hover {
 
 /* La acción primaria es lo que el usuario escribe: va en tinta de bolígrafo. */
 .btn--pen {
-  background: var(--pen);
-  border-color: var(--pen);
+  background: var(--pen-solid);
+  border-color: var(--pen-solid);
   color: #fff;
 }
 
 .btn--pen:hover:not(:disabled) {
-  background: var(--pen-bright);
-  border-color: var(--pen-bright);
+  background: var(--pen-solid-hover);
+  border-color: var(--pen-solid-hover);
 }
 
 .btn--pen:active:not(:disabled) {
-  background: var(--pen);
+  background: var(--pen-solid);
 }
 
 .btn--quiet {

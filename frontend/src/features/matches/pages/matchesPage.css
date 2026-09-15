@@ -1,22 +1,22 @@
 .matches {
   display: grid;
-  grid-template-columns: 272px 1fr;
+  grid-template-columns: 272px minmax(0, 1fr);
   gap: var(--s4);
   align-items: start;
 }
 
 @media (max-width: 960px) {
   .matches {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
 /* La cabecera de columnas se escribe una vez, no en cada asiento. */
 .matches__columns {
   display: grid;
-  grid-template-columns: 36px minmax(180px, 1.5fr) 160px 140px 72px 214px;
+  grid-template-columns: 32px minmax(140px, 1.4fr) 148px 126px 60px auto;
   align-items: end;
-  gap: var(--s4);
+  gap: var(--s3);
   padding: var(--s2) var(--s5);
   border-bottom: 1px solid var(--rule-strong);
 }

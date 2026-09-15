@@ -7,6 +7,7 @@ import { Slip } from '@/shared/components/Slip';
 import { Icon } from '@/shared/components/Icon';
 import { TextField } from '@/shared/components/TextField';
 import { useCreateSession } from '../hooks';
+import './sessionDraftSlip.css';
 
 export interface SessionDraft {
   gameId: GameId;
@@ -18,6 +19,8 @@ export interface SessionDraft {
 interface SessionDraftSlipProps {
   open: boolean;
   draft: SessionDraft;
+  /** La agenda abre la sesión recién anotada para que el sello caiga sobre ella. */
+  onCreated?: (sessionId: string) => void;
   /** Juegos que el usuario tiene vinculados; no se publica en otros. */
   availableGames: GameId[];
   onClose: () => void;
@@ -29,6 +32,7 @@ export function SessionDraftSlip({
   draft,
   availableGames,
   onClose,
+  onCreated,
 }: SessionDraftSlipProps) {
   const createSession = useCreateSession();
 
@@ -63,7 +67,7 @@ export function SessionDraftSlip({
     }
 
     try {
-      await createSession.mutateAsync({
+      const created = await createSession.mutateAsync({
         gameId,
         title,
         notes,
@@ -72,6 +76,7 @@ export function SessionDraftSlip({
         durationHours,
         slots,
       });
+      onCreated?.(created.id);
       onClose();
     } catch (mutationError) {
       setError(
@@ -105,7 +110,7 @@ export function SessionDraftSlip({
         </>
       }
     >
-      <form id="create-session-form" className="stack" onSubmit={handleSubmit} noValidate>
+      <form id="create-session-form" onSubmit={handleSubmit} noValidate>
         {error ? (
           <p className="notice notice--error" role="alert">
             <Icon as={AlertCircle} size={15} />
@@ -113,6 +118,8 @@ export function SessionDraftSlip({
           </p>
         ) : null}
 
+        <ol className="draft">
+          <li className="draft__row">
         <TextField
           label="Título"
           placeholder="Ej.: Ranked flex, buscamos dos"
@@ -120,7 +127,9 @@ export function SessionDraftSlip({
           onChange={(event) => setTitle(event.target.value)}
           maxLength={60}
         />
+          </li>
 
+          <li className="draft__row">
         <div className="field">
           <label className="label" htmlFor="session-game">
             Juego
@@ -138,8 +147,10 @@ export function SessionDraftSlip({
             ))}
           </select>
         </div>
+          </li>
 
-        <div className="row" style={{ alignItems: 'flex-end', gap: 'var(--space-3)' }}>
+          <li className="draft__row">
+        <div className="draft__pair">
           <div className="field grow">
             <label className="label" htmlFor="session-day">
               Día
@@ -176,8 +187,10 @@ export function SessionDraftSlip({
             </select>
           </div>
         </div>
+          </li>
 
-        <div className="row" style={{ alignItems: 'flex-end', gap: 'var(--space-3)' }}>
+          <li className="draft__row">
+        <div className="draft__pair">
           <div className="field grow">
             <label className="label" htmlFor="session-duration">
               Duración (horas)
@@ -214,7 +227,9 @@ export function SessionDraftSlip({
             </select>
           </div>
         </div>
+          </li>
 
+          <li className="draft__row">
         <div className="field">
           <label className="label" htmlFor="session-notes">
             Notas (opcional)
@@ -228,6 +243,8 @@ export function SessionDraftSlip({
             onChange={(event) => setNotes(event.target.value)}
           />
         </div>
+          </li>
+        </ol>
       </form>
     </Slip>
   );

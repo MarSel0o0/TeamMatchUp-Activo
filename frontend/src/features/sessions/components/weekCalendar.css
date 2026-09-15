@@ -1,5 +1,8 @@
 .week {
   overflow-x: auto;
+  min-width: 0;
+  /* El desplazamiento lateral pertenece a la reja, nunca al documento. */
+  overscroll-behavior-x: contain;
 }
 
 .week__grid {

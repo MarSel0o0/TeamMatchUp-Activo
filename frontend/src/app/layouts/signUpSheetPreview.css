@@ -38,6 +38,7 @@
   align-items: center;
   gap: var(--s2);
   flex-wrap: wrap;
+  min-width: 0;
 }
 
 /* Las firmas van en tinta de bolígrafo, como en la hoja de papel. */
@@ -45,7 +46,7 @@
   font-size: var(--t-small);
   font-variation-settings: 'wght' 560, 'wdth' 94;
   color: var(--pen-bright);
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 /* Un cupo libre es una línea en blanco esperando a alguien. */

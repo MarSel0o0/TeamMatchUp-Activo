@@ -164,10 +164,7 @@ export default function ProfilePage() {
                 <div className="ficha__matches">
                   <div className="line-between">
                     <h3 className="sheet-title">Últimas partidas</h3>
-                    <span
-                      className="num ficha__winrate"
-                      data-good={summaryQuery.data.winRate >= 50 || undefined}
-                    >
+                    <span className="num ficha__winrate">
                       {summaryQuery.data.winRate}% ganadas
                     </span>
                   </div>

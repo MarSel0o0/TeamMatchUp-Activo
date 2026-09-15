@@ -68,7 +68,11 @@ export function SessionSlip({
       </ul>
 
       <footer className="session__foot">
-        {openSlots === 0 ? (
+        {isSigned ? (
+          <Stamp tone="pen" pressKey={`${session.id}-${session.participants.length}`} announce>
+            {isHost ? 'La organizas' : 'Firmada'}
+          </Stamp>
+        ) : openSlots === 0 ? (
           <Stamp tone="sealed" pressKey={session.participants.length}>
             Cupos llenos
           </Stamp>

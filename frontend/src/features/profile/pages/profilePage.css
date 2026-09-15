@@ -71,11 +71,7 @@
 
 .ficha__winrate {
   font-size: var(--t-small);
-  color: var(--stamp);
-}
-
-.ficha__winrate[data-good] {
-  color: var(--ok);
+  color: var(--ink-2);
 }
 
 /* Las horas declaradas se leen como renglones de un listado, no como fichas. */

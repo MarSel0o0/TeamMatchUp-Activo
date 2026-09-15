@@ -7,9 +7,15 @@
 
 .agenda {
   display: grid;
-  grid-template-columns: 1fr 336px;
+  grid-template-columns: minmax(0, 1fr) 336px;
   gap: var(--s4);
   align-items: start;
+}
+
+/* Sin esto, el ancho mínimo de la reja escapa del scroller y empuja el
+   documento entero: en un teléfono la página se desplazaba de lado. */
+.agenda > .sheet {
+  min-width: 0;
 }
 
 .agenda__side {
@@ -19,7 +25,7 @@
 
 @media (max-width: 1080px) {
   .agenda {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .agenda__side {

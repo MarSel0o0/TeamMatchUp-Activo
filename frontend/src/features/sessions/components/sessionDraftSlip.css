@@ -1,0 +1,41 @@
+/* La papeleta se rellena como un formulario: renglones numerados y reglados. */
+.draft {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  counter-reset: renglon;
+}
+
+.draft__row {
+  position: relative;
+  counter-increment: renglon;
+  padding: var(--s3) 0 var(--s3) var(--s5);
+  border-bottom: 1px solid var(--rule-hair);
+}
+
+.draft__row:last-child {
+  border-bottom: 0;
+}
+
+/* El número del renglón vive en el margen, no dentro del campo. */
+.draft__row::before {
+  content: counter(renglon, decimal-leading-zero);
+  position: absolute;
+  left: 0;
+  top: calc(var(--s3) + 2px);
+  font-size: var(--t-micro);
+  font-variant-numeric: tabular-nums;
+  font-variation-settings: 'wght' 620, 'wdth' 90;
+  color: var(--ink-3);
+}
+
+.draft__pair {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--s3);
+}
+
+.draft__pair > .field {
+  flex: 1;
+  min-width: 0;
+}

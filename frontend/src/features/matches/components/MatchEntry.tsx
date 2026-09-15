@@ -98,13 +98,15 @@ export function MatchEntry({ candidate, viewerBlocks, onPropose, band }: MatchEn
             </span>
           </div>
 
-          <HoursSheet value={viewerBlocks} compareWith={candidate.sharedBlocks} readOnly compact />
-
           {ranges.length ? (
-            <p className="note note--faint num">
-              Tramos en común: {ranges.map((range) => formatRange(range)).join('   ·   ')}
+            <p className="entry__overlap num">
+              {ranges.map((range) => formatRange(range)).join('   ·   ')}
             </p>
-          ) : null}
+          ) : (
+            <p className="note note--faint">Sin horas en común esta semana.</p>
+          )}
+
+          <HoursSheet value={viewerBlocks} compareWith={candidate.sharedBlocks} readOnly compact />
         </div>
       ) : null}
     </article>

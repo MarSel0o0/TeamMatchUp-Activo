@@ -9,6 +9,8 @@ interface StampProps {
   pressKey?: string | number;
   flat?: boolean;
   title?: string;
+  /** Rol accesible: un sello que anuncia un resultado debe leerse en voz alta. */
+  announce?: boolean;
 }
 
 /**
@@ -19,7 +21,14 @@ interface StampProps {
  * `pressKey`— el sello aterriza sobre el papel; es el único momento animado del
  * producto.
  */
-export function Stamp({ children, tone = 'plain', pressKey, flat = false, title }: StampProps) {
+export function Stamp({
+  children,
+  tone = 'plain',
+  pressKey,
+  flat = false,
+  title,
+  announce = false,
+}: StampProps) {
   const [pressing, setPressing] = useState(true);
 
   useEffect(() => {
@@ -38,7 +47,7 @@ export function Stamp({ children, tone = 'plain', pressKey, flat = false, title 
     .join(' ');
 
   return (
-    <span className={classes} title={title}>
+    <span className={classes} title={title} role={announce ? 'status' : undefined}>
       {children}
     </span>
   );

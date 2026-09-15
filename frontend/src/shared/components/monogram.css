@@ -16,9 +16,9 @@
 }
 
 .monogram--md {
-  width: 36px;
-  height: 36px;
-  font-size: var(--t-small);
+  width: 32px;
+  height: 32px;
+  font-size: var(--t-micro);
 }
 
 .monogram--lg {

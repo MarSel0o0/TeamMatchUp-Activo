@@ -18,9 +18,9 @@
 
 .entry__line {
   display: grid;
-  grid-template-columns: 36px minmax(180px, 1.5fr) 160px 140px 72px 214px;
+  grid-template-columns: 32px minmax(140px, 1.4fr) 148px 126px 60px auto;
   align-items: center;
-  gap: var(--s4);
+  gap: var(--s3);
   padding: var(--s3) var(--s5);
 }
 
@@ -92,7 +92,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--s4);
-  padding: 0 var(--s5) var(--s5) calc(var(--s5) + 36px + var(--s4));
+  padding: 0 var(--s5) var(--s5) calc(var(--s5) + 32px + var(--s3));
 }
 
 .entry__stamps {
@@ -104,7 +104,7 @@
 
 @media (max-width: 1100px) {
   .entry__line {
-    grid-template-columns: 36px 1fr auto;
+    grid-template-columns: 32px 1fr auto;
     row-gap: var(--s3);
     padding: var(--s3) var(--s4);
   }
@@ -143,4 +143,12 @@
     padding-left: var(--s4);
     padding-right: var(--s4);
   }
+}
+
+/* Los tramos compartidos encabezan el despliegue: es la respuesta que se vino a buscar. */
+.entry__overlap {
+  font-size: var(--t-small);
+  font-variation-settings: 'wght' 600, 'wdth' 96;
+  color: var(--pen-bright);
+  line-height: 1.7;
 }
