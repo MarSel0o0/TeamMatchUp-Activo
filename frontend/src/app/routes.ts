@@ -3,6 +3,8 @@ import type { LucideIcon } from 'lucide-react';
 
 /** Rutas de la aplicación en un solo lugar, para no repetir strings sueltos. */
 export const ROUTES = {
+  landing: '/',
+  home: '/inicio',
   login: '/login',
   register: '/registro',
   profile: '/perfil',

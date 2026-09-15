@@ -1,4 +1,5 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, Link } from 'react-router-dom';
+import { ROUTES } from '../routes';
 import { SignUpSheetPreview } from './SignUpSheetPreview';
 import './authLayout.css';
 
@@ -15,7 +16,9 @@ export function AuthLayout() {
     <div className="gate">
       <section className="gate__pitch">
         <div className="gate__masthead">
-          <h1 className="doc-title doc-title--xl">TeamMatchUp</h1>
+          <Link to={ROUTES.home} style={{ color: 'inherit', textDecoration: 'none' }}>
+            <h1 className="doc-title doc-title--xl">TeamMatchUp</h1>
+          </Link>
           <p className="gate__claim">
             El equipo no se arma preguntando «¿alguien juega?». Se arma firmando una hora.
           </p>

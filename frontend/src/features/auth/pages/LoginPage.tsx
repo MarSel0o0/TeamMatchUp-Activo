@@ -49,7 +49,7 @@ export default function LoginPage() {
       await login({ email: form.email.trim(), password: form.password });
       // `from` guarda la vista a la que el usuario intentaba entrar antes del login.
       const from = (location.state as { from?: string } | null)?.from;
-      navigate(from ?? ROUTES.profile, { replace: true });
+      navigate(from ?? ROUTES.home, { replace: true });
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : 'No se pudo entrar.');
     } finally {

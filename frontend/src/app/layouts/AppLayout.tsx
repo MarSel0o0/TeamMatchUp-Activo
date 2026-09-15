@@ -28,7 +28,7 @@ export function AppLayout() {
   return (
     <div className="shell">
       <aside className={`shell__index${navOpen ? ' is-open' : ''}`}>
-        <NavLink to={ROUTES.profile} className="shell__mark">
+        <NavLink to={ROUTES.home} className="shell__mark">
           <span className="shell__mark-name">TeamMatchUp</span>
           <span className="label">Hoja de inscripción</span>
         </NavLink>
@@ -84,7 +84,7 @@ export function AppLayout() {
             <Icon as={navOpen ? X : Menu} size={14} />
             Índice
           </button>
-          <span className="shell__bar-name">TeamMatchUp</span>
+          <NavLink to={ROUTES.home} className="shell__bar-name" style={{ color: 'inherit', textDecoration: 'none' }}>TeamMatchUp</NavLink>
         </header>
 
         {navOpen ? (

@@ -26,7 +26,7 @@ export function PublicOnlyRoute() {
   const { isAuthenticated, isRestoring } = useAuth();
 
   if (isRestoring) return <Working label="Restaurando tu sesión…" />;
-  if (isAuthenticated) return <Navigate to={ROUTES.profile} replace />;
+  if (isAuthenticated) return <Navigate to={ROUTES.home} replace />;
 
   return <Outlet />;
 }
