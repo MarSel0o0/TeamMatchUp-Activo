@@ -1,36 +1,28 @@
-.schedule-filters {
+.agenda__filters {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--s2);
   flex-wrap: wrap;
 }
 
-.schedule-layout {
+.agenda {
   display: grid;
-  grid-template-columns: 1fr 340px;
-  gap: var(--space-4);
+  grid-template-columns: 1fr 336px;
+  gap: var(--s4);
   align-items: start;
 }
 
-.card--calendar {
-  padding: var(--space-4);
-  overflow: hidden;
-}
-
-.schedule-side {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
+.agenda__side {
   position: sticky;
-  top: var(--space-5);
+  top: var(--s5);
 }
 
-@media (max-width: 1000px) {
-  .schedule-layout {
+@media (max-width: 1080px) {
+  .agenda {
     grid-template-columns: 1fr;
   }
 
-  .schedule-side {
+  .agenda__side {
     position: static;
   }
 }

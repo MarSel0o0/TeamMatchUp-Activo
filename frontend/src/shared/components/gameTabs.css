@@ -1,35 +1,40 @@
-.game-tabs {
+.tabs {
   display: flex;
-  gap: var(--space-2);
-  flex-wrap: wrap;
+  gap: 2px;
+  border-bottom: 1px solid var(--rule-strong);
+  overflow-x: auto;
+  scrollbar-width: none;
 }
 
-.game-tabs__tab {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: 0.4rem 0.85rem;
-  background: var(--color-bg-soft);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-full);
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
-  font-weight: 560;
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tabs__tab {
+  position: relative;
+  bottom: -1px;
+  padding: 0.45rem 0.95rem;
+  background: var(--paper-sunk);
+  border: 1px solid var(--rule);
+  border-top: 2px solid var(--rule);
+  border-bottom-color: var(--rule-strong);
+  border-radius: 3px 3px 0 0;
+  color: var(--ink-3);
+  font-size: var(--t-small);
+  font-variation-settings: 'wght' 600, 'wdth' 94;
+  white-space: nowrap;
   cursor: pointer;
-  transition: border-color var(--transition), color var(--transition), background var(--transition);
+  transition: color var(--fast) var(--ease), background var(--fast) var(--ease);
 }
 
-.game-tabs__tab:hover {
-  background: var(--color-surface-raised);
-  color: var(--color-text);
+.tabs__tab:hover {
+  color: var(--ink);
+  background: var(--paper-band);
 }
 
-.game-tabs__tab.is-active {
-  background: var(--color-surface-raised);
-}
-
-.game-tabs__dot {
-  width: 8px;
-  height: 8px;
-  border-radius: var(--radius-full);
+/* La pestaña activa se funde con la hoja: pierde el borde inferior. */
+.tabs__tab[aria-selected='true'] {
+  background: var(--paper-raised);
+  border-bottom-color: var(--paper-raised);
+  z-index: 1;
 }

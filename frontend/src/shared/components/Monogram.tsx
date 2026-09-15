@@ -1,12 +1,14 @@
-interface AvatarProps {
+import './monogram.css';
+
+interface MonogramProps {
   name: string;
   color: string;
   size?: 'sm' | 'md' | 'lg';
   title?: string;
 }
 
-/** Iniciales sobre el color asignado al usuario. */
-export function Avatar({ name, color, size = 'md', title }: AvatarProps) {
+/** Iniciales escritas en la casilla de identidad del formulario. */
+export function Monogram({ name, color, size = 'md', title }: MonogramProps) {
   const initials = name
     .split(/\s+/)
     .slice(0, 2)
@@ -15,8 +17,8 @@ export function Avatar({ name, color, size = 'md', title }: AvatarProps) {
 
   return (
     <span
-      className={`avatar${size === 'md' ? '' : ` avatar--${size}`}`}
-      style={{ background: color }}
+      className={`monogram monogram--${size}`}
+      style={{ color, borderColor: color }}
       title={title ?? name}
       aria-hidden="true"
     >

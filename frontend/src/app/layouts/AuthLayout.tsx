@@ -1,47 +1,47 @@
 import { Outlet } from 'react-router-dom';
+import { SignUpSheetPreview } from './SignUpSheetPreview';
 import './authLayout.css';
 
-/** Pantalla partida para registro e inicio de sesión. */
+/**
+ * Puerta de entrada.
+ *
+ * Es la única superficie que persuade, y lo hace mostrando el producto en vez de
+ * describirlo: una hoja con horas ya firmadas por otros jugadores. Lo que hay que
+ * creer —hay gente real de tu nivel en horarios que te calzan— se demuestra en el
+ * primer viewport.
+ */
 export function AuthLayout() {
   return (
-    <div className="auth-layout">
-      <section className="auth-layout__pitch">
-        <div className="auth-layout__brand">
-          <img src="/logo.svg" alt="" width={34} height={34} />
-          <span>TeamMatchUp</span>
+    <div className="gate">
+      <section className="gate__pitch">
+        <div className="gate__masthead">
+          <h1 className="doc-title doc-title--xl">TeamMatchUp</h1>
+          <p className="gate__claim">
+            El equipo no se arma preguntando «¿alguien juega?». Se arma firmando una hora.
+          </p>
         </div>
 
-        <h1 className="auth-layout__headline">
-          Deja de buscar equipo en el chat y empieza a jugar.
-        </h1>
-        <p className="auth-layout__lead">
-          Cruzamos tu rango real y tus horarios para mostrarte jugadores con los que sí puedes
-          coordinar una partida esta semana.
-        </p>
+        <SignUpSheetPreview />
 
-        <ul className="auth-layout__points">
-          <li>
-            <strong>Rango verificado.</strong> Leemos tu nivel desde la fuente de cada juego y lo
-            mantenemos al día.
-          </li>
-          <li>
-            <strong>Horarios que calzan.</strong> Marcas tus bloques de la semana y el sistema busca
-            traslapes reales.
-          </li>
-          <li>
-            <strong>Agenda compartida.</strong> Publica una sesión, súmate a la de otro y concreta
-            el encuentro.
-          </li>
-        </ul>
-
-        <div className="auth-layout__games">
-          <span className="badge">League of Legends</span>
-          <span className="badge">Rainbow Six Siege</span>
-          <span className="badge">Counter-Strike 2</span>
-        </div>
+        <dl className="gate__clauses">
+          <div>
+            <dt>Rango sellado, no declarado</dt>
+            <dd>
+              Leemos tu nivel desde la fuente de cada juego y lo volvemos a leer cuando cambia.
+            </dd>
+          </div>
+          <div>
+            <dt>Horas que se cruzan de verdad</dt>
+            <dd>Marcas tu semana y el sistema busca los bloques que compartes con otros.</dd>
+          </div>
+          <div>
+            <dt>Termina en una partida</dt>
+            <dd>Alguien publica el bloque, el resto se anota debajo. Ahí se acaba el trámite.</dd>
+          </div>
+        </dl>
       </section>
 
-      <section className="auth-layout__form">
+      <section className="gate__form">
         <Outlet />
       </section>
     </div>

@@ -1,0 +1,64 @@
+.session {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  padding: var(--s4);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  background: var(--paper-raised);
+}
+
+.session__head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s3);
+}
+
+.session__notes {
+  font-size: var(--t-small);
+  color: var(--ink-2);
+}
+
+/* Las firmas y los cupos vacíos comparten la misma columna de renglones. */
+.session__signatures {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.session__signatures li {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: var(--s2) 0;
+  border-bottom: 1px solid var(--rule-hair);
+  font-size: var(--t-small);
+}
+
+.session__name {
+  color: var(--pen-bright);
+  font-variation-settings: 'wght' 560, 'wdth' 96;
+}
+
+.session__open {
+  color: var(--ink-3);
+}
+
+.session__open-line {
+  width: 34px;
+  height: 1px;
+  background: var(--rule-strong);
+  margin-left: 6px;
+  margin-right: 6px;
+}
+
+.session__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  flex-wrap: wrap;
+  padding-top: var(--s2);
+}

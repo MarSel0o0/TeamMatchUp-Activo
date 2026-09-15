@@ -11,12 +11,14 @@ export const WEEK_DAYS: { value: WeekDay; label: string; short: string }[] = [
 ];
 
 /**
- * Rango de horas que muestra la grilla. No se dibujan las 24 horas porque la
- * franja de madrugada satura la vista sin aportar información: se parte a las
- * 08:00 y se cierra a las 02:00 del día siguiente.
+ * Horas que dibuja la hoja.
+ *
+ * No son las 24: nadie coordina una partida competitiva a las nueve de la
+ * mañana, y esas filas vacías se comen la mitad de la reja. Se abre a las 12:00
+ * —que cubre las tardes de fin de semana— y se cierra a las 02:00.
  */
 export const GRID_HOURS: number[] = [
-  ...Array.from({ length: 16 }, (_, index) => index + 8), // 08:00 - 23:00
+  ...Array.from({ length: 12 }, (_, index) => index + 12), // 12:00 - 23:00
   0,
   1,
 ];

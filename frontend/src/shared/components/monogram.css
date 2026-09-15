@@ -1,0 +1,28 @@
+.monogram {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border: 1.5px solid;
+  border-radius: 2px;
+  background: var(--paper-sunk);
+  font-variation-settings: 'wght' 700, 'wdth' 88;
+  letter-spacing: 0.02em;
+}
+
+.monogram--sm {
+  width: 24px;
+  height: 24px;
+  font-size: 0.625rem;
+}
+
+.monogram--md {
+  width: 36px;
+  height: 36px;
+  font-size: var(--t-small);
+}
+
+.monogram--lg {
+  width: 58px;
+  height: 58px;
+  font-size: var(--t-h3);
+}

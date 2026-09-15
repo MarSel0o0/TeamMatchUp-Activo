@@ -1,6 +1,8 @@
+import { AlertCircle, ArrowRight } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/app/routes';
+import { Icon } from '@/shared/components/Icon';
 import { TextField } from '@/shared/components/TextField';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import {
@@ -51,7 +53,7 @@ export default function RegisterPage() {
     setSubmitError(null);
 
     const nextErrors: FieldErrors<RegisterForm> = {
-      displayName: required(form.displayName, 'Ingresa tu nombre.'),
+      displayName: required(form.displayName, 'Escribe tu nombre.'),
       username: validUsername(form.username),
       email: validEmail(form.email),
       password: validPassword(form.password),
@@ -69,7 +71,7 @@ export default function RegisterPage() {
         email: form.email.trim(),
         password: form.password,
       });
-      // Una cuenta nueva no tiene juegos ni horarios: se parte por configurarlos.
+      // Una cuenta nueva no tiene juegos ni horas: se parte por llenar la ficha.
       navigate(ROUTES.settings, { replace: true });
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : 'No se pudo crear la cuenta.');
@@ -79,17 +81,20 @@ export default function RegisterPage() {
   };
 
   return (
-    <form className="auth-form" onSubmit={handleSubmit} noValidate>
-      <header className="auth-form__header">
-        <h1 className="page-title">Crear cuenta</h1>
-        <p className="page-subtitle">
-          Después vincularás tus juegos y marcarás los horarios en que puedes jugar.
-        </p>
+    <form className="access" onSubmit={handleSubmit} noValidate>
+      <header className="access__head">
+        <h2 className="doc-title">Crear cuenta</h2>
+        <p className="note">Después vinculas tus juegos y marcas tus horas.</p>
       </header>
 
-      {submitError ? <p className="alert">{submitError}</p> : null}
+      {submitError ? (
+        <p className="notice notice--error" role="alert">
+          <Icon as={AlertCircle} size={15} />
+          {submitError}
+        </p>
+      ) : null}
 
-      <div className="auth-form__fields">
+      <div className="access__fields">
         <TextField
           label="Nombre"
           autoComplete="name"
@@ -99,16 +104,16 @@ export default function RegisterPage() {
           error={errors.displayName}
         />
         <TextField
-          label="Nombre de usuario"
+          label="Usuario"
           autoComplete="username"
           placeholder="tu_nick"
           value={form.username}
           onChange={update('username')}
           error={errors.username}
-          hint="Es tu identificador público dentro de la plataforma."
+          hint="Es con lo que el resto te identifica en la hoja."
         />
         <TextField
-          label="Correo electrónico"
+          label="Correo"
           type="email"
           autoComplete="email"
           placeholder="tu@correo.com"
@@ -136,13 +141,13 @@ export default function RegisterPage() {
         />
       </div>
 
-      <button type="submit" className="btn btn--primary btn--block" disabled={submitting}>
-        {submitting ? <span className="spinner" /> : null}
-        {submitting ? 'Creando cuenta…' : 'Crear cuenta'}
+      <button type="submit" className="btn btn--pen btn--block" disabled={submitting}>
+        {submitting ? <span className="btn__spin" /> : <Icon as={ArrowRight} size={15} />}
+        {submitting ? 'Creando…' : 'Crear cuenta'}
       </button>
 
-      <p className="auth-form__footer">
-        ¿Ya tienes cuenta? <Link to={ROUTES.login}>Inicia sesión</Link>
+      <p className="access__foot">
+        ¿Ya tienes cuenta? <Link to={ROUTES.login}>Entrar</Link>
       </p>
     </form>
   );

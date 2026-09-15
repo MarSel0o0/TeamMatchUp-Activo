@@ -1,6 +1,6 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/features/auth/useAuth';
-import { LoadingState } from '@/shared/components/States';
+import { Working } from '@/shared/components/States';
 import { ROUTES } from './routes';
 
 /**
@@ -12,7 +12,7 @@ export function ProtectedRoute() {
   const { isAuthenticated, isRestoring } = useAuth();
   const location = useLocation();
 
-  if (isRestoring) return <LoadingState label="Restaurando tu sesión…" />;
+  if (isRestoring) return <Working label="Restaurando tu sesión…" />;
 
   if (!isAuthenticated) {
     return <Navigate to={ROUTES.login} replace state={{ from: location.pathname }} />;
@@ -25,7 +25,7 @@ export function ProtectedRoute() {
 export function PublicOnlyRoute() {
   const { isAuthenticated, isRestoring } = useAuth();
 
-  if (isRestoring) return <LoadingState label="Restaurando tu sesión…" />;
+  if (isRestoring) return <Working label="Restaurando tu sesión…" />;
   if (isAuthenticated) return <Navigate to={ROUTES.profile} replace />;
 
   return <Outlet />;

@@ -1,0 +1,146 @@
+.entry {
+  border-bottom: 1px solid var(--rule-hair);
+  transition: background var(--fast) var(--ease);
+}
+
+.entry[data-band] {
+  background: var(--paper-band);
+}
+
+.entry:hover {
+  background: var(--paper-raised);
+}
+
+.entry[data-open] {
+  background: var(--paper-raised);
+  box-shadow: inset 2px 0 0 var(--pen);
+}
+
+.entry__line {
+  display: grid;
+  grid-template-columns: 36px minmax(180px, 1.5fr) 160px 140px 72px 214px;
+  align-items: center;
+  gap: var(--s4);
+  padding: var(--s3) var(--s5);
+}
+
+/* Con cabecera de columnas visible, repetir la etiqueta en cada fila es ruido. */
+.entry__inline-label {
+  display: none;
+}
+
+.entry__who {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.entry__who strong {
+  font-variation-settings: 'wght' 620, 'wdth' 96;
+}
+
+.entry__who .note {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.entry__col {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  font-size: var(--t-small);
+}
+
+.entry__hours {
+  color: var(--ok);
+}
+
+/* La afinidad es la columna que el ojo recorre para comparar. */
+.entry__score {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+  padding-left: var(--s3);
+  border-left: 1px solid var(--rule);
+}
+
+.entry__score-value {
+  font-size: var(--t-h2);
+  font-variation-settings: 'wght' 640, 'wdth' 88;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--pen-bright);
+}
+
+.entry__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+}
+
+.entry__toggle svg {
+  transition: transform var(--fast) var(--ease);
+}
+
+.entry[data-open] .entry__toggle svg {
+  transform: rotate(180deg);
+}
+
+.entry__detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+  padding: 0 var(--s5) var(--s5) calc(var(--s5) + 36px + var(--s4));
+}
+
+.entry__stamps {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  flex-wrap: wrap;
+}
+
+@media (max-width: 1100px) {
+  .entry__line {
+    grid-template-columns: 36px 1fr auto;
+    row-gap: var(--s3);
+    padding: var(--s3) var(--s4);
+  }
+
+  /* Sin cabecera de columnas, cada dato vuelve a nombrarse. */
+  .entry__inline-label {
+    display: block;
+  }
+
+  /* La afinidad acompaña al nombre: es lo que ordena la lista. */
+  .entry__score {
+    grid-column: 3;
+    grid-row: 1;
+    border-left: 0;
+    padding-left: 0;
+  }
+
+  .entry__col {
+    grid-column: 2 / -1;
+    flex-direction: row;
+    align-items: baseline;
+    gap: var(--s2);
+    flex-wrap: wrap;
+  }
+
+  .entry__score-value {
+    font-size: var(--t-h3);
+  }
+
+  .entry__actions {
+    grid-column: 2 / -1;
+    justify-content: flex-start;
+  }
+
+  .entry__detail {
+    padding-left: var(--s4);
+    padding-right: var(--s4);
+  }
+}

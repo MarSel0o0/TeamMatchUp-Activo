@@ -1,0 +1,71 @@
+.rank-scale {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+.rank-scale__track {
+  position: relative;
+  height: 22px;
+  border-bottom: 1px solid var(--rule-strong);
+}
+
+/* Cada tier del juego es una marca real de la regla. */
+.rank-scale__tick {
+  position: absolute;
+  bottom: 0;
+  width: 1px;
+  height: 7px;
+  background: var(--rule-strong);
+  transform: translateX(-50%);
+}
+
+.rank-scale__tick[data-first],
+.rank-scale__tick[data-last] {
+  height: 12px;
+  background: var(--ink-3);
+}
+
+.rank-scale__past {
+  position: absolute;
+  bottom: 0;
+  width: 1px;
+  height: 16px;
+  background: var(--ink-3);
+  transform: translateX(-50%);
+}
+
+.rank-scale__past::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 -1px 0;
+  height: 1px;
+  background: var(--ink-3);
+}
+
+.rank-scale__now {
+  position: absolute;
+  bottom: -3px;
+  width: 3px;
+  height: 22px;
+  border-radius: 1px;
+  transform: translateX(-50%);
+}
+
+.rank-scale__ends {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s3);
+}
+
+.rank-scale__delta {
+  font-size: var(--t-micro);
+  font-variant-numeric: tabular-nums;
+  font-variation-settings: 'wght' 600;
+  color: var(--stamp);
+}
+
+.rank-scale__delta[data-up] {
+  color: var(--ok);
+}

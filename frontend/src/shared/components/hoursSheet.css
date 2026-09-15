@@ -1,0 +1,126 @@
+.hours {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+}
+
+.hours__grid {
+  --cell: 22px;
+  display: grid;
+  grid-template-columns: 46px repeat(7, 1fr);
+  user-select: none;
+}
+
+/* Cada fila entrega sus ocho celdas directamente a la rejilla del contenedor. */
+.hours__row {
+  display: contents;
+}
+
+.hours__corner {
+  border-bottom: 1px solid var(--rule-strong);
+}
+
+.hours__day {
+  padding-bottom: var(--s2);
+  border-bottom: 1px solid var(--rule-strong);
+  text-align: center;
+  font-size: var(--t-micro);
+  font-variation-settings: 'wght' 640, 'wdth' 90;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* La columna de horas es el margen numerado del formulario. */
+.hours__hour {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  height: var(--cell);
+  padding-right: var(--s3);
+  border-right: 1px solid var(--rule);
+  font-size: var(--t-micro);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-3);
+}
+
+.hours__cell {
+  height: var(--cell);
+  padding: 0;
+  border: 0;
+  border-right: 1px solid var(--rule-hair);
+  border-bottom: 1px solid var(--rule-hair);
+  background: transparent;
+  cursor: pointer;
+  transition: background var(--fast) linear;
+}
+
+/* Banda alterna: el ojo sigue la línea sin perderse. */
+.hours__cell[data-band],
+.hours__hour[data-band] {
+  background: var(--paper-band);
+}
+
+.hours__cell:hover:not(:disabled) {
+  background: var(--pen-wash);
+}
+
+.hours__cell[data-marked] {
+  background: var(--pen);
+  border-right-color: var(--pen);
+  border-bottom-color: var(--pen);
+}
+
+.hours__cell[data-shared] {
+  background: var(--ok);
+  border-right-color: var(--ok);
+  border-bottom-color: var(--ok);
+}
+
+.hours__cell:disabled {
+  cursor: default;
+}
+
+.hours--compact .hours__grid {
+  --cell: 15px;
+}
+
+.hours__key {
+  display: flex;
+  align-items: center;
+  gap: var(--s5);
+  flex-wrap: wrap;
+  font-size: var(--t-micro);
+  color: var(--ink-2);
+}
+
+.hours__key-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-variation-settings: 'wght' 620, 'wdth' 92;
+}
+
+.hours__swatch {
+  width: 11px;
+  height: 11px;
+  border-radius: 1px;
+  display: inline-block;
+}
+
+.hours__swatch[data-marked] {
+  background: var(--pen);
+}
+
+.hours__swatch[data-shared] {
+  background: var(--ok);
+}
+
+@media (max-width: 640px) {
+  .hours__grid {
+    --cell: 19px;
+    grid-template-columns: 38px repeat(7, 1fr);
+  }
+}

@@ -1,16 +1,51 @@
-.match-filters {
+.filters {
   position: sticky;
-  top: var(--space-5);
+  top: var(--s5);
 }
 
-.match-filters__value {
-  float: right;
-  color: var(--color-text);
-  font-variant-numeric: tabular-nums;
+.filters__count {
+  font-size: var(--t-h3);
+  font-variation-settings: 'wght' 640, 'wdth' 90;
+  color: var(--pen-bright);
 }
 
-@media (max-width: 900px) {
-  .match-filters {
+.filters__dial {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s3);
+}
+
+.filters__dial .num {
+  color: var(--ink);
+  font-size: var(--t-small);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.filters__search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.filters__search svg {
+  position: absolute;
+  left: var(--s3);
+  color: var(--ink-3);
+  pointer-events: none;
+}
+
+.filters__search .input {
+  padding-left: 2.1rem;
+}
+
+.filters__search .input::-webkit-search-cancel-button {
+  filter: invert(1) opacity(0.4);
+}
+
+@media (max-width: 960px) {
+  .filters {
     position: static;
   }
 }

@@ -23,15 +23,12 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, State> {
     if (!this.state.error) return this.props.children;
 
     return (
-      <div className="empty-state" style={{ minHeight: '100vh', justifyContent: 'center' }}>
-        <span className="empty-state__icon" aria-hidden="true">
-          💥
-        </span>
+      <div className="blank" style={{ minHeight: '100vh', justifyContent: 'center' }}>
         <div className="stack-sm">
-          <h1 className="page-title">Algo se rompió</h1>
-          <p className="muted">{this.state.error.message}</p>
+          <h1 className="doc-title">Algo se rompió</h1>
+          <p className="note note--faint">{this.state.error.message}</p>
         </div>
-        <button type="button" className="btn btn--primary" onClick={() => window.location.reload()}>
+        <button type="button" className="btn btn--pen" onClick={() => window.location.reload()}>
           Recargar la aplicación
         </button>
       </div>

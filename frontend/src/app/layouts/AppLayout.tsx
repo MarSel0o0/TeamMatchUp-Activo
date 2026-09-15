@@ -1,16 +1,24 @@
-import { useState } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/features/auth/useAuth';
-import { Avatar } from '@/shared/components/Avatar';
+import { LogOut, Menu, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { env } from '@/config/env';
+import { useAuth } from '@/features/auth/useAuth';
+import { Icon } from '@/shared/components/Icon';
+import { Monogram } from '@/shared/components/Monogram';
 import { NAV_ITEMS, ROUTES } from '../routes';
 import './appLayout.css';
 
-/** Marco de la aplicación autenticada: navegación lateral + contenido. */
+/** Marco de la aplicación: el índice del expediente y la hoja abierta. */
 export function AppLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const location = useLocation();
+  const [navOpen, setNavOpen] = useState(false);
+
+  // Navegar cierra el cajón en pantallas angostas.
+  useEffect(() => {
+    setNavOpen(false);
+  }, [location.pathname]);
 
   const handleLogout = async () => {
     await logout();
@@ -18,62 +26,77 @@ export function AppLayout() {
   };
 
   return (
-    <div className="app-layout">
-      <aside className={`app-sidebar${menuOpen ? ' is-open' : ''}`}>
-        <NavLink to={ROUTES.profile} className="app-sidebar__brand">
-          <img src="/logo.svg" alt="" width={28} height={28} />
-          <span>TeamMatchUp</span>
+    <div className="shell">
+      <aside className={`shell__index${navOpen ? ' is-open' : ''}`}>
+        <NavLink to={ROUTES.profile} className="shell__mark">
+          <span className="shell__mark-name">TeamMatchUp</span>
+          <span className="label">Hoja de inscripción</span>
         </NavLink>
 
-        <nav className="app-sidebar__nav">
+        <nav className="shell__nav">
           {NAV_ITEMS.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
-              className={({ isActive }) => `app-sidebar__link${isActive ? ' is-active' : ''}`}
-              onClick={() => setMenuOpen(false)}
+              className={({ isActive }) => `shell__link${isActive ? ' is-active' : ''}`}
             >
-              <span aria-hidden="true">{item.icon}</span>
-              {item.label}
+              <span className="shell__folio num">{item.folio}</span>
+              <Icon as={item.icon} size={15} />
+              <span className="grow">{item.label}</span>
             </NavLink>
           ))}
         </nav>
 
         {env.useMockApi ? (
-          <p className="app-sidebar__note">
-            Datos de demostración en el navegador. Define <code>VITE_API_URL</code> para conectar el
-            servidor.
+          <p className="shell__note">
+            <strong>Datos de demostración.</strong> Nada de lo que ves proviene de Riot, Ubisoft o
+            Steam todavía. Define <code>VITE_API_URL</code> para conectar el servidor.
           </p>
         ) : null}
 
         {user ? (
-          <div className="app-sidebar__user">
-            <Avatar name={user.displayName} color={user.avatarColor} size="sm" />
-            <div className="app-sidebar__user-info">
+          <div className="shell__signer">
+            <Monogram name={user.displayName} color={user.avatarColor} size="sm" />
+            <span className="grow shell__signer-name">
               <strong>{user.displayName}</strong>
-              <span className="faint">@{user.username}</span>
-            </div>
-            <button type="button" className="btn btn--ghost btn--sm" onClick={handleLogout}>
-              Salir
+              <span className="note note--faint">@{user.username}</span>
+            </span>
+            <button
+              type="button"
+              className="btn btn--quiet btn--sm"
+              onClick={handleLogout}
+              title="Cerrar sesión"
+            >
+              <Icon as={LogOut} size={13} label="Cerrar sesión" />
             </button>
           </div>
         ) : null}
       </aside>
 
-      <div className="app-main">
-        <header className="app-topbar">
+      <div className="shell__main">
+        <header className="shell__bar">
           <button
             type="button"
-            className="btn btn--ghost btn--sm app-topbar__toggle"
-            onClick={() => setMenuOpen((open) => !open)}
-            aria-expanded={menuOpen}
+            className="btn btn--sm"
+            onClick={() => setNavOpen((open) => !open)}
+            aria-expanded={navOpen}
           >
-            ☰ Menú
+            <Icon as={navOpen ? X : Menu} size={14} />
+            Índice
           </button>
-          <span className="app-topbar__brand">TeamMatchUp</span>
+          <span className="shell__bar-name">TeamMatchUp</span>
         </header>
 
-        <main className="app-content">
+        {navOpen ? (
+          <button
+            type="button"
+            className="shell__scrim"
+            aria-label="Cerrar el índice"
+            onClick={() => setNavOpen(false)}
+          />
+        ) : null}
+
+        <main className="shell__page">
           <Outlet />
         </main>
       </div>

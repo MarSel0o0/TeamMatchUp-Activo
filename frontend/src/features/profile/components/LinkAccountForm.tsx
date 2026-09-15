@@ -1,18 +1,20 @@
+import { AlertCircle, Link2 } from 'lucide-react';
 import { useMemo, useState, type FormEvent } from 'react';
 import { GAME_LIST, getGame } from '@/domain/games';
 import type { GameId } from '@/domain/types';
+import { Icon } from '@/shared/components/Icon';
 import { TextField } from '@/shared/components/TextField';
 import { useLinkAccount } from '../hooks';
 
 interface LinkAccountFormProps {
-  /** Juegos que el usuario ya tiene vinculados: no se ofrecen de nuevo. */
+  /** Juegos ya vinculados: no se vuelven a ofrecer. */
   linkedGames: GameId[];
   onLinked?: () => void;
 }
 
 /**
- * Vinculación de una cuenta de juego. Solo se piden el identificador y la
- * región: el rango lo obtiene la plataforma desde la fuente externa.
+ * Alta de una cuenta de juego. Solo se piden identificador y región: el rango lo
+ * lee la plataforma desde la fuente del juego, que es lo que lo hace verificable.
  */
 export function LinkAccountForm({ linkedGames, onLinked }: LinkAccountFormProps) {
   const available = useMemo(
@@ -30,8 +32,8 @@ export function LinkAccountForm({ linkedGames, onLinked }: LinkAccountFormProps)
 
   if (available.length === 0) {
     return (
-      <p className="alert alert--success">
-        Ya tienes vinculados los tres juegos disponibles. 🎉
+      <p className="note note--faint">
+        Ya tienes vinculados los tres juegos que la plataforma soporta.
       </p>
     );
   }
@@ -47,7 +49,7 @@ export function LinkAccountForm({ linkedGames, onLinked }: LinkAccountFormProps)
     setError(null);
 
     if (!game.handlePattern.test(handle.trim())) {
-      setError(`El ${game.handleLabel} no tiene el formato esperado (${game.handlePlaceholder}).`);
+      setError(`Ese ${game.handleLabel} no tiene el formato esperado (${game.handlePlaceholder}).`);
       return;
     }
 
@@ -64,10 +66,15 @@ export function LinkAccountForm({ linkedGames, onLinked }: LinkAccountFormProps)
 
   return (
     <form className="stack" onSubmit={handleSubmit} noValidate>
-      {error ? <p className="alert">{error}</p> : null}
+      {error ? (
+        <p className="notice notice--error" role="alert">
+          <Icon as={AlertCircle} size={15} />
+          {error}
+        </p>
+      ) : null}
 
       <div className="field">
-        <label className="field__label" htmlFor="link-game">
+        <label className="label" htmlFor="link-game">
           Juego
         </label>
         <select
@@ -93,7 +100,7 @@ export function LinkAccountForm({ linkedGames, onLinked }: LinkAccountFormProps)
       />
 
       <div className="field">
-        <label className="field__label" htmlFor="link-region">
+        <label className="label" htmlFor="link-region">
           Región
         </label>
         <select
@@ -110,7 +117,8 @@ export function LinkAccountForm({ linkedGames, onLinked }: LinkAccountFormProps)
         </select>
       </div>
 
-      <button type="submit" className="btn btn--primary" disabled={linkAccount.isPending}>
+      <button type="submit" className="btn btn--pen" disabled={linkAccount.isPending}>
+        {linkAccount.isPending ? <span className="btn__spin" /> : <Icon as={Link2} size={14} />}
         {linkAccount.isPending ? 'Vinculando…' : 'Vincular cuenta'}
       </button>
     </form>

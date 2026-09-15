@@ -1,42 +1,46 @@
+import { Plus } from 'lucide-react';
 import { GRID_HOURS, WEEK_DAYS, formatHour } from '@/domain/availability';
 import { getGame } from '@/domain/games';
 import type { PlaySession, TimeBlock, WeekDay } from '@/domain/types';
+import { Icon } from '@/shared/components/Icon';
+import { withAlpha } from '@/shared/utils/ink';
 import { layoutWeek } from './layout';
 import './weekCalendar.css';
 
 interface WeekCalendarProps {
   sessions: PlaySession[];
-  /** Disponibilidad propia: los bloques libres se sombrean de fondo. */
+  /** Horas propias: se sombrean para saber dónde puedes firmar. */
   availability: TimeBlock[];
   selectedSessionId: string | null;
+  currentUserId: string;
   onSelectSession: (sessionId: string) => void;
   onSelectSlot: (day: WeekDay, hour: number) => void;
 }
 
 /**
- * Calendario semanal.
+ * La hoja de la semana.
  *
- * Las sesiones se ubican en la celda de su hora de inicio, se extienden tantas
- * filas como dure la sesión y, cuando dos se pisan, comparten el ancho de la
- * columna del día. Hacer clic en una celda vacía abre el formulario con ese
- * bloque ya elegido.
+ * Siete columnas de día, las horas numeradas en el margen y las sesiones ya
+ * firmadas ocupando sus bloques con la tinta de su juego. Una línea vacía dentro
+ * de tus horas ofrece anotar una sesión ahí mismo.
  */
 export function WeekCalendar({
   sessions,
   availability,
   selectedSessionId,
+  currentUserId,
   onSelectSession,
   onSelectSlot,
 }: WeekCalendarProps) {
-  const availableBlocks = new Set(availability);
+  const openHours = new Set(availability);
   const positioned = layoutWeek(sessions);
 
   return (
-    <div className="week-calendar" role="grid" aria-label="Agenda semanal de sesiones">
-      <div className="week-calendar__grid">
-        <span />
+    <div className="week">
+      <div className="week__grid">
+        <span className="week__corner" />
         {WEEK_DAYS.map((day) => (
-          <span key={day.value} className="week-calendar__day">
+          <span key={day.value} className="week__day">
             {day.short}
           </span>
         ))}
@@ -46,35 +50,44 @@ export function WeekCalendar({
             key={hour}
             hour={hour}
             rowIndex={rowIndex}
-            availableBlocks={availableBlocks}
+            openHours={openHours}
             onSelectSlot={onSelectSlot}
           />
         ))}
 
         {positioned.map(({ session, day, rowIndex, span, column, columns }) => {
           const game = getGame(session.gameId);
-          const isSelected = session.id === selectedSessionId;
+          const selected = session.id === selectedSessionId;
+          const signed = session.participants.some(
+            (participant) => participant.id === currentUserId,
+          );
 
           return (
             <button
               key={session.id}
               type="button"
-              className={`week-calendar__session${isSelected ? ' is-selected' : ''}`}
+              className="week__session"
+              data-selected={selected || undefined}
+              data-signed={signed || undefined}
               style={{
                 gridColumn: day + 2,
                 gridRow: `${rowIndex + 2} / span ${span}`,
-                // Reparto horizontal entre las sesiones que se solapan.
+                // Reparto horizontal entre las sesiones que se pisan.
                 width: `calc(100% / ${columns})`,
                 marginLeft: `calc(${column} * 100% / ${columns})`,
-                background: `${game.accent}26`,
-                borderColor: game.accent,
+                background: withAlpha(game.accent, 0.15),
+                borderColor: withAlpha(game.accent, 0.55),
               }}
               onClick={() => onSelectSession(session.id)}
-              aria-label={`${session.title}, ${WEEK_DAYS[session.day].label} ${formatHour(session.startHour)}, ${session.participants.length} de ${session.slots} jugadores`}
-              title={`${session.title} · ${formatHour(session.startHour)}–${formatHour((session.startHour + session.durationHours) % 24)}`}
+              aria-label={`${session.title}, ${WEEK_DAYS[session.day].label} ${formatHour(
+                session.startHour,
+              )}, ${session.participants.length} de ${session.slots} jugadores`}
+              title={`${session.title} · ${formatHour(session.startHour)}–${formatHour(
+                (session.startHour + session.durationHours) % 24,
+              )}`}
             >
-              <span className="week-calendar__session-title">{session.title}</span>
-              <span className="week-calendar__session-meta">
+              <span className="week__session-title">{session.title}</span>
+              <span className="week__session-meta num">
                 {game.shortName} · {session.participants.length}/{session.slots}
               </span>
             </button>
@@ -88,28 +101,37 @@ export function WeekCalendar({
 interface RowProps {
   hour: number;
   rowIndex: number;
-  availableBlocks: Set<string>;
+  openHours: Set<string>;
   onSelectSlot: (day: WeekDay, hour: number) => void;
 }
 
-function Row({ hour, rowIndex, availableBlocks, onSelectSlot }: RowProps) {
+function Row({ hour, rowIndex, openHours, onSelectSlot }: RowProps) {
   return (
     <>
-      <span className="week-calendar__hour" style={{ gridRow: rowIndex + 2 }}>
+      <span
+        className="week__hour"
+        data-band={rowIndex % 2 === 1 || undefined}
+        style={{ gridRow: rowIndex + 2 }}
+      >
         {formatHour(hour)}
       </span>
-      {WEEK_DAYS.map((day) => (
-        <button
-          key={`${day.value}-${hour}`}
-          type="button"
-          className={`week-calendar__cell${
-            availableBlocks.has(`${day.value}-${hour}`) ? ' is-available' : ''
-          }`}
-          style={{ gridColumn: day.value + 2, gridRow: rowIndex + 2 }}
-          onClick={() => onSelectSlot(day.value, hour)}
-          aria-label={`Publicar sesión el ${day.label} a las ${formatHour(hour)}`}
-        />
-      ))}
+      {WEEK_DAYS.map((day) => {
+        const isOpen = openHours.has(`${day.value}-${hour}`);
+        return (
+          <button
+            key={`${day.value}-${hour}`}
+            type="button"
+            className="week__slot"
+            data-band={rowIndex % 2 === 1 || undefined}
+            data-open={isOpen || undefined}
+            style={{ gridColumn: day.value + 2, gridRow: rowIndex + 2 }}
+            onClick={() => onSelectSlot(day.value, hour)}
+            aria-label={`Anotar una sesión el ${day.label} a las ${formatHour(hour)}`}
+          >
+            <Icon as={Plus} size={12} />
+          </button>
+        );
+      })}
     </>
   );
 }

@@ -1,6 +1,6 @@
 import { Suspense, lazy } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
-import { LoadingState } from '@/shared/components/States';
+import { Working } from '@/shared/components/States';
 import { AppLayout } from './layouts/AppLayout';
 import { AuthLayout } from './layouts/AuthLayout';
 import { ProtectedRoute, PublicOnlyRoute } from './ProtectedRoute';
@@ -21,7 +21,7 @@ const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
 export function AppRouter() {
   return (
-    <Suspense fallback={<LoadingState />}>
+    <Suspense fallback={<Working label="Abriendo la hoja…" />}>
       <Routes>
         <Route element={<PublicOnlyRoute />}>
           <Route element={<AuthLayout />}>

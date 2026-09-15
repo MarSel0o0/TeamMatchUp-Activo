@@ -27,15 +27,16 @@ export const DEMO_CREDENTIALS = {
   password: 'demo1234',
 } as const;
 
+/** Tintas de identidad, tomadas de la paleta del mundo: bolígrafo, sello y juego. */
 const AVATAR_COLORS = [
-  '#6d5efc',
-  '#28e0a4',
-  '#f2b544',
-  '#ef6f7b',
-  '#4ec3f0',
-  '#b07ef5',
-  '#7fd45c',
-  '#f08a4b',
+  '#4f86e8',
+  '#d4453a',
+  '#d3a04a',
+  '#5fc2d8',
+  '#e08a4f',
+  '#4aa36b',
+  '#99a3ab',
+  '#6e9df0',
 ];
 
 const PEOPLE: { username: string; displayName: string; bio: string }[] = [

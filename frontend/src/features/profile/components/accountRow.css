@@ -1,0 +1,41 @@
+.account {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+  padding: var(--s4) var(--s5);
+  border-bottom: 1px solid var(--rule);
+}
+
+.account:last-child {
+  border-bottom: 0;
+}
+
+.account__title {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s3);
+}
+
+.account__entries {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--s4);
+  margin: 0;
+}
+
+.account__entries div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.account__entries dd {
+  margin: 0;
+  font-size: var(--t-small);
+}
+
+.account__actions {
+  display: flex;
+  gap: var(--s2);
+  flex-wrap: wrap;
+}

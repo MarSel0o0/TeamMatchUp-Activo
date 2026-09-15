@@ -1,159 +1,204 @@
-.app-layout {
+.shell {
   display: grid;
-  grid-template-columns: var(--sidebar-width) 1fr;
+  grid-template-columns: var(--shell-nav) 1fr;
   min-height: 100%;
+  background: var(--paper);
 }
 
-/* Barra lateral --------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+   El índice del expediente
+   -------------------------------------------------------------------------- */
 
-.app-sidebar {
+.shell__index {
   display: flex;
   flex-direction: column;
-  gap: var(--space-5);
-  padding: var(--space-5) var(--space-4);
-  background: var(--color-bg-soft);
-  border-right: 1px solid var(--color-border);
+  gap: var(--s5);
+  padding: var(--s5) var(--s4);
+  background: var(--paper-margin);
+  border-right: 1px solid var(--rule);
   position: sticky;
   top: 0;
   height: 100vh;
 }
 
-.app-sidebar__brand {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  color: var(--color-text);
-  font-weight: 700;
-  font-size: var(--text-lg);
-  letter-spacing: -0.02em;
-}
-
-.app-sidebar__brand:hover {
-  text-decoration: none;
-}
-
-.app-sidebar__nav {
+.shell__mark {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
-  flex: 1;
-}
-
-.app-sidebar__link {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: 0.55rem 0.7rem;
-  border-radius: var(--radius-md);
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
-  font-weight: 560;
-  transition: background var(--transition), color var(--transition);
-}
-
-.app-sidebar__link:hover {
-  background: var(--color-surface);
-  color: var(--color-text);
+  gap: 2px;
+  color: var(--ink);
   text-decoration: none;
 }
 
-.app-sidebar__link.is-active {
-  background: var(--color-primary-soft);
-  color: var(--color-text);
+.shell__mark:hover {
+  text-decoration: none;
 }
 
-.app-sidebar__note {
-  font-size: var(--text-xs);
-  color: var(--color-text-faint);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: var(--space-3);
+.shell__mark-name {
+  font-size: var(--t-h3);
+  font-variation-settings: 'wght' 780, 'wdth' 82;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
 }
 
-.app-sidebar__note code {
-  font-family: var(--font-mono);
-  color: var(--color-text-muted);
+.shell__nav {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  border-top: 1px solid var(--rule);
 }
 
-.app-sidebar__user {
+.shell__link {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  padding-top: var(--space-4);
-  border-top: 1px solid var(--color-border);
+  gap: var(--s3);
+  padding: 0.6rem var(--s2);
+  border-bottom: 1px solid var(--rule-hair);
+  color: var(--ink-2);
+  font-size: var(--t-small);
+  font-variation-settings: 'wght' 560, 'wdth' 96;
+  text-decoration: none;
+  transition: color var(--fast) var(--ease), background var(--fast) var(--ease);
 }
 
-.app-sidebar__user-info {
+.shell__link:hover {
+  background: var(--paper-band);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+/* La sección abierta se marca en el margen, como una pestaña doblada. */
+.shell__link.is-active {
+  color: var(--ink);
+  background: var(--paper-raised);
+  box-shadow: inset 2px 0 0 var(--pen);
+}
+
+.shell__folio {
+  font-size: var(--t-micro);
+  color: var(--ink-3);
+}
+
+.shell__link.is-active .shell__folio {
+  color: var(--pen-bright);
+}
+
+.shell__note {
+  padding: var(--s3);
+  border: 1px dashed var(--rule-strong);
+  border-radius: 2px;
+  font-size: var(--t-micro);
+  line-height: 1.5;
+  color: var(--ink-3);
+}
+
+.shell__note strong {
+  display: block;
+  color: var(--ink-2);
+  font-variation-settings: 'wght' 680;
+}
+
+.shell__note code {
+  font-family: var(--face);
+  font-variation-settings: 'wght' 620, 'wdth' 88;
+  color: var(--pen-bright);
+}
+
+.shell__signer {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  padding-top: var(--s4);
+  border-top: 3px double var(--rule-strong);
+}
+
+.shell__signer-name {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  flex: 1;
-  font-size: var(--text-sm);
+  font-size: var(--t-small);
 }
 
-.app-sidebar__user-info strong,
-.app-sidebar__user-info span {
+.shell__signer-name strong,
+.shell__signer-name span {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* Contenido ------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+   La hoja abierta
+   -------------------------------------------------------------------------- */
 
-.app-main {
+.shell__main {
   min-width: 0;
+  position: relative;
 }
 
-.app-topbar {
+.shell__bar {
   display: none;
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-bg-soft);
+  gap: var(--s3);
+  padding: var(--s3) var(--s4);
+  background: var(--paper-margin);
+  border-bottom: 1px solid var(--rule);
   position: sticky;
   top: 0;
-  z-index: 20;
+  z-index: 30;
 }
 
-.app-topbar__brand {
-  font-weight: 700;
+.shell__bar-name {
+  font-variation-settings: 'wght' 760, 'wdth' 84;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
 }
 
-.app-content {
-  max-width: var(--content-max);
+.shell__page {
+  max-width: var(--measure);
   margin: 0 auto;
-  padding: var(--space-6) var(--space-5) var(--space-7);
+  padding: var(--s6) var(--s5) var(--s8);
   display: flex;
   flex-direction: column;
-  gap: var(--space-5);
+  gap: var(--s5);
 }
 
-@media (max-width: 900px) {
-  .app-layout {
+.shell__scrim {
+  display: none;
+}
+
+@media (max-width: 960px) {
+  .shell {
     grid-template-columns: 1fr;
   }
 
-  .app-topbar {
+  .shell__bar {
     display: flex;
   }
 
-  .app-sidebar {
+  .shell__index {
     position: fixed;
     inset: 0 auto 0 0;
-    width: var(--sidebar-width);
-    z-index: 30;
+    width: var(--shell-nav);
+    z-index: 40;
     transform: translateX(-100%);
-    transition: transform var(--transition);
-    box-shadow: var(--shadow-lg);
+    transition: transform var(--base) var(--ease);
+    box-shadow: var(--lift-high);
   }
 
-  .app-sidebar.is-open {
+  .shell__index.is-open {
     transform: translateX(0);
   }
 
-  .app-content {
-    padding: var(--space-4);
+  .shell__scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 35;
+    border: 0;
+    padding: 0;
+    background: rgba(5, 7, 9, 0.6);
+  }
+
+  .shell__page {
+    padding: var(--s4) var(--s4) var(--s7);
   }
 }

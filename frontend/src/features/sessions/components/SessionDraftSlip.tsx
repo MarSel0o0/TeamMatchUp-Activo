@@ -1,8 +1,10 @@
+import { AlertCircle, PenLine } from 'lucide-react';
 import { useEffect, useState, type FormEvent } from 'react';
 import { GRID_HOURS, WEEK_DAYS, formatHour } from '@/domain/availability';
 import { GAME_LIST } from '@/domain/games';
 import type { GameId, WeekDay } from '@/domain/types';
-import { Modal } from '@/shared/components/Modal';
+import { Slip } from '@/shared/components/Slip';
+import { Icon } from '@/shared/components/Icon';
 import { TextField } from '@/shared/components/TextField';
 import { useCreateSession } from '../hooks';
 
@@ -13,7 +15,7 @@ export interface SessionDraft {
   title?: string;
 }
 
-interface CreateSessionModalProps {
+interface SessionDraftSlipProps {
   open: boolean;
   draft: SessionDraft;
   /** Juegos que el usuario tiene vinculados; no se publica en otros. */
@@ -21,13 +23,13 @@ interface CreateSessionModalProps {
   onClose: () => void;
 }
 
-/** Formulario de publicación de una sesión en un bloque horario concreto. */
-export function CreateSessionModal({
+/** Papeleta para anotar una sesión en un bloque horario concreto. */
+export function SessionDraftSlip({
   open,
   draft,
   availableGames,
   onClose,
-}: CreateSessionModalProps) {
+}: SessionDraftSlipProps) {
   const createSession = useCreateSession();
 
   const [gameId, setGameId] = useState<GameId>(draft.gameId);
@@ -81,28 +83,35 @@ export function CreateSessionModal({
   const games = GAME_LIST.filter((game) => availableGames.includes(game.id));
 
   return (
-    <Modal
+    <Slip
       open={open}
-      title="Publicar una sesión"
+      title="Anotar una sesión"
+      reference={`${WEEK_DAYS[day].short} ${formatHour(startHour)}`}
       onClose={onClose}
       footer={
         <>
-          <button type="button" className="btn btn--ghost" onClick={onClose}>
+          <button type="button" className="btn" onClick={onClose}>
             Cancelar
           </button>
           <button
             type="submit"
             form="create-session-form"
-            className="btn btn--primary"
+            className="btn btn--pen"
             disabled={createSession.isPending}
           >
-            {createSession.isPending ? 'Publicando…' : 'Publicar sesión'}
+            {createSession.isPending ? <span className="btn__spin" /> : <Icon as={PenLine} size={14} />}
+            {createSession.isPending ? 'Anotando…' : 'Anotar sesión'}
           </button>
         </>
       }
     >
       <form id="create-session-form" className="stack" onSubmit={handleSubmit} noValidate>
-        {error ? <p className="alert">{error}</p> : null}
+        {error ? (
+          <p className="notice notice--error" role="alert">
+            <Icon as={AlertCircle} size={15} />
+            {error}
+          </p>
+        ) : null}
 
         <TextField
           label="Título"
@@ -113,7 +122,7 @@ export function CreateSessionModal({
         />
 
         <div className="field">
-          <label className="field__label" htmlFor="session-game">
+          <label className="label" htmlFor="session-game">
             Juego
           </label>
           <select
@@ -132,7 +141,7 @@ export function CreateSessionModal({
 
         <div className="row" style={{ alignItems: 'flex-end', gap: 'var(--space-3)' }}>
           <div className="field grow">
-            <label className="field__label" htmlFor="session-day">
+            <label className="label" htmlFor="session-day">
               Día
             </label>
             <select
@@ -150,7 +159,7 @@ export function CreateSessionModal({
           </div>
 
           <div className="field grow">
-            <label className="field__label" htmlFor="session-hour">
+            <label className="label" htmlFor="session-hour">
               Hora de inicio
             </label>
             <select
@@ -170,7 +179,7 @@ export function CreateSessionModal({
 
         <div className="row" style={{ alignItems: 'flex-end', gap: 'var(--space-3)' }}>
           <div className="field grow">
-            <label className="field__label" htmlFor="session-duration">
+            <label className="label" htmlFor="session-duration">
               Duración (horas)
             </label>
             <select
@@ -188,7 +197,7 @@ export function CreateSessionModal({
           </div>
 
           <div className="field grow">
-            <label className="field__label" htmlFor="session-slots">
+            <label className="label" htmlFor="session-slots">
               Cupos
             </label>
             <select
@@ -207,7 +216,7 @@ export function CreateSessionModal({
         </div>
 
         <div className="field">
-          <label className="field__label" htmlFor="session-notes">
+          <label className="label" htmlFor="session-notes">
             Notas (opcional)
           </label>
           <textarea
@@ -220,6 +229,6 @@ export function CreateSessionModal({
           />
         </div>
       </form>
-    </Modal>
+    </Slip>
   );
 }

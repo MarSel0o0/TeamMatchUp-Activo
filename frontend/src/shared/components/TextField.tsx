@@ -1,4 +1,6 @@
+import { AlertCircle } from 'lucide-react';
 import { useId, type InputHTMLAttributes } from 'react';
+import { Icon } from './Icon';
 
 interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string;
@@ -13,7 +15,7 @@ export function TextField({ label, error, hint, id, ...inputProps }: TextFieldPr
 
   return (
     <div className="field">
-      <label className="field__label" htmlFor={fieldId}>
+      <label className="label" htmlFor={fieldId}>
         {label}
       </label>
       <input
@@ -25,6 +27,7 @@ export function TextField({ label, error, hint, id, ...inputProps }: TextFieldPr
       />
       {error ? (
         <span className="field__error" id={`${fieldId}-error`} role="alert">
+          <Icon as={AlertCircle} size={12} />
           {error}
         </span>
       ) : hint ? (

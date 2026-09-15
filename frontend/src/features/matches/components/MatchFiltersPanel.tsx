@@ -1,46 +1,57 @@
+import { Search } from 'lucide-react';
 import type { MatchFilters } from '@/domain/types';
+import { Icon } from '@/shared/components/Icon';
 import './matchFilters.css';
 
 interface MatchFiltersPanelProps {
   filters: MatchFilters;
   onChange: (filters: MatchFilters) => void;
   resultCount: number;
+  onReset: () => void;
 }
 
-/** Filtros de la vista de coincidencias; se aplican sin recargar la página. */
-export function MatchFiltersPanel({ filters, onChange, resultCount }: MatchFiltersPanelProps) {
+/** Casillas del formulario de búsqueda. Se aplican sin recargar la página. */
+export function MatchFiltersPanel({
+  filters,
+  onChange,
+  resultCount,
+  onReset,
+}: MatchFiltersPanelProps) {
   const patch = (changes: Partial<MatchFilters>) => onChange({ ...filters, ...changes });
 
   return (
-    <aside className="match-filters card">
-      <div className="card__header">
-        <h2 className="section-title">Filtros</h2>
-        <span className="badge">{resultCount}</span>
+    <aside className="filters sheet">
+      <div className="sheet__head">
+        <h2 className="sheet-title grow">Criterios</h2>
+        <span className="num filters__count">{resultCount}</span>
       </div>
 
-      <div className="stack">
+      <div className="sheet__body stack">
         <div className="field">
-          <label className="field__label" htmlFor="filter-search">
+          <label className="label" htmlFor="filter-search">
             Buscar jugador
           </label>
-          <input
-            id="filter-search"
-            className="input"
-            type="search"
-            placeholder="Nombre o usuario"
-            value={filters.search}
-            onChange={(event) => patch({ search: event.target.value })}
-          />
+          <div className="filters__search">
+            <Icon as={Search} size={14} />
+            <input
+              id="filter-search"
+              className="input"
+              type="search"
+              placeholder="Nombre o usuario"
+              value={filters.search}
+              onChange={(event) => patch({ search: event.target.value })}
+            />
+          </div>
         </div>
 
         <div className="field">
-          <label className="field__label" htmlFor="filter-rank">
+          <label className="label filters__dial" htmlFor="filter-rank">
             Diferencia máxima de rango
-            <span className="match-filters__value">{filters.maxRankDistance} pts</span>
+            <span className="num">{filters.maxRankDistance} pts</span>
           </label>
           <input
             id="filter-rank"
-            className="range"
+            className="slider"
             type="range"
             min={0}
             max={50}
@@ -49,18 +60,18 @@ export function MatchFiltersPanel({ filters, onChange, resultCount }: MatchFilte
             onChange={(event) => patch({ maxRankDistance: Number(event.target.value) })}
           />
           <span className="field__hint">
-            En la escala normalizada 0-100 que compara rangos entre juegos distintos.
+            Sobre la escala normalizada 0-100 que permite comparar juegos con escalas distintas.
           </span>
         </div>
 
         <div className="field">
-          <label className="field__label" htmlFor="filter-overlap">
-            Horas semanales en común
-            <span className="match-filters__value">{filters.minSharedHours} h</span>
+          <label className="label filters__dial" htmlFor="filter-overlap">
+            Horas en común por semana
+            <span className="num">{filters.minSharedHours} h</span>
           </label>
           <input
             id="filter-overlap"
-            className="range"
+            className="slider"
             type="range"
             min={0}
             max={12}
@@ -70,7 +81,7 @@ export function MatchFiltersPanel({ filters, onChange, resultCount }: MatchFilte
           />
         </div>
 
-        <label className="checkbox">
+        <label className="check">
           <input
             type="checkbox"
             checked={filters.onlyVerified}
@@ -79,20 +90,8 @@ export function MatchFiltersPanel({ filters, onChange, resultCount }: MatchFilte
           Solo cuentas con rango verificado
         </label>
 
-        <button
-          type="button"
-          className="btn btn--ghost btn--sm"
-          onClick={() =>
-            onChange({
-              gameId: filters.gameId,
-              maxRankDistance: 25,
-              minSharedHours: 2,
-              onlyVerified: false,
-              search: '',
-            })
-          }
-        >
-          Restablecer filtros
+        <button type="button" className="btn btn--sm" onClick={onReset}>
+          Restablecer criterios
         </button>
       </div>
     </aside>

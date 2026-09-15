@@ -1,0 +1,72 @@
+.preview {
+  width: 100%;
+  max-width: 540px;
+}
+
+.preview__lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.preview__line {
+  display: grid;
+  grid-template-columns: 52px 3px 1fr 44px;
+  align-items: center;
+  gap: var(--s3);
+  padding: 0.55rem var(--s4) 0.55rem var(--s3);
+  border-bottom: 1px solid var(--rule-hair);
+}
+
+.preview__line[data-band] {
+  background: var(--paper-band);
+}
+
+.preview__hour {
+  font-size: var(--t-small);
+  color: var(--ink-2);
+}
+
+.preview__ink {
+  width: 3px;
+  height: 18px;
+  border-radius: 1px;
+}
+
+.preview__signed {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  flex-wrap: wrap;
+}
+
+/* Las firmas van en tinta de bolígrafo, como en la hoja de papel. */
+.preview__name {
+  font-size: var(--t-small);
+  font-variation-settings: 'wght' 560, 'wdth' 94;
+  color: var(--pen-bright);
+  white-space: nowrap;
+}
+
+/* Un cupo libre es una línea en blanco esperando a alguien. */
+.preview__open {
+  width: 46px;
+  height: 1px;
+  background: var(--rule-strong);
+}
+
+.preview__count {
+  font-size: var(--t-micro);
+  color: var(--ink-3);
+  text-align: right;
+}
+
+@media (max-width: 560px) {
+  .preview__line {
+    grid-template-columns: 44px 3px 1fr;
+  }
+
+  .preview__count {
+    display: none;
+  }
+}

@@ -1,3 +1,4 @@
+import { CalendarPlus, Link2, NotebookPen } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/app/routes';
@@ -6,16 +7,17 @@ import { GAME_LIST } from '@/domain/games';
 import type { GameId, WeekDay } from '@/domain/types';
 import { useAuth } from '@/features/auth/useAuth';
 import { useAccounts, useAvailability } from '@/features/profile/hooks';
-import { EmptyState, ErrorState, SkeletonList } from '@/shared/components/States';
+import { Icon } from '@/shared/components/Icon';
+import { Blank, Failure, SheetSkeleton } from '@/shared/components/States';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { pluralize } from '@/shared/utils/format';
-import { CreateSessionModal, type SessionDraft } from '../components/CreateSessionModal';
-import { SessionCard } from '../components/SessionCard';
+import { SessionDraftSlip, type SessionDraft } from '../components/SessionDraftSlip';
+import { SessionSlip } from '../components/SessionSlip';
 import { WeekCalendar } from '../components/WeekCalendar';
 import { useCancelSession, useJoinSession, useLeaveSession, useSessions } from '../hooks';
 import './schedulePage.css';
 
-/** Contexto que la vista de coincidencias envía al proponer una sesión. */
+/** Contexto que envía la vista de coincidencias al proponer una sesión. */
 interface ScheduleLocationState {
   gameId?: GameId;
   withUser?: string;
@@ -23,7 +25,7 @@ interface ScheduleLocationState {
 }
 
 export default function SchedulePage() {
-  useDocumentTitle('Agenda de sesiones');
+  useDocumentTitle('Agenda');
 
   const { user } = useAuth();
   const location = useLocation();
@@ -38,20 +40,20 @@ export default function SchedulePage() {
 
   const sessions = useMemo(() => sessionsQuery.data ?? [], [sessionsQuery.data]);
   const accounts = accountsQuery.data ?? [];
-  const availableGames = accounts.map((account) => account.gameId);
+  const myGames = accounts.map((account) => account.gameId);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [draft, setDraft] = useState<SessionDraft | null>(null);
 
-  // Si la sesión seleccionada desaparece (se canceló o cambió el filtro) se limpia.
+  // Si la sesión abierta desaparece (se canceló, o cambió el filtro) se limpia.
   useEffect(() => {
     if (selectedId && !sessions.some((session) => session.id === selectedId)) {
       setSelectedId(null);
     }
   }, [sessions, selectedId]);
 
-  // Llegada desde "Proponer sesión" en coincidencias: abre el formulario con el
-  // juego y el mejor bloque en común ya seleccionados.
+  // Llegada desde «Proponer sesión»: abre la papeleta con el juego y el mejor
+  // bloque en común ya elegidos.
   useEffect(() => {
     const state = location.state as ScheduleLocationState | null;
     if (!state?.gameId) return;
@@ -67,14 +69,14 @@ export default function SchedulePage() {
   }, [location.state]);
 
   const selected = sessions.find((session) => session.id === selectedId) ?? null;
-  const mySessions = sessions.filter((session) =>
+  const mine = sessions.filter((session) =>
     session.participants.some((participant) => participant.id === user?.id),
   );
 
   const openDraft = (day: WeekDay, startHour: number) => {
-    if (availableGames.length === 0) return;
+    if (myGames.length === 0) return;
     setDraft({
-      gameId: gameFilter === 'all' ? availableGames[0] : gameFilter,
+      gameId: gameFilter === 'all' ? myGames[0] : gameFilter,
       day,
       startHour,
     });
@@ -86,35 +88,36 @@ export default function SchedulePage() {
 
   return (
     <>
-      <header className="row-between">
-        <div>
-          <h1 className="page-title">Agenda de sesiones</h1>
-          <p className="page-subtitle">
-            Publica un bloque para jugar o súmate al de otro jugador. Los bloques con tu
-            disponibilidad aparecen resaltados.
+      <header className="line-between">
+        <div className="stack-sm">
+          <h1 className="doc-title">Agenda de la semana</h1>
+          <p className="lead">
+            Anota un bloque para jugar o firma el de otro. Tus horas declaradas aparecen sombreadas.
           </p>
         </div>
         <button
           type="button"
-          className="btn btn--primary"
+          className="btn btn--pen"
           onClick={() => openDraft(0, 20)}
-          disabled={availableGames.length === 0}
+          disabled={myGames.length === 0}
         >
-          Publicar sesión
+          <Icon as={CalendarPlus} size={15} />
+          Anotar sesión
         </button>
       </header>
 
-      {availableGames.length === 0 ? (
-        <p className="alert alert--info">
-          Necesitas al menos un juego vinculado para publicar sesiones.{' '}
+      {myGames.length === 0 ? (
+        <p className="notice notice--pen">
+          <Icon as={Link2} size={15} />
+          Necesitas al menos un juego vinculado para anotar sesiones.{' '}
           <Link to={ROUTES.settings}>Vincula una cuenta</Link>.
         </p>
       ) : null}
 
-      <div className="schedule-filters">
+      <div className="agenda__filters">
         <button
           type="button"
-          className={`btn btn--sm${gameFilter === 'all' ? ' btn--primary' : ' btn--ghost'}`}
+          className={`btn btn--sm${gameFilter === 'all' ? ' btn--pen' : ''}`}
           onClick={() => setGameFilter('all')}
         >
           Todos los juegos
@@ -123,70 +126,82 @@ export default function SchedulePage() {
           <button
             key={game.id}
             type="button"
-            className={`btn btn--sm${gameFilter === game.id ? ' btn--primary' : ' btn--ghost'}`}
+            className={`btn btn--sm${gameFilter === game.id ? ' btn--pen' : ''}`}
             onClick={() => setGameFilter(game.id)}
           >
             {game.name}
           </button>
         ))}
-        {sessionsQuery.isFetching ? <span className="spinner" aria-label="Actualizando" /> : null}
+        {sessionsQuery.isFetching ? (
+          <span className="btn__spin" style={{ color: 'var(--pen)' }} aria-label="Actualizando" />
+        ) : null}
       </div>
 
-      <div className="schedule-layout">
-        <section className="card card--calendar">
-          {sessionsQuery.isPending ? (
-            <SkeletonList rows={1} height={420} />
-          ) : sessionsQuery.isError ? (
-            <ErrorState error={sessionsQuery.error} onRetry={() => sessionsQuery.refetch()} />
-          ) : (
-            <WeekCalendar
-              sessions={sessions}
-              availability={availabilityQuery.data ?? []}
-              selectedSessionId={selectedId}
-              onSelectSession={setSelectedId}
-              onSelectSlot={openDraft}
-            />
-          )}
+      <div className="agenda">
+        <section className="sheet sheet--punched">
+          <div className="sheet__head">
+            <h2 className="sheet-title grow">Hoja semanal</h2>
+            <span className="label">
+              {pluralize(sessions.length, 'sesión anotada', 'sesiones anotadas')}
+            </span>
+          </div>
+
+          <div className="sheet__body">
+            {sessionsQuery.isPending ? (
+              <SheetSkeleton rows={8} height={34} />
+            ) : sessionsQuery.isError ? (
+              <Failure error={sessionsQuery.error} onRetry={() => sessionsQuery.refetch()} />
+            ) : (
+              <WeekCalendar
+                sessions={sessions}
+                availability={availabilityQuery.data ?? []}
+                selectedSessionId={selectedId}
+                currentUserId={user.id}
+                onSelectSession={setSelectedId}
+                onSelectSlot={openDraft}
+              />
+            )}
+          </div>
         </section>
 
-        <aside className="schedule-side">
-          <div className="card">
-            <div className="card__header">
-              <h2 className="section-title">
-                {selected ? 'Sesión seleccionada' : 'Mis sesiones'}
+        <aside className="agenda__side">
+          <div className="sheet">
+            <div className="sheet__head">
+              <h2 className="sheet-title grow">
+                {selected ? 'Sesión abierta' : 'Mis sesiones'}
               </h2>
               {selected ? (
                 <button
                   type="button"
-                  className="btn btn--ghost btn--sm"
+                  className="btn btn--quiet btn--sm"
                   onClick={() => setSelectedId(null)}
                 >
                   Ver las mías
                 </button>
               ) : (
-                <span className="badge">{mySessions.length}</span>
+                <span className="num label">{mine.length}</span>
               )}
             </div>
 
-            {selected ? (
-              <SessionCard
-                session={selected}
-                currentUserId={user.id}
-                onJoin={(id) => joinSession.mutate(id)}
-                onLeave={(id) => leaveSession.mutate(id)}
-                onCancel={(id) => cancelSession.mutate(id)}
-                busy={busy}
-              />
-            ) : mySessions.length === 0 ? (
-              <EmptyState
-                icon="🗓️"
-                title="No estás en ninguna sesión"
-                description="Haz clic en un bloque del calendario para publicar la tuya, o súmate a una existente."
-              />
-            ) : (
-              <div className="stack">
-                {mySessions.map((session) => (
-                  <SessionCard
+            <div className="sheet__body stack">
+              {selected ? (
+                <SessionSlip
+                  session={selected}
+                  currentUserId={user.id}
+                  onJoin={(id) => joinSession.mutate(id)}
+                  onLeave={(id) => leaveSession.mutate(id)}
+                  onCancel={(id) => cancelSession.mutate(id)}
+                  busy={busy}
+                />
+              ) : mine.length === 0 ? (
+                <Blank
+                  icon={NotebookPen}
+                  title="No has firmado ninguna sesión"
+                  description="Haz clic en un bloque de la hoja para anotar la tuya, o abre una existente y firma."
+                />
+              ) : (
+                mine.map((session) => (
+                  <SessionSlip
                     key={session.id}
                     session={session}
                     currentUserId={user.id}
@@ -195,24 +210,18 @@ export default function SchedulePage() {
                     onCancel={(id) => cancelSession.mutate(id)}
                     busy={busy}
                   />
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="panel">
-            <span className="faint">
-              {pluralize(sessions.length, 'sesión publicada', 'sesiones publicadas')} en esta vista.
-            </span>
+                ))
+              )}
+            </div>
           </div>
         </aside>
       </div>
 
       {draft ? (
-        <CreateSessionModal
+        <SessionDraftSlip
           open
           draft={draft}
-          availableGames={availableGames}
+          availableGames={myGames}
           onClose={() => setDraft(null)}
         />
       ) : null}

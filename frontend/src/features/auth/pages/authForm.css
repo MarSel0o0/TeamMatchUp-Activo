@@ -1,40 +1,45 @@
-.auth-form {
+.access {
   width: min(400px, 100%);
   display: flex;
   flex-direction: column;
-  gap: var(--space-5);
+  gap: var(--s5);
 }
 
-.auth-form__header {
+.access__head {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: var(--s2);
+  padding-bottom: var(--s3);
+  border-bottom: 1px solid var(--rule-strong);
 }
 
-.auth-form__fields {
+.access__fields {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--s4);
 }
 
-.auth-form__footer {
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
+.access__foot {
+  font-size: var(--t-small);
+  color: var(--ink-3);
   text-align: center;
 }
 
-.auth-form__demo {
-  border: 1px dashed var(--color-border-strong);
-  border-radius: var(--radius-md);
-  padding: var(--space-3) var(--space-4);
-  font-size: var(--text-xs);
-  color: var(--color-text-muted);
+/* La cuenta de demostración se presenta como lo que es: una nota al pie del formulario. */
+.access__demo {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--s2);
+  padding: var(--s3);
+  border: 1px dashed var(--rule-strong);
+  border-radius: 2px;
+  font-size: var(--t-micro);
+  line-height: 1.55;
+  color: var(--ink-3);
 }
 
-.auth-form__demo code {
-  font-family: var(--font-mono);
-  color: var(--color-text);
+.access__demo code {
+  font-family: var(--face);
+  font-variation-settings: 'wght' 640, 'wdth' 90;
+  color: var(--ink-2);
 }

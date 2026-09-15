@@ -1,54 +1,69 @@
+import { FileWarning, Inbox, RotateCw } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { Icon } from './Icon';
 
-export function LoadingState({ label = 'Cargando…' }: { label?: string }) {
+/** Filas de formulario en blanco mientras llega el contenido. */
+export function SheetSkeleton({ rows = 4, height = 44 }: { rows?: number; height?: number }) {
   return (
-    <div className="empty-state" role="status">
-      <span className="spinner" />
-      <span className="muted">{label}</span>
+    <div aria-hidden="true">
+      {Array.from({ length: rows }, (_, index) => (
+        <div
+          key={index}
+          className="skeleton"
+          style={{
+            height,
+            marginBottom: 1,
+            opacity: 1 - index * 0.13,
+          }}
+        />
+      ))}
     </div>
   );
 }
 
-interface EmptyStateProps {
-  icon?: string;
+interface BlankProps {
+  icon?: typeof Inbox;
   title: string;
   description?: string;
   action?: ReactNode;
 }
 
-export function EmptyState({ icon = '🎮', title, description, action }: EmptyStateProps) {
+/** Estado vacío que enseña qué hacer, no que anuncia que no hay nada. */
+export function Blank({ icon = Inbox, title, description, action }: BlankProps) {
   return (
-    <div className="empty-state">
-      <span className="empty-state__icon" aria-hidden="true">
-        {icon}
+    <div className="blank">
+      <span className="blank__mark">
+        <Icon as={icon} size={26} />
       </span>
       <div className="stack-sm">
-        <strong>{title}</strong>
-        {description ? <span className="faint">{description}</span> : null}
+        <strong className="sheet-title">{title}</strong>
+        {description ? <span className="note note--faint">{description}</span> : null}
       </div>
       {action}
     </div>
   );
 }
 
-interface ErrorStateProps {
+interface FailureProps {
   error: unknown;
   onRetry?: () => void;
 }
 
-export function ErrorState({ error, onRetry }: ErrorStateProps) {
+export function Failure({ error, onRetry }: FailureProps) {
   const message = error instanceof Error ? error.message : 'Ocurrió un error inesperado.';
+
   return (
-    <div className="empty-state">
-      <span className="empty-state__icon" aria-hidden="true">
-        ⚠️
+    <div className="blank">
+      <span className="blank__mark" style={{ color: 'var(--stamp)' }}>
+        <Icon as={FileWarning} size={26} />
       </span>
       <div className="stack-sm">
-        <strong>No se pudo cargar la información</strong>
-        <span className="faint">{message}</span>
+        <strong className="sheet-title">No se pudo leer la hoja</strong>
+        <span className="note note--faint">{message}</span>
       </div>
       {onRetry ? (
-        <button type="button" className="btn btn--ghost btn--sm" onClick={onRetry}>
+        <button type="button" className="btn btn--sm" onClick={onRetry}>
+          <Icon as={RotateCw} size={13} />
           Reintentar
         </button>
       ) : null}
@@ -56,12 +71,11 @@ export function ErrorState({ error, onRetry }: ErrorStateProps) {
   );
 }
 
-export function SkeletonList({ rows = 3, height = 72 }: { rows?: number; height?: number }) {
+export function Working({ label = 'Leyendo…' }: { label?: string }) {
   return (
-    <div className="stack" aria-hidden="true">
-      {Array.from({ length: rows }, (_, index) => (
-        <div key={index} className="skeleton" style={{ height }} />
-      ))}
+    <div className="blank" role="status">
+      <span className="btn__spin" style={{ color: 'var(--pen)' }} />
+      <span className="note">{label}</span>
     </div>
   );
 }

@@ -6,31 +6,31 @@ interface GameTabsProps {
   games: GameId[];
   value: GameId;
   onChange: (gameId: GameId) => void;
-  /** Etiqueta accesible del grupo de pestañas. */
   label?: string;
 }
 
 /**
- * Selector de juego. El cambio ocurre sin recargar la página: solo actualiza el
- * estado y deja que la consulta correspondiente se refresque.
+ * Selector de juego, dibujado como las pestañas de un archivador: la hoja activa
+ * queda al frente y su pestaña se une al papel de abajo. El cambio no recarga la
+ * página; solo relanza la consulta del juego elegido.
  */
 export function GameTabs({ games, value, onChange, label = 'Juego' }: GameTabsProps) {
   return (
-    <div className="game-tabs" role="tablist" aria-label={label}>
+    <div className="tabs" role="tablist" aria-label={label}>
       {games.map((gameId) => {
         const game = getGame(gameId);
         const selected = gameId === value;
+
         return (
           <button
             key={gameId}
             type="button"
             role="tab"
             aria-selected={selected}
-            className={`game-tabs__tab${selected ? ' is-active' : ''}`}
-            style={selected ? { borderColor: game.accent, color: game.accent } : undefined}
+            className="tabs__tab"
+            style={selected ? { color: game.accent, borderTopColor: game.accent } : undefined}
             onClick={() => onChange(gameId)}
           >
-            <span className="game-tabs__dot" style={{ background: game.accent }} />
             {game.name}
           </button>
         );

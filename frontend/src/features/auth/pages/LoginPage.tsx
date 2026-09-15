@@ -1,8 +1,10 @@
+import { AlertCircle, ArrowRight } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/app/routes';
 import { env } from '@/config/env';
 import { DEMO_CREDENTIALS } from '@/services/mock/seed';
+import { Icon } from '@/shared/components/Icon';
 import { TextField } from '@/shared/components/TextField';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { isValid, validEmail, type FieldErrors } from '@/shared/utils/validation';
@@ -15,7 +17,7 @@ interface LoginForm {
 }
 
 export default function LoginPage() {
-  useDocumentTitle('Iniciar sesión');
+  useDocumentTitle('Entrar');
 
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -37,7 +39,7 @@ export default function LoginPage() {
 
     const nextErrors: FieldErrors<LoginForm> = {
       email: validEmail(form.email),
-      password: form.password ? undefined : 'Ingresa tu contraseña.',
+      password: form.password ? undefined : 'Escribe tu contraseña.',
     };
     setErrors(nextErrors);
     if (!isValid(nextErrors)) return;
@@ -49,29 +51,29 @@ export default function LoginPage() {
       const from = (location.state as { from?: string } | null)?.from;
       navigate(from ?? ROUTES.profile, { replace: true });
     } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : 'No se pudo iniciar sesión.');
+      setSubmitError(error instanceof Error ? error.message : 'No se pudo entrar.');
     } finally {
       setSubmitting(false);
     }
   };
 
-  const useDemoAccount = () => {
-    setForm({ email: DEMO_CREDENTIALS.email, password: DEMO_CREDENTIALS.password });
-    setErrors({});
-  };
-
   return (
-    <form className="auth-form" onSubmit={handleSubmit} noValidate>
-      <header className="auth-form__header">
-        <h1 className="page-title">Iniciar sesión</h1>
-        <p className="page-subtitle">Entra para ver tus coincidencias y tu agenda.</p>
+    <form className="access" onSubmit={handleSubmit} noValidate>
+      <header className="access__head">
+        <h2 className="doc-title">Entrar</h2>
+        <p className="note">Tus coincidencias y tu agenda te están esperando.</p>
       </header>
 
-      {submitError ? <p className="alert">{submitError}</p> : null}
+      {submitError ? (
+        <p className="notice notice--error" role="alert">
+          <Icon as={AlertCircle} size={15} />
+          {submitError}
+        </p>
+      ) : null}
 
-      <div className="auth-form__fields">
+      <div className="access__fields">
         <TextField
-          label="Correo electrónico"
+          label="Correo"
           type="email"
           autoComplete="email"
           placeholder="tu@correo.com"
@@ -90,25 +92,33 @@ export default function LoginPage() {
         />
       </div>
 
-      <button type="submit" className="btn btn--primary btn--block" disabled={submitting}>
-        {submitting ? <span className="spinner" /> : null}
+      <button type="submit" className="btn btn--pen btn--block" disabled={submitting}>
+        {submitting ? <span className="btn__spin" /> : <Icon as={ArrowRight} size={15} />}
         {submitting ? 'Entrando…' : 'Entrar'}
       </button>
 
       {env.useMockApi ? (
-        <div className="auth-form__demo">
+        <div className="access__demo">
           <span>
-            Modo demostración: usa <code>{DEMO_CREDENTIALS.email}</code> con la contraseña{' '}
+            Esta copia corre con datos de demostración. Entra con{' '}
+            <code>{DEMO_CREDENTIALS.email}</code> y contraseña{' '}
             <code>{DEMO_CREDENTIALS.password}</code>.
           </span>
-          <button type="button" className="btn btn--ghost btn--sm" onClick={useDemoAccount}>
-            Rellenar cuenta de demostración
+          <button
+            type="button"
+            className="btn btn--sm"
+            onClick={() => {
+              setForm({ email: DEMO_CREDENTIALS.email, password: DEMO_CREDENTIALS.password });
+              setErrors({});
+            }}
+          >
+            Rellenar esos datos
           </button>
         </div>
       ) : null}
 
-      <p className="auth-form__footer">
-        ¿Todavía no tienes cuenta? <Link to={ROUTES.register}>Regístrate</Link>
+      <p className="access__foot">
+        ¿Todavía no tienes cuenta? <Link to={ROUTES.register}>Crear una</Link>
       </p>
     </form>
   );
