@@ -2,8 +2,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--s4);
-  padding: var(--s4) var(--s5);
-  border-bottom: 1px solid var(--rule);
+  padding: var(--s5);
+  border-bottom: 1px solid var(--line);
 }
 
 .account:last-child {
@@ -16,22 +16,34 @@
   gap: var(--s3);
 }
 
+.account__title .note {
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  margin-top: 2px;
+}
+
 .account__entries {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: var(--s4);
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: var(--s2);
   margin: 0;
 }
 
+/* Cada dato en su propia celda hundida: se lee como un panel de estado. */
 .account__entries div {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
+  padding: var(--s3);
+  border-radius: var(--r-md);
+  background: var(--surface-sunk);
+  border: 1px solid var(--line-hair);
 }
 
 .account__entries dd {
   margin: 0;
   font-size: var(--t-small);
+  font-weight: 560;
 }
 
 .account__actions {

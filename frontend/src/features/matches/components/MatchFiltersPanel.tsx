@@ -1,6 +1,8 @@
 import { Search } from 'lucide-react';
+import type { CSSProperties } from 'react';
 import type { MatchFilters } from '@/domain/types';
 import { Icon } from '@/shared/components/Icon';
+import { CountUp } from '@/shared/motion/CountUp';
 import './matchFilters.css';
 
 interface MatchFiltersPanelProps {
@@ -23,7 +25,10 @@ export function MatchFiltersPanel({
     <aside className="filters sheet">
       <div className="sheet__head">
         <h2 className="sheet-title grow">Criterios</h2>
-        <span className="num filters__count">{resultCount}</span>
+        <span className="filters__count">
+          <CountUp value={resultCount} />
+          <span className="label">resultados</span>
+        </span>
       </div>
 
       <div className="sheet__body stack">
@@ -57,6 +62,7 @@ export function MatchFiltersPanel({
             max={50}
             step={5}
             value={filters.maxRankDistance}
+            style={{ '--fill': `${(filters.maxRankDistance / 50) * 100}%` } as CSSProperties}
             onChange={(event) => patch({ maxRankDistance: Number(event.target.value) })}
           />
           <span className="field__hint">
@@ -77,6 +83,7 @@ export function MatchFiltersPanel({
             max={12}
             step={1}
             value={filters.minSharedHours}
+            style={{ '--fill': `${(filters.minSharedHours / 12) * 100}%` } as CSSProperties}
             onChange={(event) => patch({ minSharedHours: Number(event.target.value) })}
           />
         </div>

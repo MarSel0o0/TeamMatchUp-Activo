@@ -1,42 +1,65 @@
-import { createContext, useContext, useEffect, useState } from 'react';
-import type { ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { flushSync } from 'react-dom';
+import { STORAGE_KEYS } from '@/config/env';
+import { ThemeContext, type Theme } from './themeContext';
 
-type Theme = 'dark' | 'light';
-
-interface ThemeContextType {
-  theme: Theme;
-  toggleTheme: () => void;
+/**
+ * Lee el tema que dejó fijado el script de `index.html` antes de que React
+ * cargue: así la primera pintura ya sale con el tema correcto, sin destello.
+ */
+function initialTheme(): Theme {
+  return document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
 }
 
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+function persist(theme: Theme) {
+  try {
+    localStorage.setItem(STORAGE_KEYS.theme, theme);
+  } catch {
+    // Sin almacenamiento (modo privado estricto) el tema dura la sesión.
+  }
+}
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(() => {
-    const saved = localStorage.getItem('app-theme') as Theme;
-    if (saved === 'dark' || saved === 'light') return saved;
-    return 'dark'; // Default theme
-  });
+  const [theme, setTheme] = useState<Theme>(initialTheme);
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('app-theme', theme);
+    document.documentElement.dataset.theme = theme;
+    document.querySelector('meta[name="theme-color"]')?.setAttribute(
+      'content',
+      theme === 'light' ? '#eceef1' : '#0b0c0e',
+    );
   }, [theme]);
 
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
-  };
+  const toggleTheme = useCallback((origin?: { x: number; y: number }) => {
+    const next: Theme = theme === 'dark' ? 'light' : 'dark';
+    persist(next);
 
-  return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
-      {children}
-    </ThemeContext.Provider>
-  );
-}
+    const apply = () => {
+      // flushSync: la captura de "después" de la transición debe ver ya el
+      // tema nuevo aplicado al DOM.
+      flushSync(() => setTheme(next));
+      document.documentElement.dataset.theme = next;
+    };
 
-export function useTheme() {
-  const context = useContext(ThemeContext);
-  if (!context) {
-    throw new Error('useTheme must be used within a ThemeProvider');
-  }
-  return context;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!document.startViewTransition || reduce) {
+      apply();
+      return;
+    }
+
+    // El círculo nace en el botón y crece hasta la esquina más lejana.
+    const root = document.documentElement;
+    const x = origin?.x ?? window.innerWidth / 2;
+    const y = origin?.y ?? 0;
+    const radius = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y));
+    root.style.setProperty('--theme-x', `${x}px`);
+    root.style.setProperty('--theme-y', `${y}px`);
+    root.style.setProperty('--theme-r', `${radius}px`);
+
+    document.startViewTransition(apply);
+  }, [theme]);
+
+  const value = useMemo(() => ({ theme, toggleTheme }), [theme, toggleTheme]);
+
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }

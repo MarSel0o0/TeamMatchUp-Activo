@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
 import { GRID_HOURS, WEEK_DAYS, formatHour, toBlock } from '@/domain/availability';
 import type { TimeBlock, WeekDay } from '@/domain/types';
 import './hoursSheet.css';
@@ -15,9 +15,9 @@ interface HoursSheetProps {
 /**
  * La hoja de horas.
  *
- * Siete columnas de día, las horas como filas numeradas contra el margen
- * troquelado. Se rellena arrastrando —como quien recorre una planilla con el
- * lápiz— y también con teclado, porque cada casilla es un botón real.
+ * Siete columnas de día y las horas como filas. Se rellena arrastrando, como
+ * quien pinta con el mouse, y también con teclado, porque cada casilla es un
+ * botón real.
  */
 export function HoursSheet({
   value,
@@ -90,7 +90,7 @@ export function HoursSheet({
 
         {GRID_HOURS.map((hour, rowIndex) => (
           <div key={hour} className="hours__row" role="row">
-            <span className="hours__hour" data-band={rowIndex % 2 === 1 || undefined}>
+            <span className="hours__hour">
               {formatHour(hour)}
             </span>
             {WEEK_DAYS.map((day) => {
@@ -103,7 +103,8 @@ export function HoursSheet({
                   key={block}
                   type="button"
                   className="hours__cell"
-                  data-band={rowIndex % 2 === 1 || undefined}
+                  // Retardo diagonal: al montar, la grilla se enciende en ola.
+                  style={{ '--d': rowIndex + day.value } as CSSProperties}
                   data-marked={isMarked || undefined}
                   data-shared={isShared || undefined}
                   aria-pressed={readOnly ? undefined : isMarked}
@@ -137,7 +138,7 @@ export function HoursSheet({
         ) : null}
         {!readOnly ? (
           <span className="note note--faint">
-            Arrastra sobre la hoja para marcar; vuelve a pasar para borrar.
+            Arrastra sobre la grilla para marcar; vuelve a pasar para borrar.
           </span>
         ) : null}
       </div>

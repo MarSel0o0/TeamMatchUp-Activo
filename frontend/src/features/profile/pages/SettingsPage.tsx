@@ -47,7 +47,7 @@ export default function SettingsPage() {
 
   /* --- Horas -------------------------------------------------------------- */
 
-  // La hoja se raya en local y se confirma con «Guardar»: así el usuario puede
+  // La grilla se pinta en local y se confirma con «Guardar»: así el usuario puede
   // marcar veinte bloques sin veinte peticiones.
   const [draftBlocks, setDraftBlocks] = useState<TimeBlock[] | null>(null);
   const blocks = draftBlocks ?? availabilityQuery.data ?? [];
@@ -74,12 +74,14 @@ export default function SettingsPage() {
 
   return (
     <>
-      <header className="stack-sm">
-        <h1 className="doc-title">Configuración</h1>
-        <p className="lead">
-          Vincula los juegos que juegas y declara cuándo puedes jugar. Es lo que cruzamos con el
-          resto.
-        </p>
+      <header className="page-head">
+        <div className="page-head__copy">
+          <h1 className="doc-title">Configuración</h1>
+          <p className="lead">
+            Vincula los juegos que juegas y declara cuándo puedes jugar. Es lo que cruzamos con el
+            resto.
+          </p>
+        </div>
       </header>
 
       <section className="sheet sheet--punched">
@@ -175,9 +177,9 @@ export default function SettingsPage() {
         <div className="sheet__head">
           <div className="grow">
             <h2 className="sheet-title">Mis horas de la semana</h2>
-            <p className="note note--faint">
+            <p className="note note--faint line" style={{ gap: 'var(--s3)' }}>
               {pluralize(blocks.length, 'bloque marcado', 'bloques marcados')}
-              {pending ? ' · sin guardar' : ''}
+              {pending ? <span className="prefs__pending">sin guardar</span> : null}
             </p>
           </div>
           <div className="line">
@@ -212,10 +214,10 @@ export default function SettingsPage() {
 
         {blocks.length > 0 ? (
           <div className="sheet__foot">
-            <span className="num prefs__ranges">
-              {groupBlocks(blocks)
-                .map((range) => formatRange(range))
-                .join('   ·   ')}
+            <span className="prefs__ranges">
+              {groupBlocks(blocks).map((range) => (
+                <span key={`${range.day}-${range.startHour}`}>{formatRange(range)}</span>
+              ))}
             </span>
           </div>
         ) : null}

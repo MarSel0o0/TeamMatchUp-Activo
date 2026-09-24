@@ -16,4 +16,5 @@ export const env = {
 export const STORAGE_KEYS = {
   token: 'tmu.token',
   mockDb: 'tmu.mock-db.v2',
+  theme: 'tmu.theme',
 } as const;

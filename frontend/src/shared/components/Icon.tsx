@@ -11,8 +11,8 @@ interface IconProps {
 /**
  * Único punto por el que entran iconos.
  *
- * Fija el trazo y los remates en todo el producto: la esquina recta del mundo de
- * formulario, no la punta redondeada por defecto de la librería.
+ * Fija el trazo y los remates en todo el producto: un solo grosor fino y
+ * remates redondeados, a juego con las píldoras y los radios suaves.
  */
 export function Icon({ as: Glyph, size = 16, className, label }: IconProps) {
   return (
@@ -21,8 +21,8 @@ export function Icon({ as: Glyph, size = 16, className, label }: IconProps) {
       className={className}
       strokeWidth={1.5}
       absoluteStrokeWidth
-      strokeLinecap="square"
-      strokeLinejoin="miter"
+      strokeLinecap="round"
+      strokeLinejoin="round"
       aria-hidden={label ? undefined : true}
       aria-label={label}
       role={label ? 'img' : undefined}

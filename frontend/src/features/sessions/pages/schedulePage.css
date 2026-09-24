@@ -7,12 +7,12 @@
 
 .agenda {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 336px;
-  gap: var(--s4);
+  grid-template-columns: minmax(0, 1fr) 350px;
+  gap: var(--s5);
   align-items: start;
 }
 
-/* Sin esto, el ancho mínimo de la reja escapa del scroller y empuja el
+/* Sin esto, el ancho mínimo de la grilla escapa del scroller y empuja el
    documento entero: en un teléfono la página se desplazaba de lado. */
 .agenda > .sheet {
   min-width: 0;
@@ -20,7 +20,39 @@
 
 .agenda__side {
   position: sticky;
-  top: var(--s5);
+  top: calc(var(--nav-h) + var(--s6));
+}
+
+.agenda__legend {
+  display: flex;
+  align-items: center;
+  gap: var(--s4);
+  flex-wrap: wrap;
+  font-size: var(--t-micro);
+  color: var(--ink-3);
+}
+
+.agenda__legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+}
+
+.agenda__swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+  background: var(--volt-wash);
+  border: 1px solid var(--volt-wash-strong);
+}
+
+.agenda__swatch--signed {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--volt);
+  box-shadow: 0 0 8px var(--volt);
 }
 
 @media (max-width: 1080px) {

@@ -2,7 +2,7 @@ import { FileWarning, Inbox, RotateCw } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Icon } from './Icon';
 
-/** Filas de formulario en blanco mientras llega el contenido. */
+/** Esqueleto con la forma del contenido mientras llega. */
 export function SheetSkeleton({ rows = 4, height = 44 }: { rows?: number; height?: number }) {
   return (
     <div aria-hidden="true">
@@ -58,7 +58,7 @@ export function Failure({ error, onRetry }: FailureProps) {
         <Icon as={FileWarning} size={26} />
       </span>
       <div className="stack-sm">
-        <strong className="sheet-title">No se pudo leer la hoja</strong>
+        <strong className="sheet-title">No se pudieron cargar los datos</strong>
         <span className="note note--faint">{message}</span>
       </div>
       {onRetry ? (

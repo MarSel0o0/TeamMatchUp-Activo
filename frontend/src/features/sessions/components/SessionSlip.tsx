@@ -17,10 +17,10 @@ interface SessionSlipProps {
 }
 
 /**
- * Una sesión publicada, con sus firmas y los cupos que quedan en blanco.
+ * Una sesión publicada, con sus jugadores y los cupos que quedan libres.
  *
- * La acción que se ofrece depende de dónde está el usuario en esa hoja: si la
- * organiza, si ya firmó o si todavía puede anotarse.
+ * La acción que se ofrece depende de dónde está el usuario en esa sesión: si la
+ * organiza, si ya está anotado o si todavía puede sumarse.
  */
 export function SessionSlip({
   session,
@@ -49,14 +49,20 @@ export function SessionSlip({
 
       {session.notes ? <p className="session__notes">{session.notes}</p> : null}
 
+      <div className="session__meter" aria-hidden="true">
+        {Array.from({ length: session.slots }, (_, index) => (
+          <span key={index} data-on={index < session.participants.length || undefined} />
+        ))}
+      </div>
+
       <ul className="session__signatures">
-        {session.participants.map((participant) => (
-          <li key={participant.id}>
+        {session.participants.map((participant, index) => (
+          <li key={participant.id} style={{ animationDelay: `${index * 50}ms` }}>
             <Monogram name={participant.displayName} color={participant.avatarColor} size="sm" />
-            <span className="session__name">
-              {participant.displayName}
-              {participant.id === session.hostId ? ' · organiza' : ''}
-            </span>
+            <span className="session__name">{participant.displayName}</span>
+            {participant.id === session.hostId ? (
+              <span className="session__host">organiza</span>
+            ) : null}
           </li>
         ))}
         {Array.from({ length: openSlots }, (_, index) => (
@@ -70,7 +76,7 @@ export function SessionSlip({
       <footer className="session__foot">
         {isSigned ? (
           <Stamp tone="pen" pressKey={`${session.id}-${session.participants.length}`} announce>
-            {isHost ? 'La organizas' : 'Firmada'}
+            {isHost ? 'La organizas' : 'Estás dentro'}
           </Stamp>
         ) : openSlots === 0 ? (
           <Stamp tone="sealed" pressKey={session.participants.length}>
@@ -78,7 +84,7 @@ export function SessionSlip({
           </Stamp>
         ) : (
           <span className="note note--faint num">
-            {session.participants.length}/{session.slots} firmados
+            {session.participants.length}/{session.slots} jugadores
           </span>
         )}
 
@@ -100,7 +106,7 @@ export function SessionSlip({
             disabled={busy}
           >
             <Icon as={LogOut} size={13} />
-            Borrar mi firma
+            Salir
           </button>
         ) : (
           <button
@@ -110,7 +116,7 @@ export function SessionSlip({
             disabled={busy || openSlots === 0}
           >
             <Icon as={UserPlus} size={13} />
-            {openSlots === 0 ? 'Sin cupos' : 'Firmar'}
+            {openSlots === 0 ? 'Sin cupos' : 'Unirme'}
           </button>
         )}
       </footer>

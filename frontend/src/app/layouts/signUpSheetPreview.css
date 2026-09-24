@@ -1,73 +1,129 @@
 .preview {
   width: 100%;
   max-width: 540px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+.preview__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s3);
+  padding: 0 var(--s2);
+}
+
+.preview__day {
+  font-size: var(--t-h3);
+  font-weight: 620;
+  letter-spacing: -0.03em;
 }
 
 .preview__lines {
   list-style: none;
   margin: 0;
   padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
 }
 
 .preview__line {
+  position: relative;
   display: grid;
-  grid-template-columns: 52px 3px 1fr 44px;
+  grid-template-columns: 50px 40px minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--s3);
-  padding: 0.55rem var(--s4) 0.55rem var(--s3);
-  border-bottom: 1px solid var(--rule-hair);
+  padding: var(--s3) var(--s4);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  overflow: hidden;
+  transition: border-color var(--base) var(--ease), transform var(--base) var(--ease);
 }
 
-.preview__line[data-band] {
-  background: var(--paper-band);
+/* Filo de la tinta del juego en el canto izquierdo, con halo. */
+.preview__line::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 60px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--game) 22%, transparent), transparent);
+  pointer-events: none;
+}
+
+.preview__line:hover {
+  border-color: color-mix(in srgb, var(--game) 45%, transparent);
+  transform: translateX(3px);
 }
 
 .preview__hour {
+  position: relative;
   font-size: var(--t-small);
-  color: var(--ink-2);
+  color: var(--ink);
 }
 
-.preview__ink {
-  width: 3px;
-  height: 18px;
-  border-radius: 1px;
+.preview__game {
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  font-weight: 600;
+  color: var(--game);
 }
 
-.preview__signed {
+.preview__avatars {
   display: flex;
-  align-items: center;
-  gap: var(--s2);
-  flex-wrap: wrap;
   min-width: 0;
 }
 
-/* Las firmas van en tinta de bolígrafo, como en la hoja de papel. */
-.preview__name {
-  font-size: var(--t-small);
-  font-variation-settings: 'wght' 560, 'wdth' 94;
-  color: var(--pen-bright);
-  overflow-wrap: anywhere;
+.preview__avatar {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin-left: -7px;
+  border-radius: 9px;
+  border: 2px solid var(--surface-2);
+  background: var(--surface-3);
+  font-size: 0.62rem;
+  font-weight: 650;
+  color: var(--ink-2);
 }
 
-/* Un cupo libre es una línea en blanco esperando a alguien. */
-.preview__open {
-  width: 46px;
-  height: 1px;
-  background: var(--rule-strong);
+.preview__avatar:first-child {
+  margin-left: 0;
 }
 
-.preview__count {
+.preview__slots {
+  display: flex;
+  gap: 3px;
+}
+
+.preview__pip {
+  width: 6px;
+  height: 14px;
+  border-radius: 2px;
+  background: var(--surface-3);
+}
+
+.preview__pip[data-on] {
+  background: var(--volt);
+  box-shadow: 0 0 8px rgba(205, 242, 75, 0.45);
+}
+
+.preview__caption {
+  padding: 0 var(--s2);
   font-size: var(--t-micro);
   color: var(--ink-3);
-  text-align: right;
 }
 
-@media (max-width: 560px) {
+@media (max-width: 460px) {
   .preview__line {
-    grid-template-columns: 44px 3px 1fr;
+    grid-template-columns: 44px 32px minmax(0, 1fr);
   }
 
-  .preview__count {
+  .preview__slots {
     display: none;
   }
 }

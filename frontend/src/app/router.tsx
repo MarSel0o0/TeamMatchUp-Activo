@@ -23,7 +23,7 @@ const HomePage = lazy(() => import('@/features/home/pages/HomePage'));
 
 export function AppRouter() {
   return (
-    <Suspense fallback={<Working label="Abriendo la hoja…" />}>
+    <Suspense fallback={<Working label="Cargando…" />}>
       <Routes>
         <Route element={<PublicOnlyRoute />}>
           <Route path={ROUTES.landing} element={<LandingPage />} />

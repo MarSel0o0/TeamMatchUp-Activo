@@ -1,12 +1,17 @@
 .filters {
   position: sticky;
-  top: var(--s5);
+  top: calc(var(--nav-h) + var(--s6));
 }
 
 .filters__count {
-  font-size: var(--t-h3);
-  font-variation-settings: 'wght' 640, 'wdth' 90;
-  color: var(--pen-bright);
+  display: flex;
+  align-items: baseline;
+  gap: var(--s2);
+  font-family: var(--mono);
+  font-size: var(--t-h2);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  color: var(--accent-text);
 }
 
 .filters__dial {
@@ -17,10 +22,11 @@
 }
 
 .filters__dial .num {
+  padding: 0.05rem 0.5rem;
+  border-radius: var(--r-pill);
+  background: var(--surface-3);
   color: var(--ink);
-  font-size: var(--t-small);
-  letter-spacing: 0;
-  text-transform: none;
+  font-size: var(--t-micro);
 }
 
 .filters__search {
@@ -31,13 +37,14 @@
 
 .filters__search svg {
   position: absolute;
-  left: var(--s3);
+  left: var(--s4);
   color: var(--ink-3);
   pointer-events: none;
 }
 
 .filters__search .input {
-  padding-left: 2.1rem;
+  padding-left: 2.5rem;
+  border-radius: var(--r-pill);
 }
 
 .filters__search .input::-webkit-search-cancel-button {

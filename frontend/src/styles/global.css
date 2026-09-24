@@ -1,4 +1,5 @@
-@import '@fontsource-variable/archivo/index.css';
+@import '@fontsource-variable/geist/index.css';
+@import '@fontsource-variable/geist-mono/index.css';
 @import './tokens.css';
 
 /* ========================================================================== */
@@ -15,21 +16,60 @@
   margin: 0;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 html,
 body,
 #root {
-  height: 100%;
+  min-height: 100%;
 }
 
 body {
   font-family: var(--face);
-  font-variation-settings: 'wght' 400, 'wdth' 100;
   font-size: var(--t-base);
-  line-height: 1.5;
+  line-height: 1.55;
   color: var(--ink);
-  background: var(--paper);
+  background: var(--bg);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+/* Luz ambiental: dos fuentes tenues fijas detrás de todo. Solo transform en la
+   animación, y sobre un elemento fijo: no repinta al hacer scroll. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: -20vmax;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(38vmax 30vmax at 18% 8%, var(--ambient-a), transparent 70%),
+    radial-gradient(44vmax 36vmax at 88% 22%, var(--ambient-b), transparent 70%),
+    radial-gradient(40vmax 34vmax at 60% 100%, var(--ambient-c), transparent 70%);
+  animation: drift 28s var(--ease) infinite alternate;
+}
+
+@keyframes drift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(-3vmax, 2vmax, 0) scale(1.06);
+  }
+}
+
+/* Grano: rompe la planitud digital. Fijo y sin eventos. */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-grain);
+  pointer-events: none;
+  opacity: var(--grain);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 img,
@@ -43,7 +83,6 @@ input,
 select,
 textarea {
   font: inherit;
-  font-variation-settings: inherit;
   color: inherit;
 }
 
@@ -51,12 +90,16 @@ h1,
 h2,
 h3,
 h4 {
-  font-weight: 400;
-  line-height: 1.15;
+  font-weight: 600;
+  line-height: 1.1;
   letter-spacing: -0.025em;
+  text-wrap: balance;
 }
 
-/* Todo dato numérico se alinea como en un formulario impreso. */
+p {
+  text-wrap: pretty;
+}
+
 [data-num],
 time,
 td,
@@ -65,34 +108,33 @@ th {
 }
 
 /* ========================================================================== */
-/* Superficies del navegador: la parte que no dibujamos también es la hoja      */
+/* Superficies del navegador                                                   */
 /* ========================================================================== */
 
 ::selection {
-  background: var(--pen);
-  color: #fff;
+  background: var(--volt);
+  color: var(--volt-ink);
 }
 
 :root {
-  accent-color: var(--pen);
-  caret-color: var(--pen);
-  scrollbar-color: var(--rule-strong) var(--paper-margin);
+  accent-color: var(--volt);
+  caret-color: var(--volt);
+  scrollbar-color: var(--surface-3) var(--bg-deep);
   scrollbar-width: thin;
-  color-scheme: dark;
 }
 
 ::-webkit-scrollbar {
-  width: 11px;
-  height: 11px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--paper-margin);
+  background: var(--bg-deep);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--rule-strong);
-  border: 3px solid var(--paper-margin);
+  background: var(--surface-3);
+  border: 3px solid var(--bg-deep);
   border-radius: 99px;
 }
 
@@ -101,70 +143,87 @@ th {
 }
 
 a {
-  color: var(--pen-bright);
+  color: var(--accent-text);
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
+  transition: color var(--fast) var(--ease);
+}
+
+a:hover {
+  color: var(--accent-text-hover);
 }
 
 :focus-visible {
-  outline: 2px solid var(--pen-bright);
-  outline-offset: 2px;
+  outline: 2px solid var(--volt);
+  outline-offset: 3px;
+}
+
+.skip-link {
+  position: fixed;
+  top: var(--s3);
+  left: var(--s3);
+  z-index: var(--z-modal);
+  padding: var(--s2) var(--s4);
+  border-radius: var(--r-pill);
+  background: var(--volt);
+  color: var(--volt-ink);
+  font-weight: 600;
+  text-decoration: none;
+  transform: translateY(-160%);
+  transition: transform var(--base) var(--ease);
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+  color: var(--volt-ink);
 }
 
 /* ========================================================================== */
 /* Voz tipográfica                                                             */
 /* ========================================================================== */
 
-/* Encabezado de documento: ancho comprimido, como el título impreso de un formulario. */
 .doc-title {
   font-size: var(--t-h1);
-  font-variation-settings: 'wght' 760, 'wdth' 84;
-  letter-spacing: -0.03em;
-  text-transform: uppercase;
+  font-weight: 640;
+  letter-spacing: -0.04em;
+  line-height: 1.02;
 }
 
 .doc-title--xl {
-  font-size: var(--t-doc);
+  font-size: var(--t-display);
+  font-weight: 680;
+  letter-spacing: -0.055em;
+  line-height: 0.95;
 }
 
-/* Las variantes responsivas viven junto a la regla base: en un chunk aparte
-   perderían la cascada contra ella, porque un media query no suma especificidad. */
-@media (max-width: 1080px) {
-  .doc-title--xl {
-    font-size: var(--t-h1);
-  }
-}
-
-/* En un teléfono el nombre no cabe a este cuerpo: se comprime por el eje de
-   ancho de la fuente variable en vez de empujar el documento de lado. */
-@media (max-width: 460px) {
-  .doc-title--xl {
-    font-size: var(--t-h2);
-    font-variation-settings: 'wght' 780, 'wdth' 72;
-    letter-spacing: -0.02em;
-  }
+/* Énfasis dentro de un titular: misma familia, el acento hace el trabajo. */
+.doc-title em,
+.doc-title .hl {
+  font-style: normal;
+  color: var(--accent-text);
 }
 
 .sheet-title {
   font-size: var(--t-h3);
-  font-variation-settings: 'wght' 680, 'wdth' 88;
-  letter-spacing: -0.015em;
-  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }
 
-/* Etiqueta de campo impresa: pequeña, espaciada, en versalitas. */
+/* Etiqueta de dato: monoespaciada, como la lectura de un HUD. */
 .label {
+  font-family: var(--mono);
   font-size: var(--t-micro);
-  font-variation-settings: 'wght' 620, 'wdth' 92;
-  letter-spacing: 0.1em;
+  font-weight: 500;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--ink-3);
 }
 
 .lead {
   font-size: var(--t-lead);
+  line-height: 1.6;
   color: var(--ink-2);
-  max-width: 62ch;
+  max-width: 60ch;
 }
 
 .note {
@@ -177,48 +236,95 @@ a {
 }
 
 .num {
+  font-family: var(--mono);
   font-variant-numeric: tabular-nums;
-  font-variation-settings: 'wght' 560, 'wdth' 96;
+  letter-spacing: -0.01em;
+}
+
+/* Titular de página con su bajada: bloque compartido por todas las vistas. */
+.page-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--s5);
+  flex-wrap: wrap;
+  padding-bottom: var(--s2);
+}
+
+.page-head__copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  min-width: 0;
 }
 
 /* ========================================================================== */
-/* La hoja: superficie reglada con margen de perforación                       */
+/* Panel (antes "hoja"): bisel doble y borde que sigue al cursor               */
 /* ========================================================================== */
 
 .sheet {
   position: relative;
   min-width: 0;
-  background: var(--paper-raised);
-  border: 1px solid var(--rule);
-  border-radius: 3px;
+  background: linear-gradient(180deg, var(--surface-2), var(--surface) 140px);
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  /* Bisel exterior: una bandeja fina alrededor del panel, sin DOM extra. */
+  box-shadow:
+    var(--highlight),
+    0 0 0 5px var(--bezel),
+    0 0 0 6px var(--line-hair),
+    var(--lift);
+  isolation: isolate;
 }
 
-/* El margen troquelado es estructura, no adorno: separa el borde del contenido. */
-.sheet--punched {
-  padding-left: var(--sprocket);
+/* Borde iluminado bajo el cursor. Las coordenadas las escribe
+   `PointerSpotlight` directamente como variables CSS, sin re-render. */
+.sheet::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  border-radius: inherit;
+  padding: 1px;
+  background: radial-gradient(
+    380px circle at var(--mx, -999px) var(--my, -999px),
+    var(--spot),
+    transparent 45%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity var(--base) var(--ease);
+  pointer-events: none;
 }
 
+.sheet:hover::after {
+  opacity: 1;
+}
+
+/* Panel protagonista: un filo de luz volt en el canto superior. */
 .sheet--punched::before {
   content: '';
   position: absolute;
-  inset: 0 auto 0 0;
-  width: var(--sprocket);
-  background:
-    radial-gradient(circle at center, var(--rule-strong) 2.6px, transparent 2.9px) 0 0 / 100% 22px,
-    var(--paper-margin);
-  border-right: 1px solid var(--rule);
-  border-radius: 3px 0 0 3px;
+  top: -1px;
+  left: 12%;
+  right: 12%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--volt-edge), transparent);
+  pointer-events: none;
 }
 
 .sheet__head {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
   gap: var(--s4);
   flex-wrap: wrap;
-  padding: var(--s4) var(--s5) var(--s3);
-  /* Doble regla: la separación de cabecera de los formularios impresos. */
-  border-bottom: 3px double var(--rule-strong);
+  padding: var(--s5) var(--s5) var(--s4);
+  border-bottom: 1px solid var(--line);
 }
 
 .sheet__head > .label {
@@ -226,7 +332,6 @@ a {
 }
 
 @media (max-width: 620px) {
-  /* En una hoja angosta el título manda; la anotación de cabecera sobra. */
   .sheet__head > .label {
     display: none;
   }
@@ -248,12 +353,11 @@ a {
   gap: var(--s3);
   flex-wrap: wrap;
   padding: var(--s3) var(--s5);
-  border-top: 1px solid var(--rule);
+  border-top: 1px solid var(--line);
   color: var(--ink-3);
   font-size: var(--t-small);
 }
 
-/* Filas regladas con banda alterna. */
 .rows {
   list-style: none;
   padding: 0;
@@ -266,12 +370,7 @@ a {
   align-items: center;
   gap: var(--s3);
   padding: var(--s3) var(--s5);
-  border-bottom: 1px solid var(--rule-hair);
-}
-
-.rows > li:nth-child(even),
-.row-line--band {
-  background: var(--paper-band);
+  border-bottom: 1px solid var(--line-hair);
 }
 
 .rows > li:last-child {
@@ -280,111 +379,131 @@ a {
 
 .rule {
   height: 1px;
-  background: var(--rule);
+  background: var(--line);
   border: 0;
   margin: var(--s4) 0;
 }
 
 .rule--double {
-  height: 3px;
-  background: none;
-  border-top: 3px double var(--rule-strong);
+  background: linear-gradient(90deg, var(--line-strong), transparent);
 }
 
 /* ========================================================================== */
-/* Sello de goma                                                               */
+/* Insignia (antes "sello"): aterriza con un pequeño golpe al aparecer          */
 /* ========================================================================== */
 
 .stamp {
   display: inline-flex;
   align-items: center;
-  gap: var(--s1);
-  padding: 0.18rem 0.5rem;
-  border: 1.5px solid currentColor;
-  border-radius: 2px;
+  gap: 0.4rem;
+  padding: 0.24rem 0.65rem 0.24rem 0.55rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-pill);
+  font-family: var(--mono);
   font-size: var(--t-micro);
-  font-variation-settings: 'wght' 700, 'wdth' 86;
-  letter-spacing: 0.09em;
+  font-weight: 500;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   white-space: nowrap;
   color: var(--ink-2);
-  /* El sello nunca cae recto: se estampa a mano. */
-  transform: rotate(-1.6deg);
+  background: var(--surface-3);
+}
+
+.stamp::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 8px currentColor;
+  flex-shrink: 0;
+}
+
+.stamp svg {
+  display: none;
 }
 
 .stamp--sealed {
-  color: var(--stamp);
-  background: var(--stamp-wash);
+  color: var(--accent-text);
+  background: var(--volt-wash);
+  border-color: var(--volt-edge);
 }
 
 .stamp--pen {
-  color: var(--pen-bright);
-  background: var(--pen-wash);
-  border-color: var(--pen-edge);
+  color: var(--accent-text);
+  background: var(--volt-wash);
+  border-color: var(--volt-edge);
 }
 
 .stamp--ok {
   color: var(--ok);
   background: var(--ok-wash);
-  border-color: currentColor;
+  border-color: rgba(86, 214, 143, 0.35);
 }
 
 .stamp--warn {
   color: var(--warn);
   background: var(--warn-wash);
+  border-color: rgba(241, 178, 74, 0.35);
 }
 
-.stamp--flat {
-  transform: none;
+.stamp--danger {
+  color: var(--danger);
+  background: var(--danger-wash);
+  border-color: rgba(255, 107, 94, 0.35);
 }
 
-/* El momento autorado del proyecto: el sello aterrizando sobre el papel. */
 @keyframes press {
   0% {
-    transform: rotate(-9deg) scale(1.4);
+    transform: scale(1.35);
     opacity: 0;
-    filter: blur(2px);
+    filter: blur(4px);
   }
-  55% {
-    transform: rotate(-1.6deg) scale(0.97);
+  60% {
+    transform: scale(0.96);
     opacity: 1;
     filter: blur(0);
   }
   100% {
-    transform: rotate(-1.6deg) scale(1);
+    transform: scale(1);
     opacity: 1;
   }
 }
 
 .stamp--pressing {
-  animation: press 420ms var(--ease) both;
+  animation: press 480ms var(--ease-out) both;
 }
 
 /* ========================================================================== */
-/* Controles                                                                   */
+/* Botones: píldoras con respuesta física                                      */
 /* ========================================================================== */
 
 .btn {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--s2);
-  padding: 0.45rem 0.85rem;
-  border: 1px solid var(--rule-strong);
-  border-radius: 2px;
-  background: transparent;
+  min-height: 38px;
+  padding: 0.5rem 1.05rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-pill);
+  background: var(--fill-1);
   color: var(--ink);
   font-size: var(--t-small);
-  font-variation-settings: 'wght' 600, 'wdth' 96;
-  letter-spacing: 0.01em;
+  font-weight: 540;
+  letter-spacing: -0.005em;
   cursor: pointer;
   white-space: nowrap;
   text-decoration: none;
-  transition: background var(--fast) var(--ease), border-color var(--fast) var(--ease),
-    color var(--fast) var(--ease);
+  transition:
+    background var(--base) var(--ease),
+    border-color var(--base) var(--ease),
+    color var(--base) var(--ease),
+    box-shadow var(--base) var(--ease),
+    transform var(--fast) var(--ease);
 }
 
-/* Un enlace con aspecto de botón no hereda el subrayado ni la tinta de enlace. */
 a.btn,
 a.btn:hover {
   color: var(--ink);
@@ -393,67 +512,104 @@ a.btn:hover {
 
 a.btn--pen,
 a.btn--pen:hover {
-  color: #fff;
+  color: var(--volt-ink);
 }
 
 .btn:hover:not(:disabled) {
-  background: var(--paper-band);
-  border-color: var(--ink-3);
-  text-decoration: none;
+  background: var(--fill-3);
+  border-color: var(--line-strong);
 }
 
 .btn:active:not(:disabled) {
-  background: var(--paper-sunk);
+  transform: scale(0.97);
 }
 
 .btn:disabled {
-  opacity: 0.45;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
-/* La acción primaria es lo que el usuario escribe: va en tinta de bolígrafo. */
+.btn svg {
+  transition: transform var(--base) var(--ease);
+}
+
+.btn:hover:not(:disabled) svg {
+  transform: translateX(2px);
+}
+
+/* Acción primaria: volt sólido. Negro encima, 14:1 de contraste. */
 .btn--pen {
-  background: var(--pen-solid);
-  border-color: var(--pen-solid);
-  color: #fff;
+  background: var(--volt);
+  border-color: var(--volt);
+  color: var(--volt-ink);
+  font-weight: 620;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 8px 24px -12px rgba(205, 242, 75, 0.6);
 }
 
 .btn--pen:hover:not(:disabled) {
-  background: var(--pen-solid-hover);
-  border-color: var(--pen-solid-hover);
-}
-
-.btn--pen:active:not(:disabled) {
-  background: var(--pen-solid);
+  background: var(--volt-bright);
+  border-color: var(--accent-text-hover);
+  box-shadow: var(--volt-glow);
 }
 
 .btn--quiet {
   border-color: transparent;
+  background: transparent;
   color: var(--ink-2);
 }
 
 .btn--quiet:hover:not(:disabled) {
   color: var(--ink);
-  border-color: var(--rule);
-}
-
-.btn--danger {
-  color: var(--stamp);
+  background: var(--fill-2);
   border-color: transparent;
 }
 
+.btn--danger {
+  color: var(--danger);
+  border-color: transparent;
+  background: transparent;
+}
+
 .btn--danger:hover:not(:disabled) {
-  background: var(--stamp-wash);
-  border-color: var(--stamp);
+  background: var(--danger-wash);
+  border-color: rgba(255, 107, 94, 0.4);
 }
 
 .btn--sm {
-  padding: 0.25rem 0.55rem;
+  min-height: 30px;
+  padding: 0.3rem 0.8rem;
   font-size: var(--t-micro);
+  gap: 0.35rem;
+}
+
+.btn--lg {
+  min-height: 52px;
+  padding: 0.5rem 0.6rem 0.5rem 1.5rem;
+  font-size: var(--t-base);
+  gap: var(--s3);
 }
 
 .btn--block {
   width: 100%;
+}
+
+/* Icono anidado: un círculo propio dentro del botón, con tensión al hover. */
+.btn__orb {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(12, 15, 2, 0.12);
+  transition: transform var(--base) var(--spring);
+}
+
+.btn:hover:not(:disabled) .btn__orb {
+  transform: translate(3px, -1px) scale(1.06);
+}
+
+.btn:hover:not(:disabled) .btn__orb svg {
+  transform: none;
 }
 
 .btn__spin {
@@ -471,14 +627,58 @@ a.btn--pen:hover {
   }
 }
 
+/* Chip seleccionable (filtros de juego, etc.). */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  min-height: 32px;
+  padding: 0.3rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--fill-1);
+  color: var(--ink-2);
+  font-size: var(--t-small);
+  font-weight: 520;
+  cursor: pointer;
+  transition: all var(--base) var(--ease);
+}
+
+.chip:hover {
+  color: var(--ink);
+  border-color: var(--line-strong);
+}
+
+.chip[aria-pressed='true'] {
+  color: var(--ink);
+  border-color: var(--chip-ink, var(--volt-edge));
+  background: color-mix(in srgb, var(--chip-ink, var(--volt)) 14%, transparent);
+}
+
+.chip__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--chip-ink, var(--volt));
+}
+
 /* ========================================================================== */
-/* Campos de formulario                                                        */
+/* Campos                                                                      */
 /* ========================================================================== */
 
 .field {
   display: flex;
   flex-direction: column;
   gap: var(--s2);
+}
+
+.field > .label {
+  font-family: var(--face);
+  font-size: var(--t-small);
+  font-weight: 520;
+  letter-spacing: -0.005em;
+  text-transform: none;
+  color: var(--ink-2);
 }
 
 .field__hint {
@@ -491,82 +691,170 @@ a.btn--pen:hover {
   align-items: center;
   gap: var(--s1);
   font-size: var(--t-micro);
-  color: var(--stamp);
+  color: var(--danger);
 }
 
-/* La línea de escritura pesa más que el resto de la caja. */
 .input,
 .select,
 .textarea {
   width: 100%;
-  padding: 0.5rem 0.65rem;
-  background: var(--paper-sunk);
-  border: 1px solid var(--rule);
-  border-bottom-color: var(--rule-strong);
-  border-radius: 2px;
+  min-height: 44px;
+  padding: 0.6rem 0.9rem;
+  background: var(--surface-sunk);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
   color: var(--ink);
-  transition: border-color var(--fast) var(--ease), background var(--fast) var(--ease);
+  box-shadow: var(--inset);
+  transition:
+    border-color var(--base) var(--ease),
+    background var(--base) var(--ease),
+    box-shadow var(--base) var(--ease);
 }
 
 .input::placeholder,
 .textarea::placeholder {
-  color: var(--ink-3);
+  color: var(--placeholder);
 }
 
 .input:hover,
 .select:hover,
 .textarea:hover {
-  border-color: var(--rule-strong);
+  border-color: var(--line-strong);
 }
 
 .input:focus,
 .select:focus,
 .textarea:focus {
   outline: none;
-  border-color: var(--pen);
-  border-bottom-color: var(--pen);
-  background: var(--paper-band);
+  border-color: var(--volt-edge);
+  background: var(--surface);
+  box-shadow: 0 0 0 4px var(--volt-wash);
 }
 
 .input[aria-invalid='true'] {
-  border-color: var(--stamp);
+  border-color: var(--danger);
+  box-shadow: 0 0 0 4px var(--danger-wash);
 }
 
 .textarea {
   resize: vertical;
-  min-height: 5.5rem;
+  min-height: 6rem;
   line-height: 1.55;
 }
 
 .select {
   appearance: none;
-  padding-right: 2rem;
+  padding-right: 2.4rem;
+  cursor: pointer;
   background-image: linear-gradient(45deg, transparent 50%, var(--ink-3) 50%),
     linear-gradient(135deg, var(--ink-3) 50%, transparent 50%);
-  background-position: calc(100% - 16px) 54%, calc(100% - 11px) 54%;
+  background-position: calc(100% - 19px) 52%, calc(100% - 14px) 52%;
   background-size: 5px 5px, 5px 5px;
   background-repeat: no-repeat;
 }
 
+.select option {
+  background: var(--surface-2);
+}
+
+/* Casilla dibujada como interruptor. */
 .check {
   display: inline-flex;
   align-items: center;
-  gap: var(--s2);
+  gap: var(--s3);
   font-size: var(--t-small);
   color: var(--ink-2);
   cursor: pointer;
 }
 
 .check input {
-  width: 15px;
-  height: 15px;
+  appearance: none;
+  position: relative;
+  width: 36px;
+  height: 20px;
+  flex-shrink: 0;
+  border-radius: var(--r-pill);
+  background: var(--surface-3);
+  border: 1px solid var(--line-strong);
+  cursor: pointer;
+  transition: background var(--base) var(--ease), border-color var(--base) var(--ease);
+}
+
+.check input::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--ink-2);
+  transition: transform var(--base) var(--spring), background var(--base) var(--ease);
+}
+
+.check input:checked {
+  background: var(--volt);
+  border-color: var(--volt);
+}
+
+.check input:checked::after {
+  transform: translateX(16px);
+  background: var(--volt-ink);
+}
+
+/* Deslizador con pista rellena hasta el valor (--fill la escribe el componente). */
+.slider {
+  appearance: none;
+  width: 100%;
+  height: 22px;
+  background: transparent;
   cursor: pointer;
 }
 
-.slider {
-  width: 100%;
-  height: 22px;
-  cursor: pointer;
+.slider::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--volt) var(--fill, 50%),
+    var(--surface-3) var(--fill, 50%)
+  );
+}
+
+.slider::-moz-range-track {
+  height: 4px;
+  border-radius: 4px;
+  background: var(--surface-3);
+}
+
+.slider::-moz-range-progress {
+  height: 4px;
+  border-radius: 4px;
+  background: var(--volt);
+}
+
+.slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  margin-top: -7px;
+  border-radius: 50%;
+  background: var(--ink);
+  border: 4px solid var(--volt);
+  box-shadow: 0 0 0 4px var(--volt-wash);
+  transition: transform var(--fast) var(--spring);
+}
+
+.slider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--ink);
+  border: 4px solid var(--volt);
+}
+
+.slider:active::-webkit-slider-thumb {
+  transform: scale(1.2);
 }
 
 /* ========================================================================== */
@@ -578,32 +866,32 @@ a.btn--pen:hover {
   align-items: flex-start;
   gap: var(--s3);
   padding: var(--s3) var(--s4);
-  border: 1px solid var(--rule);
-  border-radius: 2px;
-  background: var(--paper-band);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
   font-size: var(--t-small);
   color: var(--ink-2);
 }
 
 .notice svg {
   flex-shrink: 0;
-  margin-top: 1px;
+  margin-top: 2px;
 }
 
 .notice--error {
-  border-color: var(--stamp);
-  background: var(--stamp-wash);
+  border-color: rgba(255, 107, 94, 0.4);
+  background: var(--danger-wash);
   color: var(--ink);
 }
 
 .notice--pen {
-  border-color: var(--pen-edge);
-  background: var(--pen-wash);
+  border-color: var(--volt-edge);
+  background: var(--volt-wash);
   color: var(--ink);
 }
 
 /* ========================================================================== */
-/* Utilidades de composición                                                   */
+/* Composición                                                                 */
 /* ========================================================================== */
 
 .stack {
@@ -651,44 +939,133 @@ a.btn--pen:hover {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--s3);
-  padding: var(--s7) var(--s4);
+  gap: var(--s4);
+  padding: var(--s8) var(--s5);
   text-align: center;
   color: var(--ink-2);
 }
 
-.blank__mark {
-  color: var(--ink-3);
+.blank .stack-sm {
+  align-items: center;
+  max-width: 44ch;
 }
 
-/* El esqueleto imita filas de formulario en blanco, no bloques genéricos. */
+.blank__mark {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  color: var(--ink-2);
+  background: var(--surface-3);
+  border: 1px solid var(--line-strong);
+  box-shadow: var(--highlight);
+}
+
+/* Anillo que late suave: el estado vacío espera una acción. */
+.blank__mark::after {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border-radius: 26px;
+  border: 1px solid var(--line);
+  animation: halo 2.8s var(--ease) infinite;
+}
+
+@keyframes halo {
+  0% {
+    transform: scale(0.92);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.25);
+    opacity: 0;
+  }
+}
+
 .skeleton {
-  background: linear-gradient(
-    100deg,
-    var(--paper-band) 30%,
-    var(--paper-raised) 48%,
-    var(--paper-band) 66%
-  );
-  background-size: 300% 100%;
-  border-radius: 2px;
-  animation: sweep 1.5s var(--ease) infinite;
+  position: relative;
+  overflow: hidden;
+  background: var(--surface-2);
+  border-radius: var(--r-md);
+}
+
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, var(--fill-2), transparent);
+  animation: sweep 1.4s var(--ease) infinite;
 }
 
 @keyframes sweep {
-  from {
-    background-position: 130% 0;
-  }
   to {
-    background-position: -30% 0;
+    transform: translateX(100%);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass {
+    backdrop-filter: none !important;
+    background: var(--surface-2) !important;
+  }
+}
+
+/* ========================================================================== */
+/* Tema claro: ajustes que los tokens no alcanzan                              */
+/* ========================================================================== */
+
+/* Las tintas de juego vienen del catálogo en JS y son claras: sobre blanco se
+   oscurecen para leerse como texto, sin cambiar su tono. */
+:root[data-theme='light'] .entry__rank,
+:root[data-theme='light'] .account .sheet-title,
+:root[data-theme='light'] .account__entries dd,
+:root[data-theme='light'] .game-mark,
+:root[data-theme='light'] .preview__game {
+  filter: brightness(0.68) saturate(1.35);
+}
+
+/* El volt sobre blanco necesita un canto para no perderse. */
+:root[data-theme='light'] .hours__cell[data-marked],
+:root[data-theme='light'] .hours[data-compare] .hours__cell[data-shared] {
+  box-shadow: inset 0 0 0 1px rgba(100, 140, 0, 0.35), 0 4px 10px -4px rgba(120, 160, 0, 0.5);
+}
+
+/* ========================================================================== */
+/* Cambio de tema: la vista nueva se abre en círculo desde el botón             */
+/* ========================================================================== */
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-new(root) {
+  animation: theme-reveal 620ms var(--ease-out);
+}
+
+@keyframes theme-reveal {
+  from {
+    clip-path: circle(0 at var(--theme-x, 50%) var(--theme-y, 0%));
+  }
+  to {
+    clip-path: circle(var(--theme-r, 150vmax) at var(--theme-x, 50%) var(--theme-y, 0%));
   }
 }

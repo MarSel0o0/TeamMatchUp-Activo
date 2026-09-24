@@ -5,9 +5,10 @@
 }
 
 .hours__grid {
-  --cell: 22px;
+  --cell: 24px;
   display: grid;
-  grid-template-columns: 46px repeat(7, 1fr);
+  grid-template-columns: 44px repeat(7, 1fr);
+  gap: 3px;
   user-select: none;
 }
 
@@ -16,31 +17,24 @@
   display: contents;
 }
 
-.hours__corner {
-  border-bottom: 1px solid var(--rule-strong);
-}
-
 .hours__day {
   padding-bottom: var(--s2);
-  border-bottom: 1px solid var(--rule-strong);
   text-align: center;
+  font-family: var(--mono);
   font-size: var(--t-micro);
-  font-variation-settings: 'wght' 640, 'wdth' 90;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--ink-3);
 }
 
-/* La columna de horas es el margen numerado del formulario. */
 .hours__hour {
   display: flex;
   align-items: center;
   justify-content: flex-end;
   height: var(--cell);
-  padding-right: var(--s3);
-  border-right: 1px solid var(--rule);
-  font-size: var(--t-micro);
-  font-variant-numeric: tabular-nums;
+  padding-right: var(--s2);
+  font-family: var(--mono);
+  font-size: 0.66rem;
   color: var(--ink-3);
 }
 
@@ -48,42 +42,63 @@
   height: var(--cell);
   padding: 0;
   border: 0;
-  border-right: 1px solid var(--rule-hair);
-  border-bottom: 1px solid var(--rule-hair);
-  background: transparent;
+  border-radius: 6px;
+  background: var(--fill-2);
+  box-shadow: inset 0 0 0 1px var(--line-hair);
   cursor: pointer;
-  transition: background var(--fast) linear;
+  animation: cell-in 520ms var(--ease-out) both;
+  animation-delay: calc(var(--d, 0) * 16ms);
+  transition:
+    background var(--fast) var(--ease),
+    box-shadow var(--fast) var(--ease);
 }
 
-/* Banda alterna: el ojo sigue la línea sin perderse. */
-.hours__cell[data-band],
-.hours__hour[data-band] {
-  background: var(--paper-band);
+@keyframes cell-in {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+
+/* Al marcar, la casilla late: confirma el gesto sin mirar la leyenda. */
+@keyframes cell-pop {
+  0% {
+    transform: scale(0.7);
+  }
+  60% {
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .hours__cell:hover:not(:disabled) {
-  background: var(--pen-wash);
+  background: var(--volt-wash-strong);
+  box-shadow: inset 0 0 0 1px var(--volt-edge);
 }
 
 /* Sola en la página, tu disponibilidad es el contenido: se pinta entera. */
 .hours__cell[data-marked] {
-  background: var(--pen);
-  border-right-color: var(--pen);
-  border-bottom-color: var(--pen);
+  background: var(--volt);
+  box-shadow: 0 0 12px -2px rgba(205, 242, 75, 0.45);
+  animation-name: cell-in, cell-pop;
+  animation-duration: 520ms, 360ms;
+  animation-delay: calc(var(--d, 0) * 16ms), 0ms;
+  animation-timing-function: var(--ease-out), var(--spring);
+  animation-fill-mode: both, none;
 }
 
-/* Junto a la de otro jugador, tus horas bajan a lavado y dejan ver el reglado:
-   lo que debe gritar es el traslape, no tu propio calendario. */
+/* Junto a la de otro jugador, tus horas bajan a lavado: lo que debe gritar es
+   el traslape, no tu propio calendario. */
 .hours[data-compare] .hours__cell[data-marked] {
-  background: var(--pen-wash-strong);
-  border-right-color: var(--rule-hair);
-  border-bottom-color: var(--rule-hair);
+  background: var(--volt-wash-strong);
+  box-shadow: inset 0 0 0 1px var(--volt-edge);
 }
 
 .hours[data-compare] .hours__cell[data-shared] {
-  background: var(--pen);
-  border-right-color: var(--pen);
-  border-bottom-color: var(--pen);
+  background: var(--volt);
+  box-shadow: 0 0 14px -2px rgba(205, 242, 75, 0.6);
 }
 
 .hours__cell:disabled {
@@ -92,6 +107,11 @@
 
 .hours--compact .hours__grid {
   --cell: 15px;
+  gap: 2px;
+}
+
+.hours--compact .hours__cell {
+  border-radius: 4px;
 }
 
 .hours__key {
@@ -107,34 +127,33 @@
   display: inline-flex;
   align-items: center;
   gap: var(--s2);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-variation-settings: 'wght' 620, 'wdth' 92;
+  font-weight: 520;
 }
 
 .hours__swatch {
-  width: 11px;
-  height: 11px;
-  border-radius: 1px;
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
   display: inline-block;
 }
 
 .hours__swatch[data-marked] {
-  background: var(--pen);
+  background: var(--volt);
 }
 
 .hours[data-compare] .hours__swatch[data-marked] {
-  background: var(--pen-wash-strong);
-  border: 1px solid var(--rule-strong);
+  background: var(--volt-wash-strong);
+  box-shadow: inset 0 0 0 1px var(--volt-edge);
 }
 
 .hours__swatch[data-shared] {
-  background: var(--pen);
+  background: var(--volt);
 }
 
 @media (max-width: 640px) {
   .hours__grid {
-    --cell: 19px;
-    grid-template-columns: 38px repeat(7, 1fr);
+    --cell: 20px;
+    gap: 2px;
+    grid-template-columns: 36px repeat(7, 1fr);
   }
 }

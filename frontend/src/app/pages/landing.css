@@ -1,74 +1,631 @@
 .landing {
-  min-height: 100dvh;
   display: flex;
   flex-direction: column;
+  min-height: 100dvh;
+}
+
+/* --------------------------------------------------------------------------
+   Barra superior
+   -------------------------------------------------------------------------- */
+
+.landing__top {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-nav);
+  padding: var(--s4) var(--s4) 0;
+  pointer-events: none;
 }
 
 .landing__nav {
+  pointer-events: auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--s4) var(--s6);
-  border-bottom: 1px solid var(--rule);
+  gap: var(--s4);
+  max-width: 1120px;
+  height: 60px;
+  margin: 0 auto;
+  padding: 0 var(--s2) 0 var(--s4);
+  border-radius: var(--r-pill);
 }
 
-.landing__hero {
-  flex: 1;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--s7);
-  padding: var(--s8) var(--s6);
-  max-width: 1400px;
-  margin: 0 auto;
+.landing__brand {
+  display: flex;
   align-items: center;
+  gap: var(--s3);
+  color: var(--ink);
+  font-weight: 650;
+  letter-spacing: -0.035em;
+  text-decoration: none;
 }
 
-@media (max-width: 1024px) {
-  .landing__hero {
-    grid-template-columns: 1fr;
-    gap: var(--s6);
-    padding: var(--s6) var(--s4);
-  }
-}
-
-.landing__copy {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s6);
-  max-width: 65ch;
-}
-
-.landing__features {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--s6);
-  padding: var(--s8) var(--s6);
-  max-width: 1400px;
-  margin: 0 auto;
-  border-top: 1px solid var(--rule);
-}
-
-@media (max-width: 1024px) {
-  .landing__features {
-    grid-template-columns: 1fr;
-  }
-}
-
-.feature-box {
-  display: flex;
-  flex-direction: column;
+.landing__actions {
   gap: var(--s2);
 }
 
-.feature-box__title {
-  font-size: var(--t-h3);
-  font-variation-settings: 'wght' 680, 'wdth' 88;
-  letter-spacing: -0.015em;
-  text-transform: uppercase;
+.landing__brand:hover {
+  color: var(--ink);
 }
 
-.feature-box__body {
-  font-size: var(--t-base);
+/* --------------------------------------------------------------------------
+   Hero
+   -------------------------------------------------------------------------- */
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+  align-items: center;
+  gap: var(--s6);
+  max-width: var(--measure);
+  min-height: calc(100dvh - 92px);
+  margin: 0 auto;
+  padding: var(--s7) var(--s5) var(--s8);
+}
+
+.hero__copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s5);
+}
+
+.hero__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: 0.35rem 0.85rem 0.35rem 0.7rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-pill);
+  background: var(--fill-1);
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.02em;
   color: var(--ink-2);
-  line-height: 1.6;
+}
+
+/* Punto vivo: la sala está abierta. */
+.hero__pulse {
+  position: relative;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--volt);
+}
+
+.hero__pulse::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 1px solid var(--volt);
+  animation: ping 1.8s var(--ease-out) infinite;
+}
+
+@keyframes ping {
+  from {
+    transform: scale(0.5);
+    opacity: 1;
+  }
+  to {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
+
+.hero__title {
+  max-width: 11ch;
+}
+
+/* Cada palabra sube desde una ranura invisible. El padding inferior deja
+   espacio a los descendentes (g, j, p) para que el recorte no los corte. */
+.hero__word {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  padding-bottom: 0.08em;
+  margin-bottom: -0.08em;
+}
+
+.hero__word > span {
+  display: inline-block;
+}
+
+.hero__lead {
+  max-width: 44ch;
+}
+
+.hero__ctas {
+  display: flex;
+  align-items: center;
+  gap: var(--s5);
+  flex-wrap: wrap;
+  padding-top: var(--s2);
+}
+
+.hero__secondary {
+  color: var(--ink-2);
+  font-size: var(--t-small);
+  font-weight: 520;
+  text-decoration: none;
+  background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat;
+  padding-bottom: 2px;
+  transition: background-size var(--base) var(--ease), color var(--base) var(--ease);
+}
+
+.hero__secondary:hover {
+  color: var(--ink);
+  background-size: 100% 1px;
+}
+
+.hero__visual {
+  display: grid;
+  place-items: center;
+}
+
+/* --------------------------------------------------------------------------
+   El cruce
+   -------------------------------------------------------------------------- */
+
+.crossing {
+  width: min(100%, 520px);
+  aspect-ratio: 1;
+  perspective: 900px;
+}
+
+.crossing__stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+}
+
+.crossing__svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.crossing__orbit circle {
+  fill: none;
+  stroke: var(--line-strong);
+  stroke-width: 1;
+  stroke-dasharray: 2 9;
+}
+
+.crossing__orbit {
+  transform-origin: 200px 200px;
+  animation: orbit 60s linear infinite;
+}
+
+@keyframes orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.crossing__ring {
+  fill: var(--fill-1);
+  stroke-width: 1.4;
+}
+
+.crossing__ring--juego {
+  stroke: rgba(211, 160, 74, 0.8);
+  fill: rgba(211, 160, 74, 0.035);
+}
+
+.crossing__ring--rango {
+  stroke: rgba(95, 194, 216, 0.8);
+  fill: rgba(95, 194, 216, 0.035);
+}
+
+.crossing__ring--horario {
+  stroke: rgba(224, 138, 79, 0.8);
+  fill: rgba(224, 138, 79, 0.035);
+}
+
+.crossing__lens {
+  filter: drop-shadow(0 0 18px rgba(205, 242, 75, 0.55));
+}
+
+.crossing__match {
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-anchor: middle;
+  fill: var(--volt-ink);
+}
+
+.crossing__tag {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: 0.35rem 0.8rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-pill);
+  background: var(--glass-strong);
+  box-shadow: var(--lift);
+  font-size: var(--t-small);
+  font-weight: 540;
+  white-space: nowrap;
+  transform: translateZ(40px);
+}
+
+.crossing__tag-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.crossing__tag--juego {
+  top: 8%;
+  left: 0;
+}
+
+.crossing__tag--juego .crossing__tag-dot {
+  background: var(--ink-lol);
+}
+
+.crossing__tag--rango {
+  top: 8%;
+  right: 0;
+}
+
+.crossing__tag--rango .crossing__tag-dot {
+  background: var(--ink-r6);
+}
+
+.crossing__tag--horario {
+  bottom: 2%;
+  left: 50%;
+  translate: -50% 0;
+}
+
+.crossing__tag--horario .crossing__tag-dot {
+  background: var(--ink-cs2);
+}
+
+/* --------------------------------------------------------------------------
+   Marquee
+   -------------------------------------------------------------------------- */
+
+.marquee {
+  overflow: hidden;
+  border-block: 1px solid var(--line);
+  background: var(--fill-1);
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+}
+
+.marquee__track {
+  display: flex;
+  width: max-content;
+  animation: marquee 38s linear infinite;
+}
+
+.marquee:hover .marquee__track {
+  animation-play-state: paused;
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee__group {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.marquee__item {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  padding: var(--s5) var(--s7);
+  font-size: clamp(1.25rem, 1rem + 1vw, 1.75rem);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  white-space: nowrap;
+}
+
+.marquee__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  transform: rotate(45deg);
+}
+
+.marquee__source {
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: var(--ink-3);
+}
+
+/* --------------------------------------------------------------------------
+   Pasos: tarjetas que se apilan al hacer scroll
+   -------------------------------------------------------------------------- */
+
+.steps {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: var(--s9) var(--s5) var(--s8);
+}
+
+.steps__intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+  margin-bottom: var(--s8);
+}
+
+.steps__intro .doc-title {
+  font-size: clamp(2.25rem, 1.4rem + 3vw, 3.75rem);
+  max-width: 16ch;
+}
+
+.steps__intro em,
+.closing__title em {
+  font-style: normal;
+  color: var(--accent-text);
+}
+
+.steps__stack {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s7);
+}
+
+/* Cada tarjeta se detiene un poco más abajo que la anterior: al bajar, se
+   apilan como fichas sobre la mesa. */
+.step {
+  position: sticky;
+  top: calc(110px + var(--i) * 22px);
+}
+
+.step__card {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  align-items: center;
+  gap: var(--s7);
+  min-height: 380px;
+  padding: var(--s7);
+  border: 1px solid var(--line-strong);
+  border-radius: 28px;
+  background: var(--step-1);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    var(--stack-shadow),
+    var(--lift-high);
+}
+
+.step:nth-child(2) .step__card {
+  background: var(--step-2);
+}
+
+.step:nth-child(3) .step__card {
+  background: var(--step-3);
+}
+
+.step__copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+}
+
+.step__num {
+  font-size: var(--t-small);
+  color: var(--accent-text);
+}
+
+.step__title {
+  font-size: clamp(1.6rem, 1.2rem + 1.4vw, 2.25rem);
+  font-weight: 620;
+  letter-spacing: -0.04em;
+}
+
+.step__body {
+  color: var(--ink-2);
+  max-width: 42ch;
+}
+
+.step__visual {
+  min-width: 0;
+  padding: var(--s5);
+  border-radius: var(--r-xl);
+  background: var(--well);
+  border: 1px solid var(--line);
+  box-shadow: var(--inset);
+}
+
+.step__visual .preview {
+  max-width: none;
+}
+
+/* Regla de rango de muestra */
+.rank-demo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s5);
+  padding: var(--s7) var(--s6) var(--s5);
+}
+
+.rank-demo__track {
+  position: relative;
+  height: 6px;
+  border-radius: 6px;
+  background: var(--surface-3);
+}
+
+.rank-demo__fill {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #5a5f68, var(--ink-lol) 55%, var(--ink-r6));
+  opacity: 0.55;
+  transform-origin: left;
+}
+
+.rank-demo__tick {
+  position: absolute;
+  top: 14px;
+  width: 1px;
+  height: 8px;
+  background: var(--line-strong);
+}
+
+.rank-demo__marker {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.rank-demo__pin {
+  position: absolute;
+  left: 0;
+  bottom: 14px;
+  translate: -50% 0;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--r-pill);
+  background: var(--surface-3);
+  border: 1px solid var(--line-strong);
+  font-size: var(--t-micro);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.rank-demo__pin::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 3px);
+  width: 12px;
+  height: 12px;
+  translate: -50% 0;
+  border-radius: 50%;
+  background: var(--ink);
+  border: 3px solid var(--surface);
+}
+
+.rank-demo__marker--you .rank-demo__pin {
+  background: var(--volt);
+  border-color: var(--volt);
+  color: var(--volt-ink);
+}
+
+.rank-demo__marker--you .rank-demo__pin::after {
+  background: var(--volt);
+}
+
+.rank-demo__legend {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  padding-top: var(--s3);
+}
+
+.rank-demo__delta {
+  font-size: var(--t-small);
+  color: var(--accent-text);
+}
+
+/* --------------------------------------------------------------------------
+   Cierre
+   -------------------------------------------------------------------------- */
+
+.closing {
+  padding: var(--s9) var(--s5);
+}
+
+.closing__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s6);
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+.closing__title {
+  max-width: 14ch;
+}
+
+.landing__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--s3);
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: var(--s5);
+  border-top: 1px solid var(--line-hair);
+}
+
+/* --------------------------------------------------------------------------
+   Pantallas angostas
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 960px) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 0;
+    padding: var(--s6) var(--s4) var(--s7);
+    gap: var(--s5);
+  }
+
+  .crossing {
+    width: min(100%, 420px);
+  }
+
+  .step {
+    position: static;
+  }
+
+  .step__card {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--s5);
+    min-height: 0;
+    padding: var(--s5);
+  }
+
+  .steps {
+    padding: var(--s8) var(--s4) var(--s6);
+  }
+
+  .closing {
+    padding: var(--s8) var(--s4);
+  }
+}
+
+@media (max-width: 560px) {
+  .landing__brand span {
+    display: none;
+  }
+
+  .crossing__tag {
+    font-size: var(--t-micro);
+    padding: 0.25rem 0.6rem;
+  }
+
+  .step__visual {
+    padding: var(--s3);
+  }
+
+  .rank-demo {
+    padding: var(--s6) var(--s5) var(--s4);
+  }
+
+  .marquee__item {
+    padding: var(--s4) var(--s5);
+  }
 }

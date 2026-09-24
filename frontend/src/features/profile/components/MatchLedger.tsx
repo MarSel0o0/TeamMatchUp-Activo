@@ -1,8 +1,9 @@
+import type { CSSProperties } from 'react';
 import type { MatchRecord } from '@/domain/types';
 import { timeAgo } from '@/shared/utils/format';
 import './matchLedger.css';
 
-/** Libro de partidas: un asiento por partida, con su variación de rango. */
+/** Historial de partidas: una fila por partida, con su variación de rango. */
 export function MatchLedger({ matches }: { matches: MatchRecord[] }) {
   if (matches.length === 0) {
     return (
@@ -29,7 +30,7 @@ export function MatchLedger({ matches }: { matches: MatchRecord[] }) {
       </thead>
       <tbody>
         {matches.map((match, index) => (
-          <tr key={match.id} data-band={index % 2 === 1 || undefined}>
+          <tr key={match.id} style={{ '--i': index } as CSSProperties}>
             <td>
               <span className="ledger__result" data-win={match.result === 'win' || undefined}>
                 {match.result === 'win' ? 'V' : 'D'}

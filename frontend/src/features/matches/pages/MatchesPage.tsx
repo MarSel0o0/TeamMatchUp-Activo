@@ -1,4 +1,5 @@
 import { Link2, SearchX } from 'lucide-react';
+import { AnimatePresence } from 'motion/react';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/app/routes';
@@ -85,8 +86,8 @@ export default function MatchesPage() {
 
   return (
     <>
-      <header className="line-between">
-        <div className="stack-sm">
+      <header className="page-head">
+        <div className="page-head__copy">
           <h1 className="doc-title">Coincidencias</h1>
           <p className="lead">
             Jugadores con un rango cercano al tuyo cuyas horas se cruzan con las que declaraste.
@@ -121,7 +122,7 @@ export default function MatchesPage() {
         <section className="sheet sheet--punched">
           <div className="sheet__head">
             <h2 className="sheet-title grow">Jugadores compatibles</h2>
-            <span className="label">Ordenados por afinidad</span>
+            <span className="label">Por afinidad</span>
           </div>
 
           {matchesQuery.isPending ? (
@@ -146,7 +147,7 @@ export default function MatchesPage() {
               }
             />
           ) : (
-            <>
+            <div className="matches__list">
               <div className="matches__columns" aria-hidden="true">
                 <span />
                 <span className="label">Jugador</span>
@@ -155,16 +156,19 @@ export default function MatchesPage() {
                 <span className="label">Afinidad</span>
                 <span />
               </div>
-              {candidates.map((candidate, index) => (
-                <MatchEntry
-                  key={candidate.account.id}
-                  candidate={candidate}
-                  viewerBlocks={viewerBlocks}
-                  onPropose={proposeSession}
-                  band={index % 2 === 1}
-                />
-              ))}
-            </>
+              {/* popLayout: las filas que salen dejan su hueco de inmediato y
+                  las que quedan se deslizan a su nueva posición. */}
+              <AnimatePresence mode="popLayout" initial={false}>
+                {candidates.map((candidate) => (
+                  <MatchEntry
+                    key={candidate.account.id}
+                    candidate={candidate}
+                    viewerBlocks={viewerBlocks}
+                    onPropose={proposeSession}
+                  />
+                ))}
+              </AnimatePresence>
+            </div>
           )}
         </section>
       </div>

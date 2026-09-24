@@ -110,7 +110,7 @@ export default function RegisterPage() {
           value={form.username}
           onChange={update('username')}
           error={errors.username}
-          hint="Es con lo que el resto te identifica en la hoja."
+          hint="Es con lo que el resto te identifica en las sesiones."
         />
         <TextField
           label="Correo"
@@ -141,7 +141,7 @@ export default function RegisterPage() {
         />
       </div>
 
-      <button type="submit" className="btn btn--pen btn--block" disabled={submitting}>
+      <button type="submit" className="btn btn--pen btn--block access__submit" disabled={submitting}>
         {submitting ? <span className="btn__spin" /> : <Icon as={ArrowRight} size={15} />}
         {submitting ? 'Creando…' : 'Crear cuenta'}
       </button>

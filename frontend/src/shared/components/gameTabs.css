@@ -1,7 +1,13 @@
 .tabs {
-  display: flex;
+  display: inline-flex;
+  align-self: flex-start;
+  max-width: 100%;
   gap: 2px;
-  border-bottom: 1px solid var(--rule-strong);
+  padding: 4px;
+  border-radius: var(--r-pill);
+  background: var(--surface-sunk);
+  border: 1px solid var(--line);
+  box-shadow: var(--inset);
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -12,29 +18,50 @@
 
 .tabs__tab {
   position: relative;
-  bottom: -1px;
-  padding: 0.45rem 0.95rem;
-  background: var(--paper-sunk);
-  border: 1px solid var(--rule);
-  border-top: 2px solid var(--rule);
-  border-bottom-color: var(--rule-strong);
-  border-radius: 3px 3px 0 0;
-  color: var(--ink-3);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  height: 38px;
+  padding: 0 var(--s4);
+  border: 0;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--ink-2);
   font-size: var(--t-small);
-  font-variation-settings: 'wght' 600, 'wdth' 94;
+  font-weight: 540;
   white-space: nowrap;
   cursor: pointer;
-  transition: color var(--fast) var(--ease), background var(--fast) var(--ease);
+  transition: color var(--base) var(--ease);
 }
 
 .tabs__tab:hover {
   color: var(--ink);
-  background: var(--paper-band);
 }
 
-/* La pestaña activa se funde con la hoja: pierde el borde inferior. */
-.tabs__tab[aria-selected='true'] {
-  background: var(--paper-raised);
-  border-bottom-color: var(--paper-raised);
+.tabs__tab > :not(.tabs__pill) {
+  position: relative;
   z-index: 1;
+}
+
+.tabs__pill {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 6px 18px -8px rgba(0, 0, 0, 0.8);
+}
+
+.tabs__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  transition: background var(--base) var(--ease);
+}
+
+.tabs__tab[aria-selected='true'] {
+  color: #0d0e10;
+  font-weight: 620;
+}
+
+.tabs__tab[aria-selected='true'] .tabs__dot {
+  background: #0d0e10 !important;
 }

@@ -1,4 +1,5 @@
 import { Plus } from 'lucide-react';
+import type { CSSProperties } from 'react';
 import { GRID_HOURS, WEEK_DAYS, formatHour } from '@/domain/availability';
 import { getGame } from '@/domain/games';
 import type { PlaySession, TimeBlock, WeekDay } from '@/domain/types';
@@ -9,7 +10,7 @@ import './weekCalendar.css';
 
 interface WeekCalendarProps {
   sessions: PlaySession[];
-  /** Horas propias: se sombrean para saber dónde puedes firmar. */
+  /** Horas propias: se iluminan para saber dónde puedes comprometerte. */
   availability: TimeBlock[];
   selectedSessionId: string | null;
   currentUserId: string;
@@ -18,11 +19,11 @@ interface WeekCalendarProps {
 }
 
 /**
- * La hoja de la semana.
+ * La semana.
  *
- * Siete columnas de día, las horas numeradas en el margen y las sesiones ya
- * firmadas ocupando sus bloques con la tinta de su juego. Una línea vacía dentro
- * de tus horas ofrece anotar una sesión ahí mismo.
+ * Siete columnas de día, las horas en el margen y las sesiones publicadas
+ * ocupando sus bloques con la tinta de su juego. Un bloque vacío dentro de tus
+ * horas ofrece anotar una sesión ahí mismo.
  */
 export function WeekCalendar({
   sessions,
@@ -55,7 +56,7 @@ export function WeekCalendar({
           />
         ))}
 
-        {positioned.map(({ session, day, rowIndex, span, column, columns }) => {
+        {positioned.map(({ session, day, rowIndex, span, column, columns }, order) => {
           const game = getGame(session.gameId);
           const selected = session.id === selectedSessionId;
           const signed = session.participants.some(
@@ -75,9 +76,11 @@ export function WeekCalendar({
                 // Reparto horizontal entre las sesiones que se pisan.
                 width: `calc(100% / ${columns})`,
                 marginLeft: `calc(${column} * 100% / ${columns})`,
-                background: withAlpha(game.accent, 0.15),
-                borderColor: withAlpha(game.accent, 0.55),
-              }}
+                background: `linear-gradient(160deg, ${withAlpha(game.accent, 0.26)}, ${withAlpha(game.accent, 0.1)})`,
+                borderColor: withAlpha(game.accent, 0.5),
+                '--game': game.accent,
+                '--i': order,
+              } as CSSProperties}
               onClick={() => onSelectSession(session.id)}
               aria-label={`${session.title}, ${WEEK_DAYS[session.day].label} ${formatHour(
                 session.startHour,
@@ -108,11 +111,7 @@ interface RowProps {
 function Row({ hour, rowIndex, openHours, onSelectSlot }: RowProps) {
   return (
     <>
-      <span
-        className="week__hour"
-        data-band={rowIndex % 2 === 1 || undefined}
-        style={{ gridRow: rowIndex + 2 }}
-      >
+      <span className="week__hour" style={{ gridRow: rowIndex + 2 }}>
         {formatHour(hour)}
       </span>
       {WEEK_DAYS.map((day) => {
@@ -122,7 +121,6 @@ function Row({ hour, rowIndex, openHours, onSelectSlot }: RowProps) {
             key={`${day.value}-${hour}`}
             type="button"
             className="week__slot"
-            data-band={rowIndex % 2 === 1 || undefined}
             data-open={isOpen || undefined}
             style={{ gridColumn: day.value + 2, gridRow: rowIndex + 2 }}
             onClick={() => onSelectSlot(day.value, hour)}

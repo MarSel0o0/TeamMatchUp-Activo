@@ -1,3 +1,4 @@
+import { withAlpha } from '@/shared/utils/ink';
 import './monogram.css';
 
 interface MonogramProps {
@@ -7,7 +8,7 @@ interface MonogramProps {
   title?: string;
 }
 
-/** Iniciales escritas en la casilla de identidad del formulario. */
+/** Iniciales sobre un squircle teñido con el color del jugador. */
 export function Monogram({ name, color, size = 'md', title }: MonogramProps) {
   const initials = name
     .split(/\s+/)
@@ -18,7 +19,11 @@ export function Monogram({ name, color, size = 'md', title }: MonogramProps) {
   return (
     <span
       className={`monogram monogram--${size}`}
-      style={{ color, borderColor: color }}
+      style={{
+        color,
+        background: `linear-gradient(145deg, ${withAlpha(color, 0.28)}, ${withAlpha(color, 0.08)})`,
+        borderColor: withAlpha(color, 0.45),
+      }}
       title={title ?? name}
       aria-hidden="true"
     >

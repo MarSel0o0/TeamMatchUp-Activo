@@ -1,10 +1,11 @@
 .game-mark {
   display: inline-flex;
   align-items: center;
-  gap: var(--s2);
+  gap: 0.4rem;
+  font-family: var(--mono);
   font-size: var(--t-micro);
-  font-variation-settings: 'wght' 640, 'wdth' 90;
-  letter-spacing: 0.08em;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -12,6 +13,8 @@
 .game-mark__ink {
   width: 7px;
   height: 7px;
-  border-radius: 1px;
+  border-radius: 2px;
+  transform: rotate(45deg);
   flex-shrink: 0;
+  box-shadow: 0 0 8px currentColor;
 }

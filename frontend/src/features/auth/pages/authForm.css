@@ -1,5 +1,4 @@
 .access {
-  width: min(400px, 100%);
   display: flex;
   flex-direction: column;
   gap: var(--s5);
@@ -9,8 +8,6 @@
   display: flex;
   flex-direction: column;
   gap: var(--s2);
-  padding-bottom: var(--s3);
-  border-bottom: 1px solid var(--rule-strong);
 }
 
 .access__fields {
@@ -19,27 +16,35 @@
   gap: var(--s4);
 }
 
+.access__submit {
+  min-height: 48px;
+  font-size: var(--t-base);
+}
+
 .access__foot {
   font-size: var(--t-small);
   color: var(--ink-3);
   text-align: center;
 }
 
-/* La cuenta de demostración se presenta como lo que es: una nota al pie del formulario. */
+/* La cuenta de demostración se presenta como lo que es: una nota aparte. */
 .access__demo {
   display: flex;
   flex-direction: column;
-  gap: var(--s2);
-  padding: var(--s3);
-  border: 1px dashed var(--rule-strong);
-  border-radius: 2px;
+  align-items: flex-start;
+  gap: var(--s3);
+  padding: var(--s4);
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--r-md);
   font-size: var(--t-micro);
-  line-height: 1.55;
+  line-height: 1.6;
   color: var(--ink-3);
 }
 
 .access__demo code {
-  font-family: var(--face);
-  font-variation-settings: 'wght' 640, 'wdth' 90;
-  color: var(--ink-2);
+  font-family: var(--mono);
+  padding: 0.05rem 0.35rem;
+  border-radius: 5px;
+  background: var(--surface-3);
+  color: var(--ink);
 }

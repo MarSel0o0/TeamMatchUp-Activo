@@ -1,55 +1,61 @@
 .rank-scale {
   display: flex;
   flex-direction: column;
-  gap: var(--s3);
+  gap: var(--s4);
+  padding-top: var(--s3);
 }
 
 .rank-scale__track {
   position: relative;
-  height: 22px;
-  border-bottom: 1px solid var(--rule-strong);
+  height: 8px;
+  border-radius: 8px;
+  background: var(--surface-3);
+  box-shadow: var(--inset);
 }
 
 /* Cada tier del juego es una marca real de la regla. */
 .rank-scale__tick {
   position: absolute;
-  bottom: 0;
+  top: 14px;
   width: 1px;
-  height: 7px;
-  background: var(--rule-strong);
+  height: 6px;
+  background: var(--line-strong);
   transform: translateX(-50%);
 }
 
-.rank-scale__tick[data-first],
-.rank-scale__tick[data-last] {
-  height: 12px;
-  background: var(--ink-3);
+.rank-scale__span {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: inherit;
+  transform-origin: left;
 }
 
 .rank-scale__past {
   position: absolute;
-  bottom: 0;
-  width: 1px;
-  height: 16px;
+  top: -5px;
+  width: 2px;
+  height: 18px;
+  border-radius: 2px;
   background: var(--ink-3);
   transform: translateX(-50%);
 }
 
-.rank-scale__past::after {
-  content: '';
+.rank-scale__rail {
   position: absolute;
-  inset: auto 0 -1px 0;
-  height: 1px;
-  background: var(--ink-3);
+  inset: 0;
+  pointer-events: none;
 }
 
 .rank-scale__now {
   position: absolute;
-  bottom: -3px;
-  width: 3px;
-  height: 22px;
-  border-radius: 1px;
-  transform: translateX(-50%);
+  left: 0;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 3px solid var(--surface);
+  translate: -50% -50%;
 }
 
 .rank-scale__ends {
@@ -57,13 +63,13 @@
   align-items: baseline;
   justify-content: space-between;
   gap: var(--s3);
+  padding-top: var(--s2);
 }
 
 .rank-scale__delta {
   font-size: var(--t-micro);
-  font-variant-numeric: tabular-nums;
-  font-variation-settings: 'wght' 600;
-  color: var(--stamp);
+  color: var(--danger);
+  text-align: center;
 }
 
 .rank-scale__delta[data-up] {

@@ -1,13 +1,25 @@
+/* Cabecera de la ficha: la tarjeta del jugador. */
+.ficha {
+  overflow: hidden;
+  background:
+    radial-gradient(90% 120% at 0% 0%, rgba(205, 242, 75, 0.08), transparent 55%),
+    linear-gradient(180deg, var(--surface-2), var(--surface));
+}
+
 .ficha__head {
   display: flex;
-  align-items: flex-start;
-  gap: var(--s4);
+  align-items: center;
+  gap: var(--s5);
   flex-wrap: wrap;
-  padding: var(--s5) var(--s5) var(--s4);
+  padding: var(--s6);
+}
+
+.ficha__head .doc-title {
+  margin-bottom: var(--s1);
 }
 
 .ficha__bio {
-  margin-top: var(--s2);
+  margin-top: var(--s3);
   font-size: var(--t-small);
   color: var(--ink-2);
   max-width: 62ch;
@@ -15,33 +27,40 @@
 
 .ficha__totals {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-  gap: 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   margin: 0;
-  border-top: 1px solid var(--rule);
+  border-top: 1px solid var(--line);
 }
 
-.ficha__totals div {
+.ficha__totals > div {
   display: flex;
   flex-direction: column;
-  gap: var(--s1);
-  padding: var(--s3) var(--s5);
-  border-right: 1px solid var(--rule-hair);
+  gap: var(--s2);
+  padding: var(--s5) var(--s6);
+  border-right: 1px solid var(--line);
 }
 
-.ficha__totals div:last-child {
+.ficha__totals > div:last-child {
   border-right: 0;
 }
 
 .ficha__totals dd {
   margin: 0;
-  font-size: var(--t-h3);
-  font-variation-settings: 'wght' 620, 'wdth' 92;
-  letter-spacing: -0.02em;
+  font-family: var(--mono);
+  font-size: clamp(1.75rem, 1.3rem + 1.4vw, 2.5rem);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+.ficha__of {
+  font-size: var(--t-small);
+  letter-spacing: 0;
+  color: var(--ink-3);
 }
 
 .ficha__tabs {
-  padding: var(--s4) var(--s5) 0;
+  padding: var(--s5) var(--s5) 0;
 }
 
 .ficha__game {
@@ -51,44 +70,46 @@
 }
 
 .ficha__game > div:first-child {
-  border-right: 1px solid var(--rule);
+  border-right: 1px solid var(--line);
 }
 
 .ficha__scale {
   display: flex;
   flex-direction: column;
   gap: var(--s3);
-  padding: var(--s4) var(--s5);
-  border-top: 1px solid var(--rule);
+  padding: var(--s5);
+  border-top: 1px solid var(--line);
 }
 
 .ficha__matches {
   display: flex;
   flex-direction: column;
-  gap: var(--s3);
-  padding: var(--s4) var(--s5);
+  gap: var(--s4);
+  padding: var(--s5);
 }
 
 .ficha__winrate {
+  font-family: var(--mono);
   font-size: var(--t-small);
-  color: var(--ink-2);
+  color: var(--accent-text);
 }
 
-/* Las horas declaradas se leen como renglones de un listado, no como fichas. */
 .ficha__ranges {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-  gap: 0 var(--s5);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
 }
 
 .ficha__ranges li {
-  padding: var(--s2) 0;
-  border-bottom: 1px solid var(--rule-hair);
+  padding: 0.35rem 0.85rem;
+  border-radius: var(--r-pill);
+  background: var(--surface-3);
+  border: 1px solid var(--line);
   font-size: var(--t-small);
-  color: var(--ink-2);
+  color: var(--ink);
 }
 
 @media (max-width: 900px) {
@@ -98,6 +119,20 @@
 
   .ficha__game > div:first-child {
     border-right: 0;
-    border-bottom: 1px solid var(--rule);
+    border-bottom: 1px solid var(--line);
+  }
+}
+
+@media (max-width: 640px) {
+  .ficha__head {
+    padding: var(--s5);
+  }
+
+  .ficha__head .btn {
+    width: 100%;
+  }
+
+  .ficha__totals > div {
+    padding: var(--s4);
   }
 }

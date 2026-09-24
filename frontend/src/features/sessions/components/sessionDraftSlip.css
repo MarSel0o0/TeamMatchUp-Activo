@@ -1,32 +1,42 @@
-/* La papeleta se rellena como un formulario: renglones numerados y reglados. */
+/* El formulario de la sesión: pasos numerados en el margen. */
 .draft {
   list-style: none;
   margin: 0;
   padding: 0;
-  counter-reset: renglon;
+  counter-reset: paso;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
 }
 
 .draft__row {
   position: relative;
-  counter-increment: renglon;
-  padding: var(--s3) 0 var(--s3) var(--s5);
-  border-bottom: 1px solid var(--rule-hair);
+  counter-increment: paso;
+  padding-left: 2.25rem;
 }
 
-.draft__row:last-child {
-  border-bottom: 0;
-}
-
-/* El número del renglón vive en el margen, no dentro del campo. */
 .draft__row::before {
-  content: counter(renglon, decimal-leading-zero);
+  content: counter(paso);
   position: absolute;
   left: 0;
-  top: calc(var(--s3) + 2px);
-  font-size: var(--t-micro);
-  font-variant-numeric: tabular-nums;
-  font-variation-settings: 'wght' 620, 'wdth' 90;
-  color: var(--ink-3);
+  top: 0;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--surface-3);
+  border: 1px solid var(--line-strong);
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: var(--ink-2);
+}
+
+/* El paso con foco se enciende. */
+.draft__row:focus-within::before {
+  background: var(--volt);
+  border-color: var(--volt);
+  color: var(--volt-ink);
 }
 
 .draft__pair {
@@ -38,4 +48,12 @@
 .draft__pair > .field {
   flex: 1;
   min-width: 0;
+}
+
+.draft + * {
+  margin-top: var(--s4);
+}
+
+#create-session-form > .notice {
+  margin-bottom: var(--s4);
 }

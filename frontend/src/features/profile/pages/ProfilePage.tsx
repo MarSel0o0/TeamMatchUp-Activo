@@ -12,6 +12,7 @@ import { Monogram } from '@/shared/components/Monogram';
 import { RankScale } from '@/shared/components/RankScale';
 import { Blank, Failure, SheetSkeleton } from '@/shared/components/States';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import { CountUp } from '@/shared/motion/CountUp';
 import { pluralize, timeAgo } from '@/shared/utils/format';
 import { AccountRow } from '../components/AccountRow';
 import { MatchLedger } from '../components/MatchLedger';
@@ -68,17 +69,23 @@ export default function ProfilePage() {
         <dl className="ficha__totals">
           <div>
             <dt className="label">Juegos vinculados</dt>
-            <dd className="num">{accounts.length}</dd>
+            <dd>
+              <CountUp value={accounts.length} />
+            </dd>
           </div>
           <div>
             <dt className="label">Cuentas verificadas</dt>
-            <dd className="num">
-              {accounts.filter((account) => account.verified).length} de {accounts.length}
+            <dd>
+              <CountUp value={accounts.filter((account) => account.verified).length} />
+              <span className="ficha__of"> / {accounts.length}</span>
             </dd>
           </div>
           <div>
             <dt className="label">Horas declaradas</dt>
-            <dd className="num">{availability.length} por semana</dd>
+            <dd>
+              <CountUp value={availability.length} />
+              <span className="ficha__of"> h/sem</span>
+            </dd>
           </div>
         </dl>
       </header>
@@ -164,8 +171,8 @@ export default function ProfilePage() {
                 <div className="ficha__matches">
                   <div className="line-between">
                     <h3 className="sheet-title">Últimas partidas</h3>
-                    <span className="num ficha__winrate">
-                      {summaryQuery.data.winRate}% ganadas
+                    <span className="ficha__winrate">
+                      <CountUp value={summaryQuery.data.winRate} suffix="%" /> ganadas
                     </span>
                   </div>
                   <MatchLedger matches={summaryQuery.data.recentMatches} />

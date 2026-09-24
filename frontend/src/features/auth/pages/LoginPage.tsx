@@ -92,7 +92,7 @@ export default function LoginPage() {
         />
       </div>
 
-      <button type="submit" className="btn btn--pen btn--block" disabled={submitting}>
+      <button type="submit" className="btn btn--pen btn--block access__submit" disabled={submitting}>
         {submitting ? <span className="btn__spin" /> : <Icon as={ArrowRight} size={15} />}
         {submitting ? 'Entrando…' : 'Entrar'}
       </button>

@@ -1,5 +1,5 @@
 import { CalendarPlus, Link2, NotebookPen } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/app/routes';
 import { parseBlock } from '@/domain/availability';
@@ -10,6 +10,7 @@ import { useAccounts, useAvailability } from '@/features/profile/hooks';
 import { Icon } from '@/shared/components/Icon';
 import { Blank, Failure, SheetSkeleton } from '@/shared/components/States';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import { Magnetic } from '@/shared/motion/Magnetic';
 import { pluralize } from '@/shared/utils/format';
 import { SessionDraftSlip, type SessionDraft } from '../components/SessionDraftSlip';
 import { SessionSlip } from '../components/SessionSlip';
@@ -88,22 +89,27 @@ export default function SchedulePage() {
 
   return (
     <>
-      <header className="line-between">
-        <div className="stack-sm">
+      <header className="page-head">
+        <div className="page-head__copy">
           <h1 className="doc-title">Agenda de la semana</h1>
           <p className="lead">
-            Anota un bloque para jugar o firma el de otro. Tus horas declaradas aparecen sombreadas.
+            Publica un bloque para jugar o súmate al de otro. Tus horas declaradas aparecen
+            iluminadas.
           </p>
         </div>
-        <button
-          type="button"
-          className="btn btn--pen"
-          onClick={() => openDraft(0, 20)}
-          disabled={myGames.length === 0}
-        >
-          <Icon as={CalendarPlus} size={15} />
-          Anotar sesión
-        </button>
+        <Magnetic>
+          <button
+            type="button"
+            className="btn btn--pen btn--lg"
+            onClick={() => openDraft(0, 20)}
+            disabled={myGames.length === 0}
+          >
+            Anotar sesión
+            <span className="btn__orb">
+              <Icon as={CalendarPlus} size={17} />
+            </span>
+          </button>
+        </Magnetic>
       </header>
 
       {myGames.length === 0 ? (
@@ -117,7 +123,8 @@ export default function SchedulePage() {
       <div className="agenda__filters">
         <button
           type="button"
-          className={`btn btn--sm${gameFilter === 'all' ? ' btn--pen' : ''}`}
+          className="chip"
+          aria-pressed={gameFilter === 'all'}
           onClick={() => setGameFilter('all')}
         >
           Todos los juegos
@@ -126,9 +133,12 @@ export default function SchedulePage() {
           <button
             key={game.id}
             type="button"
-            className={`btn btn--sm${gameFilter === game.id ? ' btn--pen' : ''}`}
+            className="chip"
+            aria-pressed={gameFilter === game.id}
+            style={{ '--chip-ink': game.accent } as CSSProperties}
             onClick={() => setGameFilter(game.id)}
           >
+            <span className="chip__dot" />
             {game.name}
           </button>
         ))}
@@ -140,9 +150,19 @@ export default function SchedulePage() {
       <div className="agenda">
         <section className="sheet sheet--punched">
           <div className="sheet__head">
-            <h2 className="sheet-title grow">Hoja semanal</h2>
+            <div className="grow stack-sm">
+              <h2 className="sheet-title">Semana</h2>
+              <div className="agenda__legend">
+                <span>
+                  <i className="agenda__swatch" /> Tus horas
+                </span>
+                <span>
+                  <i className="agenda__swatch agenda__swatch--signed" /> Estás anotado
+                </span>
+              </div>
+            </div>
             <span className="label">
-              {pluralize(sessions.length, 'sesión anotada', 'sesiones anotadas')}
+              {pluralize(sessions.length, 'sesión publicada', 'sesiones publicadas')}
             </span>
           </div>
 
@@ -196,8 +216,8 @@ export default function SchedulePage() {
               ) : mine.length === 0 ? (
                 <Blank
                   icon={NotebookPen}
-                  title="No has firmado ninguna sesión"
-                  description="Haz clic en un bloque de la hoja para anotar la tuya, o abre una existente y firma."
+                  title="No estás en ninguna sesión"
+                  description="Haz clic en un bloque de la semana para publicar la tuya, o abre una existente y súmate."
                 />
               ) : (
                 mine.map((session) => (
