@@ -141,3 +141,7 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Evidencia transitoria de las rondas de inspección visual (capturas, diffs).
+.impeccable/review/
+.impeccable/mocks/

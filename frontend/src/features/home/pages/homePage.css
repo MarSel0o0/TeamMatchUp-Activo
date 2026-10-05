@@ -1,0 +1,196 @@
+.home {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s6);
+}
+
+.home__title {
+  font-size: clamp(2.25rem, 1.4rem + 3vw, 3.75rem);
+  max-width: 18ch;
+}
+
+.home__title em {
+  font-style: normal;
+  color: var(--ink-3);
+}
+
+.home__next {
+  color: var(--accent-text);
+  font-weight: 560;
+}
+
+.home__account {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: 0.3rem 0.7rem;
+  border: 1px solid;
+  border-radius: var(--r-pill);
+  background: var(--fill-1);
+}
+
+.home__check {
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  color: var(--accent-text);
+}
+
+/* --------------------------------------------------------------------------
+   Bento asimétrico: la agenda domina, el resto la rodea.
+   -------------------------------------------------------------------------- */
+
+.bento {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-auto-rows: minmax(150px, auto);
+  gap: var(--s5);
+}
+
+.bento__cell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s5);
+  padding: var(--s5);
+}
+
+/* Toda la celda es el enlace; el contenido queda por encima solo para leerse. */
+.bento__link {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+}
+
+.bento__link:focus-visible {
+  outline-offset: 4px;
+}
+
+.bento__cell--agenda {
+  grid-column: span 7;
+  grid-row: span 2;
+  justify-content: space-between;
+  background:
+    radial-gradient(120% 80% at 100% 0%, rgba(205, 242, 75, 0.1), transparent 55%),
+    linear-gradient(180deg, var(--surface-2), var(--surface));
+}
+
+.bento__cell--hours {
+  grid-column: span 5;
+  grid-row: span 2;
+}
+
+.bento__cell--matches {
+  grid-column: span 6;
+}
+
+.bento__cell--profile {
+  grid-column: span 6;
+}
+
+.bento__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s3);
+}
+
+.bento__icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: var(--surface-3);
+  border: 1px solid var(--line-strong);
+  color: var(--ink);
+}
+
+.bento__cell--agenda .bento__icon {
+  background: var(--volt);
+  border-color: var(--volt);
+  color: var(--volt-ink);
+}
+
+.bento__arrow {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  color: var(--ink-3);
+  transition:
+    transform var(--base) var(--spring),
+    color var(--base) var(--ease),
+    border-color var(--base) var(--ease);
+}
+
+.bento__cell:hover .bento__arrow {
+  transform: translate(2px, -2px) rotate(8deg);
+  color: var(--accent-text);
+  border-color: var(--volt-edge);
+}
+
+.bento__copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+.bento__title {
+  font-size: var(--t-h2);
+  font-weight: 620;
+  letter-spacing: -0.035em;
+}
+
+.bento__cell--agenda .bento__title {
+  font-size: clamp(1.9rem, 1.3rem + 1.8vw, 2.75rem);
+}
+
+.bento__stats {
+  display: flex;
+  gap: var(--s7);
+  padding-top: var(--s4);
+  border-top: 1px solid var(--line);
+}
+
+.bento__stats > div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+}
+
+.bento__big {
+  font-family: var(--mono);
+  font-size: clamp(2.5rem, 1.8rem + 2vw, 3.5rem);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+.bento__big--volt {
+  color: var(--accent-text);
+}
+
+.bento__heat {
+  margin-top: auto;
+}
+
+@media (max-width: 1024px) {
+  .bento__cell--agenda,
+  .bento__cell--hours {
+    grid-column: span 12;
+    grid-row: auto;
+  }
+}
+
+@media (max-width: 720px) {
+  .bento {
+    gap: var(--s4);
+  }
+
+  .bento__cell--matches,
+  .bento__cell--profile {
+    grid-column: span 12;
+  }
+}

@@ -1,0 +1,210 @@
+/**
+ * TeamMatchUp — mundo visual "Lobby".
+ *
+ * La interfaz es la sala de espera antes de una partida: grafito profundo con
+ * grano, luz ambiental baja y un único acento volt que marca lo que el jugador
+ * hace (acciones primarias, su selección, el traslape que se vino a buscar).
+ * El uso es sobre todo nocturno, así que el tema por defecto es oscuro; el
+ * claro existe para quien juega de día o lo prefiere. El tema se elige para
+ * toda la página y nunca se invierte por sección.
+ *
+ * Todo color que dependa del tema vive aquí: los componentes no escriben
+ * blancos ni negros translúcidos a mano, usan --fill-*, --glass-*, --well…
+ *
+ * Las tres tintas de juego solo aparecen donde el juego ES la información.
+ *
+ * Regla de forma (una sola, sin excepciones):
+ *   - contenedores y paneles: --r-xl (22px), con núcleo interno --r-lg;
+ *   - elementos internos y campos: --r-md (12px);
+ *   - todo lo interactivo que es botón o chip: píldora completa.
+ */
+:root {
+  /* --- Superficies ------------------------------------------------------- */
+  --bg: #0b0c0e;
+  --bg-deep: #070809;
+  --surface: #121418;
+  --surface-2: #171a1f;
+  --surface-3: #1e2228;
+  --surface-sunk: #0e1013;
+
+  /* Bordes hairline: luz, no gris. */
+  --line: rgba(255, 255, 255, 0.07);
+  --line-strong: rgba(255, 255, 255, 0.13);
+  --line-hair: rgba(255, 255, 255, 0.045);
+  --highlight: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+  /* --- Texto ------------------------------------------------------------- */
+  --ink: #eef0f2;
+  --ink-2: #a2a9b3;
+  --ink-3: #7c848f;
+
+  /* --- Acento volt: lo que el jugador hace ------------------------------- */
+  --volt: #cdf24b;
+  --volt-bright: #dcfa72;
+  --volt-ink: #0c0f02;
+  --volt-wash: rgba(205, 242, 75, 0.1);
+  --volt-wash-strong: rgba(205, 242, 75, 0.22);
+  --volt-edge: rgba(205, 242, 75, 0.38);
+  --volt-glow: 0 0 0 1px rgba(205, 242, 75, 0.4), 0 10px 40px -10px rgba(205, 242, 75, 0.45);
+  /* El volt como TEXTO: en oscuro es el mismo volt; en claro se oscurece para
+     pasar contraste sobre fondo blanco. */
+  --accent-text: var(--volt);
+  --accent-text-hover: var(--volt-bright);
+
+  /* --- Rellenos y superficies translúcidas ----------------------------- */
+  --fill-1: rgba(255, 255, 255, 0.025);
+  --fill-2: rgba(255, 255, 255, 0.05);
+  --fill-3: rgba(255, 255, 255, 0.08);
+  --bezel: rgba(255, 255, 255, 0.018);
+  --glass-bg: rgba(18, 20, 24, 0.72);
+  --glass-strong: rgba(18, 20, 24, 0.85);
+  --glass-shadow: 0 20px 50px -20px rgba(3, 4, 6, 0.9);
+  --menu-bg: rgba(9, 10, 12, 0.86);
+  --scrim: rgba(5, 6, 8, 0.66);
+  --well: rgba(0, 0, 0, 0.25);
+  --well-soft: rgba(0, 0, 0, 0.2);
+  --inset: inset 0 1px 2px rgba(0, 0, 0, 0.4);
+  --placeholder: #646b75;
+  --spot: rgba(205, 242, 75, 0.55);
+  --grain: 0.045;
+  --ambient-a: rgba(205, 242, 75, 0.07);
+  --ambient-b: rgba(95, 194, 216, 0.055);
+  --ambient-c: rgba(224, 138, 79, 0.045);
+  --stack-shadow: 0 -20px 60px -30px rgba(3, 4, 6, 0.9);
+  --step-1: linear-gradient(160deg, #1a1d22, #111316 60%);
+  --step-2: linear-gradient(160deg, #1b1f1a, #111412 60%);
+  --step-3: linear-gradient(160deg, #1f1b18, #141110 60%);
+
+  color-scheme: dark;
+
+  /* --- Estados ----------------------------------------------------------- */
+  --danger: #ff6b5e;
+  --danger-wash: rgba(255, 107, 94, 0.12);
+  --ok: #56d68f;
+  --ok-wash: rgba(86, 214, 143, 0.12);
+  --warn: #f1b24a;
+  --warn-wash: rgba(241, 178, 74, 0.12);
+
+  /* --- Tintas de juego --------------------------------------------------- */
+  --ink-lol: #d3a04a;
+  --ink-r6: #5fc2d8;
+  --ink-cs2: #e08a4f;
+
+  /* --- Espaciado --------------------------------------------------------- */
+  --s1: 0.25rem;
+  --s2: 0.5rem;
+  --s3: 0.75rem;
+  --s4: 1rem;
+  --s5: 1.5rem;
+  --s6: 2rem;
+  --s7: 3rem;
+  --s8: 4.5rem;
+  --s9: 7rem;
+
+  /* --- Radios ------------------------------------------------------------ */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 22px;
+  --r-pill: 999px;
+
+  /* --- Tipografía -------------------------------------------------------- */
+  --face: 'Geist Variable', 'Geist', system-ui, sans-serif;
+  --mono: 'Geist Mono Variable', 'Geist Mono', ui-monospace, monospace;
+
+  --t-micro: 0.6875rem;
+  --t-small: 0.8125rem;
+  --t-base: 0.9375rem;
+  --t-lead: 1.0625rem;
+  --t-h3: 1.1875rem;
+  --t-h2: 1.625rem;
+  --t-h1: clamp(2rem, 1.4rem + 2vw, 2.875rem);
+  --t-display: clamp(2.75rem, 1.2rem + 5.4vw, 5.75rem);
+
+  /* --- Profundidad: sombras teñidas con el fondo, nunca negro puro -------- */
+  --lift: 0 1px 2px rgba(3, 4, 6, 0.5), 0 12px 32px -12px rgba(3, 4, 6, 0.7);
+  --lift-high: 0 2px 4px rgba(3, 4, 6, 0.5), 0 40px 80px -20px rgba(3, 4, 6, 0.85);
+
+  /* --- Movimiento: curvas con masa, nunca lineales ----------------------- */
+  --fast: 160ms;
+  --base: 280ms;
+  --slow: 700ms;
+  --ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* --- Capas ------------------------------------------------------------- */
+  --z-raised: 2;
+  --z-nav: 30;
+  --z-overlay: 40;
+  --z-modal: 60;
+  --z-grain: 80;
+
+  --measure: 1280px;
+  --nav-h: 64px;
+}
+
+/* ========================================================================== */
+/* Tema claro: gris frío, superficies blancas, sombras suaves teñidas.          */
+/* ========================================================================== */
+:root[data-theme='light'] {
+  --bg: #eceef1;
+  --bg-deep: #e2e5e9;
+  --surface: #ffffff;
+  --surface-2: #fafbfc;
+  --surface-3: #eceef2;
+  --surface-sunk: #f2f4f6;
+
+  --line: rgba(14, 17, 22, 0.09);
+  --line-strong: rgba(14, 17, 22, 0.16);
+  --line-hair: rgba(14, 17, 22, 0.06);
+  --highlight: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+
+  --ink: #101216;
+  --ink-2: #474e58;
+  --ink-3: #656c76;
+
+  --volt: #c6ee35;
+  --volt-bright: #d2f55a;
+  --volt-wash: rgba(120, 160, 0, 0.1);
+  --volt-wash-strong: rgba(120, 160, 0, 0.2);
+  --volt-edge: rgba(100, 140, 0, 0.42);
+  --volt-glow: 0 0 0 1px rgba(100, 140, 0, 0.35), 0 10px 30px -12px rgba(120, 160, 0, 0.5);
+  --accent-text: #4a6800;
+  --accent-text-hover: #3a5300;
+
+  --danger: #c93a2c;
+  --danger-wash: rgba(201, 58, 44, 0.09);
+  --ok: #17864c;
+  --ok-wash: rgba(23, 134, 76, 0.1);
+  --warn: #a8660c;
+  --warn-wash: rgba(168, 102, 12, 0.1);
+
+  --fill-1: rgba(14, 17, 22, 0.025);
+  --fill-2: rgba(14, 17, 22, 0.045);
+  --fill-3: rgba(14, 17, 22, 0.07);
+  --bezel: rgba(255, 255, 255, 0.75);
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-strong: rgba(255, 255, 255, 0.9);
+  --glass-shadow: 0 18px 40px -22px rgba(30, 40, 60, 0.35);
+  --menu-bg: rgba(242, 244, 247, 0.9);
+  --scrim: rgba(20, 24, 30, 0.35);
+  --well: rgba(14, 17, 22, 0.035);
+  --well-soft: rgba(255, 255, 255, 0.55);
+  --inset: inset 0 1px 2px rgba(14, 17, 22, 0.08);
+  --placeholder: #737a84;
+  --spot: rgba(110, 150, 0, 0.55);
+  --grain: 0.03;
+  --ambient-a: rgba(170, 215, 20, 0.14);
+  --ambient-b: rgba(95, 194, 216, 0.12);
+  --ambient-c: rgba(224, 138, 79, 0.08);
+  --stack-shadow: 0 -16px 40px -30px rgba(30, 40, 60, 0.3);
+  --step-1: linear-gradient(160deg, #ffffff, #f3f5f8 60%);
+  --step-2: linear-gradient(160deg, #fbfdf5, #f1f5ea 60%);
+  --step-3: linear-gradient(160deg, #fffaf6, #f7f1ec 60%);
+
+  --lift: 0 1px 2px rgba(30, 40, 60, 0.06), 0 12px 30px -14px rgba(30, 40, 60, 0.2);
+  --lift-high: 0 2px 4px rgba(30, 40, 60, 0.06), 0 30px 60px -24px rgba(30, 40, 60, 0.3);
+
+  color-scheme: light;
+}

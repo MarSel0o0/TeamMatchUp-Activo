@@ -1,0 +1,138 @@
+/* Cabecera de la ficha: la tarjeta del jugador. */
+.ficha {
+  overflow: hidden;
+  background:
+    radial-gradient(90% 120% at 0% 0%, rgba(205, 242, 75, 0.08), transparent 55%),
+    linear-gradient(180deg, var(--surface-2), var(--surface));
+}
+
+.ficha__head {
+  display: flex;
+  align-items: center;
+  gap: var(--s5);
+  flex-wrap: wrap;
+  padding: var(--s6);
+}
+
+.ficha__head .doc-title {
+  margin-bottom: var(--s1);
+}
+
+.ficha__bio {
+  margin-top: var(--s3);
+  font-size: var(--t-small);
+  color: var(--ink-2);
+  max-width: 62ch;
+}
+
+.ficha__totals {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+  border-top: 1px solid var(--line);
+}
+
+.ficha__totals > div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  padding: var(--s5) var(--s6);
+  border-right: 1px solid var(--line);
+}
+
+.ficha__totals > div:last-child {
+  border-right: 0;
+}
+
+.ficha__totals dd {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: clamp(1.75rem, 1.3rem + 1.4vw, 2.5rem);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+.ficha__of {
+  font-size: var(--t-small);
+  letter-spacing: 0;
+  color: var(--ink-3);
+}
+
+.ficha__tabs {
+  padding: var(--s5) var(--s5) 0;
+}
+
+.ficha__game {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  align-items: start;
+}
+
+.ficha__game > div:first-child {
+  border-right: 1px solid var(--line);
+}
+
+.ficha__scale {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  padding: var(--s5);
+  border-top: 1px solid var(--line);
+}
+
+.ficha__matches {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+  padding: var(--s5);
+}
+
+.ficha__winrate {
+  font-family: var(--mono);
+  font-size: var(--t-small);
+  color: var(--accent-text);
+}
+
+.ficha__ranges {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+}
+
+.ficha__ranges li {
+  padding: 0.35rem 0.85rem;
+  border-radius: var(--r-pill);
+  background: var(--surface-3);
+  border: 1px solid var(--line);
+  font-size: var(--t-small);
+  color: var(--ink);
+}
+
+@media (max-width: 900px) {
+  .ficha__game {
+    grid-template-columns: 1fr;
+  }
+
+  .ficha__game > div:first-child {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+}
+
+@media (max-width: 640px) {
+  .ficha__head {
+    padding: var(--s5);
+  }
+
+  .ficha__head .btn {
+    width: 100%;
+  }
+
+  .ficha__totals > div {
+    padding: var(--s4);
+  }
+}

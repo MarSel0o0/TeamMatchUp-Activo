@@ -1,0 +1,50 @@
+.access {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s5);
+}
+
+.access__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+.access__fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+}
+
+.access__submit {
+  min-height: 48px;
+  font-size: var(--t-base);
+}
+
+.access__foot {
+  font-size: var(--t-small);
+  color: var(--ink-3);
+  text-align: center;
+}
+
+/* La cuenta de demostración se presenta como lo que es: una nota aparte. */
+.access__demo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s3);
+  padding: var(--s4);
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--r-md);
+  font-size: var(--t-micro);
+  line-height: 1.6;
+  color: var(--ink-3);
+}
+
+.access__demo code {
+  font-family: var(--mono);
+  padding: 0.05rem 0.35rem;
+  border-radius: 5px;
+  background: var(--surface-3);
+  color: var(--ink);
+}

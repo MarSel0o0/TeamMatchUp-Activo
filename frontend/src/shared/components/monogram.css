@@ -1,0 +1,31 @@
+.monogram {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border: 1px solid;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.monogram--sm {
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  font-size: 0.66rem;
+}
+
+.monogram--md {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  font-size: var(--t-micro);
+}
+
+.monogram--lg {
+  width: 84px;
+  height: 84px;
+  border-radius: 26px;
+  font-size: 1.75rem;
+  letter-spacing: -0.04em;
+}

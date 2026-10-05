@@ -1,0 +1,81 @@
+.ledger {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ledger th {
+  text-align: left;
+  padding: 0 var(--s3) var(--s1);
+}
+
+.ledger td {
+  padding: var(--s2) var(--s3);
+  vertical-align: middle;
+  background: var(--fill-1);
+}
+
+.ledger td:first-child {
+  border-radius: var(--r-md) 0 0 var(--r-md);
+}
+
+.ledger td:last-child {
+  border-radius: 0 var(--r-md) var(--r-md) 0;
+}
+
+/* Las filas entran en cascada al cambiar de juego. */
+.ledger tbody tr {
+  animation: ledger-in 480ms var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+
+@keyframes ledger-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.ledger tbody tr:hover td {
+  background: var(--fill-2);
+}
+
+.ledger__right {
+  text-align: right;
+}
+
+.ledger__result {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: var(--danger-wash);
+  color: var(--danger);
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  font-weight: 700;
+}
+
+.ledger__result[data-win] {
+  background: var(--ok-wash);
+  color: var(--ok);
+}
+
+.ledger__summary {
+  display: block;
+  font-size: var(--t-small);
+  font-weight: 520;
+}
+
+.ledger__delta {
+  font-family: var(--mono);
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--danger);
+}
+
+.ledger__delta[data-up] {
+  color: var(--ok);
+}

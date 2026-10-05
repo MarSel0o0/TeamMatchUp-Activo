@@ -1,0 +1,338 @@
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+/* --------------------------------------------------------------------------
+   Isla de navegación
+   -------------------------------------------------------------------------- */
+
+.dock {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-nav);
+  padding: var(--s4) var(--s4) 0;
+  pointer-events: none;
+}
+
+.dock__island {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--s4);
+  max-width: var(--measure);
+  height: var(--nav-h);
+  margin: 0 auto;
+  padding: 0 var(--s2) 0 var(--s4);
+  border-radius: var(--r-pill);
+}
+
+/* Vidrio: blur solo en elementos fijos, con canto de luz interior. */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid var(--line-strong);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    var(--glass-shadow);
+}
+
+.dock__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  color: var(--ink);
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.dock__brand:hover {
+  color: var(--ink);
+}
+
+.dock__brand-name {
+  font-size: 1rem;
+  font-weight: 650;
+  letter-spacing: -0.035em;
+}
+
+.dock__links {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  list-style: none;
+  margin: 0 auto;
+  padding: 4px;
+  border-radius: var(--r-pill);
+  background: var(--fill-1);
+  border: 1px solid var(--line-hair);
+}
+
+.dock__link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  height: 40px;
+  padding: 0 var(--s4);
+  border-radius: var(--r-pill);
+  color: var(--ink-2);
+  font-size: var(--t-small);
+  font-weight: 520;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color var(--base) var(--ease);
+}
+
+.dock__link > :not(.dock__active) {
+  position: relative;
+  z-index: 1;
+}
+
+.dock__link:hover {
+  color: var(--ink);
+}
+
+.dock__link.active {
+  color: var(--volt-ink);
+}
+
+/* La píldora activa viaja entre enlaces (layoutId de Motion). */
+.dock__active {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--volt);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 6px 20px -8px rgba(205, 242, 75, 0.7);
+}
+
+.dock__end {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  flex-shrink: 0;
+}
+
+.dock__demo {
+  padding: 0.2rem 0.6rem;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--r-pill);
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  cursor: help;
+}
+
+.dock__user {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: 4px 4px 4px 6px;
+  border-radius: var(--r-pill);
+  background: var(--fill-1);
+  border: 1px solid var(--line-hair);
+}
+
+.dock__user-name {
+  max-width: 14ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--t-small);
+  font-weight: 540;
+}
+
+.dock__icon-btn {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: background var(--base) var(--ease), color var(--base) var(--ease);
+}
+
+.dock__icon-btn:hover {
+  background: var(--danger-wash);
+  color: var(--danger);
+}
+
+/* Hamburguesa: dos trazos que rotan hasta formar la X. */
+.dock__burger {
+  position: relative;
+  display: none;
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  background: var(--fill-2);
+  cursor: pointer;
+}
+
+.dock__burger span {
+  position: absolute;
+  left: 15px;
+  right: 15px;
+  height: 1.5px;
+  border-radius: 2px;
+  background: var(--ink);
+  transition: transform var(--base) var(--ease), top var(--base) var(--ease);
+}
+
+.dock__burger span:first-child {
+  top: 19px;
+}
+
+.dock__burger span:last-child {
+  top: 27px;
+}
+
+.dock__burger[data-open] span:first-child {
+  top: 23px;
+  transform: rotate(45deg);
+}
+
+.dock__burger[data-open] span:last-child {
+  top: 23px;
+  transform: rotate(-45deg);
+}
+
+/* --------------------------------------------------------------------------
+   Menú a pantalla completa (móvil)
+   -------------------------------------------------------------------------- */
+
+.menu {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-nav) - 1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: calc(var(--nav-h) + var(--s7)) var(--s5) var(--s6);
+  border: 0;
+  border-radius: 0;
+  background: var(--menu-bg);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+}
+
+.menu__links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.menu__item {
+  overflow: hidden;
+  border-bottom: 1px solid var(--line);
+}
+
+.menu__link {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s4);
+  padding: var(--s4) 0;
+  color: var(--ink);
+  font-size: clamp(1.9rem, 8vw, 2.6rem);
+  font-weight: 620;
+  letter-spacing: -0.045em;
+  text-decoration: none;
+}
+
+.menu__link:hover,
+.menu__link.active {
+  color: var(--accent-text);
+}
+
+.menu__folio {
+  font-size: var(--t-small);
+  color: var(--ink-3);
+  letter-spacing: 0;
+}
+
+.menu__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s4);
+  flex-wrap: wrap;
+}
+
+/* --------------------------------------------------------------------------
+   Contenido
+   -------------------------------------------------------------------------- */
+
+.shell__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.shell__page {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: var(--s7) var(--s5) var(--s8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s6);
+}
+
+.shell__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s4);
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: var(--s5);
+  border-top: 1px solid var(--line-hair);
+}
+
+@media (max-width: 1140px) {
+  .dock__user-name,
+  .dock__demo {
+    display: none;
+  }
+}
+
+@media (max-width: 920px) {
+  .dock__links,
+  .dock__user {
+    display: none;
+  }
+
+  .dock__burger {
+    display: block;
+  }
+
+  .dock__island {
+    justify-content: space-between;
+    padding-right: var(--s1);
+    height: 58px;
+  }
+
+  .dock__end {
+    margin-left: auto;
+  }
+
+  .shell__page {
+    padding: var(--s6) var(--s4) var(--s7);
+    gap: var(--s5);
+  }
+}
+
+@media (min-width: 921px) {
+  .menu {
+    display: none;
+  }
+}

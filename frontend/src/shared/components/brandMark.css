@@ -1,0 +1,72 @@
+.brand-mark {
+  flex-shrink: 0;
+  overflow: visible;
+}
+
+.brand-mark__tile {
+  fill: var(--surface-3);
+  stroke: var(--line-strong);
+  stroke-width: 1;
+}
+
+.brand-mark__ring {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.8;
+  transition: transform var(--base) var(--ease);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.brand-mark__lens {
+  fill: var(--volt);
+  transition: transform var(--base) var(--spring);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* Al pasar encima, los círculos se separan y el cruce late. */
+a:hover .brand-mark__ring--a {
+  transform: translateX(-1px);
+}
+
+a:hover .brand-mark__ring--b {
+  transform: translateX(1px);
+}
+
+a:hover .brand-mark__lens {
+  transform: scale(1.12);
+}
+
+/* Versión animada: los círculos llegan desde afuera y se encuentran. */
+.brand-mark--animated .brand-mark__ring--a {
+  animation: ring-in-a 900ms var(--ease-out) both;
+}
+
+.brand-mark--animated .brand-mark__ring--b {
+  animation: ring-in-b 900ms var(--ease-out) both;
+}
+
+.brand-mark--animated .brand-mark__lens {
+  animation: lens-in 500ms 700ms var(--spring) both;
+}
+
+@keyframes ring-in-a {
+  from {
+    transform: translateX(-6px);
+    opacity: 0;
+  }
+}
+
+@keyframes ring-in-b {
+  from {
+    transform: translateX(6px);
+    opacity: 0;
+  }
+}
+
+@keyframes lens-in {
+  from {
+    transform: scale(0);
+  }
+}

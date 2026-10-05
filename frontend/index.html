@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="TeamMatchUp: encuentra jugadores de tu mismo nivel que además coincidan con tus horarios."
+    />
+    <meta name="theme-color" content="#0b0c0e" />
+    <title>TeamMatchUp</title>
+    <!-- Fija el tema antes de la primera pintura: lo guardado o, si no hay,
+         la preferencia del sistema. Evita el destello del tema equivocado. -->
+    <script>
+      (function () {
+        var theme;
+        try {
+          theme = localStorage.getItem('tmu.theme');
+        } catch (e) {}
+        if (theme !== 'light' && theme !== 'dark') {
+          theme = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        }
+        document.documentElement.dataset.theme = theme;
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

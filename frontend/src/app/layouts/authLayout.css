@@ -1,0 +1,140 @@
+.gate {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  min-height: 100dvh;
+}
+
+.gate__pitch {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--s6);
+  padding: var(--s7) clamp(1.5rem, 5vw, 5rem);
+  border-right: 1px solid var(--line);
+  background:
+    radial-gradient(60% 50% at 0% 0%, rgba(205, 242, 75, 0.06), transparent 70%),
+    var(--well-soft);
+}
+
+.gate__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s3);
+  color: var(--ink);
+  font-weight: 650;
+  letter-spacing: -0.035em;
+  text-decoration: none;
+}
+
+.gate__brand:hover {
+  color: var(--ink);
+}
+
+.gate__claim {
+  font-size: clamp(1.9rem, 1.2rem + 2.2vw, 3rem);
+  max-width: 20ch;
+}
+
+.gate__claim em {
+  font-style: normal;
+  color: var(--accent-text);
+}
+
+.gate__preview {
+  max-width: 520px;
+}
+
+.gate__clauses {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s5);
+  margin: 0;
+  max-width: 680px;
+}
+
+.gate__clauses > div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  padding-top: var(--s3);
+  border-top: 1px solid var(--line-strong);
+}
+
+.gate__clauses dt {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.gate__clause-num {
+  font-size: var(--t-micro);
+  color: var(--accent-text);
+}
+
+.gate__clauses dd {
+  margin: 0;
+  font-size: var(--t-small);
+  color: var(--ink-3);
+  line-height: 1.5;
+}
+
+.gate__form {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: var(--s6) var(--s5);
+}
+
+.gate__corner {
+  position: absolute;
+  top: var(--s4);
+  right: var(--s4);
+}
+
+/* Bisel doble: bandeja exterior y núcleo con su propio canto de luz. */
+.gate__shell {
+  width: min(460px, 100%);
+  padding: 6px;
+  border-radius: 30px;
+  background: var(--fill-1);
+  border: 1px solid var(--line);
+}
+
+.gate__core {
+  padding: var(--s6);
+  border-radius: 24px;
+  background: linear-gradient(180deg, var(--surface-2), var(--surface));
+  border: 1px solid var(--line);
+  box-shadow: var(--highlight), var(--lift-high);
+}
+
+@media (max-width: 1080px) {
+  .gate {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .gate__pitch {
+    padding: var(--s6) var(--s4) var(--s5);
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    gap: var(--s5);
+  }
+
+  .gate__preview,
+  .gate__clauses {
+    display: none;
+  }
+
+  .gate__form {
+    padding: var(--s5) var(--s4) var(--s7);
+  }
+}
+
+@media (max-width: 480px) {
+  .gate__core {
+    padding: var(--s5);
+  }
+}

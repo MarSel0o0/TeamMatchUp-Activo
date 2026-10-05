@@ -1,0 +1,59 @@
+/* El formulario de la sesión: pasos numerados en el margen. */
+.draft {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  counter-reset: paso;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+}
+
+.draft__row {
+  position: relative;
+  counter-increment: paso;
+  padding-left: 2.25rem;
+}
+
+.draft__row::before {
+  content: counter(paso);
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--surface-3);
+  border: 1px solid var(--line-strong);
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: var(--ink-2);
+}
+
+/* El paso con foco se enciende. */
+.draft__row:focus-within::before {
+  background: var(--volt);
+  border-color: var(--volt);
+  color: var(--volt-ink);
+}
+
+.draft__pair {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--s3);
+}
+
+.draft__pair > .field {
+  flex: 1;
+  min-width: 0;
+}
+
+.draft + * {
+  margin-top: var(--s4);
+}
+
+#create-session-form > .notice {
+  margin-bottom: var(--s4);
+}
