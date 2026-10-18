@@ -6,7 +6,8 @@ import type { RequestHandler } from "express";
 import { User } from "../models/user.ts";
 import { CSRF_HEADER, SESSION_COOKIE, SESSION_MESSAGES, checkSession } from "../services/sessionToken.ts";
 import type { SessionMessage } from "../services/sessionToken.ts";
-import { USER_TARGET_MESSAGES, decodeSegment, matchUserRoute } from "../services/userTarget.ts";
+import { USER_TARGET_MESSAGES, decodeSegment, matchUserRoute, resolveUserTarget } from "../services/userTarget.ts";
+import { ACCOUNT_ERRORS } from "../domain/accountRules.ts";
 import { MESSAGES, mapErrorToResponse } from "./errors.ts";
 import { logger } from "./logger.ts";
 import type { Logger } from "./logger.ts";
@@ -104,17 +105,39 @@ export function createWithExistingUser({ jwtSecret, now }: SessionGuardOptions):
 // `:id` al emparejar y con `%zz` respondería su propio 400 antes de comprobar la sesión.
 // - Rutas fuera de la tabla de la 003 (registro, 404 de la 001): siguen sin sesión.
 // - (1) sesión con `withUser` (401 de 002-RF-24); (3) segmento no decodificable → 400.
+// - Spec 004 (plan, sección 6, P-14, P-15): el resumen `/:id/games/:gameId` usa
+//   `withExistingUser` (RF-44) y comprueba los dos segmentos en el orden de RF-13: usuario
+//   no decodificable (o, si el juego tampoco lo es, sin formato válido) → 400 "id con
+//   formato inválido"; juego no decodificable → 400 "Juego no válido.".
 // Los 400/413/415 de interpretación del cuerpo ya ocurrieron antes, en `express.json`.
 export interface UserRoutesGuardOptions {
   withUser: RequestHandler;
+  withExistingUser: RequestHandler;
 }
 
-export function createUserRoutesGuard({ withUser }: UserRoutesGuardOptions): RequestHandler {
+export function createUserRoutesGuard({ withUser, withExistingUser }: UserRoutesGuardOptions): RequestHandler {
   return function userRoutesGuard(request, response, next) {
     const route = matchUserRoute(request.method, request.path);
     if (route === null) {
       next();
       return;
+    }
+    if (route.kind === "games") {
+      return withExistingUser(request, response, () => {
+        const decodedUser = decodeSegment(route.rawSegment);
+        if (decodedUser === null) {
+          response.status(400).json({ error: USER_TARGET_MESSAGES.invalidId });
+          return;
+        }
+        if (decodeSegment(route.rawGame) === null) {
+          // RF-13: el formato del usuario se revisa antes que el juego.
+          const target = resolveUserTarget(decodedUser, request.userId ?? "");
+          const error = target.ok ? ACCOUNT_ERRORS.invalidGame : USER_TARGET_MESSAGES.invalidId;
+          response.status(400).json({ error });
+          return;
+        }
+        next();
+      });
     }
     return withUser(request, response, () => {
       if (route.kind !== "list" && decodeSegment(route.rawSegment) === null) {

@@ -1,0 +1,105 @@
+# Prueba manual de cuentas de juego y rango simulado (spec 004, T10): inicio de sesión →
+# vincular → resincronizar → resumen por juego → editar la región → desvincular.
+#
+# Formato de la extensión REST Client de VS Code: guarda la cookie `token` entre peticiones
+# (rest-client.rememberCookiesForSubsequentRequests, activo por defecto), lee la cabecera
+# X-CSRF-Token de la respuesta del inicio de sesión con {{login.response.headers...}} y el
+# id de la cuenta vinculada con {{link.response.body.$.id}}.
+#
+# Requisitos: servidor en desarrollo (`npm run dev`) con MongoDB disponible y el `.env`
+# copiado de `.env.example`. No hace falta ninguna variable nueva ni conexión a Internet: el
+# rango lo genera el proveedor simulado (RF-34, RNF-9). La cuenta debe existir: créala antes
+# con el paso 1 de `auth.rest` (mismos datos de ejemplo, no reales). Si ya tiene una cuenta
+# de LoL vinculada, el paso 2 responde 400 "Ya tienes una cuenta vinculada en este juego.":
+# desvincúlala antes (paso 6) o usa otro juego.
+#
+# Todas las cuentas que devuelve el servidor llevan `"simulated": true` y no llevan
+# partidas ni número de lectura (RF-37, DP-32, DP-33).
+
+@baseUrl = http://localhost:3001
+@email = ana.ejemplo@example.com
+@password = contrasena-de-ejemplo
+
+### 1. Inicio de sesión (público): 200, cookie `token` y cabecera X-CSRF-Token (spec 002)
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### 2. Vincular una cuenta de LoL: 201 con la lectura simulada número 0 (RF-4, RF-6, RF-7)
+# La región se guarda con la grafía de la lista ("LAS"). `currentRank`, `verified` y
+# `simulated` del cuerpo se ignoran: los fija el proveedor simulado (RF-7).
+# @name link
+POST {{baseUrl}}/api/accounts
+Content-Type: application/json
+X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
+
+{
+  "gameId": "lol",
+  "handle": "EjemploNombre#LAS1",
+  "region": " las ",
+  "currentRank": { "tier": "Challenger" },
+  "verified": true
+}
+
+### 3. Listar las cuentas propias: 200 con la cuenta recién vinculada (RF-2)
+GET {{baseUrl}}/api/accounts?user=me
+X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
+
+### 4. Resincronizar: 200; el rango se mueve como mucho un escalón y hay partidas nuevas (RF-10, RF-42, RF-43)
+# Repetirla varias veces: el historial y las partidas crecen (máximo 20 partidas, RF-15).
+POST {{baseUrl}}/api/accounts/{{link.response.body.$.id}}/sync
+X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
+
+### 5. Resumen propio de LoL: 200 con la cuenta, las 8 partidas más recientes, tasa de victorias y tendencia (RF-12)
+GET {{baseUrl}}/api/users/me/games/lol
+X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
+
+### 6. Editar la región: 200; rango, historial y partidas no cambian (RF-8)
+# El identificador con otras mayúsculas se considera el mismo y se ignora (RF-22); el juego
+# del cuerpo se ignora (RF-7).
+PUT {{baseUrl}}/api/accounts/{{link.response.body.$.id}}
+Content-Type: application/json
+X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
+
+{
+  "handle": "ejemplonombre#las1",
+  "region": "NA",
+  "gameId": "cs2"
+}
+
+### 7. Desvincular: 204 sin cuerpo; la cuenta deja de existir (RF-9, RF-33)
+DELETE {{baseUrl}}/api/accounts/{{link.response.body.$.id}}
+X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
+
+### 8. Obtener la cuenta desvinculada: 404 "Cuenta no encontrada." (RF-3)
+GET {{baseUrl}}/api/accounts/{{link.response.body.$.id}}
+X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
+
+### Errores de ejemplo
+
+### 9. Sin cabecera X-CSRF-Token (con la cookie): 401 "token inválido" (RF-1, spec 002)
+GET {{baseUrl}}/api/accounts
+
+### 10. Identificador con formato inválido: 400 "Riot ID no válido: usa el formato Nombre#TAG." (RF-6)
+POST {{baseUrl}}/api/accounts
+Content-Type: application/json
+X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
+
+{
+  "gameId": "lol",
+  "handle": "SinEtiqueta",
+  "region": "LAS"
+}
+
+### 11. Juego inválido en el resumen: 400 "Juego no válido." (RF-13)
+GET {{baseUrl}}/api/users/me/games/valorant
+X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
+
+### 12. Resumen sin cuenta en el juego: 404 "El jugador no tiene una cuenta vinculada en este juego." (RF-13)
+GET {{baseUrl}}/api/users/me/games/r6
+X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}

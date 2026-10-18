@@ -10,7 +10,10 @@ Registro dinámico. Se actualiza al cerrar cada fase SDD.
 
 Specs 001 (`001-crear-backend`), 002 (`002-autenticacion`) y 003
 (`003-usuarios-y-disponibilidad`) implementadas y validadas (reviewer: APROBADO).
-Siguiente fase SDD: specs 004 a 006.
+Spec 004 (`004-cuentas-de-juego`) implementada (T1–T10, con T3b y T8b) en la rama
+`marselo`, **sin validación de reviewer** por decisión del usuario ("saltate la revision
+con reviewer"). Specs 005 y 006 con plan y tareas aprobados, sin empezar. Siguiente fase
+SDD: implementación de la spec 005.
 
 ## Estado del código
 
@@ -39,9 +42,23 @@ Siguiente fase SDD: specs 004 a 006.
     (`availability: [String]`, bloques `d-h`). Servicios nuevos sin Express en
     `src/services/`: `userTarget.ts`, `profile.ts`, `availability.ts`, `timezones.ts` y
     `zoneTab.ts`. Prueba manual en `requests/users.rest`. Sin dependencias nuevas.
-  - Recursos de juegos, coincidencias y agenda: specs 004 a 006.
-  - 864 tests con node:test + supertest (en serie, contra la base de prueba); typecheck y
-    lint (ESLint) en verde; `npm audit` sin vulnerabilidades.
+  - Cuentas de juego de la spec 004 (todas con sesión y `X-CSRF-Token`):
+    `GET|POST /api/accounts`, `GET|PUT|DELETE /api/accounts/:id`,
+    `POST /api/accounts/:id/sync` y el resumen `GET /api/users/:id/games/:gameId`. Rango,
+    partidas y marca de verificada los genera un proveedor simulado y determinista
+    (`src/domain/rankSimulator.ts`, `src/services/rankProvider.ts`), sin red ni claves;
+    toda cuenta sale con `"simulated": true` y sin partidas ni número de lectura. Dominio
+    puro en `src/domain/` (`games`, `rankScale`, `rankSimulator`, `accountRules`,
+    `accountState`, `userId`), aislado de `services/`, `utils/`, `models/` y
+    `controllers/` (lo vigila `tests/unit/domainIsolation.test.ts`). Modelo
+    `GameAccount`; `User.accounts`; reloj mutable `src/utils/clock.ts`; borrar un usuario
+    borra sus cuentas. Prueba manual en `requests/accounts.rest` (recorrido comprobado con
+    curl contra un servidor de desarrollo en una base temporal, ya borrada). Sin
+    dependencias ni variables de entorno nuevas.
+  - Recursos de coincidencias y agenda: specs 005 y 006.
+  - 1162 tests con node:test + supertest (en serie, contra la base de prueba; ~85–120 s);
+    typecheck y lint (ESLint) en verde; `npm audit` sin vulnerabilidades. Los tests de
+    controlador montan el servidor en `127.0.0.1` (`listenOnLoopback`, T8b).
 
 ## Estado de las specs
 
@@ -50,15 +67,36 @@ Siguiente fase SDD: specs 004 a 006.
 | `001-crear-backend` | Implementada y validada | spec, plan y tasks aprobados; T1–T10 hechas. Cambios aprobados durante la implementación: mongoose 8.19.1 → 8.24.5 (vulnerabilidad alta) y regla RFC para `HOST` (la última etiqueta no puede ser solo numérica). |
 | `002-autenticacion` | Implementada y validada | 28 RF y 7 RNF cumplidos; decisiones P1–P9 abajo. |
 | `003-usuarios-y-disponibilidad` | Implementada y validada | spec, plan y tasks aprobados; T1–T10 hechas; `spec.md` en «implementada». `requests/users.rest` probado a mano contra el servidor: todos los códigos coinciden. `AGENTS.md` actualizado. |
-| `004-cuentas-de-juego` | Redactada | — |
-| `005-coincidencias` | Redactada | — |
-| `006-agenda` | Redactada | — |
-| `007-integrar-frontend` | Redactada | Elimina el script `seed`. |
-| `008-ficha-de-jugador` | Redactada | — |
-| `009-detalle-de-sesion` | Redactada | — |
-| `010-despliegue` | Redactada | Servirá la interfaz desde el servidor (rutas fuera de `/api`). |
+| `004-cuentas-de-juego` | Implementada, sin validar | Rama `marselo`, sin commit. T1–T10, T3b y T8b hechas. Sin reviewer por decisión del usuario. `spec.md` sigue en «aprobada» (no se pasó a «implementada» sin validación). Falta la prueba sin Internet (ver Deuda). |
+| `005-coincidencias` | Plan y tareas aprobados | Sin empezar. |
+| `006-agenda` | Plan y tareas aprobados | Sin empezar. |
+| `007-integrar-frontend` | Borrador | Elimina el script `seed`. Debe incorporar la etiqueta de datos simulados de RF-37 de la 004 (criterio pendiente de la 004). |
+| `008-ficha-de-jugador` | Borrador | — |
+| `009-detalle-de-sesion` | Borrador | — |
+| `010-despliegue` | Borrador | Servirá la interfaz desde el servidor (rutas fuera de `/api`). |
 
 ## Deuda conocida
+
+- Spec 004 (2026-10-18):
+  - `.gitattributes` en la raíz sin commit: evita que git convierta a CRLF el fixture
+    `tests/fixtures/tzdata-2025b/zone.tab` en Windows (si se convierte, falla la prueba de
+    zonas horarias). Decidir si se sube.
+  - En Windows, `npm test` necesita `npm test --script-shell=bash` (el script usa sintaxis
+    POSIX).
+  - Decisiones de T9 sin confirmar por el usuario: (1) con un id inválido y el juego sin
+    decodificar, el resumen responde primero "id con formato inválido"; (2) `LOL` en
+    mayúsculas responde 400 "Juego no válido."; (3) `src/utils/middleware.ts` importa
+    `ACCOUNT_ERRORS` de `src/domain/accountRules.ts`; (4) hay una prueba determinista extra
+    de la cascada al borrar usuario.
+  - Pendiente del usuario: ejecutar `npm test` con la red desconectada (criterio RNF-1/RNF-9
+    de la 004). No se hizo para no tocar la red de la máquina; la búsqueda de `fetch(`,
+    `http.request`, `process.env`, `Math.random` y URL externas en el código no da
+    resultados.
+  - Sin validación RF por RF de reviewer (decisión del usuario).
+  - Quedó una copia de `.env` en el scratchpad de una sesión anterior (proto/backend):
+    borrarla.
+  - `npm test` tardó 121 s al cerrar T10 (antes, 83–85 s). Antes hubo dos peticiones muy
+    lentas (144 s y 178 s) que no se repitieron; sin investigar.
 
 - `httpApi.ts` y `mockApi.ts` guardan el JWT en `localStorage` (`tmu.token`): choca con el
   principio 5. Lo corrige la spec 007 (RF-2).
@@ -138,43 +176,31 @@ Siguiente fase SDD: specs 004 a 006.
 - npm bloquea los install-scripts de `bcrypt`. No afecta en linux-x64 (trae el binario ya
   compilado); en otra plataforma, ejecutar `npm install-scripts approve bcrypt`.
 - Cada `backend/.env` local necesita la línea `JWT_SECRET` (copiarla de `.env.example`).
+- Windows: MongoDB nativo en `127.0.0.1:27017`; `npm test --script-shell=bash`.
 
 ## Próximo paso
 
-Specs 004 (`004-cuentas-de-juego`), 005 y 006. Adaptar el frontend (contrato de la API y
-formularios: color de avatar, usuarios ajenos sin correo, leer la disponibilidad de otros)
-queda para la spec 007, después de las 004 a 006, por decisión del usuario. Requisito local para ejecutar los tests del
-backend: `backend/.env` (copiado de `.env.example`, con `JWT_SECRET`) y MongoDB en
+Implementar la spec 005 (`005-coincidencias`) desde su T1 (`/sdd-implement 005 T1`); después
+la 006. Antes conviene que el usuario confirme las decisiones de T9 de la 004, decida sobre
+`.gitattributes` y haga la prueba sin Internet. Adaptar el frontend queda para la spec 007,
+después de las 004 a 006, por decisión del usuario. Requisito local para ejecutar los tests
+del backend: `backend/.env` (copiado de `.env.example`, con `JWT_SECRET`) y MongoDB en
 `mongodb://127.0.0.1:27017`.
 
-## Estado spec 004 — Cuentas de juego (actualizado 2026-10-18)
+## Notas de la spec 004 (2026-10-18)
 
-**Fase:** Implementación. Hechas T1, T2, T3, T3b, T4, T5, T6, T7, T8.
-T8b aprobada y en curso / pendiente. Faltan T8b, T9, T10 y la validación final (reviewer, RF por RF).
-
-**Suite:** 1141/1141 tras T8, con fallos intermitentes en tests de controlador
-(los arregla T8b). Typecheck y lint en verde.
-
-**Cambios al plan aprobados hoy (ver specs/004-cuentas-de-juego/plan.md):**
-- Plan y tareas ajustados al backend real de 001–003 (helpers.ts, createApp, createWithUser). No se usa test_helper.ts.
-- Q1: las rutas de la 004 responden 401 "sesión no iniciada" para un usuario eliminado
-  (opción missingUserError + createWithExistingUser). Las de 002/003 siguen con "token inválido".
-- Q2: reloj mutable en backend/src/utils/clock.ts (P-5).
-- Orden de consumo del resumen fijado en §4.3. Errata de CS2 corregida (13-x / x-13).
-- T3b / P-17 / §2.1: domain/ aislado. No importa de services/, utils/, models/ ni controllers/.
-  Lo vigila tests/unit/domainIsolation.test.ts. Nuevo domain/userId.ts (SELF_ALIAS, OBJECT_ID_PATTERN,
-  INVALID_ID_MESSAGE, resolveUserTarget). services/userTarget.ts los reexporta (salvo INVALID_ID_MESSAGE).
-- T8b / P-18: los fallos intermitentes (404 vacío, "socket hang up") se deben a que supertest hace
-  listen(0) en :: y conecta a 127.0.0.1. En macOS ese puerto puede estar ocupado por otra app.
-  Arreglo, solo en tests: listenOnLoopback + closeTestServers en tests/controllers/helpers.ts,
-  authApp asíncrono; getFreePort(host = "127.0.0.1") y el test "sin HOST" lo pide sin host.
-  Para cerrar T8b: accounts.test.ts ×20 y npm test ×5 en verde, anotando duration_ms.
-
-**Notas:**
-- La ruta de edición es PUT /api/accounts/:id. La de resincronizar es POST /api/accounts/:id/sync.
-- Entorno: backend/.env (copia de .env.example; no borrar .env.example) y MongoDB local en Docker.
-- Pendiente de investigar: dos peticiones muy lentas (144 s y 178 s) que no se repitieron; se sospecha de Docker Desktop.
-- Borrar la copia de .env que quedó en el scratchpad de la sesión (proto/backend).
+- Cambios al plan aprobados durante la implementación (ver `specs/004-cuentas-de-juego/plan.md`):
+  plan alineado con el backend real de 001–003 (`helpers.ts`, `createApp`, `createWithUser`;
+  no hay `test_helper.ts`); Q1: las rutas de la 004 responden 401 "sesión no iniciada" a un
+  usuario eliminado (`missingUserError` + `createWithExistingUser`), las de 002/003 siguen
+  con "token inválido"; Q2: reloj mutable en `src/utils/clock.ts` (P-5); T3b/P-17: `domain/`
+  aislado, `domain/userId.ts` nuevo y `services/userTarget.ts` lo reexporta (salvo
+  `INVALID_ID_MESSAGE`); T8b/P-18: supertest hacía `listen(0)` en `::` y conectaba a
+  `127.0.0.1`, lo que daba fallos intermitentes; se arregla solo en tests con
+  `listenOnLoopback` + `closeTestServers` y `getFreePort(host)`.
+- Rutas: edición `PUT /api/accounts/:id`; resincronizar `POST /api/accounts/:id/sync`.
+- El orden de consumo del generador (plan, 4.3) es contrato: cambiarlo cambia todas las
+  lecturas de la demostración.
+- La normalización de rango del backend (DP-26) difiere de `frontend/src/domain/games.ts`
+  hasta que la spec 007 la adopte.
 - Nada de la spec 004 está en un commit todavía.
-
-**Siguiente paso:** terminar T8b → /sdd-implement 004 T9 → T10 → validación con el reviewer.
