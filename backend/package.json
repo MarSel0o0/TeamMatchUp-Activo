@@ -1,0 +1,30 @@
+{
+  "name": "teammatchup-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "dev": "node --watch src/index.ts",
+    "test": "NODE_ENV=test node --test --test-concurrency=1 'tests/**/*.test.ts'",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tests",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "dotenv": "17.2.3",
+    "express": "5.1.0",
+    "mongoose": "8.24.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.5",
+    "@types/express": "5.0.3",
+    "@types/node": "22.20.2",
+    "@types/supertest": "6.0.3",
+    "eslint": "9.39.5",
+    "supertest": "7.1.4",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.70.0"
+  }
+}

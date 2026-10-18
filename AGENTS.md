@@ -29,15 +29,19 @@ flujo termina en una sesión agendada, no en una lista de perfiles. Detalle en
   - `src/features/` una carpeta por dominio funcional (`auth`, `profile`, `matches`, `sessions`).
   - `src/shared/` componentes, hooks y utilidades reutilizables.
   - `src/styles/` tokens de diseño (`tokens.css`) y estilos globales.
-- `backend/` — Express 5 + Mongoose + TypeScript, Node ≥ 22.18 ejecutando `.ts` directo.
-  Definido en `specs/001-crear-backend` (sección 5.1): `src/` con `controllers/`,
-  `models/`, `domain/` (copia del dominio del frontend), `services/`, `scripts/`,
-  `types/` y `utils/`; `tests/` con `unit/` y `controllers/`; `requests/` con archivos `.rest`.
-
+- `backend/` — Express 5 + Mongoose + TypeScript, Node ≥ 22.18 ejecutando `.ts` directo (ESM).
+  Base definida en `specs/001-crear-backend`:
+  - `src/index.ts` punto de entrada: carga y valida la configuración y arranca el servidor.
+  - `src/app.ts` composición de Express (cuerpo JSON, 404, manejador de errores); sin conexión a la base.
+  - `src/server.ts` arranque: conectar a MongoDB y luego escuchar.
+  - `src/utils/` `config.ts` (variables de entorno), `errors.ts`, `logger.ts` (único sitio con `console`) y `middleware.ts`.
+  - Las specs 002 a 006 agregan `controllers/`, `models/`, `domain/` (copia del dominio del frontend) y `services/`.
+  - `tests/` con `unit/`, `controllers/` (supertest) y `server/` (arranque y procesos hijo).
+  - Variables en `backend/.env` (no se sube); plantilla en `backend/.env.example`.
 ## Comandos
 
 - Frontend (`cd frontend`): `npm run dev | build | preview | typecheck | lint`. No tiene script de test.
-- Backend (`cd backend`, según spec 001): `npm run dev | test | typecheck | seed | build | build:ui`.
+- Backend (`cd backend`): `npm run dev | test | typecheck | lint`. `npm test` fija `NODE_ENV=test`, corre en serie y necesita MongoDB y `backend/.env`.
 - Gestor: npm. Toda dependencia se instala con `--save-exact`.
 
 ## Flujo SDD
