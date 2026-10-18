@@ -24,13 +24,12 @@ Spec: `spec.md` (aprobada el 2026-10-17, sin cambios). Plan: `plan.md` (aprobado
 T8b aprobado el 2026-10-18; Q1 y Q2 resueltas por el usuario el 2026-10-18: "Mantener la spec" y
 "Mantener clock.ts").
 
-Reglas para cada tarea: tests primero (en rojo), después el código, `npm test` y
-`npm run typecheck` en verde en `backend/`, marcar la tarea y parar. Sin `any`,
-`@ts-ignore` ni `.only`. Ninguna dependencia nueva. Comando de verificación de todas las
-tareas, salvo que se indique otro:
+Reglas para cada tarea: tests primero (en rojo), después el código, verificación en verde,
+marcar la tarea y parar. Sin `any`, `@ts-ignore` ni `.only`. Ninguna dependencia nueva.
+Verificación de todas las tareas:
 
 ```
-cd backend && npm test && npm run typecheck
+cd backend && npm test && npm run typecheck && npm run lint
 ```
 
 Precondición de T1: specs 001, 002 y 003 implementadas (comprobado el 2026-10-18) con los
@@ -247,19 +246,16 @@ tiene otra firma, parar y reportarlo. Pruebas de controladores con el patrón de
   - Hecho cuando: `gameSummary.test.ts` en verde y `users.test.ts` de la spec 003 sigue
     verde.
 
-- [x] **T10. Peticiones manuales y verificación final.** RNF-1, RNF-2, RNF-8, RNF-9, RF-34
-  - Cerrada el 2026-10-18: `npm test` 1162/1162, typecheck y lint en verde; búsquedas sin
-    resultados; `package.json`, `package-lock.json` y `.env.example` sin cambios desde
-    `77c4f5d` (padre del primer commit de la 004). **Pendiente del usuario:** repetir
-    `npm test` con la red desconectada (no se desconectó la red de la máquina); el código
-    no hace llamadas externas (búsqueda sin `fetch`, `http.request` ni URL externas).
-  - Archivos: `backend/requests/accounts.rest` (login → vincular → sync → resumen → editar
-    → desvincular, con `X-CSRF-Token`).
-  - Comprobaciones: suite completa con la red desconectada (solo MongoDB local);
-    `git diff backend/package.json backend/.env.example` sin dependencias ni variables
-    nuevas; búsqueda de `fetch(`, `http.request`, `process.env` y `Math.random` en
-    `src/domain/` y `src/services/rankProvider.ts` sin resultados; cada fila de la tabla de
-    trazabilidad del plan (sección 12) tiene su prueba en verde.
-  - Hecho cuando: `npm test` y `npm run typecheck` en verde sin conexión a Internet y todas
-    las casillas de "Criterios de finalización" de la spec, salvo la de la spec 007, se
-    pueden marcar.
+- [ ] **T10. Cascada ordenada al eliminar el usuario, fallos forzados y cierre.** RF-14, RF-47 (vinculación simultánea; editar, resincronizar y desvincular en curso), RNF-1, RNF-2, RNF-8, RNF-9, RF-34
+  - Tests primero: `tests/controllers/userDeletionCascade.test.ts` (los cinco puntos de
+    fallo, el estado (1) operable y repetible, la vinculación simultánea con 204 y con
+    500) y, en `tests/controllers/accountConcurrency.test.ts`, las tres ramas de RF-47 con
+    `DELETE /api/users/me` entre la lectura y la escritura (→ 404 "cuenta no encontrada",
+    nunca 500).
+  - Archivos: `src/controllers/users.ts` (`DELETE /:id`: C1 → C2 → C3 en `finally`, plan
+    6.8); `requests/accounts.rest`.
+  - Hecho cuando: `userDeletionCascade.test.ts` y `accountConcurrency.test.ts` en verde,
+    `userDeletion.test.ts` de la 003 sigue verde, la verificación en verde sin conexión a
+    Internet, las comprobaciones de plan 9.3 sin resultados, cada fila de la trazabilidad
+    (plan 11) tiene su prueba en verde y todas las casillas de "Criterios de finalización"
+    de la spec se pueden marcar.

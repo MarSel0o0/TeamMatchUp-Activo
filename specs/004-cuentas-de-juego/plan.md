@@ -40,8 +40,8 @@ cambios).
 
 **Precondición:** specs 001, 002 y 003 implementadas (comprobado el 2026-10-18, sección 0).
 Referencia aplicada: `specs/_referencia/001-crear-backend-original.md`, secciones 2, 4.2
-(RT-07 a RT-12), 5.1, 5.4, 8 y 11, y RF-15, salvo lo que la spec anula en "Qué prevalece
-sobre la referencia".
+(RT-07 a RT-12), 5.1, 5.4, 8 y 11, y su RF-15, salvo lo que la spec anula en "Qué prevalece
+sobre la referencia" (sin lista de cuentas en el usuario, textos propios, ningún 409).
 
 ## 0. Precondiciones y estado real
 Comprobado el 2026-10-18 sobre el código (rama `marselo`, después de `b0c6863
@@ -104,6 +104,47 @@ del backend existente, con sus firmas reales:
 
 ## 1. Archivos y responsabilidades
 
+```
+backend/
+├── requests/accounts.rest                  (nuevo)
+├── src/
+│   ├── app.ts                              (modifica: opción clock, monta /api/accounts)
+│   ├── domain/
+│   │   ├── games.ts                        (nuevo)
+│   │   ├── rankScale.ts                    (nuevo)
+│   │   ├── rankSimulator.ts                (nuevo)
+│   │   └── accountState.ts                 (nuevo)
+│   ├── models/gameAccount.ts               (nuevo)
+│   ├── services/
+│   │   ├── accountRules.ts                 (nuevo)
+│   │   ├── accountTarget.ts                (nuevo)
+│   │   ├── accountWrites.ts                (nuevo)
+│   │   └── userTarget.ts                   (modifica: ruta del resumen)
+│   ├── controllers/
+│   │   ├── accounts.ts                     (nuevo)
+│   │   └── users.ts                        (modifica: resumen y cascada)
+│   └── utils/middleware.ts                 (modifica: guardias)
+└── tests/
+    ├── unit/
+    │   ├── games.test.ts                   (nuevo)
+    │   ├── rankScale.test.ts               (nuevo)
+    │   ├── rankSimulator.test.ts           (nuevo)
+    │   ├── accountState.test.ts            (nuevo)
+    │   ├── accountRules.test.ts            (nuevo)
+    │   ├── accountTarget.test.ts           (nuevo)
+    │   ├── gameAccountModel.test.ts        (nuevo)
+    │   └── userTarget.test.ts              (modifica)
+    └── controllers/
+        ├── helpers.ts                      (modifica)
+        ├── accountRead.test.ts             (nuevo)
+        ├── accountLink.test.ts             (nuevo)
+        ├── accountEdit.test.ts             (nuevo)
+        ├── accountSync.test.ts             (nuevo)
+        ├── accountConcurrency.test.ts      (nuevo)
+        ├── gameSummary.test.ts             (nuevo)
+        └── userDeletionCascade.test.ts     (nuevo)
+```
+
 | Archivo | Responsabilidad | RF / RNF |
 | --- | --- | --- |
 | `backend/src/domain/games.ts` | Catálogo de juegos del backend: `GameId`, `GAMES` (nombre, `handlePattern`, `regions`, etiqueta del identificador), `isGameId`. Crear si no existe (copia de `frontend/src/domain/games.ts` **sin** `source`, `accent` ni la `normalizeRank` antigua). Si existe, se elimina su `normalizeRank` y se re-exporta la de `rankScale.ts` (una sola normalización en el backend). | RF-6, RNF-2 |
@@ -144,25 +185,34 @@ del backend existente, con sus firmas reales:
 
 ## 2. Funciones puras (firmas)
 Ninguna lee el reloj: el instante llega como `now: Date` ("hoy" como parámetro,
-constitución principio 3). Ninguna importa Express ni Mongoose.
+constitución, principio 3). Ninguna importa Express ni Mongoose ni lee `process.env`.
 
 ```ts
+// domain/games.ts
+export const GAME_IDS = ["lol", "r6", "cs2"] as const;
+export type GameId = (typeof GAME_IDS)[number];
+export interface GameDefinition { id: GameId; name: string; handlePattern: RegExp;
+  handleError: string; regions: readonly string[] }
+export const GAMES: Readonly<Record<GameId, GameDefinition>>;
+export function isGameId(value: unknown): value is GameId;          // Set exacto, sin recortar (DP-39)
+export function canonicalHandle(trimmed: string): string;           // trimmed.toLowerCase() (DP-19)
+export function normalizeRegion(gameId: GameId, value: unknown): string | null; // grafía de la lista (DP-35)
+
 // domain/rankScale.ts
-export interface RankStep { tier: string; division?: string }      // division omitida si el tier no la tiene
-export function ladder(gameId: GameId): readonly RankStep[];       // LoL 31, CS2 7, R6 36
-export function stepIndexOf(gameId: GameId, tier: string, division?: string): number | null; // null si el tier no existe
+export interface RankStep { tier: string; division?: string }
+export function ladder(gameId: GameId): readonly RankStep[];        // 31 / 36 / 7
+export function normalizeStep(gameId: GameId, step: number): number;
 export function normalizeRank(gameId: GameId, tier: string, division?: string): number;
-export function normalizeStep(gameId: GameId, stepIndex: number): number;
-export function pointsBand(gameId: GameId, stepIndex: number): { min: number; max: number | null }; // null = sin tope
-export function generationRange(gameId: GameId, stepIndex: number): { min: number; max: number };
+export function pointsBand(gameId: GameId, step: number): { min: number; max: number };
 
 // domain/rankSimulator.ts
+export interface Snapshot { tier: string; division?: string; points: number; normalized: number; recordedAt: Date }
+export interface SimulatedMatch { id: string; gameId: GameId; playedAt: Date; result: "win" | "loss";
+  summary: string; durationMinutes: number; rankDelta: number }
+export interface SimulatedReading { snapshot: Snapshot; matches: SimulatedMatch[]; mainMatchId: string; verified: boolean }
 export function hash32(text: string): number;                       // FNV-1a 32 bits
 export function createRng(seed: number): () => number;              // mulberry32, [0, 1)
-export function randInt(rng: () => number, min: number, max: number): number;
-export function canonicalHandle(handle: string): string;            // trim + toLowerCase
 export function isVerified(canonical: string): boolean;
-export function evolveStep(previous: number, delta: -1 | 0 | 1, size: number): number; // clamp
 export function stepAt(gameId: GameId, canonical: string, readingNumber: number): number;
 export interface SimulatedMatch { id: string; gameId: GameId; playedAt: Date; result: 'win' | 'loss';
   summary: string; durationMinutes: number; rankDelta: number }
@@ -193,20 +243,35 @@ export function parseAccountFilters(query: Record<string, unknown>, sessionUserI
 // domain/accountState.ts
 export interface AccountState { currentRank: Snapshot; rankHistory: Snapshot[]; matches: SimulatedMatch[];
   readingNumber: number; lastSyncedAt: Date; verified: boolean }
-export function initialState(reading: SimulatedReading, now: Date): AccountState;      // número 0
-export function applySync(state: AccountState, reading: SimulatedReading, readingNumber: number,
-  now: Date): AccountState;
-export function shouldAppendSnapshot(previous: Snapshot, next: Snapshot): boolean;     // DP-9
-export function compareMatches(a: SimulatedMatch, b: SimulatedMatch): number;          // orden RF-28
-export function mergeMatches(saved: SimulatedMatch[], incoming: SimulatedMatch[], mainMatchId: string):
-  SimulatedMatch[];                                                                     // máx. 20
-export function winRate(matches: readonly { result: 'win' | 'loss' }[]): number;
+export function initialState(reading: SimulatedReading, now: Date): AccountState;
+export function applySync(state: AccountState, reading: SimulatedReading, readingNumber: number, now: Date): AccountState;
+export function shouldAppendSnapshot(previous: Snapshot, next: Snapshot): boolean;
+export function compareCodePoints(a: string, b: string): number;
+export function compareMatches(a: SimulatedMatch, b: SimulatedMatch): number;
+export function mergeMatches(saved: readonly SimulatedMatch[], incoming: readonly SimulatedMatch[], mainId: string): SimulatedMatch[];
+export function recentMatches(matches: readonly SimulatedMatch[]): SimulatedMatch[];   // 8 primeras
+export function winRate(matches: readonly { result: "win" | "loss" }[]): number;
 export function trend(current: Snapshot, history: readonly Snapshot[]): number;
-export function recentMatches(matches: SimulatedMatch[]): SimulatedMatch[];            // 8 primeras
+
+// services/accountRules.ts
+export const ACCOUNT_MESSAGES: { gameInvalid; regionInvalid(gameId); duplicate; handleNotEditable;
+  accountNotFound; playerWithoutAccount };                          // sección 7
+export function validateLinkPayload(body: unknown): Validation<{ gameId: GameId; handle: string; region: string }>;
+export function validateAccountEdit(account: { gameId: GameId; handle: string }, body: unknown): Validation<{ region?: string }>;
+export function parseAccountFilters(query: unknown, sessionUserId: string): Validation<{ userId?: string; gameId?: GameId }>;
+export function resolveSummaryTarget(decodedId: string | null, decodedGame: string | null,
+  sessionUserId: string): { ok: true; userId: string; gameId: GameId } | { ok: false; error: string };
+
+// services/accountTarget.ts
+export type AccountRoute = { kind: "list" } | { kind: "link" } | { kind: "account"; rawSegment: string }
+  | { kind: "sync"; rawSegment: string };
+export function matchAccountRoute(method: string, path: string): AccountRoute | null;
+export function resolveAccountId(decoded: string): Validation<string>;   // 24 hex → minúsculas
 ```
 
-Tipado: `exactOptionalPropertyTypes` y `noUncheckedIndexedAccess` están activos (RT-02):
-`division` se omite (nunca `division: undefined`) y todo acceso por índice se comprueba.
+`division` se omite cuando el tier no la tiene (nunca `division: undefined`, por
+`exactOptionalPropertyTypes`); todo acceso por índice se comprueba
+(`noUncheckedIndexedAccess`).
 
 ### 2.1 Aislamiento de `domain/` (P-17, cambio aprobado el 2026-10-18)
 - Regla: ningún archivo de `backend/src/domain/` importa (ni reexporta) de
@@ -224,53 +289,71 @@ Tipado: `exactOptionalPropertyTypes` y `noUncheckedIndexedAccess` están activos
 
 ## 3. Escala, normalización y bandas (`rankScale.ts`)
 
-Escalones (posición 0 = el más bajo):
-- LoL: Iron IV, Iron III, Iron II, Iron I, Bronze IV … Diamond I (posiciones 0–27), Master
-  (28), Grandmaster (29), Challenger (30). Tamaño 31.
+## 3. Catálogo, escala, normalización y bandas
+
+### 3.1 Juego, identificador y región (`games.ts`) [RF-6, DP-19, DP-35, DP-39]
+- `isGameId(v)`: `typeof v === "string" && GAME_ID_SET.has(v)`. No `v in GAMES` (aceptaría
+  `toString` o `constructor` por el prototipo). `" lol "`, `"LOL"`, `5` → false.
+- Patrones (sobre el texto ya recortado, sin banderas `u`, `s` ni `m`, así que `.` cuenta
+  unidades UTF-16 y excluye exactamente LF, CR, U+2028 y U+2029, y `$` es el final del
+  texto):
+  - LoL `/^.{3,16}#[A-Za-z0-9]{2,5}$/` (la etiqueta no admite `#`, así que el corte es el
+    último `#`: `a#b#cd` → nombre `a#b`).
+  - R6 `/^[A-Za-z0-9._-]{3,20}$/`.
+  - CS2 `/^7656119[0-9]{10}$/`.
+- `canonicalHandle(t) = t.toLowerCase()` sobre el texto recortado; la longitud se mide
+  antes (DP-19).
+- `normalizeRegion(gameId, v)`: si `typeof v !== "string"` → null; `t = v.trim()`; devuelve
+  la región `r` de la lista con `asciiLower(r) === asciiLower(t)`, o null.
+  `asciiLower(s) = s.replace(/[A-Z]/g, c => String.fromCharCode(c.charCodeAt(0) + 32))`.
+  No se usa `toLowerCase`: convierte el signo de kelvin `K` en `k` y daría por válida
+  `"KR"` con ese signo (DP-35). `"South  America"` no coincide.
+- Mensaje de identificador por juego, literal de RF-6 (sección 7).
+
+### 3.2 Escalones (`rankScale.ts`) [DP-2, DP-26]
+Posición 0 = el más bajo:
+- LoL: Iron IV, III, II, I, Bronze IV … Diamond I (0–27), Master (28), Grandmaster (29),
+  Challenger (30). Tamaño 31.
+- R6: Copper V … Copper I (0–4), Bronze V … Diamond I (5–34), Champion (35). Tamaño 36.
 - CS2: Grey (0), Light Blue (1), Blue (2), Purple (3), Pink (4), Red (5), Gold (6). Tamaño 7.
-- R6: Copper V (0) … Copper I (4), Bronze V (5) … Diamond I (34), Champion (35). Tamaño 36.
-
-Los tiers con divisiones son los siete primeros de LoL y de R6; las divisiones van de la
-más baja a la más alta (`IV, III, II, I` y `V, IV, III, II, I`).
 
 ```
-normalizeRank(gameId, tier, division):
-  t = posición del tier en la escala; si no existe → 0
-  si el tier no tiene divisiones → paso = primer escalón del tier (se ignora division)
-  si no → d = índice de division en las divisiones del juego; si ausente o desconocida → 0
-          paso = primer escalón del tier + d
-  return normalizeStep(gameId, paso)
-normalizeStep(gameId, paso) = Math.round((paso * 100) / (tamaño − 1))
+normalizeStep(g, paso) = Math.round((paso * 100) / (tamaño(g) − 1))
+normalizeRank(g, tier, division):
+  si tier no está en los tiers de g (comparación exacta) → 0
+  si el tier no tiene divisiones → paso = primer escalón del tier (division se ignora)
+  si no → d = índice exacto de division en las divisiones de g (de la más baja a la más alta);
+          ausente o desconocida → 0; paso = primer escalón del tier + d
+  return normalizeStep(g, paso)
 ```
-`paso * 100` se calcula antes de dividir para no depender de decimales binarios; ningún
-caso da exactamente ,5, y `Math.round` redondea las mitades hacia arriba en positivos.
-Valores esperados (criterios de la spec): Iron IV 0, Diamond I 90, Master 93, Grandmaster
-97, Challenger 100, Grey 0, Light Blue 17, Purple 50, Gold 100, Copper V 0, Diamond I de R6
-97, Champion 100.
+Ningún escalón da una mitad exacta (LoL: décimos de tercio; R6: veinteavos de séptimo; CS2:
+cincuentavos de tercio), y `Math.round` sube las mitades en positivos. Valores de la spec:
+Iron IV 0, Diamond I 90, Master 93, Grandmaster 97, Challenger 100, Grey 0, Light Blue 17,
+Purple 50, Gold 100, Copper V 0, Diamond I de R6 97, Champion 100; `master` → 0; `Gold iv`
+= Gold IV; `Master I` = 93; `Grey II` = 0; `Champion V` = 100. Esta es la única
+normalización del servidor (RF-48).
 
-Bandas de puntos (DP-34) y rango de generación del simulador:
+### 3.3 Bandas cerradas de puntos (`pointsBand`) [DP-34]
 
-| Juego | Escalón i | Banda (validación) | Rango de generación |
-| --- | --- | --- | --- |
-| LoL | 0–27 (con división) | 0–99 | 0–99 |
-| LoL | 28–30 (Master+) | ≥ 0 | 0–999 |
-| CS2 | 0–5 | 5000·i … 5000·i + 4999 | igual |
-| CS2 | 6 (Gold) | ≥ 30000 | 30000–34999 |
-| R6 | 0–34 | 1000 + 100·i … 1000 + 100·i + 99 | igual |
-| R6 | 35 (Champion) | ≥ 4500 | 4500–4999 |
+| Juego | Escalón | Banda (extremos incluidos) |
+| --- | --- | --- |
+| LoL | 0–27 | 0–99 |
+| LoL | 28–30 (Master+) | 0–999 |
+| CS2 | i = 0–6 | 5000·i … 5000·i + 4999 (Gold 30000–34999) |
+| R6 | i = 0–34 | 1000 + 100·i … 1000 + 100·i + 99 (Diamond I 4400–4499) |
+| R6 | 35 (Champion) | 4500–4999 |
 
-El rango de generación siempre está dentro de la banda; la banda abierta solo se usa para
-validar (pruebas y esquema).
+El simulador genera los puntos dentro de esta misma banda (no hay rango de generación
+aparte).
 
-## 4. Algoritmo del proveedor simulado (`rankSimulator.ts`)
+---
 
-### 4.1 Primitivas
+## 4. Proveedor simulado (`rankSimulator.ts`)
+
+### 4.1 Primitivas [RF-35]
 ```
-hash32(text):                         // FNV-1a sobre unidades UTF-16
-  h = 0x811c9dc5
-  para cada c en text (charCodeAt): h = Math.imul(h ^ c, 0x01000193) >>> 0
-  return h >>> 0
-createRng(seed):                      // mulberry32
+hash32(text):  h = 0x811c9dc5; para cada unidad c (charCodeAt): h = Math.imul(h ^ c, 0x01000193) >>> 0
+createRng(seed): mulberry32
   a = seed >>> 0
   return () => { a = (a + 0x6d2b79f5) >>> 0; t = a
                  t = Math.imul(t ^ (t >>> 15), t | 1)
@@ -278,48 +361,46 @@ createRng(seed):                      // mulberry32
                  return ((t ^ (t >>> 14)) >>> 0) / 4294967296 }
 randInt(rng, min, max) = min + Math.floor(rng() * (max − min + 1))
 pick(rng, lista)      = lista[randInt(rng, 0, lista.length − 1)]
-seedFor(gameId, canonical, k) = hash32(`${gameId}|${canonical}|${k}`)
-canonicalHandle(h) = h.trim().toLowerCase()
+rng_k = createRng(hash32(`${gameId}|${canonical}|${k}`))
 ```
-Cada lectura k tiene su propio generador `rng_k = createRng(seedFor(gameId, canonical, k))`.
-Así todo depende solo de (juego, identificador canónico, número de lectura) (RF-35, RF-43);
-`now` no entra en ninguna semilla y la región no es una entrada (DP-5).
+Todo depende solo de (juego, identificador canónico, número de lectura); `now` no entra en
+ninguna semilla y la región no es una entrada (RF-35, RF-43, DP-5).
 
-### 4.2 Escalón por número de lectura (RF-42)
+### 4.2 Escalón por número de lectura [RF-42]
 ```
-stepAt(gameId, canonical, n):
-  size = ladder(gameId).length
+stepAt(g, c, n):
+  size = ladder(g).length
   paso = randInt(rng_0, 0, size − 1)              // primer valor de rng_0
-  para k = 1..n:
-    delta = randInt(rng_k, −1, 1)                 // primer valor de rng_k
-    paso = evolveStep(paso, delta, size)
+  para k = 1..n: paso = clamp(paso + randInt(rng_k, −1, 1), 0, size − 1)   // primer valor de rng_k
   return paso
-evolveStep(prev, delta, size) = min(size − 1, max(0, prev + delta))
 ```
-Garantías: el escalón de n difiere del de n − 1 como mucho en 1 y nunca sale de la escala;
-en el escalón más alto un delta +1 queda en el mismo escalón (no sube), en el más bajo un −1
-tampoco baja. La lectura 0 se reparte uniformemente en toda la escala, así que la
-demostración tiene cuentas de todos los niveles.
+El escalón de n difiere del de n − 1 como mucho en 1 y nunca sale de la escala; arriba un
++1 no sube y abajo un −1 no baja. La lectura 0 se reparte en toda la escala.
 
-### 4.3 Lectura completa (RF-36, RF-43, DP-8, DP-31)
+Medidas de RF-42 (comprobadas en pruebas sobre los conjuntos de RF-41, no garantizadas por
+construcción): (a) la fotografía repite tier, división y puntos con probabilidad ≤ 2/3 ·
+1/100 por lectura (la banda más estrecha tiene 100 valores), así que fallar "al menos 5 de
+10 cambian" exige 6 repeticiones; (b) un identificador no cambia de escalón en 10 lecturas
+con probabilidad ≤ (2/3)^10 ≈ 1,7 % (solo en un extremo), así que se esperan ~100 de 100,
+lejos del mínimo de 50. Si alguna medida fallara al implementar, el implementer para y se
+vuelve a este plan (la regla es contrato, RF-41).
+
+### 4.3 Lectura completa [RF-36, RF-43, DP-8, DP-31]
 ```
-simulateReading({ gameId, canonicalHandle: c, readingNumber: n, now }):
-  rng = rng_n ; rng()                             // descarta el 1.er valor (ya usado por stepAt)
-  paso = stepAt(gameId, c, n)
-  { tier, division } = ladder(gameId)[paso]
-  { min, max } = generationRange(gameId, paso); points = randInt(rng, min, max)
-  snapshot = { tier, division (solo si existe), points, normalized: normalizeStep(gameId, paso), recordedAt: now }
-  count = randInt(rng, 1, 8)
-  edad = 0 ; matches = []
+simulateReading({ gameId: g, canonical: c, readingNumber: n, now }):
+  rng = rng_n; rng()                              // descarta el valor que usa stepAt
+  paso = stepAt(g, c, n); { tier, division } = ladder(g)[paso]
+  { min, max } = pointsBand(g, paso); points = randInt(rng, min, max)
+  snapshot = { tier, [division], points, normalized: normalizeStep(g, paso), recordedAt: now }
+  count = randInt(rng, 1, 8); edad = 0; matches = []
   para j = 0..count − 1:
-    si j > 0: edad += randInt(rng, 20, 180)       // minutos; ≥ 20 ≥ 1 (RF-43)
-    result = rng() < 0.5 ? 'win' : 'loss'
-    durationMinutes = randInt(rng, DUR[gameId].min, DUR[gameId].max)
-    mag = randInt(rng, DELTA[gameId].min, DELTA[gameId].max)
-    rankDelta = result == 'win' ? mag : −mag
-    summary = summaryFor(gameId, rng, result)
-    matches.push({ id: `m-${n}-${j}`, gameId, playedAt: new Date(now − edad·60000), result,
-                   summary, durationMinutes, rankDelta })
+    si j > 0: edad += randInt(rng, 20, 180)       // minutos, ≥ 1 (RF-43)
+    result = rng() < 0.5 ? "win" : "loss"
+    durationMinutes = randInt(rng, DUR[g])
+    mag = randInt(rng, DELTA[g]); rankDelta = result = "win" ? mag : −mag
+    summary = summaryFor(g, rng, result)
+    matches.push({ id: `m-${n}-${j}`, gameId: g, playedAt: new Date(now.getTime() − edad·60000),
+                   result, summary, durationMinutes, rankDelta })
   return { snapshot, matches, mainMatchId: `m-${n}-0`, verified: isVerified(c) }
 ```
 - Orden de consumo de `rng` fijo: (descartado), puntos, número de partidas y, por partida:
@@ -336,7 +417,7 @@ simulateReading({ gameId, canonicalHandle: c, readingNumber: n, now }):
   Desvincular y volver a vincular reinicia en `m-0-*`, pero en una cuenta nueva.
 - Constantes:
 
-| Juego | DUR (min) | DELTA | Resumen (`·` = U+00B7 con espacios) |
+| Juego | DUR | DELTA | Resumen (`·` = U+00B7 con un espacio a cada lado) |
 | --- | --- | --- | --- |
 | lol | 20–45 | 12–25 LP | `<campeón> · <k>/<d>/<a>`; campeón de `Ahri, Jinx, Thresh, Lee Sin, Lux, Ezreal, Leona, Yasuo`; k 0–15, d 0–12, a 0–20 (en ese orden) |
 | r6 | 15–40 | 15–35 MMR | `<operador> · <b> bajas`; operador de `Ash, Thermite, Sledge, Mute, Valkyrie, Thatcher, Smoke, Doc`; b 0–12 |
@@ -351,13 +432,13 @@ simulateReading({ gameId, canonicalHandle: c, readingNumber: n, now }):
 
 ### 4.4 Regla de verificada (RF-41)
 ```
-isVerified(c) = (suma de c.charCodeAt(i) para todo i) % 2 === 0
+isVerified(c) = (Σ c.charCodeAt(i)) % 2 === 0
 ```
-Depende solo del identificador canónico (y, por el patrón, del juego); es igual en todas
-las lecturas y para todos los usuarios. Se eligió porque se calcula a mano: las pruebas
-pueden escribirse **antes** que el código con valores exactos.
-
-Ejemplos que fijan las pruebas (calculados a mano):
+Depende solo del identificador canónico (y del juego, por el patrón); igual para todas las
+lecturas y usuarios. Se calcula a mano, así que las pruebas se escriben antes que el
+código. Recuento sobre los conjuntos de RF-41 (la paridad solo depende de la suma de los
+dígitos de i, impar en 51 de los 100 valores; las partes fijas suman 1103 en LoL (impar),
+748 en R6 (par) y 371 + 10·48 en CS2 (impar)): LoL 51, R6 49, CS2 51, todos en 40–60.
 
 | Juego | Verificadas | No verificadas |
 | --- | --- | --- |
@@ -365,11 +446,7 @@ Ejemplos que fijan las pruebas (calculados a mano):
 | r6 | `jugador2` (798), `jugador4` (800) | `jugador1` (797), `jugador3` (799) |
 | cs2 | `76561190000000001` (852), `76561190000000003` (854) | `76561190000000002` (853), `76561190000000004` (855) |
 
-Conjuntos de 100 identificadores válidos por juego (i = 1..100):
-- LoL: `jugador<i>#las` → 51 verificados.
-- R6: `jugador<i>` → 49 verificados.
-- CS2: `7656119` + i con ceros a la izquierda hasta 10 dígitos (`76561190000000001` …
-  `76561190000000100`) → 51 verificados.
+---
 
 Los tres quedan dentro de 40–60. (Cálculo: la paridad solo depende de la suma de los
 dígitos de i, que es impar en 51 de los 100 valores; LoL y CS2 verifican con suma impar y
@@ -440,101 +517,266 @@ Cada controlador toma `const now = clock.now()` una sola vez al inicio. Respuest
 
 Flujos:
 ```
-vincular(body, userId, now):
-  v = validateLinkPayload(body)              // RF-6, RF-7: solo gameId, handle, region
-  si existe GameAccount { user, gameId } → 400 RF-5
-  reading = rankProvider.read({ gameId, canonicalHandle(handle), readingNumber: 0, now })
-  state = initialState(reading, now)
-  linkAccount(userId, v, state)              // services/accountWrites.ts, ver sección 8
-  → 201 account.toJSON()
-
-editar(account, body):                       // dentro de updateOwnedAccount
-  r = validateAccountEdit(account, body)     // RF-22 → RF-38; cuerpo vacío → { } (RF-40)
-  si r.value.region: account.region = r.value.region
-  // no se lee gameId, handle se ignora si es "el mismo"; nada más cambia (RF-7, RF-8)
-
-desvincular(id, userId):
-  findById → 404 / 403
-  GameAccount.deleteOne({ _id }) ; User.updateOne({ _id: userId }, { $pull: { accounts: id } })
-  → 204
-
-resincronizar(account, now):                 // dentro de updateOwnedAccount
-  n = account.readingNumber + 1
-  reading = rankProvider.read({ gameId, canonicalHandle(account.handle), readingNumber: n, now })
-  next = applySync(estado(account), reading, n, now)
-  asignar currentRank, rankHistory, matches, readingNumber = n, lastSyncedAt, verified
-
-resumen(id|me, gameId, sessionUserId):
-  RF-13 en orden → account = findOne({ user, gameId })
-  matches = recentMatches(account.matches)   // 8 primeras en orden RF-28
-  → { account: toJSON, recentMatches: matches.map(m → { id: m.matchId, gameId, playedAt ISO,
-        result, summary, durationMinutes, rankDelta }),
-      winRate: winRate(matches), trend: trend(currentRank, rankHistory) }
-```
-Transiciones puras (`accountState.ts`):
-```
-initialState(reading, now) = { currentRank: reading.snapshot, rankHistory: [reading.snapshot],
-  matches: mergeMatches([], reading.matches, reading.mainMatchId), readingNumber: 0,
-  lastSyncedAt: now, verified: reading.verified }
-applySync(s, reading, n, now) = { currentRank: reading.snapshot,
-  rankHistory: shouldAppendSnapshot(s.currentRank, reading.snapshot) ? [...s.rankHistory, reading.snapshot] : s.rankHistory,
-  matches: mergeMatches(s.matches, reading.matches, reading.mainMatchId),
-  readingNumber: n, lastSyncedAt: now, verified: reading.verified }
-shouldAppendSnapshot(p, q) = p.tier ≠ q.tier || p.division ≠ q.division || p.points ≠ q.points
-compareMatches(a, b) = (b.playedAt − a.playedAt) || (a.id < b.id ? 1 : a.id > b.id ? −1 : 0)
+initialState(r, now) = { currentRank: r.snapshot, rankHistory: [r.snapshot],
+  matches: mergeMatches([], r.matches, r.mainMatchId), readingNumber: 0, lastSyncedAt: now, verified: r.verified }
+applySync(s, r, n, now) = { currentRank: r.snapshot,
+  rankHistory: shouldAppendSnapshot(s.currentRank, r.snapshot) ? [...s.rankHistory, r.snapshot] : s.rankHistory,
+  matches: mergeMatches(s.matches, r.matches, r.mainMatchId), readingNumber: n, lastSyncedAt: now, verified: r.verified }
+shouldAppendSnapshot(p, q) = p.tier ≠ q.tier || p.division ≠ q.division || p.points ≠ q.points     // DP-9
+compareCodePoints(a, b): recorre los códigos (codePointAt, avanzando 1 o 2 unidades); el
+  primero distinto decide; si uno es prefijo, el más corto va antes
+compareMatches(a, b) = (b.playedAt − a.playedAt) || −compareCodePoints(a.id, b.id)  // reciente primero; id mayor primero
 mergeMatches(saved, incoming, mainId):
-  todos = saved ++ [m ∈ incoming | m.id ∉ ids(saved)]   // se conserva la guardada
+  todos = saved ++ [m ∈ incoming | m.id ∉ ids(saved)]          // se conserva la guardada
   ordenar(todos, compareMatches)
   si |todos| ≤ 20 o mainId ∈ ids(todos[0..19]) → todos[0..19]
   si no → ordenar([main] ++ (todos sin main)[0..18], compareMatches)
-winRate(ms) = Math.round(victorias · 100 / |ms|)        // |ms| ≥ 1 siempre; 0 si vacío por seguridad
+recentMatches(ms) = ms[0..7]
+winRate(ms) = |ms| = 0 ? 0 : Math.round(victorias · 100 / |ms|)  // 5/8 = 62,5 → 63 (exacto en binario)
 trend(cur, hist) = hist vacío ? 0 : cur.normalized − hist[0].normalized
 ```
-La comparación de identificadores usa `<`/`>` de JavaScript (unidades UTF-16): coincide con
-"código Unicode" porque los identificadores son ASCII (`m-9-0` > `m-10-0`).
+El historial va en orden de lectura (DP-36): su último elemento coincide con el vigente
+salvo, quizá, la fecha. `compareCodePoints` cumple RF-28 ("código Unicode") también fuera
+de ASCII, donde `<` de JavaScript compara unidades UTF-16.
 
-## 7. Errores (textos exactos, DP-6)
+---
+
+## 6. Interfaz REST y algoritmos
+
+Todas las rutas exigen sesión (RF-1) con el `withUser` existente, que ya da 401 "token
+inválido" a la credencial de un usuario eliminado (RF-44). El controlador toma
+`const now = clock()` una sola vez por petición. Errores: `{ error }`.
+
+| Método y ruta | Orden de revisión (RF-29), tras cuerpo (001) y sesión | Éxito |
+| --- | --- | --- |
+| `GET /api/accounts?user=&game=` | `parseAccountFilters` (usuario, luego juego) | 200 lista |
+| `GET /api/accounts/:id` | decodificación (guardia) → formato → existencia | 200 cuenta |
+| `POST /api/accounts` | `validateLinkPayload` → duplicado | 201 cuenta |
+| `PATCH /api/accounts/:id` | decodificación → formato → existencia → propiedad → RF-22 → RF-38 | 200 cuenta |
+| `DELETE /api/accounts/:id` | decodificación → formato → existencia → propiedad | 204 |
+| `POST /api/accounts/:id/sync` | decodificación → formato → existencia → propiedad | 200 cuenta |
+| `GET /api/users/:id/games/:gameId` | id (`me`, formato) → juego → usuario existe → cuenta existe (RF-13) | 200 resumen |
+| `DELETE /api/users/:id` (003) | sin cambios hasta el 403; después la cascada de 6.8 | 204 |
+
+### 6.1 Guardias [RF-1, RF-13, RF-29; D1]
+- `matchAccountRoute(method, path)` replica el emparejamiento de Express 5 (`/` final
+  opcional, `sync` sin distinguir mayúsculas, `HEAD` = `GET`, `"/"` y `"//"` = raíz):
+  `GET /` → list; `POST /` → link; `GET|PATCH|DELETE /<seg>` → account;
+  `POST /<seg>/sync` → sync; cualquier otro par → null (sigue al 404 de la spec 001 sin
+  sesión, como en la 003).
+- `createAccountRoutesGuard({ withUser })`, montada con `router.use` antes de las rutas:
+  si `null` → `next()`; si no, `withUser` y después, en account/sync,
+  `decodeSegment(rawSegment) === null` → 400 "id con formato inválido".
+- `matchUserRoute` añade `GET /<seg>/games/<juego>` → `{ kind: "gameSummary", rawSegment,
+  rawGame }` (`games` sin distinguir mayúsculas). En la guardia de usuarios, si alguno de
+  los dos segmentos no se puede decodificar, responde el error de
+  `resolveSummaryTarget(decodeSegment(rawSegment), decodeSegment(rawGame), userId)`, que
+  mantiene el orden de RF-13: id no decodificable o sin formato → "id con formato
+  inválido"; si no, juego no decodificable → "juego no válido" (D16).
+
+### 6.2 Listar [RF-2, DP-38]
+```
+f = parseAccountFilters(request.query, userId)
+  // user: presente → debe ser un único texto; resolveUserTarget(texto, userId) (me exacto o 24 hex);
+  //   arreglo, "", "Me", " me", "%zz" literal → "id con formato inválido"
+  // solo si user es válido o falta: game presente → único texto e isGameId; si no → "juego no válido"
+  // cualquier otro nombre de parámetro se ignora (User, user[], page)
+si f.error → 400
+filtro = {}; si f.userId: filtro.user = f.userId; si f.gameId: filtro.gameId = f.gameId
+cuentas = await GameAccount.find(filtro).sort({ _id: 1 })
+200 (await withExistingOwners(cuentas)).map(toAccountJson)
+```
+`withExistingOwners` descarta las cuentas cuyo dueño no existe con una sola consulta
+`User.find({ _id: { $in: dueños } }, { _id: 1 })` (D10). El orden por `_id` ascendente
+coincide con el del identificador en minúsculas (los 12 bytes del ObjectId se comparan en
+el mismo orden que su hexadecimal). Un `user` válido sin usuario da `[]`.
+
+### 6.3 Obtener [RF-3]
+```
+id = resolveAccountId(request.params.id)        → 400 "id con formato inválido" (me, 23/25 hex)
+cuenta = await GameAccount.findById(id)
+si cuenta = null o (await User.exists({ _id: cuenta.user })) = null → 404 "cuenta no encontrada"   // D10
+200 toAccountJson(cuenta)
+```
+
+### 6.4 Vincular [RF-4, RF-5, RF-6, RF-7, RF-46, RF-47]
+```
+v = validateLinkPayload(request.body)            // juego → identificador → región; solo gameId, handle, region
+si v.error → 400
+si await GameAccount.exists({ user: userId, gameId }) → 400 "ya tienes una cuenta vinculada en este juego"
+r = simulateReading({ gameId, canonical: canonicalHandle(handle), readingNumber: 0, now })
+resultado = await linkAccount(userId, v.value, initialState(r, now))
+  201 toAccountJson | 400 duplicado | 404 "usuario no encontrado"
+
+linkAccount(userId, datos, estado):                              // services/accountWrites.ts
+  try cuenta = await GameAccount.create({ user: userId, ...datos, ...estado })   // un solo insert: todo o nada
+  catch E11000 → { duplicate }                                   // dos vinculaciones simultáneas (RF-5)
+  try
+    si (await User.exists({ _id: userId })) = null:              // usuario borrado mientras tanto (RF-47)
+      await GameAccount.deleteOne({ _id: cuenta._id }); return { userGone }        // 404, sin cuenta
+  catch error
+    await GameAccount.deleteOne({ _id: cuenta._id }); throw error                  // 500 sin cuenta (RF-46)
+  return { created: cuenta }
+```
+- Vincular no lee ni escribe el usuario más allá de esa comprobación (RF-46).
+- El índice único `{ user: 1, gameId: 1 }` resuelve la carrera de RF-5; la consulta previa
+  da el mensaje sin intentar el insert en el caso normal.
+- RF-47: si la comprobación posterior encuentra al usuario, responde 201 y la cascada
+  (6.8) borra la cuenta; si no lo encuentra, compensa y responde 404 (D9).
+
+### 6.5 Editar [RF-7, RF-8, RF-11, RF-22, RF-38, RF-40]
+```
+id = resolveAccountId(...) → 400
+updateOwnedAccount(id, userId, (cuenta) =>
+  e = validateAccountEdit(cuenta, request.body)
+     // handle: propiedad propia presente → no texto, o canonicalHandle(trim) ≠ canonicalHandle(cuenta.handle) → RF-22
+     // después region: presente → normalizeRegion(cuenta.gameId, valor) = null → RF-38
+     // gameId del cuerpo nunca se lee; cuerpo ausente, [], text/plain o {} → sin cambios (RF-40)
+  si e.error → 400
+  si e.value.region definida y ≠ cuenta.region: cuenta.region = e.value.region; return "guardar"
+  return "sin cambios")                                         // 200 sin escribir
+```
+
+### 6.6 Desvincular [RF-9, RF-11, RF-46]
+```
+id = resolveAccountId(...) → 400
+cuenta = await GameAccount.findById(id) → null: 404 "cuenta no encontrada"
+si cuenta.user ≠ userId → 403
+r = await GameAccount.deleteOne({ _id: id, user: userId })      // un solo delete: historial y partidas con ella
+r.deletedCount = 0 → 404 "cuenta no encontrada"                 // otra desvinculación o la cascada ganó (RF-39, RF-47)
+204 sin cuerpo
+```
+
+### 6.7 Resincronizar [RF-10, RF-15, RF-28, RF-45]
+```
+id = resolveAccountId(...) → 400
+updateOwnedAccount(id, userId, (cuenta) =>
+  n = cuenta.readingNumber + 1
+  r = simulateReading({ gameId: cuenta.gameId, canonical: canonicalHandle(cuenta.handle), readingNumber: n, now })
+  asignar applySync(estado(cuenta), r, n, now) a la cuenta; return "guardar")
+
+updateOwnedAccount(id, userId, aplicar, maxIntentos = 5):          // services/accountWrites.ts
+  repetir:
+    cuenta = await GameAccount.findById(id)        → null: 404 "cuenta no encontrada"
+    si cuenta.user ≠ userId                        → 403 "no tienes permiso para esta operación"
+    resultado = aplicar(cuenta)                    → 400: se responde; "sin cambios": 200 con cuenta
+    try await cuenta.save(); return 200 cuenta
+    catch VersionError → siguiente intento         // otra escritura ganó o la cuenta ya no existe
+  agotados → throw → 500 (la cuenta no cambió)
+```
+- `optimisticConcurrency: true`: `save()` solo escribe si `__v` no cambió (y lo
+  incrementa); si la cuenta se borró, Mongoose lanza `VersionError` y el reintento la
+  encuentra `null` → 404. `save()` nunca recrea (sin upsert).
+- Una sola escritura por operación: si falla con otro error, nada cambia, incluido
+  `readingNumber` (RF-45); el reintento solo ocurre ante `VersionError`.
+- Resultado de RF-39 (cada caso, con la primera operación detenida entre su lectura y su
+  escritura y la segunda completa entre medias):
+  - dos resincronizaciones: la segunda guarda n; la primera choca, relee y guarda n + 1;
+    estado = aplicarlas en serie;
+  - edición y resincronización, dos ediciones: la detenida choca, relee y aplica encima;
+    ningún cambio se pierde; cada respuesta lleva la cuenta tras aplicarse ella;
+  - desvinculación con edición o resincronización: si la desvinculación va en medio, la
+    otra choca, relee `null` → 404; si la detenida es la desvinculación, la otra responde
+    200 y después la desvinculación borra (204);
+  - dos desvinculaciones: la de en medio 204; la detenida `deletedCount` 0 → 404.
+
+### 6.8 Eliminar usuario: cascada ordenada (cambio en la ruta de la spec 003) [RF-14, RF-47, DP-42]
+Antes: un único `User.deleteOne`. Después (mismas comprobaciones 400 y 403 de la 003):
+```
+await GameAccount.deleteMany({ user: userId })            // C1: las cuentas primero
+try     await User.deleteOne({ _id: userId })             // C2: el usuario, lo último
+finally await GameAccount.deleteMany({ user: userId })    // C3: barrido, también si C2 lanza
+response.clearCookie(...); 204                            // solo si C1, C2 y C3 terminaron
+```
+- Un error en cualquier paso llega al `errorHandler` (500) sin borrar la cookie, así que la
+  sesión sigue sirviendo para repetir la eliminación.
+- Estados tras un 500 (RF-14): falla C1 antes de borrar nada o tras borrar algunas →
+  estado (1) con todas o algunas cuentas; falla C2 sin borrar el usuario → C3 corre →
+  estado (1) sin cuentas; falla C2 tras borrar el usuario → C3 corre → estado (2); falla C3
+  → el usuario ya no existe y C1 ya había borrado sus cuentas → estado (2).
+- Vinculación simultánea (RF-47): si crea la cuenta antes de C1, C1 la borra; entre C1 y
+  C2, C3 la borra (también si C2 lanza tras borrar el usuario); después de C2, su
+  comprobación posterior no encuentra al usuario y compensa (404).
+- Límites sin transacciones (riesgo R2): la cuenta de una vinculación detenida existe unos
+  milisegundos entre su `create` y su compensación, y un fallo doble (vinculación entre C1
+  y C2 **y** fallo de C3) dejaría una cuenta sin dueño. En ambos casos ninguna lectura la
+  muestra (D10) y nadie puede operar sobre ella.
+- Llamadas como métodos estáticos sin encadenar (`await GameAccount.deleteMany(...)`,
+  `await User.deleteOne(...)`), para que las pruebas las sustituyan (R3 de la 003).
+- Spec 006 deberá insertar sus sesiones antes de C2 con el mismo patrón.
+
+### 6.9 Resumen por juego [RF-12, RF-13, RF-37]
+```
+t = resolveSummaryTarget(params.id, params.gameId, userId)   // me exacto → sesión; formato → 400 id; juego exacto → 400 juego
+si t.error → 400
+si (await User.exists({ _id: t.userId })) = null → 404 "usuario no encontrado"
+cuenta = await GameAccount.findOne({ user: t.userId, gameId: t.gameId })
+si cuenta = null → 404 "el jugador no tiene una cuenta vinculada en este juego"
+ms = recentMatches(partidas(cuenta))
+200 { account: toAccountJson(cuenta),
+      recentMatches: ms.map(m → { id: m.matchId, gameId, playedAt, result, summary, durationMinutes, rankDelta }),
+      winRate: winRate(ms), trend: trend(cuenta.currentRank, cuenta.rankHistory) }
+```
+
+---
+
+## 7. Modelo y mensajes
+
+### 7.1 `GameAccount` [RF-4, RF-5, RF-37, RNF-3, DP-32, DP-33]
+
+| Campo | Tipo | Reglas |
+| --- | --- | --- |
+| `user` | ObjectId → `User` | required. Nunca cambia. |
+| `gameId` | String | required, `enum: GAME_IDS` |
+| `handle` | String | required; recortado y con sus mayúsculas (lo hace el controlador; sin `trim`/`lowercase` en el esquema) |
+| `region` | String | required, grafía de la lista |
+| `currentRank` | `SnapshotSchema` | required |
+| `rankHistory` | [`SnapshotSchema`] | orden de lectura, sin límite |
+| `matches` | [`MatchSchema`] | máx. 20 (validador), orden RF-28. Interno. |
+| `readingNumber` | Number | required, entero ≥ 0. Interno. |
+| `lastSyncedAt` | Date | required |
+| `verified` | Boolean | default `false`; lo fija la lectura |
+| índice | `{ user: 1, gameId: 1 }` | único (RF-5) |
+| opciones | `optimisticConcurrency: true` | RF-39 |
+
+- `SnapshotSchema` (`_id: false`): `tier`, `division` opcional, `points` (entero),
+  `normalized` (entero 0–100), `recordedAt`. `MatchSchema` (`_id: false`): `matchId` (no
+  `id`, que choca con el virtual de Mongoose), `gameId`, `playedAt`, `result` (`win|loss`),
+  `summary`, `durationMinutes`, `rankDelta`.
+- `toAccountJson(cuenta)` en lista blanca (como `toPublicUserJson`):
+  `{ id, userId, gameId, handle, region, currentRank, rankHistory, lastSyncedAt, verified,
+  simulated: true }`, con `id` y `userId` en minúsculas (`toString()`), fotografías sin
+  `division` cuando no existe y fechas `Date` (Express las serializa en ISO con
+  milisegundos y `Z`). `toJSON` del esquema usa la misma función. `simulated` no se guarda:
+  ningún cuerpo puede cambiarla (RF-7, RF-37).
+- El esquema repite las reglas como red de seguridad; los mensajes que ve el cliente salen
+  de `accountRules.ts` antes de tocar la base.
+
+### 7.2 Textos exactos [DP-6]
 
 | Código | Texto | Cuándo |
 | --- | --- | --- |
-| 401 | `sesión no iniciada` | sin cookie (spec 002) o usuario de la sesión eliminado (RF-44) |
-| 401 | `token inválido` / `sesión expirada` | spec 002, RF-11 y RF-12 |
-| 400 | `id con formato inválido` | id de cuenta o de usuario sin formato (RF-29, RF-13); filtro `user` repetido, vacío o inválido (RF-2) |
-| 400 | `Juego no válido.` | juego al vincular (RF-6), filtro `game` (RF-2), resumen (RF-13) |
-| 400 | `Riot ID no válido: usa el formato Nombre#TAG.` | RF-6, LoL |
-| 400 | `Ubisoft ID no válido: usa de 3 a 20 letras, dígitos, punto, guion o guion bajo.` | RF-6, R6 |
-| 400 | `SteamID64 no válido: son 17 dígitos que empiezan por 7656119.` | RF-6, CS2 |
-| 400 | `Región no válida para <nombre>.` (`League of Legends`, `Rainbow Six Siege`, `Counter-Strike 2`) | RF-6, RF-38 |
-| 400 | `Ya tienes una cuenta vinculada en este juego.` | RF-5 (también el E11000 del índice) |
-| 400 | `El identificador no se puede editar: desvincula la cuenta y vuelve a vincularla.` | RF-22 |
-| 403 | `No puedes modificar la cuenta de otro jugador.` | RF-11 |
-| 404 | `Cuenta no encontrada.` | RF-29, RF-39 |
-| 404 | `Usuario no encontrado.` | RF-13 |
-| 404 | `El jugador no tiene una cuenta vinculada en este juego.` | RF-13 |
-| 500 | `error interno del servidor` | errorHandler de la spec 001 (RF-45) |
+| 401 | los de la spec 002 (`sesión no iniciada`, `token inválido`, `sesión expirada`…) | RF-1; usuario eliminado → `token inválido` (RF-44) |
+| 400 | `id con formato inválido` (`MESSAGES.invalidId`) | id de cuenta (RF-29), filtro `user` (RF-2), id del resumen (RF-13) |
+| 400 | `juego no válido` | RF-2, RF-6, RF-13 |
+| 400 | `Riot ID no válido: usa el formato Nombre#TAG, con 3 a 16 caracteres antes de # y 2 a 5 letras o dígitos después` | RF-6 |
+| 400 | `Ubisoft ID no válido: usa de 3 a 20 letras, dígitos, punto, guion o guion bajo` | RF-6 |
+| 400 | `SteamID64 no válido: son 17 dígitos que empiezan por 7656119` | RF-6 |
+| 400 | `región no válida para <nombre>` (`League of Legends`, `Rainbow Six Siege`, `Counter-Strike 2`) | RF-6, RF-38 |
+| 400 | `ya tienes una cuenta vinculada en este juego` | RF-5 (también el E11000) |
+| 400 | `el identificador del juego no se puede editar: desvincula la cuenta y vuelve a vincularla` | RF-22 |
+| 403 | `no tienes permiso para esta operación` (`MESSAGES.forbidden`) | RF-11 |
+| 404 | `cuenta no encontrada` | RF-29, RF-39, RF-47 |
+| 404 | `usuario no encontrado` (`USER_TARGET_MESSAGES.userNotFound`) | RF-13, RF-47 |
+| 404 | `el jugador no tiene una cuenta vinculada en este juego` | RF-13 |
+| 500 | `error interno del servidor` | spec 001 (RF-45, RF-46, RF-14) |
 
-Ningún 409 ni 503 en esta spec. Ningún texto nombra a Riot, Ubisoft, Valve, FACEIT ni otra
-fuente (RNF-2); "Riot ID", "Ubisoft ID" y "SteamID64" nombran el formato del identificador,
-no una fuente de datos.
+Ningún 409 ni 503. Ningún texto ni campo nombra a Riot Games, Ubisoft, Valve, FACEIT ni
+otra fuente (RNF-2); "Riot ID", "Ubisoft ID" y "SteamID64" nombran el formato.
 
-Reglas de validación (`accountRules.ts`):
-- "Valor válido" exige `typeof value === 'string'`; `null`, número, objeto o texto vacío
-  tras `trim()` son inválidos.
-- Cuerpo que no es objeto plano (ausente, arreglo, `null`) se trata como `{}`: al vincular
-  da "Juego no válido."; al editar, 200 sin cambios (RF-40).
-- `validateLinkPayload`: juego (`isGameId`) → identificador (`handlePattern` del juego
-  sobre el texto sin espacios en los extremos) → región (`normalizeRegion`). Primer error
-  y nada más.
-- `validateAccountEdit`: si `'handle' in body` y (`typeof !== 'string'` o
-  `canonicalHandle(body.handle) !== canonicalHandle(account.handle)`) → RF-22. Después, si
-  `'region' in body` y `normalizeRegion(account.gameId, body.region) === null` → RF-38.
-  Nunca lee `gameId` del cuerpo.
-- `parseAccountFilters`: `user` presente → debe ser un único texto no vacío y `me` o
-  `isValidId`; si no, "id con formato inválido". Solo si `user` es válido o ausente se
-  revisa `game`: único texto no vacío y `isGameId`; si no, "Juego no válido.". Un valor
-  repetido llega como arreglo (parser `simple` de Express 5) y es inválido.
+---
 
-## 8. Concurrencia y fallos (RF-5, RF-39, RF-45, DP-29)
+## 8. Decisiones técnicas (con la alternativa descartada)
 
 `services/accountWrites.ts`:
 ```
@@ -592,7 +834,7 @@ updateOwnedAccount(accountId, userId, apply, maxAttempts = 5):
 - Sin variables de entorno nuevas ni dependencias nuevas. Las pruebas no abren red salvo
   la base de prueba de la spec 001.
 
-## 10. Decisiones técnicas (con la alternativa descartada)
+## 9. Estrategia de pruebas
 
 | # | Decisión | Alternativa descartada y motivo |
 | --- | --- | --- |
@@ -678,7 +920,163 @@ updateOwnedAccount(accountId, userId, apply, maxAttempts = 5):
 - Concurrencia: `Promise.all` de dos peticiones con el mismo agente.
 - Cada RF de error se prueba con el texto exacto y, en escrituras, con el estado de la base.
 
-## 12. Trazabilidad
+**`unit/rankScale.test.ts`** [RF-36, RF-48, DP-26, DP-34]: tamaños 31/36/7; todos los valores
+de 3.2; bandas de 3.3 en sus extremos.
+
+**`unit/rankSimulator.test.ts`** [RF-35, RF-36, RF-41, RF-42, RF-43]: mismas entradas →
+`deepStrictEqual`; mayúsculas/recortables → misma lectura (vía `canonicalHandle`);
+fotografía en escala, `division` solo si existe, puntos enteros en banda, normalizado
+coherente; 1–8 partidas, juego, ids distintos, una sola con `playedAt = now`, las demás
+≥ 1 min antes, todos los campos y formato de resumen; para los 100 identificadores de cada
+conjunto y n = 0..30: ±1 escalón, principal de n ausente en 0..n − 1; mismo n a dos
+instantes → igual salvo fechas desplazadas; medidas (a) y (b) de RF-42 sobre n = 0..10;
+verificada: los 12 ejemplos de 4.4, 51/49/51, estable en n = 0..10.
+
+**`unit/accountState.test.ts`** [RF-4, RF-10, RF-15, RF-28, DP-9, DP-11, DP-30, DP-36]:
+`mergeMatches` sin repetidos (conserva fecha guardada), orden, desempate `m-9-0` antes que
+`m-10-0`, `compareCodePoints` con un carácter astral frente a U+FFFF, corte en 20,
+principal conservada con más de 20 partidas de fecha igual o posterior; `applySync` sin
+cambio de rango (no agrega fotografía, último = vigente salvo fecha) y con reloj atrasado;
+`initialState`; `winRate` 5/8 = 63, 0/8 = 0; `trend` con un elemento = 0;
+`recentMatches` = 8 primeras.
+
+**`unit/accountRules.test.ts`** [RF-2, RF-6, RF-7, RF-13, RF-22, RF-38, RF-40]: orden
+juego → identificador → región y textos exactos; nulo, vacío, recortables, no texto;
+arreglo/ausente → "juego no válido"; campos extra ignorados; edición: mismo identificador
+con otras mayúsculas o recortable ignorado, distinto/nulo/vacío → RF-22 antes que RF-38,
+`gameId` del cuerpo ignorado, cuerpo vacío → `{}`; filtros: `user` arreglo, `""`, `Me`,
+`" me"`, `%zz` → id (también con `game` inválido); `game` arreglo, `""`, `LOL`, `" lol"` →
+juego; `user=me` → sesión; id en mayúsculas → minúsculas; claves desconocidas ignoradas;
+`resolveSummaryTarget` en el orden de RF-13 (incluidos los `null`).
+
+**`unit/accountTarget.test.ts`** [RF-29]: tabla de `matchAccountRoute` (con `HEAD`, `/`
+final, `SYNC`, `PUT /x` → null, `/x/sync/y` → null); `resolveAccountId` (`me`, 23, 25, `g`
+→ error; mayúsculas → minúsculas).
+
+**`unit/userTarget.test.ts`** (modifica) [RF-13]: `GET /x/games/lol`, `/x/GAMES/lol/` →
+`gameSummary`; `POST /x/games/lol`, `/x/games` y `/x/games/lol/y` → null; el resto de la
+tabla de la 003 sigue igual.
+
+**`unit/gameAccountModel.test.ts`** [RF-37, RNF-3, DP-32, DP-33]: `toAccountJson` de un
+documento sin guardar: claves exactas, `simulated: true`, sin `_id`, `__v`, `user`,
+`matches` ni `readingNumber`; `division` ausente no aparece; `toJSON` = `toAccountJson`.
+
+**`controllers/accountRead.test.ts`** [RF-1, RF-2, RF-3, RF-29, RF-37, RF-44, RNF-3]: 401 en
+las seis operaciones de `/api/accounts` (también con id inválido, `%zz` y cuerpo
+inválido); 400 "JSON mal formado" antes del 401; credencial de usuario eliminado → 401
+"token inválido" en las seis y en el resumen, sin cambios en la base; rutas fuera de la
+tabla → 404; listar: cada salto de RF-2 (incluidos `user=m%65`, `user=%zz`, repetidos,
+`User=abc`, `user[]=abc`, `page=2`), orden por id, dos peticiones = mismo orden, `user`
+inexistente → `[]`, cuenta sin dueño (insertada con el driver) no aparece; obtener: propia
+y ajena, id en mayúsculas → `id` en minúsculas, `abc`/23/25/`me`/`%zz` → 400, inexistente →
+404, sin dueño → 404; forma exacta de RNF-3 y fechas `ISO_MS_Z`.
+
+**`controllers/accountLink.test.ts`** [RF-4, RF-5, RF-6, RF-7, RF-29, RF-37, RF-46, RF-47,
+RNF-2]: 201 en los tres juegos con respuesta y base = `expectedLinked` (incluidos
+`readingNumber` 0 y partidas internas); identificador guardado recortado con sus
+mayúsculas; región con la grafía de la lista; cuerpo con `user`, `currentRank`,
+`verified`, `readingNumber`, `simulated: false` → ignorados; un caso por mensaje de RF-6
+y su orden; `[]`, sin cuerpo, `text/plain` → "juego no válido"; `"x"`/`5`/`null` → "JSON
+mal formado"; duplicado → 400; dos vinculaciones simultáneas (`Promise.all`) → un 201 y un
+400, una sola cuenta; dos usuarios con el mismo identificador, otra región u otras
+mayúsculas → misma lectura y misma verificada; datos del usuario idénticos tras vincular
+(`rawUser`); RF-46: `User.exists` (2.ª llamada) forzado a lanzar → 500, sin cuenta, la
+siguiente vinculación 201; `GameAccount.create` forzado a lanzar → 500 y sin cuenta;
+RF-47: `GameAccount.create` borra el usuario (driver) y delega → 404 "usuario no
+encontrado" y ninguna cuenta; vinculación terminada y después `DELETE /api/users/me` →
+cuenta borrada; ninguna respuesta contiene `Riot Games`, `Steam Web API`,
+`r6.tracker.network`, `FACEIT` ni `Valve`.
+
+**`controllers/accountEdit.test.ts`** [RF-7, RF-8, RF-9, RF-11, RF-22, RF-29, RF-38, RF-40,
+RF-45, RF-46]: editar región con otra grafía → 200, base con la grafía de la lista y
+rango, historial, partidas, `readingNumber` y `lastSyncedAt` iguales; RF-22 y RF-38 con
+base intacta (incluidos nulo, vacío, `"   "`); mismo identificador con otras mayúsculas o
+recortable + región nueva → 200; cuerpo vacío, sin cuerpo, `{}`, `[]`, `text/plain`, solo
+ignorados, `gameId` inexistente → 200 sin cambios (`__v` igual); un caso por salto de
+RF-29 (id → 400, inexistente → 404, ajena → 403 aun con región inválida, identificador
+distinto + región inválida → RF-22); `save` forzado → 500 y base intacta; desvincular →
+204 sin cuerpo y la cuenta desaparece; ajena → 403; `GameAccount.deleteOne` forzado →
+500 y la cuenta sigue completa; datos del usuario idénticos tras editar y desvincular;
+tras desvincular, `user=me` ya no la lista; volver a vincular → lectura 0 de nuevo.
+
+**`controllers/accountSync.test.ts`** [RF-10, RF-11, RF-15, RF-28, RF-29, RF-42, RF-43,
+RF-45]: vincular y resincronizar dos veces una cuenta de cada juego con instantes fijos
+distintos → respuesta y base = `expectedSynced` con n = 1 y 2 (rango, historial según
+DP-9, partidas, `readingNumber`, `lastSyncedAt`, verificada estable); resincronización sin
+cambio de rango (identificador elegido con las funciones puras) → historial igual y último
+= vigente salvo fecha; ≤ 20 partidas tras varias resincronizaciones con la principal de
+la última presente; reloj atrasado → se procesa igual; ajena → 403 sin cambios; cuerpo
+cualquiera ignorado; `save` forzado → 500, base idéntica y la siguiente resincronización
+usa el mismo número; datos del usuario idénticos.
+
+**`controllers/accountConcurrency.test.ts`** [RF-39, RF-47]: con `overlapFirstFindById`,
+un `test` por caso: dos resincronizaciones; edición + resincronización en los dos órdenes;
+dos ediciones; desvinculación + edición y desvinculación + resincronización en los dos
+órdenes; dos desvinculaciones. Cada uno comprueba las dos respuestas y el estado final
+contra la aplicación en serie. RF-47: la segunda operación es `DELETE /api/users/me`
+(cascada real) mientras la primera edita, resincroniza o desvincula → 404 "cuenta no
+encontrada", ninguna cuenta ni usuario queda, nunca 500.
+
+**`controllers/gameSummary.test.ts`** [RF-12, RF-13, RF-29, RF-37]: resumen propio (`me`,
+`m%65`, id en mayúsculas) y ajeno: `account` con forma de RNF-3, `recentMatches` = 8
+primeras con `id`, `winRate` y `trend` calculados con las funciones puras; cada salto de
+RF-13 (`Me`, `ME`, `%20me`, `%zz`, 23 hex → id; `LOL`, `%20lol`, `%zz` en el juego → juego;
+`Me` + juego `%zz` → id; inexistente → usuario; sin cuenta → jugador); 401 sin sesión;
+`POST` a la ruta → 404.
+
+**`controllers/userDeletionCascade.test.ts`** [RF-14, RF-47]: usuario con cuentas en los
+tres juegos → 204, sin usuario ni cuentas suyas, las de otro usuario intactas; listar sin
+filtro no muestra cuentas sin dueño. Fallos forzados, uno por `test`:
+1. `GameAccount.deleteMany` (1.ª) lanza sin borrar → 500; estado (1) con las tres.
+2. `GameAccount.deleteMany` (1.ª) borra una con el driver y lanza → 500; estado (1) con dos
+   completas; volver a vincular ese juego → 201.
+3. `User.deleteOne` lanza sin borrar → 500; estado (1) sin cuentas.
+4. `User.deleteOne` borra con el driver y lanza → 500; estado (2); la credencial → 401
+   "token inválido".
+5. `GameAccount.deleteMany` (2.ª, el barrido) lanza tras borrar el usuario → 500; estado (2).
+En cada estado (1): la sesión sigue valiendo, las cuentas que quedan se obtienen, editan,
+resincronizan y desvinculan, y repetir la eliminación → 204 sin cuentas suyas.
+Vinculación simultánea: `User.deleteOne` ejecuta primero una vinculación completa (201,
+cuenta creada después de C1) y luego delega → (a) 204 y (b) lanzando tras delegar → 500;
+en ambos, ni usuario ni cuenta. Las pruebas de la 003 (`userDeletion.test.ts`) siguen
+verdes.
+
+### 9.3 Verificaciones fuera de `npm test`
+`npm run typecheck` y `npm run lint` en verde; sin `.only`, `any` ni `@ts-ignore`; sin
+`Math.random`, `Date.now`, `new Date()` sin argumentos, `process.env`, `fetch` ni
+`node:http` en `src/domain/`; `git diff backend/package.json backend/.env.example` sin
+dependencias ni variables nuevas; suite completa sin conexión a Internet (solo MongoDB
+local); recorrido manual de `requests/accounts.rest`.
+
+---
+
+## 10. Riesgos
+- **R1 (constitución). Resuelto (2026-10-18).** La aclaración está al final del principio
+  5 (línea 12). Si el usuario la cambiara más adelante, se revisa RNF-2.
+- **R2 (sin transacciones).** La cuenta de una vinculación concurrente puede existir unos
+  milisegundos antes de su compensación, y un fallo doble (vinculación entre C1 y C2 y
+  fallo del barrido C3) dejaría una cuenta sin dueño en la base. D10 la oculta en todas las
+  lecturas; ninguna prueba de la spec fuerza ese fallo doble.
+- **R3 (respuesta de una vinculación concurrente).** Si el usuario desaparece entre el
+  `create` y la comprobación posterior, no se puede saber si se creó antes o después de
+  borrarlo: se responde 404 "usuario no encontrado" en ambos casos (RF-47 diría 201 en el
+  primero). El estado final es el mismo (sin cuenta). **Aceptado por el usuario el
+  2026-10-18 (decisión del usuario):** se mantiene el 404 en ambos casos.
+- **R4 (orden de consumo del generador).** Es contrato: cambiarlo cambia todas las
+  lecturas de la demostración y exige volver al plan.
+- **R5 (paridad con Express).** `matchAccountRoute` y la ruta nueva de `matchUserRoute`
+  replican el emparejamiento de Express 5; las pruebas de `/` final y mayúsculas en `sync`
+  y `games` sin sesión (401, no 404) detectan desajustes.
+- **R6 (mocks por número de llamada).** Las pruebas de RF-46 cuentan las llamadas a
+  `User.exists` (la primera es la de `withUser`); si cambia el orden de llamadas, la
+  prueba falla en rojo, no en falso verde.
+- **R7 (índice único).** En producción lo crea `autoIndex` al conectar; las pruebas llaman
+  `GameAccount.init()` para no depender de ello.
+- **R8 (normalización).** Difiere de la de la interfaz hasta la spec 007 (RF-48).
+
+---
+
+## 11. Trazabilidad
 
 | RF / RNF | Implementación | Prueba |
 | --- | --- | --- |
