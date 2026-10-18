@@ -1,0 +1,70 @@
+{
+  "name": "planner",
+  "description": "SDD - redacta la spec, el plan y las tareas de una petición, sin tocar código",
+  "prompt": "file://./prompts/planner.md",
+  "tools": [
+    "read",
+    "write"
+  ],
+  "allowedTools": [
+    "read"
+  ],
+  "toolsSettings": {
+    "fs_write": {
+      "allowedPaths": [
+        "specs/**"
+      ]
+    }
+  },
+  "hooks": [
+    {
+      "name": "planner-solo-specs",
+      "trigger": "preToolUse",
+      "matcher": "write",
+      "action": {
+        "type": "command",
+        "command": "python3 .kiro/scripts/planner-solo-specs.py"
+      },
+      "timeout": 10
+    }
+  ],
+  "resources": [
+    "skill://.kiro/skills/sdd/SKILL.md",
+    "file://.kiro/steering/**/*.md",
+    "file://PRODUCT.md"
+  ],
+  "permissions": {
+    "rules": [
+      {
+        "capability": "fs_write",
+        "match": [
+          "specs/**"
+        ],
+        "effect": "allow"
+      },
+      {
+        "capability": "fs_write",
+        "match": [
+          "**"
+        ],
+        "exclude": [
+          "specs/**"
+        ],
+        "effect": "deny"
+      },
+      {
+        "capability": "fs_read",
+        "effect": "allow"
+      },
+      {
+        "capability": "skill",
+        "effect": "allow"
+      }
+    ]
+  },
+  "kiroUpgrade": {
+    "revision": 2,
+    "fingerprint": "sha256:17d738e21d0046a58fc43087cc3d91d22b5da52a184e5d403da34fa1a896f32d",
+    "source": "sha256:5277bc58b60ae4795ab4462da3baeb82c6633e97fb995b81116abc9f2621bcf9"
+  }
+}

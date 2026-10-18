@@ -81,10 +81,6 @@ export default function LandingPage() {
             animate="show"
             variants={stagger(0.08, 0.1)}
           >
-            <motion.span className="hero__eyebrow" variants={rise}>
-              <span className="hero__pulse" />
-              League of Legends · Rainbow Six Siege · CS2
-            </motion.span>
 
             <h1 className="doc-title doc-title--xl hero__title">
               {/* El espacio va fuera de la ranura: dentro de un inline-block

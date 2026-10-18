@@ -1,0 +1,63 @@
+{
+  "name": "reviewer",
+  "description": "SDD - revisa la spec como QA (clarificación) y valida la implementación RF por RF, sin modificar nada",
+  "prompt": "file://./prompts/reviewer.md",
+  "tools": [
+    "read",
+    "shell"
+  ],
+  "allowedTools": [
+    "read"
+  ],
+  "toolsSettings": {
+    "execute_bash": {
+      "allowedCommands": [
+        "node --test.*",
+        "npm test.*",
+        "npm run test.*",
+        "npm run typecheck.*",
+        "npm run lint.*",
+        "npm run build.*",
+        "git diff.*",
+        "git status.*",
+        "git log.*"
+      ]
+    }
+  },
+  "resources": [
+    "skill://.kiro/skills/sdd/SKILL.md",
+    "file://.kiro/steering/**/*.md"
+  ],
+  "permissions": {
+    "rules": [
+      {
+        "capability": "shell",
+        "match": [
+          "node --test*",
+          "npm test*",
+          "npm run test*",
+          "npm run typecheck*",
+          "npm run lint*",
+          "npm run build*",
+          "git diff*",
+          "git status*",
+          "git log*"
+        ],
+        "effect": "allow"
+      },
+      {
+        "capability": "fs_read",
+        "effect": "allow"
+      },
+      {
+        "capability": "skill",
+        "effect": "allow"
+      }
+    ]
+  },
+  "kiroUpgrade": {
+    "revision": 2,
+    "fingerprint": "sha256:309cb4acb72acdb9f29e14a3873428ffe3bfcbeca300ad80090a82e2f9fe4ad2",
+    "source": "sha256:5f062885a6fc2985d03c1e35b03ee76a78fd35f0c94d68099336722a9c6a99c0"
+  }
+}

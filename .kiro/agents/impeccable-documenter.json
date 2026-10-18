@@ -1,0 +1,31 @@
+{
+  "name": "impeccable-documenter",
+  "description": "Records DESIGN.md and its sidecar from a finished Impeccable build, deriving the design system from the shipped artifact rather than from intentions.",
+  "prompt": "file://./prompts/impeccable-documenter.md",
+  "tools": [
+    "read",
+    "shell",
+    "write"
+  ],
+  "allowedTools": [
+    "read"
+  ],
+  "resources": [],
+  "permissions": {
+    "rules": [
+      {
+        "capability": "fs_read",
+        "effect": "allow"
+      },
+      {
+        "capability": "skill",
+        "effect": "allow"
+      }
+    ]
+  },
+  "kiroUpgrade": {
+    "revision": 2,
+    "fingerprint": "sha256:2aa7752b2e965d0496b00ccb1a93aaea34b6d170e16786c52ea290a377f9a4ba",
+    "source": "sha256:f93525f033005fc68155c903b66cd3b9967e93facff8d67c08b0b73b0fe2eca6"
+  }
+}

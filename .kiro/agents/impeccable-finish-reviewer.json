@@ -1,0 +1,30 @@
+{
+  "name": "impeccable-finish-reviewer",
+  "description": "Reviews a finished Impeccable build against its direction contract, the approved comp, and the chosen world's quality bar, returning an ordered list of material fixes.",
+  "prompt": "file://./prompts/impeccable-finish-reviewer.md",
+  "tools": [
+    "read",
+    "shell"
+  ],
+  "allowedTools": [
+    "read"
+  ],
+  "resources": [],
+  "permissions": {
+    "rules": [
+      {
+        "capability": "fs_read",
+        "effect": "allow"
+      },
+      {
+        "capability": "skill",
+        "effect": "allow"
+      }
+    ]
+  },
+  "kiroUpgrade": {
+    "revision": 2,
+    "fingerprint": "sha256:a8d16b02e7e6022655e8020f2ad04b613f8350f4ecf9354c502d352c2c690058",
+    "source": "sha256:c3ba49f03f20ec5b6c731ddd4570e0858d087df3ebbd2cfb30d024e7e1eb776f"
+  }
+}
