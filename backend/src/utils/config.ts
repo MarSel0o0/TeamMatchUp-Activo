@@ -1,4 +1,5 @@
-// Validación pura de la configuración (RF-1, RF-2, RF-3, RF-10, RF-11, RF-12, RF-15, RF-20).
+// Validación pura de la configuración (RF-1, RF-2, RF-3, RF-10, RF-11, RF-12, RF-15, RF-20 de
+// la 001; RF-17, RF-27 y RF-28 de la 002).
 // Recibe el entorno como objeto: no lee process.env ni tiene efectos al importarse (D2).
 // loadConfig es la única parte con E/S: carga el archivo de variables con dotenv sin
 // sobrescribir las del proceso (RF-21, D1) y delega en parseConfig.
@@ -9,6 +10,10 @@
 import { isIP } from "node:net";
 import { resolve } from "node:path";
 import dotenv, { type DotenvPopulateInput } from "dotenv";
+
+// Valor de desarrollo del secreto de sesión, NO secreto: se admite en development y test
+// (RF-27) y se rechaza en production, también con espacios alrededor (RF-28).
+export const DEV_JWT_SECRET = "solo-desarrollo-no-usar-en-produccion";
 
 export type NodeEnv = "development" | "test" | "production";
 export type EnvSource = Readonly<Record<string, string | undefined>>;
@@ -23,6 +28,7 @@ export interface Config {
   port: number;
   host: string | null; // null = todas las interfaces
   db: DatabaseConfig; // ya elegida según el entorno
+  jwtSecret: string; // tal como viene, sin recortar (D18 de la 001)
 }
 
 export type ConfigResult = { ok: true; config: Config } | { ok: false; errors: string[] };
@@ -37,6 +43,7 @@ const MESSAGES = {
     `HOST no es una dirección válida: no se puede escuchar en ${host}:${port}`,
   sameDatabase:
     "la base de prueba no puede ser la de desarrollo: TEST_MONGODB_URI y TEST_MONGODB_DBNAME coinciden con MONGODB_URI y MONGODB_DBNAME",
+  devJwtSecretInProduction: "JWT_SECRET tiene el valor de desarrollo, que no se admite en producción",
   header: "configuración inválida, el servidor no arranca:",
 } as const;
 
@@ -85,6 +92,11 @@ export function parseConfig(env: EnvSource): ConfigResult {
     if (port === null) errors.push(MESSAGES.invalidPort);
   }
 
+  // RF-17: JWT_SECRET es obligatoria en los tres entornos, también sin NODE_ENV válida.
+  const rawSecret = env.JWT_SECRET;
+  const jwtSecret = rawSecret === undefined || isBlank(rawSecret) ? null : rawSecret;
+  if (jwtSecret === null) missing.push("JWT_SECRET");
+
   // RF-10 y RF-12 (sintaxis): vacía equivale a no definida.
   const rawHost = env.HOST;
   const host = rawHost === undefined || isBlank(rawHost) ? null : rawHost;
@@ -116,9 +128,17 @@ export function parseConfig(env: EnvSource): ConfigResult {
     }
   }
 
+  // RF-28: en producción se rechaza el valor de desarrollo, comparado ya recortado.
+  // En development y test es un valor cualquiera no vacío (RF-27).
+  if (nodeEnv === "production" && jwtSecret !== null && jwtSecret.trim() === DEV_JWT_SECRET) {
+    errors.push(MESSAGES.devJwtSecretInProduction);
+  }
+
   if (missing.length > 0) errors.unshift(MESSAGES.missing(missing));
-  if (errors.length > 0 || nodeEnv === null || port === null || db === null) return { ok: false, errors };
-  return { ok: true, config: { nodeEnv, port, host, db } };
+  if (errors.length > 0 || nodeEnv === null || port === null || db === null || jwtSecret === null) {
+    return { ok: false, errors };
+  }
+  return { ok: true, config: { nodeEnv, port, host, db, jwtSecret } };
 }
 
 export function formatConfigErrors(errors: readonly string[]): string {

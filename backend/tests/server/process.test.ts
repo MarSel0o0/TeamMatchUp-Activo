@@ -1,12 +1,13 @@
 // Arranque como proceso hijo (plan §6.2, D12): código de salida y salida de error.
 // Casos sin base: la configuración es inválida y el proceso termina antes de conectar.
 // Casos con base: el hijo solo recibe la base de prueba o una URI inalcanzable.
-// RF-2, RF-11, RF-12, RF-13, RF-14, RF-15, RF-20, RF-21, RNF-1.
+// RF-2, RF-11, RF-12, RF-13, RF-14, RF-15, RF-20, RF-21, RNF-1 (001); RF-17, RF-27, RF-28 (002).
 import { after, describe, test } from "node:test";
 import assert from "node:assert/strict";
 import { createServer } from "node:net";
 import type { Server as NetServer } from "node:net";
 import { setTimeout as delay } from "node:timers/promises";
+import { DEV_JWT_SECRET } from "../../src/utils/config.ts";
 import { getFreePort, spawnServer, startChild, testConfig, tryConnect, waitForPort } from "./helpers.ts";
 import type { RunningChild, SpawnResult } from "./helpers.ts";
 
@@ -14,12 +15,15 @@ import type { RunningChild, SpawnResult } from "./helpers.ts";
 // antes, y sirve para comprobar que no aparece en los mensajes (D17).
 const URI = "mongodb://usuario:secreto@127.0.0.1:1";
 
-const DB_VARS = {
+const DB_VARS_WITHOUT_SECRET = {
   MONGODB_URI: URI,
   MONGODB_DBNAME: "teammatchup_proceso",
   TEST_MONGODB_URI: URI,
   TEST_MONGODB_DBNAME: "teammatchup_proceso_test",
 } as const;
+
+// JWT_SECRET con el valor de desarrollo: sirve en development y test (RF-27).
+const DB_VARS = { JWT_SECRET: DEV_JWT_SECRET, ...DB_VARS_WITHOUT_SECRET } as const;
 
 const HEADER = "configuración inválida, el servidor no arranca:";
 
@@ -50,6 +54,38 @@ describe("RF-2: variables obligatorias", () => {
     assertConfigFailure(result);
     assert.match(result.stderr, /faltan variables de entorno obligatorias: NODE_ENV, PORT/);
   });
+});
+
+describe("RF-17: JWT_SECRET obligatoria en los tres entornos", () => {
+  for (const nodeEnv of ["development", "test", "production"]) {
+    test(`entorno ${nodeEnv} sin JWT_SECRET → no arranca y la nombra`, async () => {
+      const result = await spawnServer({ NODE_ENV: nodeEnv, PORT: "3001", ...DB_VARS_WITHOUT_SECRET });
+      assertConfigFailure(result);
+      assert.match(result.stderr, /faltan variables de entorno obligatorias: JWT_SECRET/);
+    });
+
+    test(`entorno ${nodeEnv} con JWT_SECRET solo de espacios → no arranca y la nombra`, async () => {
+      const result = await spawnServer({ NODE_ENV: nodeEnv, PORT: "3001", ...DB_VARS, JWT_SECRET: "   " });
+      assertConfigFailure(result);
+      assert.match(result.stderr, /faltan variables de entorno obligatorias: JWT_SECRET/);
+    });
+  }
+
+  test("sin NODE_ENV ni JWT_SECRET → nombra ambas", async () => {
+    const result = await spawnServer({ PORT: "3001", ...DB_VARS_WITHOUT_SECRET });
+    assertConfigFailure(result);
+    assert.match(result.stderr, /faltan variables de entorno obligatorias: NODE_ENV, JWT_SECRET/);
+  });
+});
+
+describe("RF-28: el valor de desarrollo no se admite en producción", () => {
+  for (const value of [DEV_JWT_SECRET, `  ${DEV_JWT_SECRET} `]) {
+    test(`production con JWT_SECRET=${JSON.stringify(value)} → no arranca y nombra JWT_SECRET y producción`, async () => {
+      const result = await spawnServer({ NODE_ENV: "production", PORT: "3001", ...DB_VARS, JWT_SECRET: value });
+      assertConfigFailure(result);
+      assert.match(result.stderr, /JWT_SECRET tiene el valor de desarrollo, que no se admite en producción/);
+    });
+  }
 });
 
 describe("RF-20: NODE_ENV exacto", () => {
@@ -160,7 +196,14 @@ describe("Matriz de variables de base por entorno", () => {
     const db = testDb();
     const port = await getFreePort();
     await assertStartsAndStop(
-      { NODE_ENV: "test", PORT: String(port), HOST, TEST_MONGODB_URI: db.uri, TEST_MONGODB_DBNAME: db.name },
+      {
+        NODE_ENV: "test",
+        PORT: String(port),
+        HOST,
+        JWT_SECRET: DEV_JWT_SECRET,
+        TEST_MONGODB_URI: db.uri,
+        TEST_MONGODB_DBNAME: db.name,
+      },
       port,
     );
   });
@@ -169,7 +212,14 @@ describe("Matriz de variables de base por entorno", () => {
     const db = testDb();
     const port = await getFreePort();
     await assertStartsAndStop(
-      { NODE_ENV: "development", PORT: String(port), HOST, MONGODB_URI: db.uri, MONGODB_DBNAME: db.name },
+      {
+        NODE_ENV: "development",
+        PORT: String(port),
+        HOST,
+        JWT_SECRET: DEV_JWT_SECRET,
+        MONGODB_URI: db.uri,
+        MONGODB_DBNAME: db.name,
+      },
       port,
     );
   });
@@ -180,7 +230,14 @@ describe("RNF-1: en prueba el servidor no escribe nada", () => {
     const db = testDb();
     const port = await getFreePort();
     const result = await assertStartsAndStop(
-      { NODE_ENV: "test", PORT: String(port), HOST, TEST_MONGODB_URI: db.uri, TEST_MONGODB_DBNAME: db.name },
+      {
+        NODE_ENV: "test",
+        PORT: String(port),
+        HOST,
+        JWT_SECRET: DEV_JWT_SECRET,
+        TEST_MONGODB_URI: db.uri,
+        TEST_MONGODB_DBNAME: db.name,
+      },
       port,
     );
     assert.strictEqual(result.stdout, "");
@@ -195,6 +252,7 @@ describe("RNF-1: en prueba el servidor no escribe nada", () => {
         NODE_ENV: "test",
         PORT: String(port),
         HOST,
+        JWT_SECRET: DEV_JWT_SECRET,
         TEST_MONGODB_URI: db.uri,
         TEST_MONGODB_DBNAME: db.name,
       });
@@ -219,6 +277,7 @@ describe("RF-12: dirección o puerto no utilizable", () => {
         NODE_ENV: "development",
         PORT: String(port),
         HOST,
+        JWT_SECRET: DEV_JWT_SECRET,
         MONGODB_URI: db.uri,
         MONGODB_DBNAME: db.name,
       });
@@ -245,6 +304,7 @@ describe("RF-13 + RF-14: base no disponible", () => {
         NODE_ENV: "development",
         PORT: String(port),
         HOST,
+        JWT_SECRET: DEV_JWT_SECRET,
         MONGODB_URI: unreachable,
         MONGODB_DBNAME: "teammatchup_inalcanzable",
       });

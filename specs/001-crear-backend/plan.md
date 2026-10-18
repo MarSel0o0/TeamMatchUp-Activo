@@ -57,7 +57,7 @@ backend/
 | `tsconfig.json` | RT-02 de la referencia: `rootDir: ./src`, `outDir: ./out`, `module: nodenext`, `target: esnext`, `strict`, `verbatimModuleSyntax`, `allowImportingTsExtensions`, `rewriteRelativeImportExtensions`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `skipLibCheck`, más `erasableSyntaxOnly` (garantiza que todo el código se puede ejecutar con *type stripping*) y `types: ["node"]`. | RNF-2 |
 | `tests/tsconfig.json` | RT-18: extiende el principal con `noEmit: true`, `rootDir: ".."` e `include` de `../src` y `.`. | RNF-2 |
 | `eslint.config.js` | Configuración plana de ESLint 9 para `src/` y `tests/` (sección 1.3). | RF-19, RNF-2 |
-| `.env.example` | Archivo de ejemplo con las seis variables y `HOST` comentada (sección 1.4). | RF-9 |
+| `.env.example` | Archivo de ejemplo con las seis variables y `HOST` comentada (sección 1.4). Nota: la spec 002 (T1) lo amplía a siete con `JWT_SECRET`. | RF-9 |
 | `.gitignore` (raíz, **no se modifica**) | Ya contiene `.env`, `.env.*`, `!.env.example`, `out`, `dist` y `node_modules/`. Solo se verifica con `git check-ignore -v backend/.env`. | RF-9 |
 | `src/utils/config.ts` | Funciones puras `parseConfig`, `formatConfigErrors` y auxiliares (sección 2); `loadConfig(options)` que carga el archivo de variables con dotenv sin sobrescribir las del proceso y delega en `parseConfig`. Sin efectos al importarse. | RF-1, RF-2, RF-3, RF-10, RF-11, RF-12 (sintaxis de `HOST`), RF-15, RF-20, RF-21 |
 | `src/utils/errors.ts` | Constantes de mensajes genéricos y función pura `mapErrorToResponse(error)` → `{ status, error }`. | RF-4, RF-5, RF-6, RF-16, RF-17, RNF-3 |
@@ -132,6 +132,9 @@ archivos TS y no hace falta declarar globales), `node-mocks-http` (D9).
 - `no-explicit-any` y `ban-ts-comment` (prohíbe `@ts-ignore`) ya vienen en `recommended`.
 
 ### 1.4 `.env.example` [RF-9]
+
+> Nota: la spec 002 (T1) sustituye este contenido por siete variables, con `JWT_SECRET`
+> (ver `specs/002-autenticacion/plan.md` §1.3).
 
 ```
 NODE_ENV=development
@@ -506,6 +509,8 @@ visible es:
   con `NODE_ENV === "development"`; `HOST` no es una clave activa y hay una línea que
   coincide con `/^#\s*HOST=/m`; `parseConfig` con esos valores es válida en `development` y
   en `test` (no choca con RF-15).
+- Nota: la spec 002 (T1) amplía esta prueba a siete claves con `JWT_SECRET` (ver
+  `specs/002-autenticacion/plan.md` §6.2).
 
 **`tests/unit/server.test.ts`**
 - RF-18: `describeListenAddress` con IPv4, IPv6 (`[::]`) y `null`.

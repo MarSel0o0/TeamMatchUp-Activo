@@ -1,16 +1,19 @@
 // Arranque en el mismo proceso contra la base de prueba (plan §6.2).
-// RF-3, RF-10, RF-12, RF-14, RF-18.
+// RF-3, RF-10, RF-12, RF-14, RF-18; RF-21 de la spec 002 (índices antes de escuchar).
 import { after, afterEach, describe, mock, test } from "node:test";
 import assert from "node:assert/strict";
 import http from "node:http";
 import { createServer } from "node:net";
 import type { AddressInfo, Server as NetServer } from "node:net";
 import mongoose from "mongoose";
-import app from "../../src/app.ts";
+import { createApp } from "../../src/app.ts";
+import { User } from "../../src/models/user.ts";
 import { StartupError, startServer } from "../../src/server.ts";
 import type { Logger } from "../../src/utils/logger.ts";
 import type { Config } from "../../src/utils/config.ts";
 import { getFreePort, testConfig } from "./helpers.ts";
+
+const app = createApp(testConfig());
 
 const opened: NetServer[] = [];
 
@@ -127,5 +130,56 @@ describe("startServer: dirección o puerto no utilizables (RF-12)", () => {
       assert.match(error.message, /noexiste\.invalid/);
       return true;
     });
+  });
+});
+
+describe("startServer: preparación de la base (spec 002, RF-21)", () => {
+  test("tras arrancar existen índices únicos sobre email y usernameKey", async () => {
+    const { log } = spyLog();
+    await start(await configWith({ host: "127.0.0.1" }), log);
+    const indexes = await User.collection.indexes();
+    const unique = indexes
+      .filter((index) => index.unique === true)
+      .map((index) => Object.keys(index.key).join(","))
+      .sort();
+    assert.deepStrictEqual(unique, ["email", "usernameKey"]);
+  });
+
+  test("los índices se crean antes de escuchar", async () => {
+    const order: string[] = [];
+    const originalInit = User.init.bind(User);
+    mock.method(User, "init", async () => {
+      const result = await originalInit();
+      order.push("init");
+      return result;
+    });
+    const originalListen = http.Server.prototype.listen;
+    mock.method(http.Server.prototype, "listen", function (this: http.Server, ...args: unknown[]) {
+      order.push("listen");
+      return Reflect.apply(originalListen, this, args);
+    });
+    const { log } = spyLog();
+    await start(await configWith({ host: "127.0.0.1" }), log);
+    // Mongoose también llama a `init` al conectar (autoIndex); basta con que una llamada
+    // haya terminado antes de escuchar y que se escuche una sola vez.
+    assert.deepStrictEqual(order.filter((step) => step === "listen"), ["listen"]);
+    assert.ok(order.indexOf("init") !== -1 && order.indexOf("init") < order.indexOf("listen"));
+  });
+
+  test("si no se pueden crear los índices → StartupError, desconecta y no escucha", async () => {
+    mock.method(User, "init", async () => {
+      throw new Error("fallo simulado");
+    });
+    const listenSpy = mock.method(http.Server.prototype, "listen");
+    const config = await configWith({ host: "127.0.0.1" });
+    const { log, info } = spyLog();
+    await assert.rejects(startServer(config, { app, log }), (error: unknown) => {
+      assert.ok(error instanceof StartupError);
+      assert.strictEqual(error.message, "no se pudieron preparar los índices de la base de datos");
+      return true;
+    });
+    assert.strictEqual(listenSpy.mock.callCount(), 0);
+    assert.strictEqual(info.mock.callCount(), 0);
+    assert.strictEqual(mongoose.connection.readyState, mongoose.ConnectionStates.disconnected);
   });
 });

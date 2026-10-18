@@ -2,9 +2,10 @@ import { describe, test } from "node:test";
 import assert from "node:assert/strict";
 import supertest from "supertest";
 import type { Response } from "supertest";
-import app from "../../src/app.ts";
+import { createApp } from "../../src/app.ts";
+import { testConfig } from "../server/helpers.ts";
 
-const api = supertest(app);
+const api = supertest(createApp(testConfig()));
 
 const UNKNOWN = { error: "endpoint desconocido" };
 const MALFORMED = { error: "JSON mal formado" };
@@ -38,6 +39,20 @@ describe("app: ruta desconocida (RF-4)", () => {
         assertJsonError(response, 404, UNKNOWN);
       });
     }
+  }
+});
+
+describe("app: rutas de la spec 002 con otro método (001-RF-4)", () => {
+  for (const [method, path] of [
+    ["get", "/api/auth/login"],
+    ["put", "/api/users"],
+    ["get", "/api/users"],
+    ["delete", "/api/users"],
+  ] as const) {
+    test(`${method.toUpperCase()} ${path} → 404`, async () => {
+      const response = await api[method](path);
+      assertJsonError(response, 404, UNKNOWN);
+    });
   }
 });
 

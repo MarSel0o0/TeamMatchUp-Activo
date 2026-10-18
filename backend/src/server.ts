@@ -4,6 +4,7 @@ import http from "node:http";
 import type { RequestListener } from "node:http";
 import type { AddressInfo } from "node:net";
 import mongoose from "mongoose";
+import { User } from "./models/user.ts";
 import type { Config, DatabaseConfig } from "./utils/config.ts";
 import type { Logger } from "./utils/logger.ts";
 
@@ -43,6 +44,12 @@ export async function connectDatabase(db: DatabaseConfig): Promise<void> {
   await mongoose.connect(db.uri, { dbName: db.name, serverSelectionTimeoutMS: DB_CONNECT_TIMEOUT_MS });
 }
 
+// Spec 002, RF-21 (D14): los índices únicos de `email` y `usernameKey` existen antes de
+// aceptar la primera petición, sin depender del `autoIndex` en segundo plano.
+export async function prepareDatabase(): Promise<void> {
+  await User.init();
+}
+
 function errorCode(error: unknown): string | undefined {
   if (typeof error !== "object" || error === null || !("code" in error)) return undefined;
   return typeof error.code === "string" ? error.code : undefined;
@@ -78,6 +85,12 @@ export async function startServer(config: Config, { app, log }: StartServerDeps)
   } catch {
     // RF-13: el mensaje no incluye la URI, que puede llevar credenciales.
     throw new StartupError("la base de datos no está disponible: no se pudo conectar en 10 s");
+  }
+  try {
+    await prepareDatabase(); // spec 002, RF-21: entre conectar y escuchar
+  } catch {
+    await mongoose.disconnect();
+    throw new StartupError("no se pudieron preparar los índices de la base de datos");
   }
   let server: http.Server;
   try {

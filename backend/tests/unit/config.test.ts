@@ -4,6 +4,7 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
+  DEV_JWT_SECRET,
   formatConfigErrors,
   isBlank,
   isValidHostSyntax,
@@ -16,11 +17,15 @@ import {
 
 const DEV_URI = "mongodb://127.0.0.1:27017";
 const TEST_URI = "mongodb://127.0.0.1:27018";
+// Secreto cualquiera distinto del de desarrollo: válido en los tres entornos.
+const SECRET = "secreto-de-prueba-unitaria";
+const RF28_MESSAGE = "JWT_SECRET tiene el valor de desarrollo, que no se admite en producción";
 
 function devEnv(overrides: EnvSource = {}): EnvSource {
   return {
     NODE_ENV: "development",
     PORT: "3001",
+    JWT_SECRET: SECRET,
     MONGODB_URI: DEV_URI,
     MONGODB_DBNAME: "teammatchup",
     ...overrides,
@@ -35,6 +40,7 @@ function testEnv(overrides: EnvSource = {}): EnvSource {
   return {
     NODE_ENV: "test",
     PORT: "3001",
+    JWT_SECRET: SECRET,
     TEST_MONGODB_URI: TEST_URI,
     TEST_MONGODB_DBNAME: "teammatchup_test",
     ...overrides,
@@ -99,28 +105,51 @@ describe("parseConfig", () => {
       port: 3001,
       host: "127.0.0.1",
       db: { uri: DEV_URI, name: "teammatchup" },
+      jwtSecret: SECRET,
     });
     const otra = expectConfig(
-      parseConfig(devEnv({ PORT: "4000", HOST: "localhost", MONGODB_URI: "mongodb://otra:27017", MONGODB_DBNAME: "otra" })),
+      parseConfig(
+        devEnv({
+          PORT: "4000",
+          HOST: "localhost",
+          MONGODB_URI: "mongodb://otra:27017",
+          MONGODB_DBNAME: "otra",
+          JWT_SECRET: "otro-secreto",
+        }),
+      ),
     );
     assert.deepStrictEqual(otra, {
       nodeEnv: "development",
       port: 4000,
       host: "localhost",
       db: { uri: "mongodb://otra:27017", name: "otra" },
+      jwtSecret: "otro-secreto",
     });
   });
 
+  test("001-RF-1: jwtSecret sale del objeto recibido, sin recortar", () => {
+    assert.equal(expectConfig(parseConfig(devEnv({ JWT_SECRET: "  con espacios " }))).jwtSecret, "  con espacios ");
+    assert.equal(expectConfig(parseConfig(testEnv({ JWT_SECRET: "otro" }))).jwtSecret, "otro");
+  });
+
   const matriz: { nombre: string; env: () => EnvSource; obligatorias: string[] }[] = [
-    { nombre: "development", env: () => devEnv(), obligatorias: ["NODE_ENV", "PORT", "MONGODB_URI", "MONGODB_DBNAME"] },
-    { nombre: "production", env: () => prodEnv(), obligatorias: ["NODE_ENV", "PORT", "MONGODB_URI", "MONGODB_DBNAME"] },
-    { nombre: "test", env: () => testEnv(), obligatorias: ["NODE_ENV", "PORT", "TEST_MONGODB_URI", "TEST_MONGODB_DBNAME"] },
+    { nombre: "development", env: () => devEnv(), obligatorias: ["NODE_ENV", "PORT", "JWT_SECRET", "MONGODB_URI", "MONGODB_DBNAME"] },
+    {
+      nombre: "production",
+      env: () => prodEnv(),
+      obligatorias: ["NODE_ENV", "PORT", "JWT_SECRET", "MONGODB_URI", "MONGODB_DBNAME"],
+    },
+    {
+      nombre: "test",
+      env: () => testEnv(),
+      obligatorias: ["NODE_ENV", "PORT", "JWT_SECRET", "TEST_MONGODB_URI", "TEST_MONGODB_DBNAME"],
+    },
   ];
 
   for (const { nombre, env, obligatorias } of matriz) {
     for (const variable of obligatorias) {
       for (const valor of [undefined, "", "   "]) {
-        test(`RF-2: en ${nombre}, ${variable} ${valor === undefined ? "ausente" : `= ${JSON.stringify(valor)}`} → la nombra como faltante`, () => {
+        test(`RF-2/RF-17: en ${nombre}, ${variable} ${valor === undefined ? "ausente" : `= ${JSON.stringify(valor)}`} → la nombra como faltante`, () => {
           const errors = expectErrors(parseConfig({ ...env(), [variable]: valor }));
           const faltantes = errors.find((e) => e.startsWith("faltan variables de entorno obligatorias:"));
           assert.ok(faltantes, errors.join(" | "));
@@ -137,26 +166,50 @@ describe("parseConfig", () => {
     assert.deepStrictEqual(errorsTest, ["faltan variables de entorno obligatorias: TEST_MONGODB_URI, TEST_MONGODB_DBNAME"]);
   });
 
-  test("RF-2: sin NODE_ENV → nombra NODE_ENV y no exige variables de base", () => {
-    const errors = expectErrors(parseConfig({ PORT: "3001" }));
+  test("RF-2: sin NODE_ENV (con JWT_SECRET) → nombra NODE_ENV y no exige variables de base", () => {
+    const errors = expectErrors(parseConfig({ PORT: "3001", JWT_SECRET: SECRET }));
     assert.deepStrictEqual(errors, ["faltan variables de entorno obligatorias: NODE_ENV"]);
   });
 
-  test("RF-2: sin NODE_ENV ni PORT → nombra ambas y ninguna variable de base", () => {
+  test("RF-17: sin NODE_ENV ni JWT_SECRET → nombra ambas", () => {
+    const errors = expectErrors(parseConfig({ PORT: "3001" }));
+    assert.deepStrictEqual(errors, ["faltan variables de entorno obligatorias: NODE_ENV, JWT_SECRET"]);
+  });
+
+  test("RF-2/RF-17: sin NODE_ENV, PORT ni JWT_SECRET → las nombra en orden y ninguna variable de base", () => {
     const errors = expectErrors(parseConfig({ NODE_ENV: "  " }));
-    assert.deepStrictEqual(errors, ["faltan variables de entorno obligatorias: NODE_ENV, PORT"]);
+    assert.deepStrictEqual(errors, ["faltan variables de entorno obligatorias: NODE_ENV, PORT, JWT_SECRET"]);
     assert.doesNotMatch(errors.join("\n"), /MONGODB/);
+  });
+
+  test("001-RF-2: orden NODE_ENV, PORT, JWT_SECRET y después las variables de base", () => {
+    const errors = expectErrors(parseConfig({ NODE_ENV: "development" }));
+    assert.deepStrictEqual(errors, [
+      "faltan variables de entorno obligatorias: PORT, JWT_SECRET, MONGODB_URI, MONGODB_DBNAME",
+    ]);
+    const errorsTest = expectErrors(parseConfig({ NODE_ENV: "test", PORT: "3001" }));
+    assert.deepStrictEqual(errorsTest, [
+      "faltan variables de entorno obligatorias: JWT_SECRET, TEST_MONGODB_URI, TEST_MONGODB_DBNAME",
+    ]);
   });
 
   for (const valor of ["Test", "TEST", "prod", "dev", " test", "test ", "Production"]) {
     test(`RF-20: NODE_ENV=${JSON.stringify(valor)} → inválida y sin exigir variables de base`, () => {
-      const errors = expectErrors(parseConfig({ NODE_ENV: valor, PORT: "3001" }));
+      const errors = expectErrors(parseConfig({ NODE_ENV: valor, PORT: "3001", JWT_SECRET: SECRET }));
       assert.deepStrictEqual(errors, ["NODE_ENV debe ser exactamente development, test o production"]);
     });
   }
 
+  test("RF-17: NODE_ENV inválida también exige JWT_SECRET", () => {
+    const errors = expectErrors(parseConfig({ NODE_ENV: "prod", PORT: "3001" }));
+    assert.deepStrictEqual(errors, [
+      "faltan variables de entorno obligatorias: JWT_SECRET",
+      "NODE_ENV debe ser exactamente development, test o production",
+    ]);
+  });
+
   test("RF-20: NODE_ENV inválida y PORT ausente → ambos errores", () => {
-    const errors = expectErrors(parseConfig({ NODE_ENV: "prod" }));
+    const errors = expectErrors(parseConfig({ NODE_ENV: "prod", JWT_SECRET: SECRET }));
     assert.deepStrictEqual(errors, [
       "faltan variables de entorno obligatorias: PORT",
       "NODE_ENV debe ser exactamente development, test o production",
@@ -247,6 +300,41 @@ describe("parseConfig", () => {
     expectConfig(parseConfig(devEnv({ TEST_MONGODB_URI: DEV_URI, TEST_MONGODB_DBNAME: "teammatchup" })));
   });
 
+  for (const valor of [DEV_JWT_SECRET, `  ${DEV_JWT_SECRET} `, `\t${DEV_JWT_SECRET}`]) {
+    test(`RF-28: en production, JWT_SECRET=${JSON.stringify(valor)} → inválida con el mensaje de producción`, () => {
+      const errors = expectErrors(parseConfig(prodEnv({ JWT_SECRET: valor })));
+      assert.deepStrictEqual(errors, [RF28_MESSAGE]);
+      assert.match(errors[0] ?? "", /JWT_SECRET/);
+      assert.match(errors[0] ?? "", /producción/);
+    });
+  }
+
+  test("RF-28: en production con otro valor → válida y jwtSecret igual al valor", () => {
+    const valor = "un-secreto-de-produccion-distinto";
+    assert.equal(expectConfig(parseConfig(prodEnv({ JWT_SECRET: valor }))).jwtSecret, valor);
+    // Solo cuenta el valor exacto recortado; un valor que lo contiene no es el de desarrollo.
+    const contiene = `${DEV_JWT_SECRET}-2`;
+    assert.equal(expectConfig(parseConfig(prodEnv({ JWT_SECRET: contiene }))).jwtSecret, contiene);
+  });
+
+  test("RF-28: en production se acumula con otros errores", () => {
+    const errors = expectErrors(parseConfig(prodEnv({ JWT_SECRET: DEV_JWT_SECRET, PORT: "abc", MONGODB_URI: "" })));
+    assert.deepStrictEqual(errors, [
+      "faltan variables de entorno obligatorias: MONGODB_URI",
+      "PORT debe ser un número entero entre 1 y 65535",
+      RF28_MESSAGE,
+    ]);
+  });
+
+  test("RF-27: en development y test el valor de desarrollo es válido", () => {
+    assert.equal(expectConfig(parseConfig(devEnv({ JWT_SECRET: DEV_JWT_SECRET }))).jwtSecret, DEV_JWT_SECRET);
+    assert.equal(expectConfig(parseConfig(testEnv({ JWT_SECRET: DEV_JWT_SECRET }))).jwtSecret, DEV_JWT_SECRET);
+  });
+
+  test("RF-27: DEV_JWT_SECRET es exactamente el valor de desarrollo acordado", () => {
+    assert.equal(DEV_JWT_SECRET, "solo-desarrollo-no-usar-en-produccion");
+  });
+
   test("ningún mensaje de error contiene las URI de la base", () => {
     const secreta = "mongodb://usuario:clave@host:27017";
     const casos: EnvSource[] = [
@@ -264,7 +352,7 @@ describe("parseConfig", () => {
 
 describe("formatConfigErrors", () => {
   test("RNF-3: varios errores a la vez, con encabezado y uno por línea", () => {
-    const errors = expectErrors(parseConfig({ NODE_ENV: "prod", PORT: "abc", HOST: "mal host" }));
+    const errors = expectErrors(parseConfig({ NODE_ENV: "prod", PORT: "abc", HOST: "mal host", JWT_SECRET: SECRET }));
     const mensaje = formatConfigErrors(errors);
     assert.equal(
       mensaje,
@@ -298,6 +386,7 @@ describe("loadConfig", () => {
       [
         "NODE_ENV=development",
         "PORT=3001",
+        `JWT_SECRET=${SECRET}`,
         `MONGODB_URI=${DEV_URI}`,
         "MONGODB_DBNAME=teammatchup",
         `TEST_MONGODB_URI=${TEST_URI}`,
@@ -316,6 +405,7 @@ describe("loadConfig", () => {
     assert.equal(config.nodeEnv, "development");
     assert.equal(config.port, 3001);
     assert.deepEqual(config.db, { uri: DEV_URI, name: "teammatchup" });
+    assert.equal(config.jwtSecret, SECRET);
   });
 
   test("RF-21 y RF-8: NODE_ENV=test del proceso prevalece sobre development del archivo", () => {
@@ -336,7 +426,7 @@ describe("loadConfig", () => {
     const config = expectConfig(loadConfig({ envFilePath: missingPath, processEnv: testEnv() }));
     assert.equal(config.nodeEnv, "test");
     const errors = expectErrors(loadConfig({ envFilePath: missingPath, processEnv: {} }));
-    assert.deepEqual(errors, ["faltan variables de entorno obligatorias: NODE_ENV, PORT"]);
+    assert.deepEqual(errors, ["faltan variables de entorno obligatorias: NODE_ENV, PORT, JWT_SECRET"]);
   });
 
   test("RNF-3: los errores no incluyen las URI de la base", () => {

@@ -1,0 +1,51 @@
+# Prueba manual del flujo de sesión (spec 002, RT-19): registro → inicio de sesión →
+# sesión actual con X-CSRF-Token → cierre de sesión → sesión actual otra vez (401).
+#
+# Formato de la extensión REST Client de VS Code: guarda la cookie `token` entre peticiones
+# (rest-client.rememberCookiesForSubsequentRequests, activo por defecto) y permite leer la
+# cabecera X-CSRF-Token de la respuesta del inicio de sesión con {{login.response.headers...}}.
+#
+# Requisitos: servidor en desarrollo (`npm run dev`) con MongoDB disponible y el `.env`
+# copiado de `.env.example` (JWT_SECRET con el valor de desarrollo, no secreto).
+# Datos de ejemplo, no reales. Si el usuario ya existe, el registro responde 400
+# "ya existe una cuenta con ese correo": cambia el correo y el nombre de usuario.
+
+@baseUrl = http://localhost:3001
+@email = ana.ejemplo@example.com
+@username = AnaEjemplo
+@password = contrasena-de-ejemplo
+
+### 1. Registro (público): 201 con los datos propios; sin Set-Cookie ni X-CSRF-Token (RF-1, RF-20)
+POST {{baseUrl}}/api/users
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "username": "{{username}}",
+  "password": "{{password}}",
+  "displayName": "Ana (ejemplo)"
+}
+
+### 2. Inicio de sesión (público): 200, cookie `token` HttpOnly y SameSite=Strict, y cabecera X-CSRF-Token (RF-8)
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### 3. Sesión actual (protegida) con la cookie y el comprobante copiado del inicio de sesión: 200 (RF-13, RF-24)
+GET {{baseUrl}}/api/auth/me
+X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
+
+### 4. Sesión actual sin X-CSRF-Token: 401 "token inválido" (RF-11, RF-24)
+GET {{baseUrl}}/api/auth/me
+
+### 5. Cierre de sesión (público): 200 { "message": "sesión cerrada" } y borrado de la cookie (RF-14)
+POST {{baseUrl}}/api/auth/logout
+
+### 6. Sesión actual tras cerrar sesión: 401 "sesión no iniciada" (la cookie ya no está, RF-10)
+GET {{baseUrl}}/api/auth/me
+X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}

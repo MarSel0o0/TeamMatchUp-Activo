@@ -58,8 +58,8 @@ specs 002 a 006 los agregan sobre esta base.
   toma las variables de entorno. Las variables que ya trae el entorno del proceso (por
   ejemplo, las que fija un comando al ejecutarse) prevalecen sobre las del archivo (RF-21).
 - **Variable obligatoria**: variable sin la cual el servidor no arranca en un entorno dado,
-  según esta matriz (la spec 002 agrega el secreto de firma y la spec 004 las claves de las
-  fuentes externas):
+  según esta matriz (`JWT_SECRET` la agrega la spec 002, que fija sus reglas; la spec 004
+  agrega las claves de las fuentes externas):
 
   | Variable | Desarrollo | Producción | Prueba |
   | --- | --- | --- | --- |
@@ -69,6 +69,7 @@ specs 002 a 006 los agregan sobre esta base.
   | `MONGODB_DBNAME` | obligatoria | obligatoria | no se exige |
   | `TEST_MONGODB_URI` | no se exige | no se exige | obligatoria |
   | `TEST_MONGODB_DBNAME` | no se exige | no se exige | obligatoria |
+  | `JWT_SECRET` | obligatoria | obligatoria | obligatoria |
   | `HOST` | opcional | opcional | opcional |
 
 - **Variable vacía**: variable definida cuyo valor está vacío o solo contiene espacios. Se
@@ -93,13 +94,14 @@ specs 002 a 006 los agregan sobre esta base.
 ## Requisitos funcionales
 - RF-1: EL SISTEMA lee el entorno (`NODE_ENV`), el puerto (`PORT`), la dirección de escucha
   (`HOST`) y los datos de conexión a la base de datos (`MONGODB_URI`, `MONGODB_DBNAME`,
-  `TEST_MONGODB_URI`, `TEST_MONGODB_DBNAME`) desde variables de entorno, nunca desde
-  valores escritos en el código.
+  `TEST_MONGODB_URI`, `TEST_MONGODB_DBNAME`) y el secreto de firma (`JWT_SECRET`, agregada
+  por la spec 002) desde variables de entorno, nunca desde valores escritos en el código.
 - RF-2: SI al arrancar falta o está vacía alguna variable obligatoria del entorno, ENTONCES
   EL SISTEMA no arranca y muestra un mensaje en español que nombra todas las variables
   faltantes, no solo la primera. Si la que falta es `NODE_ENV`, el entorno no puede
   determinarse: el mensaje nombra `NODE_ENV` junto con las demás faltantes que son
-  obligatorias en todos los entornos (hoy, `PORT`).
+  obligatorias en todos los entornos (`PORT` y `JWT_SECRET`, esta última agregada por la
+  spec 002).
 - RF-3: MIENTRAS el entorno es de prueba, EL SISTEMA usa la base indicada por
   `TEST_MONGODB_URI` y `TEST_MONGODB_DBNAME`; en desarrollo y producción usa la indicada
   por `MONGODB_URI` y `MONGODB_DBNAME`.
@@ -119,10 +121,11 @@ specs 002 a 006 los agregan sobre esta base.
   automáticas contra la base de prueba, fijando por sí mismo el entorno de prueba
   (`NODE_ENV=test`) aunque el archivo de variables indique otro (RF-21). Van en serie
   porque todas comparten esa base.
-- RF-9: EL SISTEMA incluye en el repositorio un archivo de ejemplo con las seis variables
+- RF-9: EL SISTEMA incluye en el repositorio un archivo de ejemplo con las siete variables
   `NODE_ENV` (con valor `development`), `PORT`, `MONGODB_URI`, `MONGODB_DBNAME`,
-  `TEST_MONGODB_URI` y `TEST_MONGODB_DBNAME` con valores locales no secretos (ej. `3001`,
-  `mongodb://127.0.0.1:27017` y nombres de base), y `HOST` comentada como opcional; el
+  `TEST_MONGODB_URI`, `TEST_MONGODB_DBNAME` y `JWT_SECRET` con valores locales no secretos
+  (ej. `3001`, `mongodb://127.0.0.1:27017`, nombres de base y, para `JWT_SECRET`, el valor
+  de desarrollo de la spec 002, marcado como tal), y `HOST` comentada como opcional; el
   archivo real de variables queda excluido del control de versiones.
 - RF-10: CUANDO `HOST` está definida y no vacía, EL SISTEMA escucha en esa dirección; si no
   está definida o está vacía, escucha en todas las interfaces (valor por defecto del
@@ -263,9 +266,10 @@ specs 002 a 006 los agregan sobre esta base.
       de la base de desarrollo es la misma antes y después de ejecutarlo.
 - [ ] La comprobación de tipos y el lint (`npm run lint`) terminan en verde.
 - [ ] No queda ningún `.only` en las pruebas.
-- [ ] El archivo de ejemplo existe con las seis variables (`NODE_ENV=development` entre
-      ellas) y `HOST` comentada, y `git check-ignore` confirma que el archivo real de
-      variables está ignorado (RF-9).
+- [ ] El archivo de ejemplo existe con las siete variables (`NODE_ENV=development` y
+      `JWT_SECRET` con el valor de desarrollo de la spec 002 entre ellas) y `HOST`
+      comentada, y `git check-ignore` confirma que el archivo real de variables está
+      ignorado (RF-9).
 
 ## Dudas abiertas
 Ninguna.
