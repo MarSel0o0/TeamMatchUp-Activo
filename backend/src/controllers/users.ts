@@ -16,6 +16,12 @@
 // - `DELETE /:id` eliminar la propia cuenta (§3.5: RF-10, RF-11, RF-22): un único
 //   `deleteOne` del usuario de la sesión, que se lleva su disponibilidad (D1), y el borrado
 //   de la cookie con los mismos atributos que la emisión (D8 de la 002).
+//
+// Spec 004 (plan, secciones 6 y 8; T9): RF-12, RF-13, RF-14, RF-29, RF-37, RF-39, RF-44.
+// - `GET /:id/games/:gameId` resumen por juego. La guardia usa `withExistingUser` para esta
+//   ruta (401 "sesión no iniciada" con la credencial de un usuario eliminado, P-14).
+// - `DELETE /:id` borra también las cuentas de juego del usuario, **después** de
+//   `User.deleteOne` (P-7): una vinculación intercalada nunca deja una cuenta suya.
 import { Router } from "express";
 import mongoose from "mongoose";
 import { User, toOwnUserJson, toPublicUserJson } from "../models/user.ts";
@@ -26,8 +32,14 @@ import { validateAvailability } from "../services/availability.ts";
 import { validateProfileUpdate } from "../services/profile.ts";
 import { SESSION_COOKIE, sessionCookieOptions } from "../services/sessionToken.ts";
 import { USER_TARGET_MESSAGES, resolveUserTarget } from "../services/userTarget.ts";
+import { ACCOUNT_ERRORS } from "../domain/accountRules.ts";
+import { recentMatches, trend, winRate } from "../domain/accountState.ts";
+import { isGameId } from "../domain/games.ts";
+import type { SimulatedMatch } from "../domain/rankSimulator.ts";
+import { GameAccount, toGameAccountJson } from "../models/gameAccount.ts";
+import type { GameAccountDocument } from "../models/gameAccount.ts";
 import type { NodeEnv } from "../utils/config.ts";
-import { createUserRoutesGuard, createWithUser } from "../utils/middleware.ts";
+import { createUserRoutesGuard, createWithExistingUser, createWithUser } from "../utils/middleware.ts";
 
 export interface UsersRouterOptions {
   jwtSecret: string;
@@ -53,10 +65,35 @@ function userJson(user: UserDocument, sessionUserId: string): OwnUserJson | Publ
   return user.id === sessionUserId.toLowerCase() ? toOwnUserJson(user) : toPublicUserJson(user);
 }
 
+// Resumen por juego (RF-12, RF-37; plan, sección 6): la cuenta (con `simulated`), las 8
+// primeras partidas guardadas en el orden de RF-28, la tasa de victorias de esas partidas y
+// la tendencia. `matchId` se entrega como `id`; `matches` y `readingNumber` no salen.
+function gameSummaryJson(account: GameAccountDocument) {
+  const matches: SimulatedMatch[] = account.matches.map(
+    ({ matchId, gameId, playedAt, result, summary, durationMinutes, rankDelta }) => ({
+      id: matchId,
+      gameId,
+      playedAt,
+      result,
+      summary,
+      durationMinutes,
+      rankDelta,
+    }),
+  );
+  const recent = recentMatches(matches);
+  return {
+    account: toGameAccountJson(account),
+    recentMatches: recent,
+    winRate: winRate(recent),
+    trend: trend(account.currentRank, account.rankHistory),
+  };
+}
+
 export function createUsersRouter({ jwtSecret, nodeEnv, now }: UsersRouterOptions): Router {
   const router = Router();
   const cookieOptions = sessionCookieOptions(nodeEnv);
   const withUser = createWithUser({ jwtSecret, now });
+  const withExistingUser = createWithExistingUser({ jwtSecret, now });
 
   router.post("/", async (request, response) => {
     const validation = validateRegistration(request.body);
@@ -94,7 +131,7 @@ export function createUsersRouter({ jwtSecret, nodeEnv, now }: UsersRouterOption
 
   // Desde aquí, las rutas de la spec 003: la guardia ya comprobó la sesión (RF-1) y que el
   // segmento se puede decodificar (RF-5). `withUser` no se repite en cada ruta.
-  router.use(createUserRoutesGuard({ withUser }));
+  router.use(createUserRoutesGuard({ withUser, withExistingUser }));
 
   // RF-2: todos, por fecha de creación y, si empatan, por identificador (D10: lista blanca).
   router.get("/", async (request, response) => {
@@ -170,6 +207,8 @@ export function createUsersRouter({ jwtSecret, nodeEnv, now }: UsersRouterOption
     // RF-11: usuario y disponibilidad en una sola operación (D1). Con `deletedCount` 0 (una
     // segunda eliminación en curso) la respuesta es la misma: idempotente, nunca 500 (RF-22).
     await User.deleteOne({ _id: sessionUserId });
+    // Spec 004, RF-14 y RF-39: después del usuario, sus cuentas de juego (P-7).
+    await GameAccount.deleteMany({ user: sessionUserId });
     response.clearCookie(SESSION_COOKIE, cookieOptions); // mismos atributos que la emisión
     response.status(204).end();
   });
@@ -220,6 +259,32 @@ export function createUsersRouter({ jwtSecret, nodeEnv, now }: UsersRouterOption
       return;
     }
     response.status(200).json([...user.availability]); // RF-13: sin repetidos, orden de primera aparición
+  });
+
+  // RF-13, RF-29: (sesión, guardia) → formato del usuario o `me` → juego → usuario existe →
+  // cuenta en ese juego. Cualquiera con sesión puede leer el resumen de otro (RF-12).
+  router.get("/:id/games/:gameId", async (request, response) => {
+    const sessionUserId = request.userId ?? "";
+    const target = resolveUserTarget(request.params.id, sessionUserId);
+    if (!target.ok) {
+      response.status(400).json({ error: ACCOUNT_ERRORS.invalidId });
+      return;
+    }
+    const { gameId } = request.params;
+    if (!isGameId(gameId)) {
+      response.status(400).json({ error: ACCOUNT_ERRORS.invalidGame });
+      return;
+    }
+    if ((await User.exists({ _id: target.id })) === null) {
+      response.status(404).json({ error: ACCOUNT_ERRORS.userNotFound });
+      return;
+    }
+    const account = await GameAccount.findOne({ user: target.id, gameId });
+    if (account === null) {
+      response.status(404).json({ error: ACCOUNT_ERRORS.noAccountForGame });
+      return;
+    }
+    response.status(200).json(gameSummaryJson(account));
   });
 
   return router;

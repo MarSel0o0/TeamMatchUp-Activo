@@ -174,7 +174,7 @@ tiene otra firma, parar y reportarlo. Pruebas de controladores con el patrón de
   - Archivos: `backend/src/controllers/accounts.ts`.
   - Hecho cuando: los tres describe en verde.
 
-- [ ] **T8b. Servidor de prueba en loopback IPv4 (fallos intermitentes de supertest).** Sin RF (infraestructura de pruebas); plan P-18, secciones 1 y 11 *(cambio aprobado el 2026-10-18: "Apruebo, haz T8b")*
+- [x] **T8b. Servidor de prueba en loopback IPv4 (fallos intermitentes de supertest).** Sin RF (infraestructura de pruebas); plan P-18, secciones 1 y 11 *(cambio aprobado el 2026-10-18: "Apruebo, haz T8b")*
   - Tests primero: `backend/tests/unit/loopbackServer.test.ts` (nombre aceptado por el
     usuario, 2026-10-18) — `await listenOnLoopback(listener)`
     devuelve un servidor cuyo `address()` tiene `address === "127.0.0.1"`,
@@ -225,7 +225,7 @@ tiene otra firma, parar y reportarlo. Pruebas de controladores con el patrón de
     - el reviewer comprueba que el diff de `backend/tests/` solo toca creación, cierre y
       tipos del servidor (más la preparación del puerto en la línea 78 de `startup.test.ts`), y que `backend/src/` no cambia respecto al cierre de T8.
 
-- [ ] **T9. Resumen por juego y cascada al eliminar usuario.** RF-12, RF-13, RF-14, RF-29 (resumen), RF-37, RF-39 (usuario)
+- [x] **T9. Resumen por juego y cascada al eliminar usuario.** RF-12, RF-13, RF-14, RF-29 (resumen), RF-37, RF-39 (usuario)
   - Tests primero: `backend/tests/controllers/gameSummary.test.ts` — resumen propio (`me`)
     y de otro usuario: cuenta con `simulated` sin `matches`, 8 primeras partidas en orden
     RF-28 con `id`, `winRate` y `trend` calculados con las funciones puras; cada salto de
@@ -247,7 +247,12 @@ tiene otra firma, parar y reportarlo. Pruebas de controladores con el patrón de
   - Hecho cuando: `gameSummary.test.ts` en verde y `users.test.ts` de la spec 003 sigue
     verde.
 
-- [ ] **T10. Peticiones manuales y verificación final.** RNF-1, RNF-2, RNF-8, RNF-9, RF-34
+- [x] **T10. Peticiones manuales y verificación final.** RNF-1, RNF-2, RNF-8, RNF-9, RF-34
+  - Cerrada el 2026-10-18: `npm test` 1162/1162, typecheck y lint en verde; búsquedas sin
+    resultados; `package.json`, `package-lock.json` y `.env.example` sin cambios desde
+    `77c4f5d` (padre del primer commit de la 004). **Pendiente del usuario:** repetir
+    `npm test` con la red desconectada (no se desconectó la red de la máquina); el código
+    no hace llamadas externas (búsqueda sin `fetch`, `http.request` ni URL externas).
   - Archivos: `backend/requests/accounts.rest` (login → vincular → sync → resumen → editar
     → desvincular, con `X-CSRF-Token`).
   - Comprobaciones: suite completa con la red desconectada (solo MongoDB local);

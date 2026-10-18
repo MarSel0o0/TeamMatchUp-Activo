@@ -73,6 +73,59 @@ describe("matchUserRoute (§2.1, RF-18, RF-20)", () => {
     });
   });
 
+  test("resumen por juego (spec 004): GET y HEAD /<seg>/games/<juego>", () => {
+    for (const method of ["GET", "HEAD"]) {
+      assert.deepEqual(
+        matchUserRoute(method, "/me/games/lol"),
+        { kind: "games", rawSegment: "me", rawGame: "lol" },
+        method,
+      );
+      assert.deepEqual(
+        matchUserRoute(method, `/${SESSION_ID}/games/cs2`),
+        { kind: "games", rawSegment: SESSION_ID, rawGame: "cs2" },
+        method,
+      );
+    }
+  });
+
+  test("resumen por juego: PUT, PATCH, DELETE y POST → null", () => {
+    for (const method of ["PUT", "PATCH", "DELETE", "POST"]) {
+      assert.equal(matchUserRoute(method, "/me/games/lol"), null, method);
+    }
+  });
+
+  test("resumen por juego: / final, games sin distinguir mayúsculas y segmentos sin decodificar", () => {
+    assert.deepEqual(matchUserRoute("GET", "/me/games/lol/"), {
+      kind: "games",
+      rawSegment: "me",
+      rawGame: "lol",
+    });
+    assert.deepEqual(matchUserRoute("GET", "/me/GAMES/r6"), {
+      kind: "games",
+      rawSegment: "me",
+      rawGame: "r6",
+    });
+    assert.deepEqual(matchUserRoute("HEAD", "/%zz/Games/%zz/"), {
+      kind: "games",
+      rawSegment: "%zz",
+      rawGame: "%zz",
+    });
+  });
+
+  test("resumen por juego: rutas incompletas o con más segmentos → null", () => {
+    const cases: Array<[string, string]> = [
+      ["GET", "/me/games"],
+      ["GET", "/me/games/"],
+      ["GET", "/me/games//"],
+      ["GET", "/me/games/lol/x"],
+      ["GET", "//games/lol"],
+      ["GET", "/me/game/lol"],
+    ];
+    for (const [method, path] of cases) {
+      assert.equal(matchUserRoute(method, path), null, `${method} ${path}`);
+    }
+  });
+
   test("cualquier otro par → null (sigue al 404 de la spec 001)", () => {
     const cases: Array<[string, string]> = [
       ["POST", "/"],

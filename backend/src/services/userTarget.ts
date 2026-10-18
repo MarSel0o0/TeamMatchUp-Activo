@@ -16,11 +16,14 @@ export const USER_TARGET_MESSAGES = {
 export type UserRoute =
   | { kind: "list" }
   | { kind: "user"; rawSegment: string }
-  | { kind: "availability"; rawSegment: string };
+  | { kind: "availability"; rawSegment: string }
+  | { kind: "games"; rawSegment: string; rawGame: string };
 
 // Reproduce el emparejamiento de Express 5 (`strict: false`, `caseSensitive: false`):
 // segmento `[^/]+`, una `/` final opcional y `availability` sin distinguir mayúsculas.
 const USER_PATH = /^\/([^/]+)(?:\/(availability))?\/?$/i;
+// Spec 004 (plan, sección 1, T9): resumen por juego `/:id/games/:gameId`, solo GET/HEAD.
+const GAMES_PATH = /^\/([^/]+)\/games\/([^/]+)\/?$/i;
 const USER_METHODS: ReadonlySet<string> = new Set(["GET", "PATCH", "DELETE"]);
 const AVAILABILITY_METHODS: ReadonlySet<string> = new Set(["GET", "PUT"]);
 
@@ -28,6 +31,12 @@ const AVAILABILITY_METHODS: ReadonlySet<string> = new Set(["GET", "PUT"]);
 export function matchUserRoute(method: string, path: string): UserRoute | null {
   const verb = method === "HEAD" ? "GET" : method;
   if (path === "/" || path === "//") return verb === "GET" ? { kind: "list" } : null;
+  const games = GAMES_PATH.exec(path);
+  if (games !== null) {
+    const [, rawSegment, rawGame] = games;
+    if (rawSegment === undefined || rawGame === undefined) return null;
+    return verb === "GET" ? { kind: "games", rawSegment, rawGame } : null;
+  }
   const match = USER_PATH.exec(path);
   if (match === null) return null;
   const [, rawSegment, availability] = match;
