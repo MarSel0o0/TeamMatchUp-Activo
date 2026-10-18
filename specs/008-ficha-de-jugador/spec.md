@@ -107,7 +107,7 @@ usuario. Todas pasan por el contrato único (constitución, principio 3).
 - RF-2: EL SISTEMA ofrece un enlace a la ficha desde cada fila de la vista de coincidencias
   y desde cada participante de las sesiones que muestra la agenda; cada enlace fija en la
   dirección el juego de esa coincidencia o sesión (RF-20). Los enlaces del detalle de
-  sesión son de la spec 009 (su RF-3).
+  sesión son de la spec 009 (su RF-4).
 - RF-3: CUANDO el jugador abre una ficha, EL SISTEMA muestra los datos públicos del jugador
   de la ficha que el perfil propio muestra hoy de su dueño: nombre visible con su color de
   avatar, nombre de usuario, zona horaria, fecha de alta y biografía (spec 002, datos
