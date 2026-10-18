@@ -27,15 +27,19 @@ export function testConfig(): Config {
   return config;
 }
 
-// Puerto libre elegido por el sistema: se abre en el puerto 0, se lee y se cierra.
-export function getFreePort(): Promise<number> {
+// Puerto libre elegido por el sistema: se abre en el puerto 0, se lee y se cierra. Se sondea
+// en `host` (por defecto 127.0.0.1, donde escuchan y conectan las pruebas); con `null`, sin
+// host ("::"), como un servidor sin HOST. `null` y no `undefined`, que activa el valor por defecto.
+export function getFreePort(host: string | null = "127.0.0.1"): Promise<number> {
   return new Promise((resolve, reject) => {
     const probe = createServer();
     probe.once("error", reject);
-    probe.listen(0, () => {
+    const onListening = (): void => {
       const { port } = probe.address() as AddressInfo;
       probe.close((error) => (error ? reject(error) : resolve(port)));
-    });
+    };
+    if (host === null) probe.listen(0, onListening);
+    else probe.listen(0, host, onListening);
   });
 }
 

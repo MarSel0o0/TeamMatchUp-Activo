@@ -5,6 +5,7 @@
 import type { RequestHandler } from "express";
 import { User } from "../models/user.ts";
 import { CSRF_HEADER, SESSION_COOKIE, SESSION_MESSAGES, checkSession } from "../services/sessionToken.ts";
+import type { SessionMessage } from "../services/sessionToken.ts";
 import { USER_TARGET_MESSAGES, decodeSegment, matchUserRoute } from "../services/userTarget.ts";
 import { MESSAGES, mapErrorToResponse } from "./errors.ts";
 import { logger } from "./logger.ts";
@@ -50,12 +51,22 @@ export const errorHandler = createErrorHandler(logger);
 //   se miran nunca. El comprobante solo de la cabecera `X-CSRF-Token`.
 // - Pasos 1 a 4 de RF-24 en `checkSession` (puro, con "ahora" inyectado); aquí el paso 5:
 //   el usuario debe existir (RF-22). Los fallos responden 401 aquí, sin `errorHandler` (D4).
-export interface WithUserOptions {
+// - Spec 004 (plan P-14): `missingUserError` fija el mensaje del paso 5; por defecto
+//   "token inválido", así 002 y 003 no cambian.
+export interface SessionGuardOptions {
   jwtSecret: string;
   now: () => number; // segundos Unix
 }
 
-export function createWithUser({ jwtSecret, now }: WithUserOptions): RequestHandler {
+export interface WithUserOptions extends SessionGuardOptions {
+  missingUserError?: SessionMessage; // paso 5 (usuario inexistente)
+}
+
+export function createWithUser({
+  jwtSecret,
+  now,
+  missingUserError = SESSION_MESSAGES.invalidToken,
+}: WithUserOptions): RequestHandler {
   return async function withUser(request, response, next): Promise<void> {
     // `request.cookies` viene tipado con `any` por cookie-parser: se pasa por `unknown` (§1.2, D13).
     const cookies: unknown = request.cookies;
@@ -73,12 +84,19 @@ export function createWithUser({ jwtSecret, now }: WithUserOptions): RequestHand
     }
     // (5) El identificador ya tiene formato de ObjectId (paso 4, D16): no hay CastError.
     if ((await User.exists({ _id: check.userId })) === null) {
-      response.status(401).json({ error: SESSION_MESSAGES.invalidToken });
+      response.status(401).json({ error: missingUserError });
       return;
     }
     request.userId = check.userId; // RF-15: identidad solo desde la credencial
     next();
   };
+}
+
+// Sesión de las rutas de la spec 004 (RF-44, DP-37; plan P-14): igual que `withUser`, pero
+// la credencial de un usuario eliminado responde 401 "sesión no iniciada". Su instancia se
+// llama `withExistingUser`; no se apila sobre `withUser`, que ya respondería antes.
+export function createWithExistingUser({ jwtSecret, now }: SessionGuardOptions): RequestHandler {
+  return createWithUser({ jwtSecret, now, missingUserError: SESSION_MESSAGES.notLoggedIn });
 }
 
 // Guardia de las rutas de usuario (spec 003, plan §3.1, D2): RF-1, RF-5, RF-6, RF-18, RF-20.

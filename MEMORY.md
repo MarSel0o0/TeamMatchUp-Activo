@@ -146,3 +146,35 @@ formularios: color de avatar, usuarios ajenos sin correo, leer la disponibilidad
 queda para la spec 007, después de las 004 a 006, por decisión del usuario. Requisito local para ejecutar los tests del
 backend: `backend/.env` (copiado de `.env.example`, con `JWT_SECRET`) y MongoDB en
 `mongodb://127.0.0.1:27017`.
+
+## Estado spec 004 — Cuentas de juego (actualizado 2026-10-18)
+
+**Fase:** Implementación. Hechas T1, T2, T3, T3b, T4, T5, T6, T7, T8.
+T8b aprobada y en curso / pendiente. Faltan T8b, T9, T10 y la validación final (reviewer, RF por RF).
+
+**Suite:** 1141/1141 tras T8, con fallos intermitentes en tests de controlador
+(los arregla T8b). Typecheck y lint en verde.
+
+**Cambios al plan aprobados hoy (ver specs/004-cuentas-de-juego/plan.md):**
+- Plan y tareas ajustados al backend real de 001–003 (helpers.ts, createApp, createWithUser). No se usa test_helper.ts.
+- Q1: las rutas de la 004 responden 401 "sesión no iniciada" para un usuario eliminado
+  (opción missingUserError + createWithExistingUser). Las de 002/003 siguen con "token inválido".
+- Q2: reloj mutable en backend/src/utils/clock.ts (P-5).
+- Orden de consumo del resumen fijado en §4.3. Errata de CS2 corregida (13-x / x-13).
+- T3b / P-17 / §2.1: domain/ aislado. No importa de services/, utils/, models/ ni controllers/.
+  Lo vigila tests/unit/domainIsolation.test.ts. Nuevo domain/userId.ts (SELF_ALIAS, OBJECT_ID_PATTERN,
+  INVALID_ID_MESSAGE, resolveUserTarget). services/userTarget.ts los reexporta (salvo INVALID_ID_MESSAGE).
+- T8b / P-18: los fallos intermitentes (404 vacío, "socket hang up") se deben a que supertest hace
+  listen(0) en :: y conecta a 127.0.0.1. En macOS ese puerto puede estar ocupado por otra app.
+  Arreglo, solo en tests: listenOnLoopback + closeTestServers en tests/controllers/helpers.ts,
+  authApp asíncrono; getFreePort(host = "127.0.0.1") y el test "sin HOST" lo pide sin host.
+  Para cerrar T8b: accounts.test.ts ×20 y npm test ×5 en verde, anotando duration_ms.
+
+**Notas:**
+- La ruta de edición es PUT /api/accounts/:id. La de resincronizar es POST /api/accounts/:id/sync.
+- Entorno: backend/.env (copia de .env.example; no borrar .env.example) y MongoDB local en Docker.
+- Pendiente de investigar: dos peticiones muy lentas (144 s y 178 s) que no se repitieron; se sospecha de Docker Desktop.
+- Borrar la copia de .env que quedó en el scratchpad de la sesión (proto/backend).
+- Nada de la spec 004 está en un commit todavía.
+
+**Siguiente paso:** terminar T8b → /sdd-implement 004 T9 → T10 → validación con el reviewer.

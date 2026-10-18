@@ -9,9 +9,9 @@ import { User } from "../../src/models/user.ts";
 import { connectDatabase } from "../../src/server.ts";
 import { MESSAGES } from "../../src/services/credentials.ts";
 import { testConfig } from "../server/helpers.ts";
-import { VALID_REGISTRATION, authApp, registerUser } from "./helpers.ts";
+import { VALID_REGISTRATION, authApp, closeTestServers, registerUser } from "./helpers.ts";
 
-const app = authApp();
+const app = await authApp();
 const api = supertest(app);
 
 const OWN_KEYS = ["avatarColor", "bio", "createdAt", "displayName", "email", "id", "timezone", "username"];
@@ -29,7 +29,10 @@ afterEach(() => {
   mock.restoreAll();
 });
 
-after(() => mongoose.disconnect());
+after(async () => {
+  await closeTestServers();
+  await mongoose.disconnect();
+});
 
 function assertError(response: Response, message: string): void {
   assert.strictEqual(response.status, 400);

@@ -75,7 +75,7 @@ describe("startServer: arranque correcto", () => {
 
   test("RF-10: sin HOST escucha en todas las interfaces", async () => {
     const { log } = spyLog();
-    const server = await start(await configWith({ host: null }), log);
+    const server = await start(await configWith({ host: null, port: await getFreePort(null) }), log);
     assert.ok(["::", "0.0.0.0"].includes((server.address() as AddressInfo).address));
   });
 

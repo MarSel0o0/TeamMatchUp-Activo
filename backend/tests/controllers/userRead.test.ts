@@ -14,6 +14,7 @@ import {
   HEX24_LOWER,
   ISO_MS_Z,
   authApp,
+  closeTestServers,
   nonExistingId,
   rawCookieRequest,
   setCreatedAt,
@@ -22,7 +23,7 @@ import {
 } from "./helpers.ts";
 import type { HttpMethod, SignedUp } from "./helpers.ts";
 
-const app = authApp();
+const app = await authApp();
 const api = supertest(app);
 
 const PUBLIC_KEYS = ["avatarColor", "bio", "createdAt", "displayName", "id", "timezone", "username"];
@@ -45,7 +46,10 @@ beforeEach(async () => {
   await User.deleteMany({});
 });
 
-after(() => mongoose.disconnect());
+after(async () => {
+  await closeTestServers();
+  await mongoose.disconnect();
+});
 
 function assertStatusError(response: Response, status: number, message: string): void {
   assert.strictEqual(response.status, status);

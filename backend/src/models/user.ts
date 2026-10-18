@@ -6,8 +6,10 @@
 // - `toJSON` en lista blanca: solo datos públicos, sin correo, hash ni `usernameKey` (D6).
 // - Spec 003 (D1, §2.5): `availability` (bloques "día-hora") vive en el documento con
 //   default `[]` y nunca se serializa en `toJSON`/`toOwnUserJson` (RF-11, RF-12, RNF-2).
+// - Spec 004 (RF-33, DP-16): `accounts` (referencias a `GameAccount`, default `[]`) tampoco
+//   se serializa: no está en la lista blanca de `toPublicUserJson`.
 import { Schema, model } from "mongoose";
-import type { HydratedDocument } from "mongoose";
+import type { HydratedDocument, Types } from "mongoose";
 
 export const USER_DEFAULTS = { avatarColor: "#6d5efc", bio: "", timezone: "America/Santiago" } as const;
 
@@ -21,6 +23,7 @@ export interface UserFields {
   bio: string;
   timezone: string;
   availability: string[];
+  accounts: Types.ObjectId[];
   createdAt: Date;
 }
 
@@ -64,6 +67,7 @@ const UserSchema = new Schema<UserFields>(
     bio: { type: String, default: USER_DEFAULTS.bio },
     timezone: { type: String, default: USER_DEFAULTS.timezone },
     availability: { type: [String], default: [] },
+    accounts: { type: [{ type: Schema.Types.ObjectId, ref: "GameAccount" }], default: [] },
   },
   {
     timestamps: { createdAt: true, updatedAt: false },

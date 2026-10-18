@@ -1,20 +1,57 @@
 // Utilidades de las pruebas de controladores (plan §6.1). No es un archivo de prueba.
 import supertest from "supertest";
 import type { Agent, Response } from "supertest";
-import type { Express } from "express";
+import http from "node:http";
+import type { RequestListener, Server } from "node:http";
 import jwt from "jsonwebtoken";
 import type { Algorithm } from "jsonwebtoken";
 import mongoose from "mongoose";
 import { createApp } from "../../src/app.ts";
 import type { AppOptions } from "../../src/app.ts";
 import { User } from "../../src/models/user.ts";
+import { GameAccount } from "../../src/models/gameAccount.ts";
 import { CSRF_HEADER, SESSION_COOKIE } from "../../src/services/sessionToken.ts";
 import { testConfig } from "../server/helpers.ts";
 
-// Aplicación con la configuración de prueba; `overrides` cambia entorno, secreto o reloj.
-export function authApp(overrides: Partial<AppOptions> = {}): Express {
+// Servidores de prueba abiertos; `closeTestServers` los cierra en el `after` de cada archivo.
+const openServers = new Set<Server>();
+
+// Servidor ya escuchando en 127.0.0.1 con puerto elegido por el sistema (plan P-18). Con una
+// app sin escuchar, supertest hace `listen(0)` sin host (en "::") y conecta a 127.0.0.1; en
+// macOS ese puerto puede tenerlo otro proceso en IPv4 (404 vacío o ECONNRESET). Se espera a
+// `listening`: si supertest viera `address()` nulo, volvería a llamar a `listen(0)` en "::".
+export async function listenOnLoopback(listener: RequestListener): Promise<Server> {
+  const server = http.createServer(listener);
+  await new Promise<void>((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", () => {
+      server.off("error", reject);
+      resolve();
+    });
+  });
+  openServers.add(server);
+  return server;
+}
+
+// Cierra los servidores registrados (conexiones abiertas incluidas) y vacía la lista.
+export async function closeTestServers(): Promise<void> {
+  const servers = [...openServers];
+  openServers.clear();
+  await Promise.all(
+    servers.map(
+      (server) =>
+        new Promise<void>((resolve) => {
+          server.close(() => resolve());
+          server.closeAllConnections();
+        }),
+    ),
+  );
+}
+
+// Servidor con la configuración de prueba; `overrides` cambia entorno, secreto o reloj.
+export function authApp(overrides: Partial<AppOptions> = {}): Promise<Server> {
   const { jwtSecret, nodeEnv } = testConfig();
-  return createApp({ jwtSecret, nodeEnv, ...overrides });
+  return listenOnLoopback(createApp({ jwtSecret, nodeEnv, ...overrides }));
 }
 
 export interface RegistrationData {
@@ -32,7 +69,7 @@ export const VALID_REGISTRATION = {
 } as const;
 
 // `POST /api/users` con datos válidos por defecto; `data` los reemplaza o agrega.
-export function registerUser(app: Express, data: RegistrationData = {}): Promise<Response> {
+export function registerUser(app: Server, data: RegistrationData = {}): Promise<Response> {
   return supertest(app).post("/api/users").send({ ...VALID_REGISTRATION, ...data });
 }
 
@@ -74,7 +111,7 @@ export interface LoggedIn {
 }
 
 // `POST /api/auth/login` con un agente; falla si no responde 200 con cookie y comprobante.
-export async function loginAs(app: Express, email: string, password: string): Promise<LoggedIn> {
+export async function loginAs(app: Server, email: string, password: string): Promise<LoggedIn> {
   const agent = supertest.agent(app);
   const response = await agent.post("/api/auth/login").send({ email, password });
   if (response.status !== 200) {
@@ -124,7 +161,7 @@ export interface SignedUp extends LoggedIn {
 }
 
 // Registra (datos válidos por defecto, `data` los reemplaza) e inicia sesión con un agente.
-export async function signUp(app: Express, data: RegistrationData = {}): Promise<SignedUp> {
+export async function signUp(app: Server, data: RegistrationData = {}): Promise<SignedUp> {
   const registration = await registerUser(app, data);
   if (registration.status !== 201) {
     throw new Error(`el registro respondió ${registration.status}`);
@@ -154,7 +191,7 @@ export type HttpMethod = "get" | "head" | "post" | "put" | "patch" | "delete";
 
 // Petición sin agente con la credencial copiada en la cookie y el comprobante en la cabecera.
 export function rawCookieRequest(
-  app: Express,
+  app: Server,
   method: HttpMethod,
   path: string,
   cookie: string,
@@ -167,4 +204,22 @@ export function rawCookieRequest(
 export async function setCreatedAt(ids: readonly string[], date: Date): Promise<void> {
   const objectIds = ids.map((id) => new mongoose.Types.ObjectId(id));
   await User.collection.updateMany({ _id: { $in: objectIds } }, { $set: { createdAt: date } });
+}
+
+// --- Spec 004 (plan, secciones 9 y 11; P-16) ---
+
+// Instante fijo de las cuentas en milisegundos: `t.mock.method(clock, "now", () => new Date(FIXED_NOW))`.
+// Es pasado a propósito; no afecta a las credenciales (reloj de `createApp`, sin `overrides`).
+export const FIXED_NOW = Date.parse("2026-03-15T18:30:00.000Z");
+
+// Cuentas de la base tal como las vería el cliente (`toJSON` serializado, fechas en ISO),
+// ordenadas por `_id`; se comparan directamente con los cuerpos de las respuestas.
+export async function accountsInDb(): Promise<unknown[]> {
+  const accounts = await GameAccount.find({}).sort({ _id: 1 });
+  return accounts.map((account): unknown => JSON.parse(JSON.stringify(account)));
+}
+
+// Documentos crudos (`lean()`), con `matches`, `readingNumber` y `__v`, ordenados por `_id`.
+export function rawAccountsInDb() {
+  return GameAccount.find({}).sort({ _id: 1 }).lean();
 }

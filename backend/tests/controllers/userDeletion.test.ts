@@ -9,7 +9,7 @@ import { after, before, beforeEach, describe, test } from "node:test";
 import assert from "node:assert/strict";
 import mongoose from "mongoose";
 import type { Response } from "supertest";
-import type { Express } from "express";
+import type { Server } from "node:http";
 import { User } from "../../src/models/user.ts";
 import { connectDatabase } from "../../src/server.ts";
 import { SESSION_COOKIE, SESSION_MESSAGES } from "../../src/services/sessionToken.ts";
@@ -17,6 +17,7 @@ import { USER_TARGET_MESSAGES } from "../../src/services/userTarget.ts";
 import { testConfig } from "../server/helpers.ts";
 import {
   authApp,
+  closeTestServers,
   nonExistingId,
   parseSetCookie,
   rawCookieRequest,
@@ -27,7 +28,7 @@ import {
 } from "./helpers.ts";
 import type { HttpMethod, ParsedSetCookie, RegistrationData, SignedUp } from "./helpers.ts";
 
-const app = authApp();
+const app = await authApp();
 
 const ANA = { email: "ana@example.com", username: "Ana" } as const;
 const BETO = { email: "beto@example.com", username: "Beto" } as const;
@@ -43,7 +44,10 @@ beforeEach(async () => {
   await User.deleteMany({});
 });
 
-after(() => mongoose.disconnect());
+after(async () => {
+  await closeTestServers();
+  await mongoose.disconnect();
+});
 
 function assertStatusError(response: Response, status: number, message: string): void {
   assert.strictEqual(response.status, status);
@@ -95,7 +99,7 @@ function remove(session: SignedUp, segment: string) {
 }
 
 // Usuario registrado, con sesión y con disponibilidad guardada.
-async function signUpWithBlocks(application: Express, data: RegistrationData = ANA): Promise<SignedUp> {
+async function signUpWithBlocks(application: Server, data: RegistrationData = ANA): Promise<SignedUp> {
   const session = await signUp(application, data);
   const response = await withSession(session.agent.put("/api/users/me/availability"), session.csrf).send({
     blocks: [...BLOCKS],
@@ -134,7 +138,7 @@ describe("RF-11: eliminar la propia cuenta", () => {
   });
 
   test("en producción el borrado de la cookie incluye Secure, igual que la emisión", async () => {
-    const production = authApp({ nodeEnv: "production" });
+    const production = await authApp({ nodeEnv: "production" });
     const ana = await signUp(production, ANA);
     assert.strictEqual(issuedAttributes(ana).get("secure"), "");
     // El agente no reenvía cookies Secure por HTTP: se usa la credencial copiada.

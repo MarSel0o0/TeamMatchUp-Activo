@@ -11,10 +11,10 @@ import { connectDatabase } from "../../src/server.ts";
 import { AVAILABILITY_MESSAGES } from "../../src/services/availability.ts";
 import { USER_TARGET_MESSAGES } from "../../src/services/userTarget.ts";
 import { testConfig } from "../server/helpers.ts";
-import { authApp, nonExistingId, signUp, withSession } from "./helpers.ts";
+import { authApp, closeTestServers, nonExistingId, signUp, withSession } from "./helpers.ts";
 import type { SignedUp } from "./helpers.ts";
 
-const app = authApp();
+const app = await authApp();
 
 const ANA = { email: "ana@example.com", username: "Ana" } as const;
 const BETO = { email: "beto@example.com", username: "Beto" } as const;
@@ -32,7 +32,10 @@ beforeEach(async () => {
   await User.deleteMany({});
 });
 
-after(() => mongoose.disconnect());
+after(async () => {
+  await closeTestServers();
+  await mongoose.disconnect();
+});
 
 function assertStatusError(response: Response, status: number, message: string): void {
   assert.strictEqual(response.status, status);

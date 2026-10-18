@@ -1,11 +1,14 @@
-import { describe, test } from "node:test";
+import { after, describe, test } from "node:test";
 import assert from "node:assert/strict";
 import supertest from "supertest";
 import type { Response } from "supertest";
 import { createApp } from "../../src/app.ts";
 import { testConfig } from "../server/helpers.ts";
+import { closeTestServers, listenOnLoopback } from "./helpers.ts";
 
-const api = supertest(createApp(testConfig()));
+const api = supertest(await listenOnLoopback(createApp(testConfig())));
+
+after(() => closeTestServers());
 
 const UNKNOWN = { error: "endpoint desconocido" };
 const MALFORMED = { error: "JSON mal formado" };

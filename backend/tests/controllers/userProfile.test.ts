@@ -10,10 +10,10 @@ import { connectDatabase } from "../../src/server.ts";
 import { PROFILE_MESSAGES } from "../../src/services/profile.ts";
 import { USER_TARGET_MESSAGES } from "../../src/services/userTarget.ts";
 import { testConfig } from "../server/helpers.ts";
-import { HEX24_LOWER, ISO_MS_Z, authApp, nonExistingId, signUp, withSession } from "./helpers.ts";
+import { HEX24_LOWER, ISO_MS_Z, authApp, closeTestServers, nonExistingId, signUp, withSession } from "./helpers.ts";
 import type { SignedUp } from "./helpers.ts";
 
-const app = authApp();
+const app = await authApp();
 
 const PUBLIC_KEYS = ["avatarColor", "bio", "createdAt", "displayName", "id", "timezone", "username"];
 const OWN_KEYS = [...PUBLIC_KEYS, "email"].sort();
@@ -30,7 +30,10 @@ beforeEach(async () => {
   await User.deleteMany({});
 });
 
-after(() => mongoose.disconnect());
+after(async () => {
+  await closeTestServers();
+  await mongoose.disconnect();
+});
 
 function assertStatusError(response: Response, status: number, message: string): void {
   assert.strictEqual(response.status, status);

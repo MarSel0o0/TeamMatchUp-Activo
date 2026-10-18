@@ -15,6 +15,7 @@ import { testConfig } from "../server/helpers.ts";
 import {
   VALID_REGISTRATION,
   authApp,
+  closeTestServers,
   forgeToken,
   loginAs,
   noneToken,
@@ -24,7 +25,7 @@ import {
 } from "./helpers.ts";
 import type { ParsedSetCookie } from "./helpers.ts";
 
-const app = authApp();
+const app = await authApp();
 const api = supertest(app);
 
 const OWN_KEYS = ["avatarColor", "bio", "createdAt", "displayName", "email", "id", "timezone", "username"];
@@ -44,7 +45,10 @@ afterEach(() => {
   mock.restoreAll();
 });
 
-after(() => mongoose.disconnect());
+after(async () => {
+  await closeTestServers();
+  await mongoose.disconnect();
+});
 
 function login(body: unknown, target = api): supertest.Test {
   return target.post("/api/auth/login").send(body as object);
@@ -116,7 +120,7 @@ describe("inicio de sesión correcto (RF-8, RNF-4)", () => {
   test("la credencial usa el reloj inyectado (iat = now())", async () => {
     await registerUser(app);
     const fixed = 1_800_000_000;
-    const response = await login(credentials(), supertest(authApp({ now: () => fixed })));
+    const response = await login(credentials(), supertest(await authApp({ now: () => fixed })));
     const payload = jwt.decode(cookieOf(response).value);
     assert.ok(payload !== null && typeof payload === "object");
     assert.strictEqual(payload["iat"], fixed);
@@ -137,7 +141,7 @@ describe("inicio de sesión correcto (RF-8, RNF-4)", () => {
 
   test("en producción la cookie lleva Secure (RNF-2)", async () => {
     await registerUser(app);
-    const production = supertest(authApp({ nodeEnv: "production" }));
+    const production = supertest(await authApp({ nodeEnv: "production" }));
     const { attributes } = cookieOf(await login(credentials(), production));
     assert.strictEqual(attributes.get("secure"), "");
     assert.strictEqual(attributes.get("httponly"), "");
@@ -362,7 +366,7 @@ describe("cierre de sesión (RF-14, RF-26, RNF-2)", () => {
 
   test("en producción el borrado incluye Secure, igual que la emisión (RNF-2)", async () => {
     await registerUser(app);
-    const production = supertest(authApp({ nodeEnv: "production" }));
+    const production = supertest(await authApp({ nodeEnv: "production" }));
     const issued = cookieOf(await login(credentials(), production)).attributes;
     const response = await production.post("/api/auth/logout");
     const cleared = assertLogout(response);
@@ -614,20 +618,20 @@ describe("expiración exacta con el reloj inyectado (RNF-1)", () => {
 
   test("emitida en T: a T + 3599 se acepta y a T + 3600 se rechaza", async () => {
     await registerUser(app);
-    const issuing = supertest(authApp({ now: () => issuedAt }));
+    const issuing = supertest(await authApp({ now: () => issuedAt }));
     const response = await login(credentials(), issuing);
     assert.strictEqual(response.status, 200);
     const csrf = response.get(CSRF_HEADER);
     assert.ok(csrf);
     const token = cookieOf(response).value;
 
-    const almost = supertest(authApp({ now: () => issuedAt + 3599 }));
+    const almost = supertest(await authApp({ now: () => issuedAt + 3599 }));
     assertOwn(await meWith(token, csrf, almost), { username: "Ana" });
 
-    const expired = supertest(authApp({ now: () => issuedAt + 3600 }));
+    const expired = supertest(await authApp({ now: () => issuedAt + 3600 }));
     assertStatusError(await meWith(token, csrf, expired), 401, "sesión expirada");
 
-    const later = supertest(authApp({ now: () => issuedAt + 7200 }));
+    const later = supertest(await authApp({ now: () => issuedAt + 7200 }));
     assertStatusError(await meWith(token, csrf, later), 401, "sesión expirada");
   });
 });

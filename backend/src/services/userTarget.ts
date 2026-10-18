@@ -2,9 +2,10 @@
 // propiedad (RF-5, RF-6, RF-10, RF-18, RF-20; plan §2.1). Puras, sin Express ni Mongoose.
 import { MESSAGES } from "../utils/errors.ts";
 
-export const SELF_ALIAS = "me";
-// Sin la bandera `m`, `$` solo coincide al final del texto: un `\n` final no es válido.
-export const OBJECT_ID_PATTERN = /^[0-9a-fA-F]{24}$/;
+// Formato del identificador: vive en `domain/userId.ts` (spec 004, P-17). Se reexporta para
+// no cambiar los imports existentes; `INVALID_ID_MESSAGE` no se reexporta.
+export { OBJECT_ID_PATTERN, SELF_ALIAS, resolveUserTarget } from "../domain/userId.ts";
+export type { UserTarget } from "../domain/userId.ts";
 
 export const USER_TARGET_MESSAGES = {
   invalidId: MESSAGES.invalidId,
@@ -16,8 +17,6 @@ export type UserRoute =
   | { kind: "list" }
   | { kind: "user"; rawSegment: string }
   | { kind: "availability"; rawSegment: string };
-
-export type UserTarget = { ok: true; id: string; own: boolean } | { ok: false; error: string };
 
 // Reproduce el emparejamiento de Express 5 (`strict: false`, `caseSensitive: false`):
 // segmento `[^/]+`, una `/` final opcional y `availability` sin distinguir mayúsculas.
@@ -47,16 +46,4 @@ export function decodeSegment(raw: string): string | null {
     if (error instanceof URIError) return null;
     throw error;
   }
-}
-
-// Pasos 2 a 4 del orden de RF-18/RF-20. El 403 (escrituras ajenas) y el 404 (lecturas) los
-// decide el controlador. Los identificadores se comparan por valor, en minúsculas (D7).
-export function resolveUserTarget(decoded: string, sessionUserId: string): UserTarget {
-  const sessionId = sessionUserId.toLowerCase();
-  if (decoded === SELF_ALIAS) return { ok: true, id: sessionId, own: true };
-  if (!OBJECT_ID_PATTERN.test(decoded)) {
-    return { ok: false, error: USER_TARGET_MESSAGES.invalidId };
-  }
-  const id = decoded.toLowerCase();
-  return { ok: true, id, own: id === sessionId };
 }

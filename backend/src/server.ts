@@ -4,6 +4,7 @@ import http from "node:http";
 import type { RequestListener } from "node:http";
 import type { AddressInfo } from "node:net";
 import mongoose from "mongoose";
+import { GameAccount } from "./models/gameAccount.ts";
 import { User } from "./models/user.ts";
 import type { Config, DatabaseConfig } from "./utils/config.ts";
 import type { Logger } from "./utils/logger.ts";
@@ -46,8 +47,10 @@ export async function connectDatabase(db: DatabaseConfig): Promise<void> {
 
 // Spec 002, RF-21 (D14): los índices únicos de `email` y `usernameKey` existen antes de
 // aceptar la primera petición, sin depender del `autoIndex` en segundo plano.
+// Spec 004, RF-5 (plan, sección 8): igual con el índice único `{ user, gameId }` de las cuentas.
 export async function prepareDatabase(): Promise<void> {
   await User.init();
+  await GameAccount.init();
 }
 
 function errorCode(error: unknown): string | undefined {
