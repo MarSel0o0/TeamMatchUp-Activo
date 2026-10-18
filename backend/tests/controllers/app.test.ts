@@ -42,12 +42,15 @@ describe("app: ruta desconocida (RF-4)", () => {
   }
 });
 
-describe("app: rutas de la spec 002 con otro método (001-RF-4)", () => {
+// `GET /api/users` ya no está: es el listado de la spec 003 (RF-2), protegido (plan R1).
+// `POST`/`PUT /api/users/me` quedan fuera de la tabla de rutas de la 003: 404 sin sesión.
+describe("app: rutas de las specs 002 y 003 con otro método (001-RF-4)", () => {
   for (const [method, path] of [
     ["get", "/api/auth/login"],
     ["put", "/api/users"],
-    ["get", "/api/users"],
     ["delete", "/api/users"],
+    ["post", "/api/users/me"],
+    ["put", "/api/users/me"],
   ] as const) {
     test(`${method.toUpperCase()} ${path} → 404`, async () => {
       const response = await api[method](path);

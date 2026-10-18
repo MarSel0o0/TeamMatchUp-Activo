@@ -32,7 +32,8 @@ export function createApp(options: AppOptions): Express {
   // Cookies sin secreto (la credencial ya va firmada, D13): `request.cookies` para `withUser`.
   app.use(cookieParser());
 
-  app.use("/api/users", createUsersRouter()); // registro, público (RF-26)
+  // Registro público (002-RF-26); el resto de rutas de usuario, protegidas (003-RF-1).
+  app.use("/api/users", createUsersRouter({ jwtSecret, nodeEnv, now }));
   app.use("/api/auth", createAuthRouter({ jwtSecret, nodeEnv, now })); // login y logout públicos; me protegida (RF-26)
 
   app.use(unknownEndpoint);

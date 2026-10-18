@@ -4,8 +4,10 @@ import type { Agent, Response } from "supertest";
 import type { Express } from "express";
 import jwt from "jsonwebtoken";
 import type { Algorithm } from "jsonwebtoken";
+import mongoose from "mongoose";
 import { createApp } from "../../src/app.ts";
 import type { AppOptions } from "../../src/app.ts";
+import { User } from "../../src/models/user.ts";
 import { CSRF_HEADER, SESSION_COOKIE } from "../../src/services/sessionToken.ts";
 import { testConfig } from "../server/helpers.ts";
 
@@ -108,4 +110,61 @@ export function forgeToken(payload: Record<string, unknown>, options: ForgeOptio
 export function noneToken(payload: Record<string, unknown>): string {
   const encode = (value: unknown): string => Buffer.from(JSON.stringify(value)).toString("base64url");
   return `${encode({ alg: "none", typ: "JWT" })}.${encode(payload)}.`;
+}
+
+// --- Spec 003 (plan §6.1) ---
+
+// Formatos de RNF-2: fecha ISO 8601 en UTC con milisegundos e identificador en minúsculas.
+export const ISO_MS_Z = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
+export const HEX24_LOWER = /^[0-9a-f]{24}$/;
+
+export interface SignedUp extends LoggedIn {
+  id: string; // identificador devuelto por el registro (minúsculas)
+  email: string; // correo normalizado
+}
+
+// Registra (datos válidos por defecto, `data` los reemplaza) e inicia sesión con un agente.
+export async function signUp(app: Express, data: RegistrationData = {}): Promise<SignedUp> {
+  const registration = await registerUser(app, data);
+  if (registration.status !== 201) {
+    throw new Error(`el registro respondió ${registration.status}`);
+  }
+  const body: unknown = registration.body;
+  const id: unknown = typeof body === "object" && body !== null ? Reflect.get(body, "id") : undefined;
+  const email: unknown = typeof body === "object" && body !== null ? Reflect.get(body, "email") : undefined;
+  if (typeof id !== "string" || typeof email !== "string") {
+    throw new Error("el registro no devolvió id y correo");
+  }
+  const password = typeof data.password === "string" ? data.password : VALID_REGISTRATION.password;
+  const session = await loginAs(app, email, password);
+  return { ...session, id, email };
+}
+
+// Identificador con formato válido que no corresponde a ningún usuario.
+export function nonExistingId(): string {
+  return new mongoose.Types.ObjectId().toHexString();
+}
+
+// Añade el comprobante de la sesión a una petición del agente.
+export function withSession(request: supertest.Test, csrf: string): supertest.Test {
+  return request.set(CSRF_HEADER, csrf);
+}
+
+export type HttpMethod = "get" | "head" | "post" | "put" | "patch" | "delete";
+
+// Petición sin agente con la credencial copiada en la cookie y el comprobante en la cabecera.
+export function rawCookieRequest(
+  app: Express,
+  method: HttpMethod,
+  path: string,
+  cookie: string,
+  csrf: string,
+): supertest.Test {
+  return supertest(app)[method](path).set("Cookie", `${SESSION_COOKIE}=${cookie}`).set(CSRF_HEADER, csrf);
+}
+
+// Fija `createdAt` con el driver nativo (Mongoose lo trata como inmutable y descartaría el `$set`).
+export async function setCreatedAt(ids: readonly string[], date: Date): Promise<void> {
+  const objectIds = ids.map((id) => new mongoose.Types.ObjectId(id));
+  await User.collection.updateMany({ _id: { $in: objectIds } }, { $set: { createdAt: date } });
 }

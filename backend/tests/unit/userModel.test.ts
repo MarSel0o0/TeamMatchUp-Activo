@@ -1,7 +1,7 @@
-// Modelo `User` sin base de datos (plan §2.5, §3.4, §6.2). RF-1, RNF-4.
+// Modelo `User` sin base de datos (plan §2.5, §3.4, §6.2). RF-1, RNF-4; 003: RF-4, RF-12, RNF-2.
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
-import { User, USER_DEFAULTS, toOwnUserJson } from "../../src/models/user.ts";
+import { User, USER_DEFAULTS, toOwnUserJson, toPublicUserJson } from "../../src/models/user.ts";
 
 const PUBLIC_KEYS = ["avatarColor", "bio", "createdAt", "displayName", "id", "timezone", "username"];
 
@@ -90,5 +90,39 @@ describe("User: serialización (RNF-4)", () => {
     assert.strictEqual(json.email, "ana@example.com");
     assert.ok(!("passwordHash" in json));
     assert.ok(!("usernameKey" in json));
+  });
+});
+
+
+describe("User: disponibilidad dentro del documento (003: RF-4, RF-12, RNF-2)", () => {
+  test("un documento nuevo tiene la disponibilidad vacía", () => {
+    const user = newUser();
+    assert.deepStrictEqual([...user.availability], []);
+  });
+
+  test("guarda los bloques indicados", () => {
+    const user = newUser();
+    user.set("availability", ["2-20", "6-21"]);
+    assert.deepStrictEqual([...user.availability], ["2-20", "6-21"]);
+  });
+
+  test("con bloques, toJSON y toOwnUserJson mantienen las claves exactas de la 002", () => {
+    const user = newUser();
+    user.set("createdAt", new Date("2026-01-02T03:04:05.000Z"));
+    user.set("availability", ["2-20"]);
+    const json: Record<string, unknown> = user.toJSON();
+    assert.deepStrictEqual(Object.keys(json).sort(), PUBLIC_KEYS);
+    assert.deepStrictEqual(Object.keys(toOwnUserJson(user)).sort(), [...PUBLIC_KEYS, "email"].sort());
+    assert.ok(!JSON.stringify(user).includes("availability"));
+    assert.ok(!JSON.stringify(user).includes("2-20"));
+  });
+
+  test("toPublicUserJson es igual a toJSON()", () => {
+    const user = newUser();
+    user.set("createdAt", new Date("2026-01-02T03:04:05.000Z"));
+    user.set("availability", ["2-20"]);
+    const json: Record<string, unknown> = user.toJSON();
+    assert.deepStrictEqual({ ...toPublicUserJson(user) }, json);
+    assert.deepStrictEqual(Object.keys(toPublicUserJson(user)).sort(), PUBLIC_KEYS);
   });
 });

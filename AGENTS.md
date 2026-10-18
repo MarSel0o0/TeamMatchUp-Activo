@@ -30,18 +30,19 @@ flujo termina en una sesión agendada, no en una lista de perfiles. Detalle en
   - `src/shared/` componentes, hooks y utilidades reutilizables.
   - `src/styles/` tokens de diseño (`tokens.css`) y estilos globales.
 - `backend/` — Express 5 + Mongoose + TypeScript, Node ≥ 22.18 ejecutando `.ts` directo (ESM).
-  Base definida en `specs/001-crear-backend`; autenticación en `specs/002-autenticacion`:
+  Base definida en `specs/001-crear-backend`; autenticación en `specs/002-autenticacion`;
+  usuarios y disponibilidad en `specs/003-usuarios-y-disponibilidad`:
   - `src/index.ts` punto de entrada: carga y valida la configuración y arranca el servidor.
   - `src/app.ts` composición de Express (cuerpo JSON, 404, manejador de errores); sin conexión a la base.
   - `src/server.ts` arranque: conectar a MongoDB y luego escuchar.
-  - `src/controllers/` rutas por recurso: `users.ts` (registro) y `auth.ts` (sesión).
+  - `src/controllers/` rutas por recurso: `users.ts` (registro, listado, obtener, actualizar perfil, eliminar cuenta y disponibilidad) y `auth.ts` (sesión).
   - `src/models/` esquemas de Mongoose: `user.ts`.
-  - `src/services/` lógica sin Express: `credentials.ts` (validación), `passwords.ts` (bcrypt) y `sessionToken.ts` (JWT, cookie y comprobante).
+  - `src/services/` lógica sin Express: `credentials.ts` (validación), `passwords.ts` (bcrypt), `sessionToken.ts` (JWT, cookie y comprobante), `userTarget.ts` (identificador de ruta, `me`, formato y propiedad), `profile.ts` (validación del perfil), `availability.ts` (validación de bloques horarios), `timezones.ts` (zonas válidas) y `zoneTab.ts` (`zone.tab` de tzdata 2025b, incrustada).
   - `src/types/` ampliaciones de tipos: `express.d.ts` (`request.userId`).
-  - `src/utils/` `config.ts` (variables de entorno), `errors.ts`, `logger.ts` (único sitio con `console`) y `middleware.ts`.
-  - `src/domain/` reservado para la copia del dominio del frontend (specs 003 en adelante); las specs 003 a 006 amplían también las carpetas anteriores.
+  - `src/utils/` `config.ts` (variables de entorno), `errors.ts`, `logger.ts` (único sitio con `console`) y `middleware.ts` (incluye la guardia de rutas de usuario).
+  - `src/domain/` reservado para la copia del dominio del frontend (specs 004 en adelante); las specs 004 a 006 amplían también las carpetas anteriores.
   - `requests/` archivos `.rest` para probar la API a mano.
-  - `tests/` con `unit/`, `controllers/` (supertest) y `server/` (arranque y procesos hijo).
+  - `tests/` con `unit/`, `controllers/` (supertest), `server/` (arranque y procesos hijo) y `fixtures/` (copia oficial de `zone.tab` de tzdata 2025b).
   - Variables en `backend/.env` (no se sube); plantilla en `backend/.env.example`.
 ## Comandos
 

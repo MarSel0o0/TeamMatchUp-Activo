@@ -51,6 +51,8 @@ describe("MESSAGES (RNF-3)", () => {
       payloadTooLarge: "cuerpo demasiado grande",
       unsupportedEncoding: "codificación no soportada",
       internal: "error interno del servidor",
+      invalidId: "id con formato inválido",
+      forbidden: "no tienes permiso para esta operación",
     });
   });
 

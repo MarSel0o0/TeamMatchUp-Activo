@@ -8,8 +8,9 @@ Registro dinámico. Se actualiza al cerrar cada fase SDD.
 
 ## Fase actual
 
-Specs 001 (`001-crear-backend`) y 002 (`002-autenticacion`) implementadas y validadas
-(reviewer: APROBADO). Siguiente fase SDD: spec 003 (`003-usuarios-y-disponibilidad`).
+Specs 001 (`001-crear-backend`), 002 (`002-autenticacion`) y 003
+(`003-usuarios-y-disponibilidad`) implementadas y validadas (reviewer: APROBADO).
+Siguiente fase SDD: specs 004 a 006.
 
 ## Estado del código
 
@@ -32,8 +33,14 @@ Specs 001 (`001-crear-backend`) y 002 (`002-autenticacion`) implementadas y vali
   - Dependencias añadidas en la 002 (versión exacta): bcrypt 6.0.0, jsonwebtoken 9.0.2 y
     cookie-parser 1.4.7, con @types/bcrypt 6.0.0, @types/jsonwebtoken 9.0.10 y
     @types/cookie-parser 1.4.9.
-  - Recursos de usuarios, disponibilidad, juegos, coincidencias y agenda: specs 003 a 006.
-  - 429 tests con node:test + supertest (en serie, contra la base de prueba); typecheck y
+  - Usuarios y disponibilidad de la spec 003 (todas protegidas, `:id` = 24 hexadecimales
+    o `me`): `GET /api/users`, `GET|PATCH|DELETE /api/users/:id` y
+    `GET|PUT /api/users/:id/availability`. Disponibilidad dentro del documento del usuario
+    (`availability: [String]`, bloques `d-h`). Servicios nuevos sin Express en
+    `src/services/`: `userTarget.ts`, `profile.ts`, `availability.ts`, `timezones.ts` y
+    `zoneTab.ts`. Prueba manual en `requests/users.rest`. Sin dependencias nuevas.
+  - Recursos de juegos, coincidencias y agenda: specs 004 a 006.
+  - 864 tests con node:test + supertest (en serie, contra la base de prueba); typecheck y
     lint (ESLint) en verde; `npm audit` sin vulnerabilidades.
 
 ## Estado de las specs
@@ -42,7 +49,7 @@ Specs 001 (`001-crear-backend`) y 002 (`002-autenticacion`) implementadas y vali
 | --- | --- | --- |
 | `001-crear-backend` | Implementada y validada | spec, plan y tasks aprobados; T1–T10 hechas. Cambios aprobados durante la implementación: mongoose 8.19.1 → 8.24.5 (vulnerabilidad alta) y regla RFC para `HOST` (la última etiqueta no puede ser solo numérica). |
 | `002-autenticacion` | Implementada y validada | 28 RF y 7 RNF cumplidos; decisiones P1–P9 abajo. |
-| `003-usuarios-y-disponibilidad` | Redactada | — |
+| `003-usuarios-y-disponibilidad` | Implementada y validada | spec, plan y tasks aprobados; T1–T10 hechas; `spec.md` en «implementada». `requests/users.rest` probado a mano contra el servidor: todos los códigos coinciden. `AGENTS.md` actualizado. |
 | `004-cuentas-de-juego` | Redactada | — |
 | `005-coincidencias` | Redactada | — |
 | `006-agenda` | Redactada | — |
@@ -115,6 +122,14 @@ Specs 001 (`001-crear-backend`) y 002 (`002-autenticacion`) implementadas y vali
   los campos tipados de `toJSON()`.
 - Al eliminar la cuenta (spec 003), la cookie debe borrarse con `sessionCookieOptions`,
   igual que al cerrar sesión.
+- Zonas horarias (spec 003): lista fija de la columna TZ de `zone.tab` de tzdata 2025b
+  (`src/services/zoneTab.ts`, sin `Intl`). Para cambiar de versión: sustituir el fixture
+  `tests/fixtures/tzdata-2025b/zone.tab`, regenerar el arreglo y `TZDATA_VERSION`, y
+  ajustar la prueba `tests/unit/timezones.test.ts`.
+- `MESSAGES.forbidden` («no tienes permiso para esta operación») y `MESSAGES.invalidId`
+  («id con formato inválido») de `src/utils/errors.ts` son reutilizables por 004–006.
+- La cascada de RF-11 (borrar los datos del usuario) la amplían 004 y 006 dentro de
+  `DELETE /api/users/:id`.
 - Spec 007: si hay CORS con orígenes distintos, hará falta
   `Access-Control-Expose-Headers: X-CSRF-Token`.
 
@@ -126,6 +141,8 @@ Specs 001 (`001-crear-backend`) y 002 (`002-autenticacion`) implementadas y vali
 
 ## Próximo paso
 
-Spec 003 (`003-usuarios-y-disponibilidad`). Requisito local para ejecutar los tests del
+Specs 004 (`004-cuentas-de-juego`), 005 y 006. Adaptar el frontend (contrato de la API y
+formularios: color de avatar, usuarios ajenos sin correo, leer la disponibilidad de otros)
+queda para la spec 007, después de las 004 a 006, por decisión del usuario. Requisito local para ejecutar los tests del
 backend: `backend/.env` (copiado de `.env.example`, con `JWT_SECRET`) y MongoDB en
 `mongodb://127.0.0.1:27017`.

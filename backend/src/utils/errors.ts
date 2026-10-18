@@ -7,6 +7,9 @@ export const MESSAGES = {
   payloadTooLarge: "cuerpo demasiado grande",
   unsupportedEncoding: "codificación no soportada",
   internal: "error interno del servidor",
+  // Genéricos para los recursos con identificador (spec 003, D8; reutilizables en 004–006).
+  invalidId: "id con formato inválido",
+  forbidden: "no tienes permiso para esta operación",
 } as const;
 
 export interface ErrorResponse {

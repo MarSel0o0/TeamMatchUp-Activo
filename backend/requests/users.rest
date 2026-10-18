@@ -1,0 +1,106 @@
+# Prueba manual de usuarios y disponibilidad (spec 003, RT-19): inicio de sesión → listado →
+# usuario propio con `me` → actualizar perfil → reemplazar disponibilidad → leer
+# disponibilidad → eliminar la cuenta → sesión actual otra vez (401).
+#
+# Formato de la extensión REST Client de VS Code: guarda la cookie `token` entre peticiones
+# (rest-client.rememberCookiesForSubsequentRequests, activo por defecto) y permite leer la
+# cabecera X-CSRF-Token de la respuesta del inicio de sesión con {{login.response.headers...}}.
+#
+# Requisitos: servidor en desarrollo (`npm run dev`) con MongoDB disponible y el `.env`
+# copiado de `.env.example`. La cuenta debe existir: créala antes con el paso 1 de
+# `auth.rest` (mismos datos de ejemplo, no reales). El paso 7 la elimina: para repetir el
+# recorrido, vuelve a registrarla.
+
+@baseUrl = http://localhost:3001
+@email = ana.ejemplo@example.com
+@password = contrasena-de-ejemplo
+
+### 1. Inicio de sesión (público): 200, cookie `token` y cabecera X-CSRF-Token (spec 002)
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### 2. Listado de usuarios: 200 con todos los usuarios; solo el propio incluye el correo (RF-1, RF-2, RF-4)
+GET {{baseUrl}}/api/users
+X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
+
+### 3. Usuario propio con `me`: 200 con el correo (RF-3, RF-4, RF-6)
+GET {{baseUrl}}/api/users/me
+X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
+
+### 4. Actualizar el perfil propio: 200 con los datos propios, recortados y el color en minúsculas (RF-7, RF-9, RF-21)
+# `email` se ignora (RF-9).
+PATCH {{baseUrl}}/api/users/me
+Content-Type: application/json
+X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
+
+{
+  "displayName": "  Ana (ejemplo)  ",
+  "bio": "Jugadora de ejemplo, no real",
+  "timezone": "America/Santiago",
+  "avatarColor": "#ABCDEF",
+  "email": "ignorado@example.com"
+}
+
+### 5. Reemplazar la disponibilidad propia: 200 con los bloques en orden de primera aparición (RF-13)
+# El duplicado "1-20" se guarda una vez; `user` se ignora.
+PUT {{baseUrl}}/api/users/me/availability
+Content-Type: application/json
+X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
+
+{
+  "blocks": ["5-21", "1-20", "1-20", "6-0"],
+  "user": "000000000000000000000000"
+}
+
+### 6. Leer la disponibilidad propia: 200 ["5-21", "1-20", "6-0"] (RF-12)
+GET {{baseUrl}}/api/users/me/availability
+X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
+
+### 7. Eliminar la cuenta propia: 204 sin cuerpo y borrado de la cookie (RF-11)
+DELETE {{baseUrl}}/api/users/me
+X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
+
+### 8. Sesión actual tras eliminar la cuenta: 401 "sesión no iniciada" (la cookie ya no está, RF-11)
+GET {{baseUrl}}/api/auth/me
+X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
+
+### Errores de ejemplo (ejecutar antes del paso 7)
+
+### 9. Formato de identificador inválido: 400 "id con formato inválido" (RF-5)
+GET {{baseUrl}}/api/users/aaaaaaaaaaaa
+X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
+
+### 10. Identificador válido inexistente: 404 "usuario no encontrado" (RF-20)
+GET {{baseUrl}}/api/users/000000000000000000000000
+X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
+
+### 11. Escritura sobre otro usuario (o inexistente): 403 "no tienes permiso para esta operación" (RF-10, RF-18)
+PATCH {{baseUrl}}/api/users/000000000000000000000000
+Content-Type: application/json
+X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
+
+{
+  "displayName": "Otro"
+}
+
+### 12. Zona horaria no válida: 400 (RF-16)
+PATCH {{baseUrl}}/api/users/me
+Content-Type: application/json
+X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
+
+{
+  "timezone": "CET"
+}
+
+### 13. Disponibilidad sin `blocks`: 400 "faltan los bloques" (RF-14)
+PUT {{baseUrl}}/api/users/me/availability
+Content-Type: application/json
+X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
+
+{}

@@ -1,9 +1,11 @@
 // Middlewares de Express: ruta desconocida (RF-4) y manejador de errores
-// (RF-5, RF-6, RF-7, RF-16, RF-17) de la spec 001, y `withUser` de la spec 002.
+// (RF-5, RF-6, RF-7, RF-16, RF-17) de la spec 001, `withUser` de la spec 002 y la guardia
+// de las rutas de usuario de la spec 003.
 
 import type { RequestHandler } from "express";
 import { User } from "../models/user.ts";
 import { CSRF_HEADER, SESSION_COOKIE, SESSION_MESSAGES, checkSession } from "../services/sessionToken.ts";
+import { USER_TARGET_MESSAGES, decodeSegment, matchUserRoute } from "../services/userTarget.ts";
 import { MESSAGES, mapErrorToResponse } from "./errors.ts";
 import { logger } from "./logger.ts";
 import type { Logger } from "./logger.ts";
@@ -76,5 +78,32 @@ export function createWithUser({ jwtSecret, now }: WithUserOptions): RequestHand
     }
     request.userId = check.userId; // RF-15: identidad solo desde la credencial
     next();
+  };
+}
+
+// Guardia de las rutas de usuario (spec 003, plan §3.1, D2): RF-1, RF-5, RF-6, RF-18, RF-20.
+// Se monta sin ruta (`router.use`) antes de las rutas `/:id`, porque Express 5 decodifica
+// `:id` al emparejar y con `%zz` respondería su propio 400 antes de comprobar la sesión.
+// - Rutas fuera de la tabla de la 003 (registro, 404 de la 001): siguen sin sesión.
+// - (1) sesión con `withUser` (401 de 002-RF-24); (3) segmento no decodificable → 400.
+// Los 400/413/415 de interpretación del cuerpo ya ocurrieron antes, en `express.json`.
+export interface UserRoutesGuardOptions {
+  withUser: RequestHandler;
+}
+
+export function createUserRoutesGuard({ withUser }: UserRoutesGuardOptions): RequestHandler {
+  return function userRoutesGuard(request, response, next) {
+    const route = matchUserRoute(request.method, request.path);
+    if (route === null) {
+      next();
+      return;
+    }
+    return withUser(request, response, () => {
+      if (route.kind !== "list" && decodeSegment(route.rawSegment) === null) {
+        response.status(400).json({ error: USER_TARGET_MESSAGES.invalidId });
+        return;
+      }
+      next();
+    });
   };
 }
