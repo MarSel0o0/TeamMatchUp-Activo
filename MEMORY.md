@@ -4,11 +4,11 @@ Registro dinámico. Se actualiza al cerrar cada fase SDD.
 
 ## Última actualización
 
-2026-10-16
+2026-10-18
 
 ## Fase actual
 
-Constitución aprobada y escrita (`docs/constitution.md`). Siguiente fase SDD: retomar la spec 001.
+Constitución aprobada y escrita (`docs/constitution.md`).  La spec 010 (despliegue) está aprobada.
 
 ## Estado del código
 
@@ -21,11 +21,12 @@ Constitución aprobada y escrita (`docs/constitution.md`). Siguiente fase SDD: r
 
 | Spec | Estado | Notas |
 | --- | --- | --- |
-| `001-crear-backend` | Redactada, sin implementar | Hito 2: Express + Mongoose + auth con cookie HttpOnly + CSRF + dos vistas nuevas. No sigue la plantilla SDD: las tareas están dentro de la spec y faltan `plan.md` y `tasks.md`. Las vistas nuevas (ficha de jugador, detalle de sesión) son una propuesta sin confirmar. |
+| `001 - - 009` | Desconocido | Desconocido desde esta rama, trabajandose en otras ramas |
+| `010-despliegue` | **Aprobada**, sin plan | Producción, despliegue en el servidor del curso y README. |
 
 ## Deuda conocida
 
-- `httpApi.ts` y `mockApi.ts` guardan el JWT en `localStorage` (`tmu.token`): choca con el principio 5. La spec 001 lo corrige.
+- `httpApi.ts` y `mockApi.ts` guardan el JWT en `localStorage` (`tmu.token`): choca con el principio 5. La spec 002 lo corrige.
 - No hay ningún test en el repositorio.
 - El frontend no tiene runner de test (el principio 4 aplica solo al backend por decisión del usuario).
 - `frontend/src/domain` importa sin extensión `.ts`, así que no se puede ejecutar directo con `node --test`.
@@ -36,7 +37,12 @@ Constitución aprobada y escrita (`docs/constitution.md`). Siguiente fase SDD: r
 - Principio 4 (tests primero) aplica solo al backend por ahora.
 - Principio 6 admite una futura versión en inglés de la interfaz, mediante su propia spec.
 - implementer escribe los archivos fuera de `specs/**`; planner solo escribe en `specs/**`.
+- Spec 010: en producción la interfaz y la API se sirven desde el mismo origen (sin CORS); hay una sola variable de puerto (interno en el servidor, 3001 en local); la cookie es siempre Secure en producción (T23 queda sin efecto).
+- Spec 010: antes del plan se comprueban sus supuestos (S-x) y sus referencias a RF contra las versiones finales de las otras specs (D-29, D-30).
 
 ## Próximo paso
-
-Adaptar la spec 001 a la plantilla SDD (o confirmarla tal cual) y pasar a la clarificación con reviewer.
+Para pasar al `plan.md` de la spec 010 hay que:
+1. Fusionar las specs 001 a 009 aprobadas.
+2. Comprobar los supuestos y las referencias a RF de la 010 contra las versiones finales, incluidas la vuelta desde Steam frente a SameSite (S-7) y la clave de Riot en producción (S-8).
+3. Agregar al repo el enunciado del Hito 2 y la parte 6 del Laboratorio 5.
+4. Confirmar con el curso que el puerto público 7041 acepta conexiones externas (D-23).
