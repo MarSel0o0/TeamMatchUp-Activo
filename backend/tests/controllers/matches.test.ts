@@ -189,6 +189,121 @@ describe("sesión", () => {
   });
 });
 
+// RF-16 (paso del cuerpo), RF-1, RF-13, RF-18, DP5-18: el parser global de la spec 001 interpreta
+// el cuerpo antes que `withUser` y antes que los filtros, también en un GET. `{}` y `[]` pasan
+// y se ignoran. Sin cambios de código: regresión de lo que ya hace el servidor.
+describe("cuerpo antes que sesión (RF-16)", () => {
+  const BODY_LIMIT = 102_400;
+  const QUERY = "?game=lol";
+
+  // Arma `{"a":"xxx…"}` con exactamente `bytes` bytes.
+  function jsonBodyOfBytes(bytes: number): string {
+    const wrapperBytes = Buffer.byteLength('{"a":""}');
+    const body = `{"a":"${"x".repeat(bytes - wrapperBytes)}"}`;
+    assert.strictEqual(Buffer.byteLength(body), bytes);
+    return body;
+  }
+
+  function raw(request: supertest.Test, body: string, encoding?: string): supertest.Test {
+    const json = request.set("Content-Type", "application/json");
+    return (encoding === undefined ? json : json.set("Content-Encoding", encoding)).send(body);
+  }
+
+  interface BodyCase {
+    name: string;
+    status: number;
+    error: string;
+    body: string;
+    encoding?: string;
+  }
+  const bodyCases: readonly BodyCase[] = [
+    { name: 'JSON truncado {"a":', status: 400, error: "JSON mal formado", body: '{"a":' },
+    { name: "cuerpo de 102 401 bytes", status: 413, error: "cuerpo demasiado grande", body: jsonBodyOfBytes(BODY_LIMIT + 1) },
+    {
+      name: "codificación no soportada",
+      status: 415,
+      error: "codificación no soportada",
+      body: '{"a":1}',
+      encoding: "desconocida",
+    },
+    { name: 'cuerpo JSON "x"', status: 400, error: "JSON mal formado", body: '"x"' },
+    { name: "cuerpo JSON 5", status: 400, error: "JSON mal formado", body: "5" },
+    { name: "cuerpo JSON true", status: 400, error: "JSON mal formado", body: "true" },
+    { name: "cuerpo JSON false", status: 400, error: "JSON mal formado", body: "false" },
+    { name: "cuerpo JSON null", status: 400, error: "JSON mal formado", body: "null" },
+  ];
+
+  // Usuario eliminado: su sesión (cookie y comprobante) sigue viva en el agente.
+  async function deletedUser(): Promise<SignedUp> {
+    const gone = await signUp(app, BETO);
+    await User.deleteOne({ _id: gone.id });
+    return gone;
+  }
+
+  for (const bodyCase of bodyCases) {
+    test(`GET ${MATCHES} con ${bodyCase.name} → ${bodyCase.status} "${bodyCase.error}", sin sesión, con sesión y con usuario eliminado`, async () => {
+      const ana = await signUp(app, ANA);
+      await createAccount(ana.id);
+
+      // (a) Sin credencial: el error del cuerpo, no 401 "sesión no iniciada".
+      const anonymous = await raw(supertest(app).get(`${MATCHES}${QUERY}`), bodyCase.body, bodyCase.encoding);
+      assertStatusError(anonymous, bodyCase.status, bodyCase.error);
+
+      // (b) Con sesión válida: el error del cuerpo, no 200.
+      const valid = await raw(get(ana, QUERY), bodyCase.body, bodyCase.encoding);
+      assertStatusError(valid, bodyCase.status, bodyCase.error);
+
+      // (c) Con la credencial de un usuario eliminado: el error del cuerpo, no 401 "token inválido".
+      const gone = await deletedUser();
+      const stale = await raw(get(gone, QUERY), bodyCase.body, bodyCase.encoding);
+      assertStatusError(stale, bodyCase.status, bodyCase.error);
+    });
+  }
+
+  test("cuerpo roto y ?game=nada → 400 \"JSON mal formado\", no \"juego no válido\" (el cuerpo va antes que los filtros)", async () => {
+    const ana = await signUp(app, ANA);
+    const response = await raw(get(ana, "?game=nada"), '{"a":');
+    assertStatusError(response, 400, "JSON mal formado");
+  });
+
+  test("el 102 400 bytes exactos sí se acepta: sin credencial → 401 \"sesión no iniciada\", no 413", async () => {
+    const response = await raw(supertest(app).get(`${MATCHES}${QUERY}`), jsonBodyOfBytes(BODY_LIMIT));
+    assertStatusError(response, 401, SESSION_MESSAGES.notLoggedIn);
+  });
+
+  test("consulta normal: sin cuerpo, {} y [] → 200 idéntico con un candidato", async () => {
+    const ana = await signUp(app, ANA);
+    const beto = await signUp(app, BETO);
+    await setAvailability(ana.id, ["0-20", "0-21"]);
+    await setAvailability(beto.id, ["0-20", "0-21"]);
+    await createAccount(ana.id);
+    await createAccount(beto.id);
+
+    const withoutBody = await get(ana, QUERY);
+    assert.strictEqual(withoutBody.status, 200);
+    const body: unknown = withoutBody.body;
+    assert.ok(Array.isArray(body));
+    assert.strictEqual(body.length, 1);
+    const [candidate]: unknown[] = body;
+    assert.ok(typeof candidate === "object" && candidate !== null);
+    assert.strictEqual(Reflect.get(Reflect.get(candidate, "user"), "username"), "Beto");
+
+    for (const text of ["{}", "[]"]) {
+      const response = await raw(get(ana, QUERY), text);
+      assert.strictEqual(response.status, 200);
+      assert.deepStrictEqual(response.body, withoutBody.body);
+    }
+  });
+
+  test("cuerpo {} admitido: sin credencial → 401 \"sesión no iniciada\" y con usuario eliminado → 401 \"token inválido\" (RF-1, RF-13)", async () => {
+    const anonymous = await raw(supertest(app).get(`${MATCHES}${QUERY}`), "{}");
+    assertStatusError(anonymous, 401, SESSION_MESSAGES.notLoggedIn);
+
+    const gone = await deletedUser();
+    assertStatusError(await raw(get(gone, QUERY), "{}"), 401, SESSION_MESSAGES.invalidToken);
+  });
+});
+
 describe("errores", () => {
   test("juego ausente, vacío, desconocido, en mayúsculas, con espacios o repetido → 400 \"juego no válido\" (RF-5)", async () => {
     const ana = await signUp(app, ANA);

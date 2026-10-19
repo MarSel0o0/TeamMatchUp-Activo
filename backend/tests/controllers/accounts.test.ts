@@ -559,7 +559,7 @@ describe("cuerpo antes que sesión (RF-29)", () => {
     return body;
   }
 
-  type Method = "post" | "put" | "delete";
+  type Method = "get" | "post" | "put" | "delete";
   interface Operation {
     name: string;
     method: Method;
@@ -570,6 +570,10 @@ describe("cuerpo antes que sesión (RF-29)", () => {
     { name: "PUT /api/accounts/:id", method: "put", path: (id) => `/api/accounts/${id}` },
     { name: "DELETE /api/accounts/:id", method: "delete", path: (id) => `/api/accounts/${id}` },
     { name: "POST /api/accounts/:id/sync", method: "post", path: (id) => `/api/accounts/${id}/sync` },
+    // Lecturas (DP-43): el parser global también las precede; el cuerpo de un GET se ignora.
+    { name: "GET /api/accounts", method: "get", path: () => "/api/accounts" },
+    { name: "GET /api/accounts/:id", method: "get", path: (id) => `/api/accounts/${id}` },
+    { name: "GET /api/users/:id/games/:gameId", method: "get", path: () => "/api/users/me/games/lol" },
   ];
 
   interface BodyCase {
@@ -646,6 +650,28 @@ describe("cuerpo antes que sesión (RF-29)", () => {
       .set("Content-Type", "application/json")
       .send(jsonBodyOfBytes(BODY_LIMIT));
     assertStatusError(response, 401, SESSION_MESSAGES.notLoggedIn);
+  });
+
+  // P2 (RF-6, RF-40): `[]` pasa el parser estricto y se trata como un cuerpo sin campos.
+  test("cuerpo [] al vincular: con sesión → 400 \"juego no válido\", sin sesión → 401", async (t) => {
+    fixClock(t);
+    const ana = await signUp(app, ANA);
+    assertStatusError(await link(ana, []), 400, "juego no válido");
+    assert.deepStrictEqual(await rawAccountsInDb(), []);
+    const anonymous = await raw(supertest(app).post("/api/accounts"), "[]", undefined);
+    assertStatusError(anonymous, 401, SESSION_MESSAGES.notLoggedIn);
+    assert.deepStrictEqual(await rawAccountsInDb(), []);
+  });
+
+  test("cuerpo [] al editar la cuenta propia → 200 con la cuenta sin cambios", async (t) => {
+    fixClock(t);
+    const ana = await signUp(app, ANA);
+    const accountId = await linkOk(ana, LINKS.lol);
+    const before = await rawAccountsInDb();
+    const response = await edit(ana, accountId, []);
+    assert.strictEqual(response.status, 200);
+    assert.deepStrictEqual(response.body, (await accountsInDb())[0]);
+    assert.deepStrictEqual(await rawAccountsInDb(), before);
   });
 });
 
