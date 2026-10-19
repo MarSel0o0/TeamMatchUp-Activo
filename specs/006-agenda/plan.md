@@ -6,7 +6,7 @@ supuestos") e incorpora las decisiones del usuario Q1 a Q4 del 2026-10-19 (secci
 resueltas"). El único cambio de requisito, el texto del 401 del usuario eliminado ("token
 inválido", Q1), ya está aprobado en la spec (RF-18, DP6-39).
 Spec: `specs/006-agenda/spec.md` (aprobada el 2026-10-18, con el cambio aprobado del
-2026-10-19; DP6-1 a DP6-39).
+2026-10-19; DP6-1 a DP6-40).
 
 **Precondición:** las specs 001 a 005 las implementaron otros miembros del equipo y están
 implementadas y validadas (2026-10-19, `MEMORY.md`; sección 0). Lo que este plan toma de
@@ -454,7 +454,11 @@ removeUserFromSessions(userId):                          // llamada por DELETE /
   una creación o un sumarse que escribió **antes** de C4 lo limpia C4 (C4 corre después de
   C2, así que barre todo lo escrito mientras el usuario aún existía); uno cuya comprobación
   `User.exists` ocurre **después** de C2 la ve nula y se compensa (401, RF-18); no queda un
-  tercer caso, porque toda escritura precede a su comprobación. Entre C2 y C4 hay un intervalo de
+  tercer caso de escritura, porque toda escritura precede a su comprobación. Aparte, solo al
+  crear, si C1 ya borró sus cuentas antes de que la petición lea las cuentas vinculadas, la
+  validación de RF-27 responde 400 "No tienes una cuenta vinculada en este juego." sin
+  guardar nada (RF-16, DP6-40); sumarse no exige cuenta (RF-11) y no
+  tiene ese caso. Entre C2 y C4 hay un intervalo de
   milisegundos con sesiones de un usuario ya borrado (RF-24 las oculta o filtra). Ninguna
   sesión organizada por él ni participación suya sobrevive al final. No se cambia el orden
   C1 → C2 → C3 de la 004; `userDeletionCascade.test.ts` sigue verde. **Aprobado por el
@@ -575,7 +579,7 @@ removeUserFromSessions(userId):                          // llamada por DELETE /
 - **Cascada (RF-16):** sesiones organizadas borradas; participaciones quitadas con estado
   recalculado (`full` → `open`); `Promise.all` de eliminar usuario (`deleteMe`) con crear y con
   sumarse → al final ninguna sesión del usuario ni participación suya; crear/sumarse
-  responden 201/200 o 401 "token inválido" (DP6-39). Con `User.deleteOne` sustituido para que lance (como en
+  responden 201/200 o 401 "token inválido" (DP6-39); crear admite además el 400 de RF-27 si C1 borró la cuenta antes de validar (DP6-40). Con `User.deleteOne` sustituido para que lance (como en
   `userDeletionCascade.test.ts`): 500, el usuario y sus sesiones intactos (C4 no corre) y
   repetir la eliminación (la credencial sigue valiendo) deja el estado final correcto. La
   intercalación determinista de una creación entre C2 y C4 se prepara sustituyendo

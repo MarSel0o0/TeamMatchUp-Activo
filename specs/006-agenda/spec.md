@@ -1,5 +1,5 @@
 # Spec 006 — Agenda de sesiones de juego
-Estado: implementada (2026-10-19)
+Estado: implementada (2026-10-19); cambio RF-16 (DP6-40) aprobado (2026-10-19)
 Aprobada el 2026-10-18. Cambio de requisitos del 2026-10-19, tras ajustar el plan al código
 real (preguntas Q1 y Q4 del plan): la credencial válida de un usuario eliminado responde 401
 "token inválido" y no "sesión no iniciada" (RF-1, RF-16, RF-18, casos límite, criterios de
@@ -37,7 +37,7 @@ obtener, crear, editar y cancelar) más sumarse y salir.
   —sesión—, 5.5, 5.7 y 8 —pruebas de sesiones y de la aplicación—) están en la referencia y
   pasan al plan de esta spec, con las excepciones de "Qué prevalece sobre la referencia".
 - Las decisiones marcadas "(DP6-n)" salen de la clarificación del 2026-10-18 (tabla al
-  final; la descripción de cada bloque está encabezando la tabla), salvo DP6-39, del
+  final; la descripción de cada bloque está encabezando la tabla), salvo DP6-39 y DP6-40, del
   2026-10-19. Las "DP-n" sin prefijo
   son las de la spec 004 y las "DP5-n", las de la 005.
 
@@ -226,9 +226,15 @@ eliminado, RF-18), "id con formato inválido" (spec 003, RF-5) y "JSON mal forma
   juego que organiza, lo quita de las sesiones de juego en las que participa y recalcula el
   estado de cada una. Al completar la eliminación no queda ninguna sesión de juego
   organizada por él ni ninguna en la que figure como participante, también si la
-  eliminación coincide con una creación o un sumarse suyo: esa otra operación responde 201
-  o 200 si terminó antes (y la cascada la limpia) o el 401 "token inválido" de RF-18 si no
-  (DP6-12, DP6-39).
+  eliminación coincide con una creación o un sumarse suyo. Esa otra operación responde:
+  - 201 o 200 si terminó antes (y la cascada la limpia);
+  - el 401 "token inválido" de RF-18 si no;
+  - solo al crear, el 400 "No tienes una cuenta vinculada en este juego." de RF-27 si la
+    eliminación ya borró sus cuentas vinculadas (spec 004, RF-14) antes de que la
+    validación las consulte; en ese caso no se guarda nada.
+  Sumarse no exige cuenta vinculada (RF-11), así que ese 400 no aplica al sumarse. En los
+  tres casos, al completar la eliminación no queda ninguna sesión de juego organizada por el
+  usuario ni participación suya (DP6-12, DP6-39, DP6-40).
 - RF-17: SI un usuario pide salir de una sesión de juego en la que no está inscrito,
   ENTONCES EL SISTEMA responde 409 con "No estás inscrito en esta sesión." y no cambia nada.
 - RF-18: SI la credencial es válida (firma, vigencia y comprobante) pero su usuario ya no
@@ -418,7 +424,10 @@ eliminado, RF-18), "id con formato inválido" (spec 003, RF-5) y "JSON mal forma
   `open` y ambas operaciones se resuelven con 2 participantes.
 - Último cupo, doble sumarse, bajar cupos o cancelar mientras alguien se suma: RF-25.
 - Eliminar un usuario mientras crea o se suma a una sesión de juego: no queda nada suyo al
-  terminar la eliminación (RF-16).
+  terminar la eliminación. La otra operación responde 201 o 200 si terminó antes, 401
+  "token inválido" si no, o, solo al crear, 400 "No tienes una cuenta vinculada en este
+  juego." si la eliminación ya borró sus cuentas antes de validar (no se guarda nada);
+  sumarse nunca da ese 400 (RF-11, RF-16, RF-27, DP6-40).
 - Cuerpo con JSON mal formado: 400 "JSON mal formado" (RF-23), también sin credencial, con
   credencial inválida o expirada, o con la de un usuario eliminado: el 400 va antes que el
   401 (RF-20, DP6-21).
@@ -474,7 +483,10 @@ eliminado, RF-18), "id con formato inválido" (spec 003, RF-5) y "JSON mal forma
 - [ ] Hay pruebas de concurrencia de RF-25 (último cupo, doble sumarse, bajar cupos mientras
       alguien se suma, cancelar mientras alguien se suma) y de la cascada de RF-16 (sesiones
       organizadas borradas, participaciones quitadas con estado recalculado, y eliminación
-      simultánea a una creación y a un sumarse).
+      simultánea a una creación y a un sumarse). La prueba de la creación admite 201, 401
+      "token inválido" o 400 "No tienes una cuenta vinculada en este juego." (RF-27), y la
+      del sumarse admite 200 o 401; en todos los casos comprueba que no queda ninguna
+      sesión de juego ni participación del usuario eliminado (DP6-40).
 - [ ] Hay una prueba de RF-18 (credencial de un usuario eliminado → 401 "token inválido")
       y otras de RF-24: anfitrión inexistente → sesión omitida del listado y 404
       por id; participante inexistente → sesión visible en el listado y 200 por id, sin ese
@@ -545,7 +557,8 @@ cuarta ronda (E-1 a E-5). Bloque F: decisiones del usuario y correcciones de coh
 la segunda pasada de QA del revisor (F-1 a F-4) y la última decisión del usuario antes de
 aprobar la spec (F-5). Bloque G (2026-10-19): decisiones del usuario al ajustar el plan al
 código real: Q1 (DP6-39, texto del 401 del usuario eliminado), Q2 (se mantiene el estilo de
-texto de la 006, nota en "Mensajes"), Q3 (cascada, solo afecta al plan) y Q4 (nota en DP6-24).
+texto de la 006, nota en "Mensajes"), Q3 (cascada, solo afecta al plan), Q4 (nota en DP6-24) y, tras la validación, DP6-40 (laguna
+de RF-16 señalada por el reviewer: el 400 de RF-27 en la carrera eliminar + crear).
 
 | DP | Origen | Decisión | Alternativa descartada |
 | --- | --- | --- | --- |
@@ -588,3 +601,4 @@ texto de la 006, nota en "Mensajes"), Q3 (cascada, solo afecta al plan) y Q4 (no
 | DP6-37 | Usuario (F-4) | Se mantiene "cuerpo antes que 401". Como el orden de errores es global al servidor, las specs 004 (RF-29) y 005 deben adoptar la misma excepción; se cambian por el flujo de cambio de requisitos, no desde esta spec. | Volver a "401 primero" en esta spec: dejaría dos órdenes distintos en el mismo servidor. |
 | DP6-38 | Usuario (F-5) | Mientras dura la cascada de RF-16, en una sesión de juego con un participante ya eliminado, RF-8 (cupos bajo inscritos) y RF-12 (llena) cuentan los participantes guardados, incluido el eliminado hasta que la cascada lo quite, no los visibles (RF-24). | Contar los participantes visibles: el estado guardado (`full`) y la regla de sumarse podrían contradecirse, y una edición o un sumarse podría dejar más participantes guardados que cupos antes de que la cascada termine. |
 | DP6-39 | Usuario (Q1, 2026-10-19) | La credencial válida de un usuario eliminado responde 401 "token inválido" en todas las operaciones de esta spec, también en la compensación de RF-16 (crear o sumarse a la vez que se elimina al usuario). "Sesión no iniciada" queda solo para la credencial ausente (spec 002, RF-10). Alinea la 006 con la spec 002 (RF-22, RF-24), la 004 (RF-44, DP-37) y la 005 (RF-13, DP5-16), y con lo que ya responde el servidor implementado. Precisa el texto de DP6-17. | 401 "sesión no iniciada" (texto original de la 006, opción B de Q1): exigiría una comprobación propia de la 006, distinta de la de las specs 002 a 005, o cambiar la 004; y un mismo usuario eliminado recibiría textos distintos según la operación (agenda frente a cuentas, coincidencias y usuarios). |
+| DP6-40 | Usuario (2026-10-19, laguna señalada por reviewer) | RF-16 contempla un tercer resultado de la operación simultánea a la eliminación del usuario: al crear, 400 "No tienes una cuenta vinculada en este juego." (RF-27) cuando la cascada de cuentas de la spec 004 ya borró la vinculación antes de que la creación valide; no se guarda nada. Se suma a 201/200 (terminó antes, la cascada lo limpia) y 401 "token inválido" (RF-18). Sumarse no exige cuenta (RF-11), así que no aplica al sumarse. En todos los casos no queda sesión ni participación del usuario eliminado. | Cambiar el orden de la cascada de cuentas de la spec 004 para que el usuario desaparezca antes que sus cuentas: fuera de alcance de esta spec (la 004 conviene que el usuario sea lo último en desaparecer, RF-14 y DP-42) y no es necesario, porque el estado final ya es correcto. |
