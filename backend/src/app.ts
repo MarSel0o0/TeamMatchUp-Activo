@@ -1,5 +1,5 @@
 // Composición de Express (spec 001: RF-4, RF-5, RF-7, RF-16, RF-17; spec 002: RF-26;
-// spec 004: RF-1).
+// spec 004: RF-1; spec 005: RF-1).
 // No conecta a la base: la conexión vive en src/server.ts. No lee `process.env`: el secreto,
 // el entorno y el reloj llegan como opciones (D11), así las pruebas pueden fijarlos.
 
@@ -8,6 +8,7 @@ import express from "express";
 import type { Express } from "express";
 import { createAccountsRouter } from "./controllers/accounts.ts";
 import { createAuthRouter } from "./controllers/auth.ts";
+import { createMatchesRouter } from "./controllers/matches.ts";
 import { createUsersRouter } from "./controllers/users.ts";
 import type { NodeEnv } from "./utils/config.ts";
 import { errorHandler, unknownEndpoint } from "./utils/middleware.ts";
@@ -38,6 +39,8 @@ export function createApp(options: AppOptions): Express {
   app.use("/api/users", createUsersRouter({ jwtSecret, nodeEnv, now }));
   app.use("/api/auth", createAuthRouter({ jwtSecret, nodeEnv, now })); // login y logout públicos; me protegida (RF-26)
   app.use("/api/accounts", createAccountsRouter({ jwtSecret, now })); // spec 004: todas con sesión (RF-1)
+
+  app.use("/api/matches", createMatchesRouter({ jwtSecret, now })); // spec 005: con sesión (RF-1)
 
   app.use(unknownEndpoint);
   app.use(errorHandler); // siempre el último

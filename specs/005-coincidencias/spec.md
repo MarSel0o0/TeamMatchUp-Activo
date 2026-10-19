@@ -1,5 +1,6 @@
 # Spec 005 — Coincidencias en el servidor
-Estado: aprobada (2026-10-17)
+Estado: implementada (2026-10-19)
+Validada por el reviewer RF por RF; 1427 tests en verde.
 
 ## Contexto y objetivo
 El cruce de juego, rango y horario es el producto (`PRODUCT.md`, principio 1). Hoy lo
@@ -316,33 +317,33 @@ decisión "R6 con rango y partidas simuladas" del 2026-10-17).
       con el servidor real en la distancia de rango y el puntaje de los candidatos
       (comprobable en su texto). Hasta entonces la convención de `AGENTS.md` sobre datos de
       demostración no se cumple con el servidor real en la vista de coincidencias.
-- [ ] El criterio de puntaje tiene pruebas unitarias: distancia ≥ 25 anula el rango, ≥ 8
+- [x] El criterio de puntaje tiene pruebas unitarias: distancia ≥ 25 anula el rango, ≥ 8
       horas saturan el horario, mitades hacia arriba (distancia 0 y 4 bloques = 78) y
       ningún caso afectado por coma flotante (se recorren todas las distancias de 0 a 100 y
       todos los bloques de 0 a 168 y se compara con el cálculo exacto).
-- [ ] La intersección de bloques tiene pruebas unitarias: sin traslape, con traslape
+- [x] La intersección de bloques tiene pruebas unitarias: sin traslape, con traslape
       parcial, con listas vacías y con el orden por día y hora aunque las disponibilidades
       lleguen desordenadas.
-- [ ] La lectura de filtros tiene pruebas unitarias: ausente, vacío, repetido, no numérico,
+- [x] La lectura de filtros tiene pruebas unitarias: ausente, vacío, repetido, no numérico,
       decimales, signo, espacios, exponente y prefijo, en los extremos (0, 100, 168) y fuera
       de rango; juego en mayúsculas, con espacios, vacío y repetido; solo verificadas
       `true`, `false`, ausente y no reconocido; búsqueda repetida; y el orden de RF-16 con
       un caso por salto.
-- [ ] El orden de la lista tiene pruebas unitarias con cada nivel de desempate de RF-2.
-- [ ] La búsqueda tiene pruebas unitarias: texto literal con metacaracteres, mayúsculas
+- [x] El orden de la lista tiene pruebas unitarias con cada nivel de desempate de RF-2.
+- [x] La búsqueda tiene pruebas unitarias: texto literal con metacaracteres, mayúsculas
       fuera de ASCII, acentos distinguidos, vacía y solo espacios.
-- [ ] Cada RF tiene al menos una prueba automática en verde que verifica la respuesta (con
+- [x] Cada RF tiene al menos una prueba automática en verde que verifica la respuesta (con
       el texto exacto del mensaje en los errores), incluida una por filtro (el de solo
       verificadas en los tres juegos) y una de R6 con distancia y puntaje como en LoL y CS2.
-- [ ] Una prueba confirma que la distancia usa el rango normalizado de la spec 004: dos
+- [x] Una prueba confirma que la distancia usa el rango normalizado de la spec 004: dos
       cuentas en el mismo escalón con distintos puntos tienen distancia 0.
-- [ ] Una prueba confirma que ningún candidato trae el campo de correo ni hash, y que trae
+- [x] Una prueba confirma que ningún candidato trae el campo de correo ni hash, y que trae
       el juego consultado.
-- [ ] Una prueba confirma que la cuenta de cada candidato lleva la marca de datos simulados
+- [x] Una prueba confirma que la cuenta de cada candidato lleva la marca de datos simulados
       y no lleva partidas (spec 004, RF-37 y DP-32).
-- [ ] Hay una prueba de RF-13 (credencial de un usuario ya eliminado → 401 "sesión no
+- [x] Hay una prueba de RF-13 (credencial de un usuario ya eliminado → 401 "sesión no
       iniciada") y otra de RF-17 (cuenta de un usuario inexistente omitida, 200).
-- [ ] Comprobación de tipos y pruebas del servidor en verde.
+- [x] Comprobación de tipos y pruebas del servidor en verde.
 
 ## Dudas abiertas
 No quedan dudas abiertas. Las dos anteriores las cerró la spec 004 (aprobada el

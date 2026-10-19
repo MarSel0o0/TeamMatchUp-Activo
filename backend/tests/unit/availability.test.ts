@@ -6,6 +6,11 @@ import {
   isTimeBlock,
   validateAvailability,
 } from "../../src/services/availability.ts";
+import {
+  compareBlocks,
+  intersectBlocks,
+  parseBlock,
+} from "../../src/domain/availability.ts";
 
 function okValue(body: unknown): string[] {
   const result = validateAvailability(body);
@@ -204,5 +209,144 @@ describe("constantes y mensajes (RNF-3, RNF-4)", () => {
       assert.equal(message, message.trim(), key);
       assert.equal(message, message.toLowerCase(), key);
     }
+  });
+});
+
+// Spec 005 (RF-3 bloques, DP5-9, RNF-1): reglas puras de `domain/availability.ts`.
+describe("parseBlock (domain, DP5-9)", () => {
+  test("devuelve día y hora de un bloque válido", () => {
+    assert.deepEqual(parseBlock("0-0"), { day: 0, hour: 0 });
+    assert.deepEqual(parseBlock("6-23"), { day: 6, hour: 23 });
+    assert.deepEqual(parseBlock("2-20"), { day: 2, hour: 20 });
+    assert.deepEqual(parseBlock("0-5"), { day: 0, hour: 5 });
+    assert.deepEqual(parseBlock("3-10"), { day: 3, hour: 10 });
+  });
+
+  test("cada día 0..6 y cada hora 0..23 se leen como números", () => {
+    for (let day = 0; day <= 6; day += 1) {
+      for (let hour = 0; hour <= 23; hour += 1) {
+        assert.deepEqual(parseBlock(`${day}-${hour}`), { day, hour });
+      }
+    }
+  });
+
+  test("null si no cumple el formato (sin recortar ni aceptar ceros, signos o saltos)", () => {
+    const invalid = [
+      "",
+      "2-05",
+      "02-5",
+      "7-10",
+      "2-24",
+      "2-",
+      "-5",
+      "2_5",
+      "2-5 ",
+      " 2-5",
+      "2-5\n",
+      "+2-5",
+      "2--5",
+      "a-b",
+      "2-5-1",
+      "2-1.5",
+      "２-５",
+      "lunes",
+    ];
+    for (const block of invalid) {
+      assert.equal(parseBlock(block), null, JSON.stringify(block));
+    }
+  });
+});
+
+describe("compareBlocks (domain, DP5-9)", () => {
+  test("día ascendente y, dentro del día, hora ascendente", () => {
+    assert.ok(compareBlocks("0-5", "1-0") < 0);
+    assert.ok(compareBlocks("1-0", "0-5") > 0);
+    assert.ok(compareBlocks("2-3", "2-20") < 0);
+    assert.ok(compareBlocks("2-20", "2-3") > 0);
+  });
+
+  test("numérico, no alfabético: 0-5 antes que 0-23 y 0-9 antes que 0-10", () => {
+    assert.ok(compareBlocks("0-5", "0-23") < 0);
+    assert.ok(compareBlocks("0-23", "0-5") > 0);
+    assert.ok(compareBlocks("0-9", "0-10") < 0);
+  });
+
+  test("bloques iguales dan 0", () => {
+    assert.equal(compareBlocks("4-12", "4-12"), 0);
+  });
+
+  test("ordena una lista de menor a mayor", () => {
+    assert.deepEqual(["6-0", "0-23", "0-5", "2-20"].sort(compareBlocks), [
+      "0-5",
+      "0-23",
+      "2-20",
+      "6-0",
+    ]);
+  });
+});
+
+describe("intersectBlocks (domain, DP5-9)", () => {
+  test("sin traslape: lista vacía", () => {
+    assert.deepEqual(intersectBlocks(["0-1", "0-2"], ["1-1", "1-2"]), []);
+    assert.deepEqual(intersectBlocks(["0-1"], ["0-2"]), []);
+  });
+
+  test("traslape parcial: solo los bloques presentes en ambas", () => {
+    assert.deepEqual(intersectBlocks(["0-1", "0-2", "3-4"], ["0-2", "3-4", "5-6"]), [
+      "0-2",
+      "3-4",
+    ]);
+  });
+
+  test("traslape total", () => {
+    assert.deepEqual(intersectBlocks(["1-1", "2-2"], ["2-2", "1-1"]), ["1-1", "2-2"]);
+  });
+
+  test("listas vacías: una, otra o ambas", () => {
+    assert.deepEqual(intersectBlocks([], []), []);
+    assert.deepEqual(intersectBlocks(["0-1"], []), []);
+    assert.deepEqual(intersectBlocks([], ["0-1"]), []);
+  });
+
+  test("repetidos en la entrada no se repiten en la salida", () => {
+    assert.deepEqual(intersectBlocks(["0-1", "0-1", "0-1"], ["0-1", "0-1"]), ["0-1"]);
+    assert.deepEqual(intersectBlocks(["2-3", "2-3", "1-1"], ["1-1", "2-3", "2-3"]), [
+      "1-1",
+      "2-3",
+    ]);
+  });
+
+  test("entradas desordenadas: salida por día y hora numérico (0-5 antes que 0-23)", () => {
+    const blocks = ["6-0", "0-23", "0-5", "2-20"];
+    assert.deepEqual(intersectBlocks(blocks, blocks), ["0-5", "0-23", "2-20", "6-0"]);
+    assert.deepEqual(intersectBlocks(blocks, [...blocks].reverse()), [
+      "0-5",
+      "0-23",
+      "2-20",
+      "6-0",
+    ]);
+  });
+
+  test("el resultado es el mismo al intercambiar los argumentos", () => {
+    const a = ["3-9", "0-23", "0-5", "6-6", "3-10"];
+    const b = ["6-6", "3-10", "0-5", "1-1"];
+    assert.deepEqual(intersectBlocks(a, b), intersectBlocks(b, a));
+    assert.deepEqual(intersectBlocks(a, b), ["0-5", "3-10", "6-6"]);
+  });
+
+  test("texto que no es bloque se ignora, aunque esté en ambas listas", () => {
+    assert.deepEqual(
+      intersectBlocks(["lunes", "2-05", "7-1", "", "0-5"], ["lunes", "2-05", "7-1", "", "0-5"]),
+      ["0-5"],
+    );
+    assert.deepEqual(intersectBlocks(["0-5 ", "0-5"], ["0-5 ", "0-5"]), ["0-5"]);
+  });
+
+  test("no modifica las listas de entrada", () => {
+    const a = ["6-0", "0-23", "0-5"];
+    const b = ["0-5", "6-0"];
+    intersectBlocks(a, b);
+    assert.deepEqual(a, ["6-0", "0-23", "0-5"]);
+    assert.deepEqual(b, ["0-5", "6-0"]);
   });
 });

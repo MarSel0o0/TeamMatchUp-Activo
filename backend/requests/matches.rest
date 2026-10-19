@@ -1,0 +1,70 @@
+# Prueba manual de coincidencias (spec 005): inicio de sesión → coincidencias de LoL sin
+# filtros → con los cinco filtros → distancia no válida (400) → juego sin cuenta (404).
+#
+# Formato de la extensión REST Client de VS Code: guarda la cookie `token` entre peticiones
+# (rest-client.rememberCookiesForSubsequentRequests, activo por defecto) y lee la cabecera
+# X-CSRF-Token de la respuesta del inicio de sesión con {{login.response.headers...}}.
+#
+# Requisitos: servidor en desarrollo (`npm run dev`) con MongoDB disponible y el `.env`
+# copiado de `.env.example`. No hace falta ninguna variable nueva ni conexión a Internet: el
+# rango lo genera el proveedor simulado de la spec 004 (RNF-4).
+#
+# Datos previos (datos de ejemplo, no reales):
+# - La cuenta de ejemplo debe existir (paso 1 de `auth.rest`) y tener una cuenta de LoL
+#   vinculada (paso 2 de `accounts.rest`). Sin ella, el paso 2 responde 404 (RF-6).
+# - Para ver candidatos hacen falta otros usuarios con cuenta de LoL: registra uno o dos más
+#   con otro correo y otro nombre de usuario (paso 1 de `auth.rest`), inicia sesión con cada
+#   uno y vincula su cuenta de LoL (`accounts.rest`). Dale disponibilidad a ellos y a la
+#   cuenta de ejemplo (paso 5 de `users.rest`) para que haya bloques en común.
+# - El paso 5 usa un juego sin cuenta: si la cuenta de ejemplo tiene vinculada una de R6,
+#   cambia `r6` por un juego sin vincular (`cs2`) o desvincúlala.
+#
+# Cada candidato lleva el juego consultado, la distancia de rango, los bloques en común
+# (ordenados por día y hora), el puntaje y una cuenta con `"simulated": true`, sin partidas,
+# sin `matches` ni `readingNumber` (RF-3, RNF-2). El usuario del candidato no lleva correo
+# (DP5-10). Ningún texto atribuye el rango a una fuente real (RNF-3).
+
+@baseUrl = http://localhost:3001
+@email = ana.ejemplo@example.com
+@password = contrasena-de-ejemplo
+
+### 1. Inicio de sesión (público): 200, cookie `token` y cabecera X-CSRF-Token (spec 002)
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### 2. Coincidencias de LoL sin filtros: 200 con todos los candidatos, ordenados por puntaje (RF-2, RF-3, RF-11)
+# Sin filtros equivale a distancia máxima 100, mínimo de horas 0, sin verificadas y sin
+# búsqueda. El propio usuario no aparece (RF-4). Un parámetro desconocido se ignora (RF-18).
+GET {{baseUrl}}/api/matches?game=lol&page=2
+X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
+
+### 3. Coincidencias de LoL con los cinco filtros: 200 con los candidatos que cumplen todos (RF-7, RF-8, RF-9)
+# Distancia de rango como máximo 10, al menos 2 horas en común, solo cuentas con rango
+# verificado (dato simulado) y nombre visible o de usuario que contenga "ejemplo", sin distinguir
+# mayúsculas. Un valor igual al límite se conserva. Lista vacía = 200 con [].
+GET {{baseUrl}}/api/matches?game=lol&maxRankDistance=10&minSharedHours=2&onlyVerified=true&search=ejemplo
+X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
+
+### Errores de ejemplo
+
+### 4. Distancia máxima no válida: 400 "Filtro «Diferencia máxima de rango» no válido: usa un número entero de 0 a 100." (RF-12)
+GET {{baseUrl}}/api/matches?game=lol&maxRankDistance=abc
+X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
+
+### 5. Juego sin cuenta vinculada: 404 "No tienes una cuenta vinculada en este juego." (RF-6)
+# Cambia `r6` por un juego que la cuenta de ejemplo no tenga vinculado.
+GET {{baseUrl}}/api/matches?game=r6
+X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
+
+### 6. Juego no válido: 400 "Juego no válido." (RF-5)
+GET {{baseUrl}}/api/matches?game=LOL
+X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
+
+### 7. Sin X-CSRF-Token: 401 "token inválido" (RF-1)
+GET {{baseUrl}}/api/matches?game=lol
