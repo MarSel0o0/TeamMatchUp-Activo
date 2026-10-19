@@ -15,6 +15,21 @@ export const ROUTES = {
 
 export type RoutePath = (typeof ROUTES)[keyof typeof ROUTES];
 
+/** Rutas que exigen sesión; las specs 008 y 009 añaden las suyas (plan 3.5). */
+const PROTECTED_PATHS: readonly string[] = [
+  ROUTES.home,
+  ROUTES.profile,
+  ROUTES.settings,
+  ROUTES.matches,
+  ROUTES.schedule,
+];
+
+/** `true` si `pathname` (sin parámetros de consulta) es una ruta protegida (RF-7, RF-24, RF-25). */
+export function isProtectedPath(pathname: string): boolean {
+  const normalized = pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname;
+  return PROTECTED_PATHS.includes(normalized);
+}
+
 /** Índice del expediente: las secciones de la navegación principal. */
 export const NAV_ITEMS: { to: RoutePath; label: string; folio: string; icon: LucideIcon }[] = [
   { to: ROUTES.profile, label: 'Mi ficha', folio: '01', icon: FileUser },

@@ -1,5 +1,4 @@
 import type {
-  AuthSession,
   Credentials,
   GameAccount,
   GameId,
@@ -33,6 +32,7 @@ export interface UpdateProfilePayload {
   displayName?: string;
   bio?: string;
   timezone?: string;
+  avatarColor?: string;
 }
 
 /** Resumen que alimenta la vista de perfil para un juego concreto. */
@@ -52,9 +52,11 @@ export interface GameProfileSummary {
  */
 export interface ApiContract {
   auth: {
-    login(credentials: Credentials): Promise<AuthSession>;
-    register(payload: RegisterPayload): Promise<AuthSession>;
-    /** Restaura la sesión a partir del token guardado; `null` si no es válida. */
+    /** Inicia sesión y guarda el comprobante anti-CSRF; devuelve al usuario. */
+    login(credentials: Credentials): Promise<User>;
+    /** Crea la cuenta; no abre sesión (spec 002). */
+    register(payload: RegisterPayload): Promise<User>;
+    /** Consulta la sesión vigente; `null` solo si el servidor responde 401. */
     me(): Promise<User | null>;
     logout(): Promise<void>;
   };
@@ -66,6 +68,8 @@ export interface ApiContract {
     /** Fuerza una relectura del rango desde la fuente externa del juego. */
     syncAccount(accountId: string): Promise<GameAccount>;
     getAvailability(): Promise<TimeBlock[]>;
+    /** Horas marcadas por otro jugador; las usa "Proponer" (plan 3.11, R-6). */
+    getAvailabilityOf(userId: string): Promise<TimeBlock[]>;
     saveAvailability(blocks: TimeBlock[]): Promise<TimeBlock[]>;
     getGameSummary(gameId: GameId): Promise<GameProfileSummary>;
   };

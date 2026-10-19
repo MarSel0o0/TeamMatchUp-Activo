@@ -1,4 +1,4 @@
-import { GAME_LIST, GAMES, normalizeRank } from '@/domain/games';
+import { GAME_LIST } from '@/domain/games';
 import { toBlock } from '@/domain/availability';
 import type {
   GameAccount,
@@ -10,7 +10,13 @@ import type {
   User,
   WeekDay,
 } from '@/domain/types';
-import { createRandom, type Random } from './random';
+import { createRandom } from './random';
+import {
+  canonicalHandle,
+  readAccountState,
+  type SimulatedMatch,
+  type Snapshot,
+} from './simulatedProvider';
 
 export interface MockDatabase {
   users: User[];
@@ -39,29 +45,170 @@ const AVATAR_COLORS = [
   '#6e9df0',
 ];
 
-const PEOPLE: { username: string; displayName: string; bio: string }[] = [
-  { username: 'vicho', displayName: 'Vicente Oliva', bio: 'Mid main, juego de noche entre semana.' },
-  { username: 'cotito', displayName: 'Constanza Torres', bio: 'Support/entry. Prefiero grupos con comunicación.' },
-  { username: 'dayala', displayName: 'Daniel Ayala', bio: 'Jungla en LoL, IGL en CS2.' },
-  { username: 'sebav', displayName: 'Sebastián Valenzuela', bio: 'Busco equipo estable para ranked.' },
-  { username: 'benjae', displayName: 'Benjamín Estupiñán', bio: 'Anchor en R6. Fines de semana full.' },
-  { username: 'marzam', displayName: 'Marcelo Zamorano', bio: 'AWPer. Horario nocturno.' },
-  { username: 'nocturna', displayName: 'Javiera Rojas', bio: 'Juego después de las 22:00, sin excepción.' },
-  { username: 'kzero', displayName: 'Karla Méndez', bio: 'Top lane. Odio jugar sola.' },
-  { username: 'tomi_ok', displayName: 'Tomás Cárcamo', bio: 'Flex player, me acomodo al equipo.' },
-  { username: 'pau.exe', displayName: 'Paula Herrera', bio: 'Roam en R6, buena comunicación.' },
-  { username: 'elmatta', displayName: 'Matías Fuentes', bio: 'Subiendo de Gold a Platino, busco dúo.' },
-  { username: 'ignxcia', displayName: 'Ignacia Soto', bio: 'ADC. Juego tardes de fin de semana.' },
-  { username: 'rodri_cl', displayName: 'Rodrigo Pizarro', bio: 'Rifler. Practico casi todos los días.' },
-  { username: 'fran.dev', displayName: 'Francisca Leiva', bio: 'Support/medic. Paciencia infinita.' },
-  { username: 'nacho7', displayName: 'Ignacio Bravo', bio: 'Vuelvo después de un año fuera.' },
-  { username: 'valen.gg', displayName: 'Valentina Muñoz', bio: 'Competitiva, apunto a Diamante esta temporada.' },
+/** Lecturas del proveedor simulado -> las formas que entrega el servidor (fechas en ISO). */
+export function snapshotJson(snapshot: Snapshot): RankSnapshot {
+  const { tier, division, points, normalized, recordedAt } = snapshot;
+  return {
+    tier,
+    ...(division === undefined ? {} : { division }),
+    points,
+    normalized,
+    recordedAt: recordedAt.toISOString(),
+  };
+}
+
+export function matchJson(match: SimulatedMatch): MatchRecord {
+  const { id, gameId, playedAt, result, summary, durationMinutes, rankDelta } = match;
+  return { id, gameId, playedAt: playedAt.toISOString(), result, summary, durationMinutes, rankDelta };
+}
+
+interface SeedAccount {
+  gameId: GameId;
+  handle: string;
+  region: string;
+}
+
+interface SeedPerson {
+  username: string;
+  displayName: string;
+  bio: string;
+  accounts: SeedAccount[];
+}
+
+/**
+ * Jugadores ficticios (RF-27): ninguna palabra de los integrantes del equipo ni de sus
+ * nombres de usuario. El primero es la cuenta demo. El rango, la verificación y las partidas
+ * de cada cuenta no están escritos aquí: salen del proveedor simulado (lectura 0) a partir
+ * del identificador, así que la primera resincronización mueve el rango como mucho un
+ * escalón. Los identificadores se eligieron para repartir rangos cercanos a los de la cuenta
+ * demo y para que cada juego tenga cuentas verificadas y sin verificar; `jugador1` a
+ * `jugador4` son los ejemplos de la spec 004.
+ */
+const PEOPLE: readonly SeedPerson[] = [
+  {
+    username: 'demo',
+    displayName: 'Jugador Demo',
+    bio: 'Cuenta de demostración con los tres juegos vinculados.',
+    accounts: [
+      { gameId: 'lol', handle: 'Jugador1#LAS', region: 'LAS' },
+      { gameId: 'r6', handle: 'jugador1', region: 'LATAM' },
+      { gameId: 'cs2', handle: '76561190000000001', region: 'South America' },
+    ],
+  },
+  {
+    username: 'nocturna',
+    displayName: 'Isidora Campos',
+    bio: 'Juego después de las 22:00, sin excepción.',
+    accounts: [
+      { gameId: 'lol', handle: 'Nocturna#038', region: 'LAS' },
+      { gameId: 'cs2', handle: '76561198000000851', region: 'South America' },
+    ],
+  },
+  {
+    username: 'zorro_azul',
+    displayName: 'Renata Bustos',
+    bio: 'Top lane. Odio jugar sola.',
+    accounts: [{ gameId: 'lol', handle: 'ZorroAzul#107', region: 'LAS' }],
+  },
+  {
+    username: 'lunaticx',
+    displayName: 'Emilia Vargas',
+    bio: 'Support. Prefiero grupos con comunicación.',
+    accounts: [{ gameId: 'lol', handle: 'Jugador2#LAS', region: 'LAN' }],
+  },
+  {
+    username: 'ghost.pix',
+    displayName: 'Cristóbal Lagos',
+    bio: 'Jungla en LoL, IGL en CS2.',
+    accounts: [
+      { gameId: 'lol', handle: 'GhostPix#005', region: 'LAS' },
+      { gameId: 'cs2', handle: '76561198000000259', region: 'South America' },
+    ],
+  },
+  {
+    username: 'tomi_ok',
+    displayName: 'Joaquín Pacheco',
+    bio: 'Flex player, me acomodo al equipo.',
+    accounts: [
+      { gameId: 'lol', handle: 'Jugador3#LAS', region: 'LAS' },
+      { gameId: 'cs2', handle: '76561198000000370', region: 'South America' },
+    ],
+  },
+  {
+    username: 'pau.exe',
+    displayName: 'Antonia Herrera',
+    bio: 'Roam en R6, buena comunicación.',
+    accounts: [{ gameId: 'r6', handle: 'pau.exe_104', region: 'LATAM' }],
+  },
+  {
+    username: 'ratamala',
+    displayName: 'Gaspar Ibarra',
+    bio: 'Subiendo de Silver a Gold, busco dúo.',
+    accounts: [{ gameId: 'lol', handle: 'Ratamala#045', region: 'LAS' }],
+  },
+  {
+    username: 'ignxcia',
+    displayName: 'Fernanda Soto',
+    bio: 'ADC. Juego tardes de fin de semana.',
+    accounts: [{ gameId: 'lol', handle: 'Ignxcia#099', region: 'LAN' }],
+  },
+  {
+    username: 'rifle_cl',
+    displayName: 'Felipe Navarro',
+    bio: 'Rifler. Practico casi todos los días.',
+    accounts: [
+      { gameId: 'r6', handle: 'rifle_cl_14', region: 'LATAM' },
+      { gameId: 'cs2', handle: '76561198000000111', region: 'South America' },
+    ],
+  },
+  {
+    username: 'fran.med',
+    displayName: 'Catalina Leiva',
+    bio: 'Support/medic. Paciencia infinita.',
+    accounts: [{ gameId: 'r6', handle: 'jugador3', region: 'LATAM' }],
+  },
+  {
+    username: 'bruno_r6',
+    displayName: 'Bruno Cifuentes',
+    bio: 'Vuelvo después de un año fuera.',
+    accounts: [{ gameId: 'r6', handle: 'jugador2', region: 'NCSA' }],
+  },
+  {
+    username: 'mili.gg',
+    displayName: 'Milagros Quiroz',
+    bio: 'Competitiva, apunto a Diamante esta temporada.',
+    accounts: [
+      { gameId: 'r6', handle: 'mili.gg_33', region: 'LATAM' },
+      { gameId: 'cs2', handle: '76561198000000481', region: 'South America' },
+    ],
+  },
+  {
+    username: 'dagger77',
+    displayName: 'Maximiliano Salinas',
+    bio: 'AWPer. Horario nocturno.',
+    accounts: [
+      { gameId: 'r6', handle: 'dagger77_43', region: 'LATAM' },
+      { gameId: 'cs2', handle: '76561198000000148', region: 'South America' },
+    ],
+  },
+  {
+    username: 'pelusa',
+    displayName: 'Josefa Araya',
+    bio: 'Anchor en R6. Fines de semana full.',
+    accounts: [{ gameId: 'r6', handle: 'pelusa_8', region: 'LATAM' }],
+  },
+  {
+    username: 'capitan_k',
+    displayName: 'Nicolás Pinto',
+    bio: 'Busco equipo estable para ranked.',
+    accounts: [
+      { gameId: 'lol', handle: 'Jugador4#LAS', region: 'LAS' },
+      { gameId: 'cs2', handle: '76561198000000777', region: 'South America' },
+    ],
+  },
 ];
 
-const LOL_CHAMPIONS = ['Ahri', 'Lee Sin', 'Jinx', 'Thresh', 'Darius', 'Yasuo', 'Lux', 'Ekko'];
-const R6_OPERATORS = ['Ash', 'Thermite', 'Jäger', 'Mute', 'Doc', 'Sledge', 'Valkyrie'];
-const CS2_MAPS = ['Mirage', 'Inferno', 'Nuke', 'Ancient', 'Anubis', 'Dust II'];
-
+/** Los instantes relativos salen del reloj de la aplicación (`Date.now()`), no de una fecha fija. */
 function daysAgo(days: number): string {
   return new Date(Date.now() - days * 86_400_000).toISOString();
 }
@@ -70,66 +217,12 @@ function hoursAgo(hours: number): string {
   return new Date(Date.now() - hours * 3_600_000).toISOString();
 }
 
-/** Construye un rango aleatorio coherente con la escala del juego. */
-function createRank(random: Random, gameId: GameId, tierIndex: number, at: string): RankSnapshot {
-  const game = GAMES[gameId];
-  const tier = game.tiers[Math.min(Math.max(tierIndex, 0), game.tiers.length - 1)];
-  const division = game.divisions.length
-    ? game.divisions[random.int(0, game.divisions.length - 1)]
-    : undefined;
-
-  const points =
-    gameId === 'cs2' ? random.int(5_000, 24_000) : gameId === 'r6' ? random.int(2_000, 4_800) : random.int(0, 99);
-
-  return {
-    tier,
-    division,
-    points,
-    normalized: normalizeRank(gameId, tier, division),
-    recordedAt: at,
-  };
-}
-
-/** Historial de rango: seis lecturas semanales que terminan en el rango actual. */
-function createRankHistory(random: Random, gameId: GameId, currentTierIndex: number): RankSnapshot[] {
-  const history: RankSnapshot[] = [];
-  let tierIndex = Math.max(0, currentTierIndex - random.int(0, 2));
-
-  for (let week = 6; week >= 1; week -= 1) {
-    history.push(createRank(random, gameId, tierIndex, daysAgo(week * 7)));
-    if (random.chance(0.45)) tierIndex = Math.min(tierIndex + 1, currentTierIndex);
-  }
-  return history;
-}
-
-function createMatches(random: Random, gameId: GameId, count: number): MatchRecord[] {
-  return Array.from({ length: count }, (_, index) => {
-    const result = random.chance(0.52) ? 'win' : 'loss';
-    const summary =
-      gameId === 'lol'
-        ? `${random.pick(LOL_CHAMPIONS)} · ${random.int(0, 14)}/${random.int(0, 9)}/${random.int(2, 18)}`
-        : gameId === 'r6'
-          ? `${random.pick(R6_OPERATORS)} · ${random.int(0, 12)} bajas`
-          : `${random.pick(CS2_MAPS)} · ${random.int(5, 16)}-${random.int(5, 16)}`;
-
-    return {
-      id: `match-${gameId}-${index}-${random.int(1000, 9999)}`,
-      gameId,
-      playedAt: hoursAgo(index * random.int(3, 30) + random.int(1, 6)),
-      result,
-      summary,
-      durationMinutes: gameId === 'lol' ? random.int(22, 45) : random.int(12, 40),
-      rankDelta: result === 'win' ? random.int(12, 28) : -random.int(10, 24),
-    } satisfies MatchRecord;
-  }).sort((a, b) => b.playedAt.localeCompare(a.playedAt));
-}
-
 /**
  * Disponibilidad con forma realista: cada persona tiene un "perfil horario"
  * (nocturno, vespertino o de fin de semana) en vez de bloques al azar, de modo
  * que los traslapes que muestra la vista de coincidencias sean creíbles.
  */
-function createAvailability(random: Random): TimeBlock[] {
+function createAvailability(random: ReturnType<typeof createRandom>): TimeBlock[] {
   const profile = random.pick(['nocturno', 'vespertino', 'finde'] as const);
   const blocks: TimeBlock[] = [];
 
@@ -170,14 +263,17 @@ function createDemoAvailability(): TimeBlock[] {
   return blocks;
 }
 
-/** Estado inicial completo del backend simulado. */
+/** Estado inicial completo del backend simulado (semilla fija; sin sesión abierta). */
 export function createSeedDatabase(): MockDatabase {
   const random = createRandom(20260915);
 
   const users: User[] = PEOPLE.map((person, index) => ({
     id: `user-${index + 1}`,
     username: person.username,
-    email: index === 0 ? DEMO_CREDENTIALS.email : `${person.username.replace(/[^a-z0-9]/g, '')}@teammatchup.gg`,
+    email:
+      index === 0
+        ? DEMO_CREDENTIALS.email
+        : `${person.username.replace(/[^a-z0-9]/g, '')}@teammatchup.gg`,
     displayName: person.displayName,
     avatarColor: AVATAR_COLORS[index % AVATAR_COLORS.length],
     bio: person.bio,
@@ -197,44 +293,34 @@ export function createSeedDatabase(): MockDatabase {
   for (const [index, user] of users.entries()) {
     availability[user.id] = index === 0 ? createDemoAvailability() : createAvailability(random);
 
-    // El usuario de demostración tiene los tres juegos. El resto recibe uno por
-    // rotación —así ningún título queda sin jugadores— y a veces un segundo.
-    const rotated = GAME_LIST[(index - 1) % GAME_LIST.length];
-    const userGames =
-      index === 0
-        ? GAME_LIST
-        : random.chance(0.45)
-          ? [rotated, random.pick(GAME_LIST.filter((game) => game.id !== rotated.id))]
-          : [rotated];
-
-    for (const game of userGames) {
-      // Rangos concentrados en la zona media de la escala, como en la realidad.
-      const tierIndex = Math.min(
-        game.tiers.length - 1,
-        Math.max(0, Math.round((random.next() + random.next()) * 0.5 * (game.tiers.length - 1) + random.int(-1, 1))),
-      );
-      const history = createRankHistory(random, game.id, tierIndex);
-      const currentRank = createRank(random, game.id, tierIndex, hoursAgo(random.int(1, 20)));
+    for (const seedAccount of PEOPLE[index].accounts) {
+      // Lectura número 0 del proveedor simulado, hecha entre 1 y 20 horas antes de ahora:
+      // el rango, el historial, las partidas y la verificación salen de ella.
+      const at = new Date(Date.now() - random.int(1, 20) * 3_600_000 - random.int(0, 59) * 60_000);
+      const reading = readAccountState({
+        gameId: seedAccount.gameId,
+        canonicalHandle: canonicalHandle(seedAccount.handle),
+        readingNumber: 0,
+        now: at,
+      });
+      const snapshot = snapshotJson(reading.snapshot);
 
       const account: GameAccount = {
-        id: `account-${user.id}-${game.id}`,
+        id: `account-${user.id}-${seedAccount.gameId}`,
         userId: user.id,
-        gameId: game.id,
-        handle:
-          game.id === 'lol'
-            ? `${user.displayName.split(' ')[0]}#${String(random.int(100, 999))}`
-            : game.id === 'cs2'
-              ? `7656119${String(random.int(1_000_000_000, 9_999_999_999))}`
-              : user.username,
-        region: random.pick(game.regions.slice(0, 3)),
-        currentRank,
-        rankHistory: [...history, currentRank],
-        lastSyncedAt: hoursAgo(random.int(1, 20)),
-        verified: random.chance(0.8),
+        gameId: seedAccount.gameId,
+        handle: seedAccount.handle,
+        region: seedAccount.region,
+        currentRank: snapshot,
+        rankHistory: [snapshot],
+        lastSyncedAt: at.toISOString(),
+        verified: reading.verified,
+        simulated: true,
       };
 
       accounts.push(account);
-      matchHistory[account.id] = createMatches(random, game.id, random.int(5, 9));
+      // El proveedor ya las entrega de la más reciente a la más antigua.
+      matchHistory[account.id] = reading.matches.map(matchJson);
     }
   }
 
@@ -243,18 +329,18 @@ export function createSeedDatabase(): MockDatabase {
     'Calentamiento y luego competitivo',
     'Noche de clasificatorias',
     'Scrim casual, todos bienvenidos',
-    'Subida a Platino',
+    'Subida de rango sin presión',
     'Partidas hasta que aguante el sueño',
   ];
 
   const sessions: PlaySession[] = Array.from({ length: 9 }, (_, index) => {
     const host = users[random.int(1, users.length - 1)];
     const hostAccounts = accounts.filter((account) => account.userId === host.id);
-    const gameId = hostAccounts.length ? random.pick(hostAccounts).gameId : 'lol';
-    const slots = gameId === 'lol' ? 5 : gameId === 'cs2' ? 5 : 5;
+    const gameId: GameId = hostAccounts.length ? random.pick(hostAccounts).gameId : GAME_LIST[0].id;
+    const slots = 5;
     const participantUsers = random.sample(
       users.filter((user) => user.id !== host.id),
-      random.int(0, slots - 2),
+      random.int(0, slots - 1),
     );
 
     const toRef = (user: User) => ({

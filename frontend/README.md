@@ -27,16 +27,18 @@ Scripts disponibles:
 
 ### Cuenta de demostración
 
-Mientras no haya servidor, la app arranca con datos simulados (16 jugadores,
-cuentas vinculadas, rangos con historial, disponibilidades y sesiones).
+Con `VITE_USE_MOCK_API=true` la app arranca con datos simulados y ficticios (16 jugadores,
+cuentas vinculadas, rangos con historial, disponibilidades y sesiones). Sin esa variable habla
+con el servidor real.
 
 ```
 correo:      demo@teammatchup.gg
 contraseña:  demo1234
 ```
 
-Los datos se guardan en `localStorage`; borrar el almacenamiento del sitio
-devuelve todo al estado inicial.
+Los datos simulados se guardan en `localStorage` (`tmu.mock-db.v3`); borrar el almacenamiento del
+sitio devuelve todo al estado inicial. Todo lo que simula la plataforma (rango, partidas, marca de
+verificada) se muestra con la etiqueta «Datos de demostración».
 
 ## Vistas implementadas
 
@@ -97,42 +99,43 @@ Principios que sostienen la escalabilidad del proyecto:
 
 ## Conectar el backend Express
 
-Cuando el servidor esté disponible basta con definir la variable de entorno:
+Por defecto la interfaz habla con el servidor real (spec 007). El modo simulado solo se activa con
+`VITE_USE_MOCK_API=true` (exactamente `true`; se ignoran los espacios alrededor). Cualquier otro
+valor, o ninguno, lo deja desactivado.
 
 ```bash
 cp .env.example .env
 # .env
-VITE_API_URL=/api            # usa el proxy de Vite hacia VITE_PROXY_TARGET
+VITE_API_URL=/api                          # base de la API (proxy de Vite a VITE_PROXY_TARGET)
+VITE_USE_MOCK_API=false                    # true: backend simulado en el navegador, sin red
+VITE_PROXY_TARGET=http://localhost:3001    # puerto de backend/.env
 ```
 
-Con `VITE_API_URL` definido, `services/api.ts` deja de usar el mock y pasa a
-`services/http/httpApi.ts`, que espera estos endpoints:
+La sesión viaja en una cookie `HttpOnly`. La interfaz solo guarda el comprobante CSRF (`tmu.csrf`)
+para enviarlo en la cabecera `X-CSRF-Token`; no guarda ningún JWT. Los errores del servidor llegan
+como `{ error: string }`. `services/http/httpApi.ts` usa las rutas de las specs 002 a 006:
 
 | Método | Ruta | Descripción |
 | --- | --- | --- |
-| `POST` | `/auth/register` | Crea la cuenta y devuelve `{ token, user }` |
-| `POST` | `/auth/login` | Inicia sesión y devuelve `{ token, user }` |
+| `POST` | `/users` | Crea la cuenta (no abre sesión) |
+| `POST` | `/auth/login` · `/auth/logout` | Abre y cierra la sesión |
 | `GET` | `/auth/me` | Usuario de la sesión actual |
-| `POST` | `/auth/logout` | Cierra la sesión |
-| `PATCH` | `/profile` | Actualiza nombre, descripción y zona horaria |
-| `GET` | `/profile/accounts` | Cuentas de juego vinculadas |
-| `POST` | `/profile/accounts` | Vincula una cuenta (`gameId`, `handle`, `region`) |
-| `DELETE` | `/profile/accounts/:id` | Desvincula una cuenta |
-| `POST` | `/profile/accounts/:id/sync` | Relee el rango desde la fuente externa |
-| `GET` | `/profile/availability` | Bloques de disponibilidad |
-| `PUT` | `/profile/availability` | Reemplaza los bloques (`{ blocks: string[] }`) |
-| `GET` | `/profile/games/:gameId` | Cuenta, rango, tendencia y partidas recientes |
-| `GET` | `/matches` | Coincidencias filtradas por rango y traslape |
-| `GET` | `/sessions` | Sesiones publicadas |
-| `POST` | `/sessions` | Publica una sesión |
+| `PATCH` | `/users/me` | Actualiza la ficha |
+| `GET` · `PUT` | `/users/me/availability` | Lee y reemplaza los bloques (`{ blocks: string[] }`) |
+| `GET` | `/users/:id/availability` | Disponibilidad de otro jugador (la usa «Proponer») |
+| `GET` · `POST` | `/accounts` | Cuentas vinculadas (`?user=me`) y vincular |
+| `DELETE` | `/accounts/:id` | Desvincula una cuenta |
+| `POST` | `/accounts/:id/sync` | Resincroniza el rango (proveedor simulado del servidor) |
+| `GET` | `/users/me/games/:gameId` | Cuenta, rango, partidas recientes y tasa de victorias |
+| `GET` | `/matches` | Coincidencias filtradas (juego, distancia, horas, verificadas, búsqueda) |
+| `GET` · `POST` | `/sessions` | Sesiones y publicar una |
 | `POST` | `/sessions/:id/join` · `/leave` | Sumarse o salir |
 | `DELETE` | `/sessions/:id` | Cancela la sesión (solo quien organiza) |
 
 Las formas exactas de cada respuesta están en `src/domain/types.ts` y
-`src/services/apiContract.ts`. El backend simulado (`src/services/mock/mockApi.ts`)
-sirve además como especificación ejecutable del comportamiento esperado, incluidos
-los errores (401 sesión inválida, 409 cuenta duplicada, 422 identificador con
-formato inválido, 403 cancelar una sesión ajena).
+`src/services/apiContract.ts`. El backend simulado (`src/services/mock/mockApi.ts`) responde con los
+mismos códigos y textos que el servidor (specs 003 a 006), de modo que sirve de especificación
+ejecutable del comportamiento esperado.
 
 ## Criterio de recomendación
 

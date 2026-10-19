@@ -94,7 +94,7 @@ export function MatchFiltersPanel({
             checked={filters.onlyVerified}
             onChange={(event) => patch({ onlyVerified: event.target.checked })}
           />
-          Solo cuentas con rango verificado
+          Solo cuentas verificadas
         </label>
 
         <button type="button" className="btn btn--sm" onClick={onReset}>

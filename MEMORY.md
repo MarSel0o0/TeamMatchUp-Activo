@@ -51,18 +51,42 @@ Spec 006 (`006-agenda`): implementada (T1–T10 todas [x]) y validada (reviewer 
 2026-10-19): 2235 tests en verde, typecheck y lint sin errores, RF-1 a RF-28 y RNF-1 a RNF-4
 cumplen, criterios de finalización satisfechos. Antes hubo el cambio de requisitos del
 2026-10-19 (Q1–Q4, DP6-39). `spec.md` «implementada»; `plan.md` y `tasks.md` «aprobado …;
-implementado». Commiteada en `007ded0` y `3834d36` (sin push). Spec 007 sigue SIN implementar; el usuario autorizó (2026-10-19) alinear sus
-textos simulados (ver su fila).
+implementado». Commiteada en `007ded0` y `3834d36` (sin push). La 007 se implementó a continuación (ver el párrafo siguiente).
+
+Spec 007 (`007-integrar-frontend`): implementada (T1–T31 todas [x], 2026-10-19). Se hizo con
+agentes `implementer` en paralelo y se verificó con un recorrido manual reproducible (T29, dividido
+en 5.A «Sesión y conexión» y 5.B «Datos, presentación y proponer sesión» de `validation.md`) y la
+comparación de capturas (T28). El recorrido halló dos defectos, ambos corregidos en la T31 (tarea
+añadida): D-A2 (RF-7 y RF-8: con la sesión muerta, ir dentro de la app a Agenda o Coincidencias
+perdía el aviso de expiración y la ruta de origen; causa: las consultas montadas se relanzaban
+antes de pasar a `anonymous`; arreglo: `flushSync` en `clearClientSession`) y D-A1 (RF-20: doble
+clic sintético en registro y login enviaba dos `POST`; arreglo: guarda con `useRef`). `typecheck`,
+`lint` y `build` del frontend en verde; `backend/` no se tocó. NO está commiteada. Falta la
+validación del `reviewer` (`/sdd-validate 007-integrar-frontend`) y decidir lo pendiente de
+«Deuda conocida — spec 007». `spec.md`, `plan.md` y `tasks.md` pasan a «implementada».
 
 Orden global de implementación: 005 T9 → 004 T11…T25 → 005 T10 (hechas, validadas y
-commiteadas) → 006 (cambio de requisitos y T1–T10), todo hecho y validado → siguiente: la
-007.
+commiteadas) → 006 (cambio de requisitos y T1–T10), todo hecho y validado → 007 (T1–T31, hecha) → siguiente: validarla con `reviewer` y
+hacer la 008.
 
 ## Estado del código
 
-- Frontend: Hito 1 completo (acceso, configuración, perfil, coincidencias y agenda).
-  Funciona contra el backend simulado en el navegador (`mockApi`, datos de demostración
-  con semilla fija, cuenta `demo@teammatchup.gg`).
+- Frontend (spec 007, hecha): habla con el servidor real por defecto (`VITE_API_URL=/api`); el
+  modo simulado solo con `VITE_USE_MOCK_API=true` (exactamente `true`; `mockFlag.ts`). Sesión en
+  la cookie HttpOnly; la interfaz guarda solo el comprobante `tmu.csrf` (`csrfStorage.ts`) y una
+  señal entre pestañas (`tmu.session-signal`, `crossTabSession.ts`); no guarda JWT. Transporte
+  único con plazo de 30 s, época de sesión y clasificación de errores (`services/http/transport.ts`,
+  compartido por el cliente HTTP y el simulado). `AuthProvider` con estados `checking`,
+  `authenticated`, `anonymous` y `error` (`SessionGate`, «Cargando…», pantalla de error con
+  «Reintentar»). TanStack Query sin reintentos, claves por usuario (`['u', userId, …]`). Textos
+  fijos en `shared/utils/copy.ts`; etiqueta «Datos de demostración» (`DemoTag`) siempre visible.
+  «Proponer» desde coincidencias abre la agenda con la propuesta (`domain/proposal.ts`). Dominio de
+  la interfaz con la misma escala y puntaje que el servidor (`domain/rankScale.ts`, `matching.ts`;
+  paridad comprobada en T27). Modo simulado: `mockApi.ts` responde como el servidor, con
+  `simulatedProvider.ts` (mismo algoritmo que `backend/src/domain/rankSimulator.ts`) y datos ficticios en
+  `seed.ts` (16 jugadores, 25 cuentas, base `tmu.mock-db.v3`, cuenta `demo@teammatchup.gg`).
+  Sin runner de pruebas (RNF-3): lo probado vive en `specs/007-integrar-frontend/validation.md`
+  y `validation/{baseline,after}/`.
 - Backend (`backend/`): servidor base de la spec 001. Express 5.1.0 + Mongoose 8.24.5 +
   dotenv 17.2.3, TypeScript ejecutado directo con Node ≥ 22.18, ESM.
   - Configuración validada al arrancar (`src/utils/config.ts`): `NODE_ENV` obligatoria y
@@ -150,9 +174,9 @@ commiteadas) → 006 (cambio de requisitos y T1–T10), todo hecho y validado �
 | `004-cuentas-de-juego` | Implementada y validada (reviewer APROBADO tras 2 vueltas, 2026-10-19) | Rework terminado: T1–T9 históricas (con T3b y T8b) y T10–T25 hechas; 1567 tests, typecheck y lint en verde. 1ª vuelta: CAMBIOS NECESARIOS por 2 bloqueantes solo de pruebas (B1 ejemplos de RF-6/DP-19, B2 literales de DP-26/RF-48), corregidos en tests; 2ª: APROBADO. T13 (lectura literal fija del simulador) es una excepción deliberada a P-13. Riesgo R3 vigente. `spec.md` pasa a «implementada» (la marca planner). Hecho en el cierre: prueba sin red tras el rework (1567/1567, usuario, 2026-10-19) y renombrado a `withUser.test.ts`. Pendiente de la 007: etiqueta visible de datos simulados (RF-37; la 007 ya la cubre: RF-11, RF-22, R19). Rework commiteado en `9b5cc87` (sin push). El usuario confirmó (2026-10-19) que su aprobación del 2026-10-18 cubría DP-19, DP-34, DP-35 y DP-38 a DP-41. |
 | `005-coincidencias` | Implementada y validada (reviewer APROBADO, 2026-10-19) | T1–T10 hechas (T1–T8 en el commit `31fdda2`, sin push). Cambio A (T9): 401 «token inválido» con la credencial de un usuario eliminado, incluida la carrera `noSession`. Cambio B (T10): textos propios en minúscula inicial y sin punto final (DP5-17). 1567 tests, typecheck y lint en verde; cambio A en `9b5cc87` y cambio B en `88af4cd` (sin push). `spec.md` «implementada». Riesgo A1 vigente. Pendiente además la casilla de la spec 007: etiqueta de datos simulados con el servidor real. |
 | `006-agenda` | Implementada y validada (reviewer APROBADO, 2026-10-19) | Spec aprobada el 2026-10-18 con el cambio del 2026-10-19 (Q1–Q4, DP6-39); plan y tareas ajustados al código real. T1–T10 hechas; 2235 tests al validarla (2276 con T26 y T11 de las 004 y 005), typecheck y lint en verde; RF-1 a RF-28 y RNF-1 a RNF-4 cumplen. `spec.md` «implementada». Commiteada (`007ded0`, `3834d36`; RF-16 con DP6-40 en `cf09bfb`; sin push). Pendientes fuera de la 006 en «Deuda conocida». |
-| `007-integrar-frontend` | Spec aprobada (2026-10-18); plan y tareas en borrador; SIN implementar | No define ningún script `seed`. El usuario autorizó (2026-10-19) alinear sus textos simulados a las 004/005 (minúscula, sin punto final; 401 «token inválido» también con usuario eliminado; textos `MATCH_ERRORS`; «correo o contraseña incorrectos»). La etiqueta de «datos simulados» ya la cubre (RF-11, RF-22, R19). Decisión aprobada: excepción al RF-16, el modo simulado reproduce el literal del servidor «rango verificado» y la interfaz nunca lo muestra. Discrepancia vigente: rótulo del filtro de verificadas (005: «Solo cuentas con rango verificado»; 007: «Solo cuentas verificadas»). |
-| `008-ficha-de-jugador` | Spec, plan y tareas aprobados (2026-10-18) | Precondición: plan de la 007 aprobado y sus T1–T26 hechas. Los enlaces de RF-2 son su T9. |
-| `009-detalle-de-sesion` | Spec, plan y tareas aprobados (2026-10-18) | 18 tareas (T0–T17), sin dividir la spec por decisión de la usuaria. T0 exige plan de la 007 aprobado, T1–T26 de la 007 hechas y la tarea de enlaces de la 008 hecha: hoy no se cumple. La validación de reviewer espera a que estén implementadas la 006, la 007 y la 008. No cambia el backend. |
+| `007-integrar-frontend` | Implementada (T1–T31, 2026-10-19); falta validación de `reviewer` | Interfaz conectada al servidor real (cookie HttpOnly + comprobante CSRF, plazo de 30 s, aviso entre pestañas, «Proponer»), con modo simulado alineado a 004–006 y datos ficticios. Recorrido manual T29 (5.A y 5.B) y capturas T28 en `validation.md`; defectos D-A2 y D-A1 corregidos en la T31. Excepción aprobada al RF-16: el simulado reproduce el literal «rango verificado» del servidor y la interfaz nunca lo muestra. Pendientes de decisión: «Deuda conocida — spec 007». Sin commitear. |
+| `008-ficha-de-jugador` | Spec, plan y tareas aprobados (2026-10-18) | Precondición cumplida: la 007 está implementada (T1–T31). Los enlaces de RF-2 son su T9. |
+| `009-detalle-de-sesion` | Spec, plan y tareas aprobados (2026-10-18) | 18 tareas (T0–T17), sin dividir la spec por decisión de la usuaria. T0 exige plan de la 007 aprobado, 007 hecha (cumplido) y la tarea de enlaces de la 008 hecha (pendiente). La validación de reviewer espera a que estén implementadas la 006, la 007 y la 008. No cambia el backend. |
 | `010-despliegue` | Borrador | Servirá la interfaz desde el servidor (rutas fuera de `/api`). |
 
 ## Deuda conocida
@@ -169,7 +193,7 @@ commiteadas) → 006 (cambio de requisitos y T1–T10), todo hecho y validado �
     comprobar la parte estática (ninguna llamada de red en `src/`).
   - Resuelto: con permiso del usuario, `tests/unit/withExistingUser.test.ts` se renombró a
     `tests/unit/withUser.test.ts` (solo prueba `createWithUser`).
-  - Pendiente de la spec 007: etiqueta visible de datos simulados (RF-37 de la interfaz).
+  - Resuelto en la spec 007: etiqueta visible «Datos de demostración» (RF-11; RF-37 de la interfaz).
   - Commits `9b5cc87` y `88af4cd` hechos en local, sin push.
   - `npm test` tarda ~100–200 s (1567 tests; antes, 83–121 s); sin investigar si alguna
     prueba concreta es lenta.
@@ -198,8 +222,9 @@ commiteadas) → 006 (cambio de requisitos y T1–T10), todo hecho y validado �
   - HECHO (2026-10-19): las specs 004 y 005 adoptaron el paso del cuerpo antes del 401
     (DP6-37) como DP-43 y DP5-18, con T26 y T11 hechas y validadas por el reviewer, sin
     cambios de código de producción.
-  - Pendiente fuera de la 006: spec 007 (backend simulado y reglas del título en el
-    formulario); spec 009 (validaciones de edición).
+  - Pendiente fuera de la 006: spec 009 (validaciones de edición). La 007 rehízo el backend
+    simulado de la 006 (T17); las reglas del título del formulario no se verificaron aparte en
+    la T29: revisarlas con la 009 (RF-24).
   - Pendiente informativo opcional, a decidir por el usuario: RF-20 y RF-23 de la 006 no
     nombran 413 y 415. El código ya los aplica antes del 401 en `/api/sessions`, porque el
     intérprete de cuerpo local usa el mismo límite. No bloquea nada.
@@ -213,8 +238,42 @@ commiteadas) → 006 (cambio de requisitos y T1–T10), todo hecho y validado �
   - En una sesión `open` con un participante eliminado aún guardado (cascada), bajar los
     cupos puede dar 400: limitación transitoria aceptada (Q22).
 
-- `httpApi.ts` y `mockApi.ts` guardan el JWT en `localStorage` (`tmu.token`): choca con el
-  principio 5. Lo corrige la spec 007 (RF-2).
+- Spec 007 (2026-10-19), pendientes de decisión del usuario; ninguno bloquea:
+  - `domain/games.ts:61`: el ejemplo del identificador de R6 es `tu-nombre-ubisoft` y
+    `LinkAccountForm` lo repite en su mensaje de formato. No atribuye el rango, pero el texto
+    visible contiene «ubisoft» fuera de la etiqueta «Ubisoft ID» (RF-15 leído a la letra). El
+    servidor tiene el mismo ejemplo. Decidir si pasa a algo neutro (p. ej. `tu-nombre`).
+  - La barra muestra «DATOS DE DEMOSTRACIÓN» por una regla CSS previa (`text-transform:
+    uppercase`) y la oculta por debajo de 1140 px (el pie siempre la muestra). Cambiarlo sería
+    tocar disposición (RNF-4).
+  - Títulos de la entrada y de la pantalla de acceso («Tu rango se lee, no se declara», «Rango
+    leído, no declarado»): solo se cambiaron los cuerpos; los títulos no nombran fuentes ni
+    prometen relectura automática.
+  - A 360 px, `document.documentElement.scrollWidth` supera el ancho en la entrada (504), el
+    perfil (522) y coincidencias (361). Ya fallaba en la línea base (504, 425 y 361); el perfil
+    empeora por la semilla nueva (`.rank-scale__rail`, absoluto). `body` tiene `overflow-x:
+    hidden`, así que no se ve desplazamiento. El «Hecho cuando» de la T28 no se cumple a la letra.
+  - `mockApi.ts` escribe `tmu.mock-db.v3` en `localStorage` al importarse aunque el modo simulado
+    esté desactivado (`api.ts` lo importa de forma estática); no es credencial (`session: null`).
+    Nada limpia un `tmu.token` ni un `tmu.mock-db.v2` antiguos: un navegador viejo los conserva
+    sin que el código los use.
+  - RF-10 punto 8 de la spec 007 cita «no estás inscrito en esta sesión» en minúscula y sin punto;
+    la 006 fija «No estás inscrito en esta sesión.» y servidor y simulado responden esto último.
+    Corregir la redacción de la spec 007.
+  - `shared/components/RankScale.tsx`: la T21 colocó las marcas de tier de LoL en su posición real
+    de la escala (antes repartidas a partes iguales): cambio visual menor respecto a RNF-4.
+  - Con una cuenta propia sin rango, el perfil muestra «No se pudieron cargar los datos» en vez de
+    «Sin datos» (la fila de Configuración y coincidencias sí lo cumplen). El servidor y el simulado
+    no producen ese estado.
+  - `vite.config.ts` apunta por defecto a `http://localhost:3000` sin `.env`; el backend usa 3001
+    (`frontend/.env.example` ya pone 3001).
+  - El jueves 03:00 de los criterios de finalización no se puede marcar en la hoja de Configuración
+    (va de 12:00 a 01:00); se probó con `PUT /api/users/me/availability`.
+  - La T13 deja la guarda `useRef` contra el doble envío en cada componente; la tasa de victorias y
+    el puntaje usan `useInView({ once: true })` y leen «0» hasta entrar en pantalla (solo afecta a
+    pruebas automáticas).
+- Resuelto en la 007 (RF-2): la interfaz ya no guarda el JWT (solo la cookie HttpOnly y el
+  comprobante `tmu.csrf`).
 - El frontend no tiene runner de test (el principio 4 aplica solo al backend por decisión
   del usuario).
 - `frontend/src/domain` importa sin extensión `.ts`, así que no se puede ejecutar directo
@@ -244,12 +303,28 @@ commiteadas) → 006 (cambio de requisitos y T1–T10), todo hecho y validado �
   - Opcional de reviewer sin hacer (no bloquea): falta una prueba HTTP del orden «búsqueda
     repetida → 404 de RF-6».
   - Riesgo aceptado A1: segundo intervalo de carrera → 404 por la cascada de la 004.
-  - Criterio de la spec que depende de la 007: etiqueta de datos simulados con el servidor
-    real en la distancia y el puntaje (casilla sin marcar a propósito).
-  - Distancias y puntajes de LoL y R6 difieren entre el servidor y el modo simulado del
-    navegador hasta que la 007 adopte DP-26 (decisión del usuario).
+  - Resuelto en la 007: la etiqueta «Datos de demostración» sale con el servidor real junto a la
+    distancia y el puntaje (T22; la casilla de la spec 005 sigue sin marcar: marcarla al
+    validar la 007) y el modo simulado adoptó DP-26 (T14, T15, T27: paridad exacta con el
+    servidor).
 
 ## Decisiones recientes
+
+- Spec 007 (implementación, 2026-10-19):
+  - El usuario aprobó el plan y las 30 tareas (T1–T30) y pidió hacerlas todas de corrido, en
+    paralelo donde se pudiera. Se añadió la T31 (corrección de D-A2 y D-A1) tras la T29.
+  - Ejecución: un `implementer` por tarea; tareas en paralelo solo con archivos distintos, cada
+    una con sus puertos, base temporal (`tmu_tNN_tmp`) y perfil de Chrome. La T29 se dividió en
+    dos mitades (A: sesión y conexión; B: datos, presentación y proponer sesión). Nadie hizo commit
+    ni `graphify update`.
+  - Decisiones menores de implementación: `ApiError`, `SessionClearedError` e `isSessionCleared`
+    viven en `transport.ts` (`httpClient.ts` los reexporta); `requestWithHeaders` expone las
+    cabeceras del login; `normalizeRank` se importa de `domain/rankScale.ts` (sin reexportar desde
+    `games.ts`, por el ciclo de imports); `simulatedProvider.ts` copia el algoritmo completo del
+    servidor, así que sus valores coinciden exactamente; el simulado deja el número de lectura en
+    `readings` dentro de la base; la clave de la base simulada es `tmu.mock-db.v3`.
+  - Plan 3.9: la sesión simulada vive dentro de la base simulada (`{ userId, csrf }`); la
+    interfaz no la lee.
 
 - Spec 006 (cierre, 2026-10-19):
   - DP6-39 (Q1): el 401 de la credencial válida de un usuario eliminado es «token inválido»
@@ -361,7 +436,7 @@ commiteadas) → 006 (cambio de requisitos y T1–T10), todo hecho y validado �
   - P3: la unicidad del nombre de usuario no distingue mayúsculas (campo `usernameKey`
     con índice único).
   - P4: el cierre de sesión es público y no exige comprobante.
-  - P5: el JWT en `localStorage` del frontend lo corrige la spec 007 (RF-2).
+  - P5: el JWT en `localStorage` del frontend lo corrigió la spec 007 (RF-2, hecha).
   - P6: cookie de sesión sin caducidad; la credencial expira a 1 h.
   - P7: valores por defecto: zona `America/Santiago`, avatar `#6d5efc` y biografía vacía.
   - P8: contraseña de 72 bytes UTF-8 como máximo; correo de 254 caracteres como máximo.
@@ -414,10 +489,17 @@ commiteadas) → 006 (cambio de requisitos y T1–T10), todo hecho y validado �
 - Las pruebas del dominio del frontend usan el gancho de resolución de la 007 (por los
   imports sin `.ts`).
 
+- Frontend (spec 007): `queryClient` sin reintentos y con `staleTime: 0`; `clearClientSession`
+  aplica `anonymous` con `flushSync` antes de cancelar y vaciar las consultas (si no, las consultas
+  montadas se relanzan y pierden el aviso de expiración). Si hay CORS con orígenes distintos, el
+  comprobante necesita `Access-Control-Expose-Headers: X-CSRF-Token`.
+
 ## Avisos
 
 - npm bloquea los install-scripts de `bcrypt`. No afecta en linux-x64 (trae el binario ya
   compilado); en otra plataforma, ejecutar `npm install-scripts approve bcrypt`.
+- Frontend: si `frontend/node_modules` no coincide con `package-lock.json` (Vite 8 en lugar de 5,
+  falta `motion`), `npm ci`. Sin `frontend/.env`, el proxy apunta a `:3000`, no a `:3001`.
 - Cada `backend/.env` local necesita la línea `JWT_SECRET` (copiarla de `.env.example`).
 - Windows: MongoDB nativo en `127.0.0.1:27017`; `npm test --script-shell=bash`.
 - La reversión de `specs/007-integrar-frontend/spec.md` está completa: a 2026-10-18
@@ -427,21 +509,17 @@ commiteadas) → 006 (cambio de requisitos y T1–T10), todo hecho y validado �
 
 ## Próximo paso
 
-Hecho: la 006 implementada y validada; el paso del cuerpo antes del 401 adoptado en las
-specs 004 y 005 (DP-43, DP5-18; T26 y T11 hechas, 2276 tests en verde, 2026-10-19); la
-laguna de RF-16 resuelta (DP6-40, `cf09bfb`). Antes: rework de la 004 y cambios A y B
-de la 005 commiteados (`9b5cc87`, `88af4cd`; sin push), prueba sin red 1567/1567,
-renombrado a `withUser.test.ts`.
+Hecho: la 007 implementada (T1–T31, 2026-10-19), con recorrido manual (T29), capturas (T28) y
+defectos D-A2 y D-A1 corregidos. Antes: la 006 implementada y validada; el paso del cuerpo antes del
+401 adoptado en las specs 004 y 005 (DP-43, DP5-18; 2276 tests en verde); la laguna de RF-16
+resuelta (DP6-40).
 
-Siguiente: aprobar el plan y las tareas de la 007 e implementarla (T1–T26); la 007 incluye alinear su modo simulado con
-004, 005 y 006 (textos, 401 «token inválido»), las reglas del título en el formulario y la
-etiqueta visible de datos simulados. Después, la
-tarea de enlaces de la 008 (T9) y el resto de la 008; después, la 009 desde su T0
-(`/sdd-implement 009-detalle-de-sesion T0`). Adaptar el frontend queda para la spec 007,
-después de las 004 a 006, por decisión del usuario.
-Requisito local para ejecutar los tests
-del backend: `backend/.env` (copiado de `.env.example`, con `JWT_SECRET`) y MongoDB en
-`mongodb://127.0.0.1:27017`.
+Siguiente: (1) decidir lo pendiente de «Deuda conocida — spec 007»; (2) validar la 007 con
+`reviewer` (`/sdd-validate 007-integrar-frontend`); (3) commitear (hoy nada de la 007 está
+commiteado); (4) la tarea de enlaces de la 008 (T9) y el resto de la 008; después, la 009 desde su
+T0 (`/sdd-implement 009-detalle-de-sesion T0`); (5) la 010 (despliegue).
+Requisito local para ejecutar los tests del backend: `backend/.env` (copiado de `.env.example`,
+con `JWT_SECRET`) y MongoDB en `mongodb://127.0.0.1:27017`.
 
 ## Notas de la spec 004 (2026-10-19)
 

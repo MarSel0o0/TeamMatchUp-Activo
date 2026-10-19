@@ -1,5 +1,5 @@
 import { FileWarning, Inbox, RotateCw } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { Icon } from './Icon';
 
 /** Esqueleto con la forma del contenido mientras llega. */
@@ -47,22 +47,39 @@ export function Blank({ icon = Inbox, title, description, action }: BlankProps) 
 interface FailureProps {
   error: unknown;
   onRetry?: () => void;
+  /** Título; por defecto el de los errores de lectura de datos. */
+  title?: string;
+  /** Lleva el foco a "Reintentar" al mostrarse (RNF-7). */
+  autoFocusRetry?: boolean;
+  /** `alert` hace que un lector de pantalla lo anuncie al aparecer (RNF-7). */
+  role?: 'alert';
 }
 
-export function Failure({ error, onRetry }: FailureProps) {
+export function Failure({
+  error,
+  onRetry,
+  title = 'No se pudieron cargar los datos',
+  autoFocusRetry = false,
+  role,
+}: FailureProps) {
   const message = error instanceof Error ? error.message : 'Ocurrió un error inesperado.';
+  const retryRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (autoFocusRetry) retryRef.current?.focus();
+  }, [autoFocusRetry]);
 
   return (
-    <div className="blank">
+    <div className="blank" role={role}>
       <span className="blank__mark" style={{ color: 'var(--stamp)' }}>
         <Icon as={FileWarning} size={26} />
       </span>
       <div className="stack-sm">
-        <strong className="sheet-title">No se pudieron cargar los datos</strong>
+        <strong className="sheet-title">{title}</strong>
         <span className="note note--faint">{message}</span>
       </div>
       {onRetry ? (
-        <button type="button" className="btn btn--sm" onClick={onRetry}>
+        <button ref={retryRef} type="button" className="btn btn--sm" onClick={onRetry}>
           <Icon as={RotateCw} size={13} />
           Reintentar
         </button>

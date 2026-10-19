@@ -108,11 +108,52 @@
   white-space: nowrap;
 }
 
+/* Sobre la etiqueta compartida `DemoTag` (`.note`): se repite la clase para ganar en especificidad. */
+.note.entry__demo {
+  font-size: 0.62rem;
+  line-height: 1.2;
+  color: var(--ink-3);
+  text-align: center;
+}
+
+.entry__col .entry__demo {
+  text-align: left;
+}
+
+.entry__score .entry__demo {
+  width: max-content;
+  max-width: 76px;
+}
+
 .entry__actions {
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: var(--s2);
+}
+
+/* "Proponer" deshabilitado sigue recibiendo el foco (aria-disabled), así que replica el
+   aspecto de `.btn:disabled` y no el de la interacción. */
+.entry__propose[aria-disabled='true'] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn.entry__propose[aria-disabled='true']:hover {
+  background: var(--volt);
+  border-color: var(--volt);
+  box-shadow: none;
+}
+
+.entry__propose[aria-disabled='true']:active {
+  transform: none;
+}
+
+/* Motivo del bloqueo: en la fila siguiente, bajo los botones y alineado a su derecha. */
+.entry__reason {
+  grid-column: 2 / -1;
+  justify-self: end;
+  text-align: right;
 }
 
 .entry__toggle svg {
@@ -195,6 +236,11 @@
   .entry__actions {
     grid-column: 2 / -1;
     justify-content: flex-start;
+  }
+
+  .entry__reason {
+    justify-self: start;
+    text-align: left;
   }
 
   .entry__detail {

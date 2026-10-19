@@ -1,6 +1,7 @@
 import { Suspense, lazy } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { Working } from '@/shared/components/States';
+import { LOADING_TEXT } from '@/shared/utils/copy';
 import { AppLayout } from './layouts/AppLayout';
 import { AuthLayout } from './layouts/AuthLayout';
 import { ProtectedRoute, PublicOnlyRoute } from './ProtectedRoute';
@@ -21,9 +22,15 @@ const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 const LandingPage = lazy(() => import('./pages/LandingPage'));
 const HomePage = lazy(() => import('@/features/home/pages/HomePage'));
 
+/**
+ * Reglas de sesión de las rutas (RF-25, RF-28, RF-33): las públicas (entrada, login
+ * y registro) viven bajo `PublicOnlyRoute`, las vistas de la aplicación bajo
+ * `ProtectedRoute`, y `*` queda fuera de las dos, de modo que «no encontrada» se
+ * muestra con o sin sesión sin llevar a login ni recordar ruta de origen.
+ */
 export function AppRouter() {
   return (
-    <Suspense fallback={<Working label="Cargando…" />}>
+    <Suspense fallback={<Working label={LOADING_TEXT} />}>
       <Routes>
         <Route element={<PublicOnlyRoute />}>
           <Route path={ROUTES.landing} element={<LandingPage />} />

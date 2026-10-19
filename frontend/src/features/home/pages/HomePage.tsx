@@ -145,7 +145,7 @@ export default function HomePage() {
                     style={{ borderColor: getGame(account.gameId).accent }}
                   >
                     <GameMark gameId={account.gameId} />
-                    {account.verified ? <span className="home__check">verificado</span> : null}
+                    {account.verified ? <span className="home__check">verificada</span> : null}
                   </span>
                 ))}
               </div>

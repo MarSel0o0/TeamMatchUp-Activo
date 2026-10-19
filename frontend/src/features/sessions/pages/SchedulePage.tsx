@@ -1,28 +1,49 @@
 import { CalendarPlus, Link2, NotebookPen } from 'lucide-react';
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/app/routes';
-import { parseBlock } from '@/domain/availability';
-import { GAME_LIST } from '@/domain/games';
+import { GRID_HOURS } from '@/domain/availability';
+import { GAME_LIST, isGameId } from '@/domain/games';
+import { PROPOSAL_DEFAULTS, type Proposal } from '@/domain/proposal';
 import type { GameId, WeekDay } from '@/domain/types';
 import { useAuth } from '@/features/auth/useAuth';
 import { useAccounts, useAvailability } from '@/features/profile/hooks';
 import { Icon } from '@/shared/components/Icon';
+import { MutationNotice } from '@/shared/components/MutationNotice';
 import { Blank, Failure, SheetSkeleton } from '@/shared/components/States';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { Magnetic } from '@/shared/motion/Magnetic';
 import { pluralize } from '@/shared/utils/format';
 import { SessionDraftSlip, type SessionDraft } from '../components/SessionDraftSlip';
-import { SessionSlip } from '../components/SessionSlip';
+import { SessionSlip, type SessionAction } from '../components/SessionSlip';
 import { WeekCalendar } from '../components/WeekCalendar';
 import { useCancelSession, useJoinSession, useLeaveSession, useSessions } from '../hooks';
 import './schedulePage.css';
 
-/** Contexto que envía la vista de coincidencias al proponer una sesión. */
-interface ScheduleLocationState {
-  gameId?: GameId;
-  withUser?: string;
-  suggestedBlock?: string | null;
+/**
+ * Propuesta que trae el estado de la navegación al llegar desde «Proponer» (RF-29, RF-30), o
+ * `null` si no hay o no tiene la forma esperada. El estado del historial es un dato de fuera:
+ * se valida antes de abrir nada.
+ */
+function readProposal(state: unknown): Proposal | null {
+  if (typeof state !== 'object' || state === null || !('proposal' in state)) return null;
+  const raw = state.proposal;
+  if (typeof raw !== 'object' || raw === null) return null;
+  const { gameId, day, startHour, durationHours, title } = raw as Record<string, unknown>;
+  if (typeof gameId !== 'string' || !isGameId(gameId)) return null;
+  if (typeof day !== 'number' || !Number.isInteger(day) || day < 0 || day > 6) return null;
+  if (typeof startHour !== 'number' || !GRID_HOURS.includes(startHour)) return null;
+  if (typeof durationHours !== 'number' || !Number.isInteger(durationHours)) return null;
+  if (durationHours < 1 || durationHours > 4) return null;
+  if (typeof title !== 'string') return null;
+  return {
+    gameId,
+    day: day as WeekDay,
+    startHour,
+    durationHours,
+    title,
+    ...PROPOSAL_DEFAULTS,
+  };
 }
 
 export default function SchedulePage() {
@@ -30,6 +51,7 @@ export default function SchedulePage() {
 
   const { user } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const accountsQuery = useAccounts();
   const availabilityQuery = useAvailability();
 
@@ -53,21 +75,42 @@ export default function SchedulePage() {
     }
   }, [sessions, selectedId]);
 
-  // Llegada desde «Proponer sesión»: abre la papeleta con el juego y el mejor
-  // bloque en común ya elegidos.
+  // Llegada desde «Proponer» (RF-30). La propuesta se lee una sola vez y espera a las cuentas
+  // del usuario de la sesión: el formulario nunca se abre con la lista de juegos vacía.
+  const [proposal, setProposal] = useState<Proposal | null>(null);
   useEffect(() => {
-    const state = location.state as ScheduleLocationState | null;
-    if (!state?.gameId) return;
+    const arrived = readProposal(location.state);
+    if (arrived) setProposal(arrived);
+  }, [location.key, location.state]);
 
-    const block = state.suggestedBlock ? parseBlock(state.suggestedBlock) : null;
-    setDraft({
-      gameId: state.gameId,
-      day: (block?.day ?? 0) as WeekDay,
-      startHour: block?.hour ?? 20,
-      title: state.withUser ? `Sesión con ${state.withUser}` : '',
-    });
-    window.history.replaceState({}, '');
-  }, [location.state]);
+  const { pathname } = location;
+  useEffect(() => {
+    if (!proposal) return;
+    // Con la sesión ya limpiada (401, RF-7) la propuesta se pierde sin tocar la navegación:
+    // el aviso de sesión caducada lleva al acceso.
+    if (!user) {
+      setProposal(null);
+      return;
+    }
+    if (accountsQuery.isPending || accountsQuery.isFetching) return;
+    // Con la carga fallida el error se muestra arriba (RF-9) y la propuesta se descarta,
+    // también si luego se reintenta; sin cuenta en el juego propuesto, la agenda queda
+    // como si se hubiera abierto directamente.
+    if (
+      accountsQuery.isSuccess &&
+      accountsQuery.data.some((account) => account.gameId === proposal.gameId)
+    ) {
+      setDraft({
+        gameId: proposal.gameId,
+        day: proposal.day,
+        startHour: proposal.startHour,
+        durationHours: proposal.durationHours,
+        title: proposal.title,
+      });
+    }
+    setProposal(null);
+    navigate(pathname, { replace: true, state: null });
+  }, [proposal, user, accountsQuery, navigate, pathname]);
 
   const selected = sessions.find((session) => session.id === selectedId) ?? null;
   const mine = sessions.filter((session) =>
@@ -84,6 +127,29 @@ export default function SchedulePage() {
   };
 
   const busy = joinSession.isPending || leaveSession.isPending || cancelSession.isPending;
+
+  // Una sola escritura de la agenda a la vez, aunque el estado de la escritura aún no se haya
+  // pintado: un doble clic envía una sola petición (RF-20).
+  const sending = useRef(false);
+  const runAction = (action: SessionAction, sessionId: string) => {
+    if (sending.current) return;
+    sending.current = true;
+    // El aviso de un intento anterior deja de ser cierto al empezar otro.
+    joinSession.reset();
+    leaveSession.reset();
+    cancelSession.reset();
+    const mutation =
+      action === 'join' ? joinSession : action === 'leave' ? leaveSession : cancelSession;
+    mutation.mutate(sessionId, { onSettled: () => (sending.current = false) });
+  };
+
+  const pendingAction = (sessionId: string): SessionAction | null => {
+    if (joinSession.isPending && joinSession.variables === sessionId) return 'join';
+    if (leaveSession.isPending && leaveSession.variables === sessionId) return 'leave';
+    if (cancelSession.isPending && cancelSession.variables === sessionId) return 'cancel';
+    return null;
+  };
+  const actionError = joinSession.error ?? leaveSession.error ?? cancelSession.error;
 
   if (!user) return null;
 
@@ -112,7 +178,13 @@ export default function SchedulePage() {
         </Magnetic>
       </header>
 
-      {myGames.length === 0 ? (
+      {accountsQuery.isError ? (
+        <Failure
+          error={accountsQuery.error}
+          onRetry={() => accountsQuery.refetch()}
+          role="alert"
+        />
+      ) : accountsQuery.isSuccess && myGames.length === 0 ? (
         <p className="notice notice--pen">
           <Icon as={Link2} size={15} />
           Necesitas al menos un juego vinculado para anotar sesiones.{' '}
@@ -204,14 +276,16 @@ export default function SchedulePage() {
             </div>
 
             <div className="sheet__body stack">
+              <MutationNotice error={actionError} />
               {selected ? (
                 <SessionSlip
                   session={selected}
                   currentUserId={user.id}
-                  onJoin={(id) => joinSession.mutate(id)}
-                  onLeave={(id) => leaveSession.mutate(id)}
-                  onCancel={(id) => cancelSession.mutate(id)}
+                  onJoin={(id) => runAction('join', id)}
+                  onLeave={(id) => runAction('leave', id)}
+                  onCancel={(id) => runAction('cancel', id)}
                   busy={busy}
+                  pendingAction={pendingAction(selected.id)}
                 />
               ) : mine.length === 0 ? (
                 <Blank
@@ -225,10 +299,11 @@ export default function SchedulePage() {
                     key={session.id}
                     session={session}
                     currentUserId={user.id}
-                    onJoin={(id) => joinSession.mutate(id)}
-                    onLeave={(id) => leaveSession.mutate(id)}
-                    onCancel={(id) => cancelSession.mutate(id)}
+                    onJoin={(id) => runAction('join', id)}
+                    onLeave={(id) => runAction('leave', id)}
+                    onCancel={(id) => runAction('cancel', id)}
                     busy={busy}
+                    pendingAction={pendingAction(session.id)}
                   />
                 ))
               )}

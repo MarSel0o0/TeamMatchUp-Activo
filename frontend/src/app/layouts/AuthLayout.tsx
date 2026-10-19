@@ -5,6 +5,7 @@ import { BrandMark } from '@/shared/components/BrandMark';
 import { Working } from '@/shared/components/States';
 import { ThemeToggle } from '@/shared/components/ThemeToggle';
 import { EASE_OUT, rise, stagger } from '@/shared/motion/presets';
+import { LOADING_TEXT, REREAD_TEXT } from '@/shared/utils/copy';
 import { ROUTES } from '../routes';
 import { SignUpSheetPreview } from './SignUpSheetPreview';
 import './authLayout.css';
@@ -12,7 +13,7 @@ import './authLayout.css';
 const CLAUSES = [
   {
     title: 'Rango leído, no declarado',
-    body: 'Leemos tu nivel desde la fuente de cada juego y lo volvemos a leer cuando cambia.',
+    body: REREAD_TEXT,
   },
   {
     title: 'Horas que se cruzan de verdad',
@@ -85,7 +86,7 @@ export function AuthLayout() {
                 exit={{ opacity: 0, y: -10, filter: 'blur(6px)' }}
                 transition={{ duration: 0.45, ease: EASE_OUT }}
               >
-                <Suspense fallback={<Working label="Cargando…" />}>{outlet}</Suspense>
+                <Suspense fallback={<Working label={LOADING_TEXT} />}>{outlet}</Suspense>
               </motion.div>
             </AnimatePresence>
           </div>

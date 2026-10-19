@@ -1,5 +1,7 @@
 import { motion } from 'motion/react';
 import { getGame } from '@/domain/games';
+import { rankGainSinceFirst } from '@/domain/rankProgress';
+import { ladder, normalizeStep } from '@/domain/rankScale';
 import type { GameId, RankSnapshot } from '@/domain/types';
 import { EASE_OUT } from '@/shared/motion/presets';
 import { withAlpha } from '@/shared/utils/ink';
@@ -22,7 +24,16 @@ interface RankScaleProps {
 export function RankScale({ gameId, history, current }: RankScaleProps) {
   const game = getGame(gameId);
   const first = history[0] ?? current;
-  const delta = current.normalized - first.normalized;
+  // Diferencia desde la primera lectura (RF-14), sin tendencia: `null` si no hay historial.
+  const delta = rankGainSinceFirst({ currentRank: current, rankHistory: history });
+  // Cada tier es una marca real: su posición es la de su primer escalón en la escala (RF-12).
+  const tierTicks = game.tiers.map((tier) => ({
+    tier,
+    position: normalizeStep(
+      gameId,
+      ladder(gameId).findIndex((step) => step.tier === tier),
+    ),
+  }));
   const low = Math.min(first.normalized, current.normalized);
   const high = Math.max(first.normalized, current.normalized);
 
@@ -31,17 +42,16 @@ export function RankScale({ gameId, history, current }: RankScaleProps) {
       <div
         className="rank-scale__track"
         role="img"
-        aria-label={`${current.tier} en la escala de ${game.name}: ${current.normalized} de 100, ${
-          delta >= 0 ? 'subió' : 'bajó'
-        } ${Math.abs(delta)} puntos desde la lectura más antigua.`}
+        aria-label={
+          delta === null
+            ? `${current.tier} en la escala de ${game.name}: ${current.normalized} de 100.`
+            : `${current.tier} en la escala de ${game.name}: ${current.normalized} de 100, ${
+                delta >= 0 ? 'subió' : 'bajó'
+              } ${Math.abs(delta)} puntos desde la primera lectura.`
+        }
       >
-        {game.tiers.map((tier, index) => (
-          <span
-            key={tier}
-            className="rank-scale__tick"
-            style={{ left: `${(index / (game.tiers.length - 1)) * 100}%` }}
-            title={tier}
-          />
+        {tierTicks.map(({ tier, position }) => (
+          <span key={tier} className="rank-scale__tick" style={{ left: `${position}%` }} title={tier} />
         ))}
 
         {/* Tramo recorrido entre la primera lectura y la vigente. */}
@@ -87,10 +97,14 @@ export function RankScale({ gameId, history, current }: RankScaleProps) {
 
       <div className="rank-scale__ends">
         <span className="label">{game.tiers[0]}</span>
-        <span className="rank-scale__delta num" data-up={delta >= 0 || undefined}>
-          {delta >= 0 ? '▲ +' : '▼ −'}
-          {Math.abs(delta)} pts desde la primera lectura
-        </span>
+        {delta === null ? (
+          <span className="rank-scale__delta num">Sin datos</span>
+        ) : (
+          <span className="rank-scale__delta num" data-up={delta >= 0 || undefined}>
+            {delta >= 0 ? '▲ +' : '▼ −'}
+            {Math.abs(delta)} pts desde la primera lectura
+          </span>
+        )}
         <span className="label">{game.tiers[game.tiers.length - 1]}</span>
       </div>
     </div>

@@ -19,16 +19,21 @@ export type WeekDay = 0 | 1 | 2 | 3 | 4 | 5 | 6;
  */
 export type TimeBlock = string;
 
-export interface User {
+/** Lo que el servidor muestra de cualquier jugador: nunca incluye el correo. */
+export interface PublicUser {
   id: string;
   username: string;
-  email: string;
   displayName: string;
   avatarColor: string;
   bio: string;
   /** Zona horaria IANA declarada por el usuario, ej. `America/Santiago`. */
   timezone: string;
   createdAt: string;
+}
+
+/** El usuario de la sesión: lo público más su correo. */
+export interface User extends PublicUser {
+  email: string;
 }
 
 /** Fotografía del rango de una cuenta en un instante dado. */
@@ -38,7 +43,7 @@ export interface RankSnapshot {
   /** División dentro del tier cuando el juego la usa (LoL: IV..I). */
   division?: string;
   /** Puntos internos del juego (LP en LoL, CS Rating en CS2, MMR en R6). */
-  points?: number;
+  points: number;
   /** Rango normalizado 0-100 para poder comparar entre juegos distintos. */
   normalized: number;
   recordedAt: string;
@@ -57,6 +62,8 @@ export interface GameAccount {
   lastSyncedAt: string;
   /** La plataforma pudo leer el rango desde la fuente externa. */
   verified: boolean;
+  /** Los datos de la cuenta son de demostración (RF-11). */
+  simulated: boolean;
 }
 
 export type MatchResult = 'win' | 'loss';
@@ -74,7 +81,7 @@ export interface MatchRecord {
 
 /** Usuario recomendado por el motor de coincidencias, para un juego concreto. */
 export interface MatchCandidate {
-  user: User;
+  user: PublicUser;
   gameId: GameId;
   account: GameAccount;
   /** Distancia de rango normalizada (0 = idéntico, 100 = extremos opuestos). */
@@ -85,7 +92,7 @@ export interface MatchCandidate {
   score: number;
 }
 
-export type SessionStatus = 'open' | 'full' | 'cancelled';
+export type SessionStatus = 'open' | 'full';
 
 export interface PlaySession {
   id: string;
@@ -101,11 +108,6 @@ export interface PlaySession {
   participants: Pick<User, 'id' | 'username' | 'displayName' | 'avatarColor'>[];
   status: SessionStatus;
   createdAt: string;
-}
-
-export interface AuthSession {
-  token: string;
-  user: User;
 }
 
 export interface Credentials {

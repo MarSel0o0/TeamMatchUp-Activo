@@ -1,13 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { queryKeys } from '@/app/providers/queryKeys';
+import { keepPreviousForUser, queryKeys } from '@/app/providers/queryKeys';
 import { api, type CreateSessionPayload } from '@/services/api';
+import { useSessionUserId } from '@/features/auth/useSessionUserId';
 import type { GameId } from '@/domain/types';
 
 export function useSessions(gameId: GameId | 'all') {
+  const userId = useSessionUserId();
   return useQuery({
-    queryKey: queryKeys.sessions(gameId),
+    queryKey: queryKeys.sessions(userId, gameId),
     queryFn: () => api.sessions.list(gameId),
-    placeholderData: (previous) => previous,
+    enabled: userId !== null,
+    placeholderData: keepPreviousForUser(userId),
   });
 }
 
@@ -16,10 +19,11 @@ function useSessionMutation<TVariables, TData>(
   mutationFn: (variables: TVariables) => Promise<TData>,
 ) {
   const queryClient = useQueryClient();
+  const userId = useSessionUserId();
 
   return useMutation({
     mutationFn,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sessions'] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.allSessions(userId) }),
   });
 }
 

@@ -1,14 +1,16 @@
 import { Check, Save } from 'lucide-react';
-import { useState, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import { formatRange, groupBlocks } from '@/domain/availability';
 import type { TimeBlock } from '@/domain/types';
 import { useAuth } from '@/features/auth/useAuth';
 import { HoursSheet } from '@/shared/components/HoursSheet';
 import { Icon } from '@/shared/components/Icon';
+import { MutationNotice } from '@/shared/components/MutationNotice';
 import { Stamp } from '@/shared/components/Stamp';
 import { Failure, SheetSkeleton } from '@/shared/components/States';
 import { TextField } from '@/shared/components/TextField';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import { REREAD_TEXT, SENDING_TEXT } from '@/shared/utils/copy';
 import { pluralize } from '@/shared/utils/format';
 import { AccountRow } from '../components/AccountRow';
 import { LinkAccountForm } from '../components/LinkAccountForm';
@@ -40,9 +42,17 @@ export default function SettingsPage() {
   const [displayName, setDisplayName] = useState(user?.displayName ?? '');
   const [bio, setBio] = useState(user?.bio ?? '');
 
+  // Cada escritura lleva una guarda propia: un doble clic envía una sola petición aunque el
+  // estado de la escritura aún no se haya pintado (RF-20).
+  const profileSending = useRef(false);
   const handleProfileSubmit = (event: FormEvent) => {
     event.preventDefault();
-    updateProfile.mutate({ displayName: displayName.trim(), bio: bio.trim() });
+    if (profileSending.current) return;
+    profileSending.current = true;
+    updateProfile.mutate(
+      { displayName: displayName.trim(), bio: bio.trim() },
+      { onSettled: () => (profileSending.current = false) },
+    );
   };
 
   /* --- Horas -------------------------------------------------------------- */
@@ -56,19 +66,42 @@ export default function SettingsPage() {
     JSON.stringify([...draftBlocks].sort()) !==
       JSON.stringify([...(availabilityQuery.data ?? [])].sort());
 
-  const handleSaveAvailability = async () => {
-    if (!draftBlocks) return;
-    await saveAvailability.mutateAsync(draftBlocks);
-    setDraftBlocks(null);
+  const availabilitySending = useRef(false);
+  const handleSaveAvailability = () => {
+    if (!draftBlocks || availabilitySending.current) return;
+    availabilitySending.current = true;
+    // Si falla, el borrador se conserva y el error se muestra debajo (RF-9, RF-20).
+    saveAvailability.mutate(draftBlocks, {
+      onSuccess: () => setDraftBlocks(null),
+      onSettled: () => (availabilitySending.current = false),
+    });
   };
 
-  const unlinkGame = async (accountId: string) => {
+  // Resincronizar y desvincular comparten la guarda: mientras una está en curso no sale otra.
+  const accountSending = useRef(false);
+  const accountDone = () => (accountSending.current = false);
+
+  const syncGame = (accountId: string) => {
+    if (accountSending.current) return;
+    accountSending.current = true;
+    unlinkAccount.reset();
+    syncAccount.mutate(accountId, { onSettled: accountDone });
+  };
+
+  const unlinkGame = (accountId: string) => {
+    if (accountSending.current) return;
     const account = accounts.find((candidate) => candidate.id === accountId);
     const confirmed = window.confirm(
       `¿Desvincular ${account ? account.handle : 'esta cuenta'}? Dejarás de aparecer en las coincidencias de ese juego.`,
     );
-    if (confirmed) await unlinkAccount.mutateAsync(accountId);
+    if (!confirmed) return;
+    accountSending.current = true;
+    syncAccount.reset();
+    unlinkAccount.mutate(accountId, { onSettled: accountDone });
   };
+
+  const accountsBusy = syncAccount.isPending || unlinkAccount.isPending;
+  const accountError = syncAccount.error ?? unlinkAccount.error;
 
   if (!user) return null;
 
@@ -120,12 +153,14 @@ export default function SettingsPage() {
           <div className="line">
             <button type="submit" className="btn btn--pen" disabled={updateProfile.isPending}>
               {updateProfile.isPending ? <span className="btn__spin" /> : <Icon as={Save} size={14} />}
-              {updateProfile.isPending ? 'Guardando…' : 'Guardar ficha'}
+              {updateProfile.isPending ? SENDING_TEXT : 'Guardar ficha'}
             </button>
             <span className="note note--faint">
               {user.email} · {user.timezone}
             </span>
           </div>
+
+          <MutationNotice error={updateProfile.error} />
         </form>
       </section>
 
@@ -133,7 +168,7 @@ export default function SettingsPage() {
         <section className="sheet">
           <div className="sheet__head">
             <h2 className="sheet-title grow">Cuentas vinculadas</h2>
-            <span className="note note--faint">Releemos el rango de forma periódica</span>
+            <span className="note note--faint">{REREAD_TEXT}</span>
           </div>
 
           {accountsQuery.isPending ? (
@@ -149,17 +184,22 @@ export default function SettingsPage() {
               </p>
             </div>
           ) : (
-            <div className="sheet__body sheet__body--flush">
-              {accounts.map((account) => (
-                <AccountRow
-                  key={account.id}
-                  account={account}
-                  onSync={(accountId) => syncAccount.mutate(accountId)}
-                  onUnlink={unlinkGame}
-                  syncing={syncAccount.isPending && syncAccount.variables === account.id}
-                />
-              ))}
-            </div>
+            <>
+              <MutationNotice error={accountError} padded />
+              <div className="sheet__body sheet__body--flush">
+                {accounts.map((account) => (
+                  <AccountRow
+                    key={account.id}
+                    account={account}
+                    onSync={syncGame}
+                    onUnlink={unlinkGame}
+                    syncing={syncAccount.isPending && syncAccount.variables === account.id}
+                    unlinking={unlinkAccount.isPending && unlinkAccount.variables === account.id}
+                    locked={accountsBusy}
+                  />
+                ))}
+              </div>
+            </>
           )}
         </section>
 
@@ -195,10 +235,12 @@ export default function SettingsPage() {
               disabled={!pending || saveAvailability.isPending}
             >
               {saveAvailability.isPending ? <span className="btn__spin" /> : <Icon as={Save} size={13} />}
-              {saveAvailability.isPending ? 'Guardando…' : 'Guardar horas'}
+              {saveAvailability.isPending ? SENDING_TEXT : 'Guardar horas'}
             </button>
           </div>
         </div>
+
+        <MutationNotice error={saveAvailability.error} padded />
 
         {availabilityQuery.isPending ? (
           <div className="sheet__body">

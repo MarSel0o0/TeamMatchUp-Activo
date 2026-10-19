@@ -1,10 +1,12 @@
 import { AlertCircle, ArrowRight } from 'lucide-react';
-import { useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useRef, useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 import { ROUTES } from '@/app/routes';
+import { isSessionCleared } from '@/services/api';
 import { Icon } from '@/shared/components/Icon';
 import { TextField } from '@/shared/components/TextField';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import { NO_MESSAGE_TEXT, SENDING_TEXT } from '@/shared/utils/copy';
 import {
   isValid,
   required,
@@ -36,12 +38,13 @@ export default function RegisterPage() {
   useDocumentTitle('Crear cuenta');
 
   const { register } = useAuth();
-  const navigate = useNavigate();
 
   const [form, setForm] = useState<RegisterForm>(EMPTY_FORM);
   const [errors, setErrors] = useState<FieldErrors<RegisterForm>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  // Un solo envío por doble clic, aunque el estado de la escritura aún no se haya pintado (RF-20).
+  const sending = useRef(false);
 
   const update = (field: keyof RegisterForm) => (event: { target: { value: string } }) => {
     setForm((previous) => ({ ...previous, [field]: event.target.value }));
@@ -50,6 +53,7 @@ export default function RegisterPage() {
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
+    if (sending.current) return;
     setSubmitError(null);
 
     const nextErrors: FieldErrors<RegisterForm> = {
@@ -63,6 +67,7 @@ export default function RegisterPage() {
     setErrors(nextErrors);
     if (!isValid(nextErrors)) return;
 
+    sending.current = true;
     setSubmitting(true);
     try {
       await register({
@@ -71,11 +76,14 @@ export default function RegisterPage() {
         email: form.email.trim(),
         password: form.password,
       });
-      // Una cuenta nueva no tiene juegos ni horas: se parte por llenar la ficha.
-      navigate(ROUTES.settings, { replace: true });
+      // El proveedor lleva a Inicio, o a login si el inicio de sesión falla (RF-4).
     } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : 'No se pudo crear la cuenta.');
+      // El mensaje del servidor se muestra tal como llega; sin mensaje, el texto fijo (RF-9).
+      if (!isSessionCleared(error)) {
+        setSubmitError(error instanceof Error && error.message ? error.message : NO_MESSAGE_TEXT);
+      }
     } finally {
+      sending.current = false;
       setSubmitting(false);
     }
   };
@@ -143,7 +151,7 @@ export default function RegisterPage() {
 
       <button type="submit" className="btn btn--pen btn--block access__submit" disabled={submitting}>
         {submitting ? <span className="btn__spin" /> : <Icon as={ArrowRight} size={15} />}
-        {submitting ? 'Creando…' : 'Crear cuenta'}
+        {submitting ? SENDING_TEXT : 'Crear cuenta'}
       </button>
 
       <p className="access__foot">

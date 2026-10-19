@@ -5,7 +5,11 @@ import { GameMark } from '@/shared/components/GameMark';
 import { Icon } from '@/shared/components/Icon';
 import { Monogram } from '@/shared/components/Monogram';
 import { Stamp } from '@/shared/components/Stamp';
+import { SENDING_TEXT } from '@/shared/utils/copy';
 import './sessionSlip.css';
+
+/** Escritura de la agenda sobre una sesión. */
+export type SessionAction = 'join' | 'leave' | 'cancel';
 
 interface SessionSlipProps {
   session: PlaySession;
@@ -13,7 +17,10 @@ interface SessionSlipProps {
   onJoin: (sessionId: string) => void;
   onLeave: (sessionId: string) => void;
   onCancel: (sessionId: string) => void;
+  /** Hay una escritura de la agenda en curso: todos los botones quedan deshabilitados. */
   busy?: boolean;
+  /** Escritura en curso sobre esta sesión: su botón dice "Enviando…" (RF-20). */
+  pendingAction?: SessionAction | null;
 }
 
 /**
@@ -29,6 +36,7 @@ export function SessionSlip({
   onLeave,
   onCancel,
   busy = false,
+  pendingAction = null,
 }: SessionSlipProps) {
   const isHost = session.hostId === currentUserId;
   const isSigned = session.participants.some((participant) => participant.id === currentUserId);
@@ -95,8 +103,8 @@ export function SessionSlip({
             onClick={() => onCancel(session.id)}
             disabled={busy}
           >
-            <Icon as={Ban} size={13} />
-            Cancelar sesión
+            {pendingAction === 'cancel' ? <span className="btn__spin" /> : <Icon as={Ban} size={13} />}
+            {pendingAction === 'cancel' ? SENDING_TEXT : 'Cancelar sesión'}
           </button>
         ) : isSigned ? (
           <button
@@ -105,8 +113,8 @@ export function SessionSlip({
             onClick={() => onLeave(session.id)}
             disabled={busy}
           >
-            <Icon as={LogOut} size={13} />
-            Salir
+            {pendingAction === 'leave' ? <span className="btn__spin" /> : <Icon as={LogOut} size={13} />}
+            {pendingAction === 'leave' ? SENDING_TEXT : 'Salir'}
           </button>
         ) : (
           <button
@@ -115,8 +123,8 @@ export function SessionSlip({
             onClick={() => onJoin(session.id)}
             disabled={busy || openSlots === 0}
           >
-            <Icon as={UserPlus} size={13} />
-            {openSlots === 0 ? 'Sin cupos' : 'Unirme'}
+            {pendingAction === 'join' ? <span className="btn__spin" /> : <Icon as={UserPlus} size={13} />}
+            {pendingAction === 'join' ? SENDING_TEXT : openSlots === 0 ? 'Sin cupos' : 'Unirme'}
           </button>
         )}
       </footer>

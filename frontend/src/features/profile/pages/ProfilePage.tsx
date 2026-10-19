@@ -1,14 +1,16 @@
 import { CalendarClock, Link2, PenLine } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ROUTES } from '@/app/routes';
 import { formatRange, groupBlocks } from '@/domain/availability';
 import { formatRank } from '@/domain/games';
-import type { GameId } from '@/domain/types';
+import type { GameId, RankSnapshot } from '@/domain/types';
 import { useAuth } from '@/features/auth/useAuth';
+import { DemoTag } from '@/shared/components/DemoTag';
 import { GameTabs } from '@/shared/components/GameTabs';
 import { Icon } from '@/shared/components/Icon';
 import { Monogram } from '@/shared/components/Monogram';
+import { MutationNotice } from '@/shared/components/MutationNotice';
 import { RankScale } from '@/shared/components/RankScale';
 import { Blank, Failure, SheetSkeleton } from '@/shared/components/States';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
@@ -42,9 +44,23 @@ export default function ProfilePage() {
     }
   }, [accounts, activeGame]);
 
+  // Un solo envío por doble clic, aunque el estado de la escritura aún no se haya pintado (RF-20).
+  const syncing = useRef(false);
+  const handleSync = (accountId: string) => {
+    if (syncing.current) return;
+    syncing.current = true;
+    syncAccount.mutate(accountId, { onSettled: () => (syncing.current = false) });
+  };
+
   // Cambiar de juego solo relanza esta consulta: la página no se recarga.
   const summaryQuery = useGameSummary(activeGame);
   const availability = availabilityQuery.data ?? [];
+  const summary = summaryQuery.data;
+  // Defensivo (RF-14): el servidor no entrega cuentas sin rango ni sin tasa de victorias, pero si
+  // llegara una no se muestra ni se calcula ningún valor derivado: aparece "Sin datos".
+  const currentRank: RankSnapshot | null | undefined = summary?.account.currentRank;
+  const firstRank: RankSnapshot | undefined = summary?.account.rankHistory[0];
+  const winRate: number | null | undefined = summary?.winRate;
 
   if (!user) return null;
 
@@ -133,38 +149,50 @@ export default function ProfilePage() {
               </div>
             ) : summaryQuery.isError ? (
               <Failure error={summaryQuery.error} onRetry={() => summaryQuery.refetch()} />
-            ) : summaryQuery.data ? (
+            ) : summary ? (
               <div className="ficha__game">
                 <div>
+                  <MutationNotice error={syncAccount.error} padded />
                   <AccountRow
-                    account={summaryQuery.data.account}
-                    onSync={(accountId) => syncAccount.mutate(accountId)}
+                    account={summary.account}
+                    onSync={handleSync}
                     syncing={syncAccount.isPending}
                   />
 
                   <div className="ficha__scale">
                     <div className="line-between">
                       <span className="label">Posición en la escala del juego</span>
-                      <span className="note note--faint">
-                        {pluralize(
-                          summaryQuery.data.account.rankHistory.length,
-                          'lectura registrada',
-                          'lecturas registradas',
-                        )}
+                      <span>
+                        <span className="note note--faint">
+                          {pluralize(
+                            summary.account.rankHistory.length,
+                            'lectura registrada',
+                            'lecturas registradas',
+                          )}
+                        </span>
+                        {summary.account.simulated ? (
+                          <>
+                            {' · '}
+                            <DemoTag />
+                          </>
+                        ) : null}
                       </span>
                     </div>
-                    <RankScale
-                      gameId={summaryQuery.data.account.gameId}
-                      history={summaryQuery.data.account.rankHistory}
-                      current={summaryQuery.data.account.currentRank}
-                    />
-                    <p className="note note--faint">
-                      Primera lectura:{' '}
-                      {formatRank(
-                        summaryQuery.data.account.gameId,
-                        summaryQuery.data.account.rankHistory[0],
-                      )}
-                    </p>
+                    {currentRank ? (
+                      <>
+                        <RankScale
+                          gameId={summary.account.gameId}
+                          history={summary.account.rankHistory}
+                          current={currentRank}
+                        />
+                        <p className="note note--faint">
+                          Primera lectura:{' '}
+                          {firstRank ? formatRank(summary.account.gameId, firstRank) : 'Sin datos'}
+                        </p>
+                      </>
+                    ) : (
+                      <p className="note note--faint">Sin datos</p>
+                    )}
                   </div>
                 </div>
 
@@ -172,10 +200,19 @@ export default function ProfilePage() {
                   <div className="line-between">
                     <h3 className="sheet-title">Últimas partidas</h3>
                     <span className="ficha__winrate">
-                      <CountUp value={summaryQuery.data.winRate} suffix="%" /> ganadas
+                      {typeof winRate === 'number' && Number.isFinite(winRate) ? (
+                        <>
+                          <CountUp value={winRate} suffix="%" /> ganadas
+                        </>
+                      ) : (
+                        'Sin datos'
+                      )}
                     </span>
                   </div>
-                  <MatchLedger matches={summaryQuery.data.recentMatches} />
+                  <MatchLedger
+                    matches={summary.recentMatches}
+                    simulated={summary.account.simulated}
+                  />
                 </div>
               </div>
             ) : null}

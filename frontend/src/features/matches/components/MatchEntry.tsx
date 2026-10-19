@@ -4,13 +4,17 @@ import { forwardRef, useState } from 'react';
 import { formatRange, groupBlocks } from '@/domain/availability';
 import { formatRank, getGame } from '@/domain/games';
 import { scoreLabel } from '@/domain/matching';
-import type { MatchCandidate } from '@/domain/types';
+import { blockReason, buildProposal, type Proposal } from '@/domain/proposal';
+import type { MatchCandidate, RankSnapshot } from '@/domain/types';
+import { useAvailabilityOf } from '@/features/profile/hooks';
+import { DemoTag } from '@/shared/components/DemoTag';
 import { HoursSheet } from '@/shared/components/HoursSheet';
 import { Icon } from '@/shared/components/Icon';
 import { Monogram } from '@/shared/components/Monogram';
 import { Stamp } from '@/shared/components/Stamp';
 import { CountUp } from '@/shared/motion/CountUp';
 import { EASE_OUT, EASE_FLUID } from '@/shared/motion/presets';
+import { PROPOSAL_BLOCK_REASONS } from '@/shared/utils/copy';
 import { pluralize, timeAgo } from '@/shared/utils/format';
 import './matchEntry.css';
 
@@ -18,7 +22,10 @@ interface MatchEntryProps {
   candidate: MatchCandidate;
   /** Disponibilidad propia, para dibujar el traslape al desplegar la fila. */
   viewerBlocks: string[];
-  onPropose?: (candidate: MatchCandidate) => void;
+  /** La disponibilidad propia ya llegó; mientras no, "Proponer" no puede decidir su motivo. */
+  viewerLoaded: boolean;
+  /** Recibe la propuesta ya calculada (RF-29); la página navega a la agenda. */
+  onPropose?: (proposal: Proposal) => void;
 }
 
 /**
@@ -29,12 +36,32 @@ interface MatchEntryProps {
  * reacomodan deslizándose a su nueva posición en vez de saltar.
  */
 export const MatchEntry = forwardRef<HTMLElement, MatchEntryProps>(function MatchEntry(
-  { candidate, viewerBlocks, onPropose },
+  { candidate, viewerBlocks, viewerLoaded, onPropose },
   ref,
 ) {
   const [open, setOpen] = useState(false);
+  // "Proponer" (RF-29): las horas del candidato salen de su disponibilidad, no del cruce, para
+  // distinguir "no ha marcado horas" de "no tienen horas en común". Hasta que llegan las dos
+  // disponibilidades (o si alguna falla) el botón queda deshabilitado sin inventar un motivo.
+  const theirsQuery = useAvailabilityOf(candidate.user.id);
+  const theirs = theirsQuery.data;
+  const reason = viewerLoaded && theirs !== undefined ? blockReason(viewerBlocks, theirs) : null;
+  const proposal =
+    viewerLoaded && theirs !== undefined
+      ? buildProposal({
+          gameId: candidate.gameId,
+          displayName: candidate.user.displayName,
+          mine: viewerBlocks,
+          theirs,
+        })
+      : null;
+  const reasonId = `propose-reason-${candidate.account.id}`;
   const game = getGame(candidate.gameId);
   const ranges = groupBlocks(candidate.sharedBlocks);
+  // Defensivo (RF-14): el servidor no entrega cuentas sin rango, pero si llegara una no se
+  // muestra ni se calcula ninguna distancia con él.
+  const rank: RankSnapshot | null | undefined = candidate.account.currentRank;
+  const simulated = candidate.account.simulated;
 
   return (
     <motion.article
@@ -60,10 +87,17 @@ export const MatchEntry = forwardRef<HTMLElement, MatchEntryProps>(function Matc
 
         <div className="entry__col">
           <span className="label entry__inline-label">Rango</span>
-          <span className="entry__rank" style={{ color: game.accent }}>
-            {formatRank(candidate.gameId, candidate.account.currentRank)}
-          </span>
-          <span className="note note--faint num">Δ {candidate.rankDistance} pts</span>
+          {rank ? (
+            <>
+              <span className="entry__rank" style={{ color: game.accent }}>
+                {formatRank(candidate.gameId, rank)}
+              </span>
+              <span className="note note--faint num">Δ {candidate.rankDistance} pts</span>
+              {simulated ? <DemoTag className="entry__demo" /> : null}
+            </>
+          ) : (
+            <span className="note note--faint">Sin datos</span>
+          )}
         </div>
 
         <div className="entry__col">
@@ -76,11 +110,27 @@ export const MatchEntry = forwardRef<HTMLElement, MatchEntryProps>(function Matc
           </span>
         </div>
 
-        <ScoreRing score={candidate.score} label={scoreLabel(candidate.score)} />
+        {rank ? (
+          <ScoreRing
+            score={candidate.score}
+            label={scoreLabel(candidate.score)}
+            simulated={simulated}
+          />
+        ) : (
+          <span className="note note--faint">Sin datos</span>
+        )}
 
         <div className="entry__actions">
           {onPropose ? (
-            <button type="button" className="btn btn--pen btn--sm" onClick={() => onPropose(candidate)}>
+            <button
+              type="button"
+              className="btn btn--pen btn--sm entry__propose"
+              aria-disabled={proposal === null ? true : undefined}
+              aria-describedby={reason !== null ? reasonId : undefined}
+              onClick={() => {
+                if (proposal !== null) onPropose(proposal);
+              }}
+            >
               <Icon as={CalendarPlus} size={13} />
               Proponer
             </button>
@@ -96,6 +146,12 @@ export const MatchEntry = forwardRef<HTMLElement, MatchEntryProps>(function Matc
             <span className="entry__toggle-text">{open ? 'Ocultar' : 'Horas'}</span>
           </button>
         </div>
+
+        {reason !== null ? (
+          <span id={reasonId} className="note note--faint entry__reason">
+            {PROPOSAL_BLOCK_REASONS[reason]}
+          </span>
+        ) : null}
       </div>
 
       <AnimatePresence initial={false}>
@@ -110,12 +166,13 @@ export const MatchEntry = forwardRef<HTMLElement, MatchEntryProps>(function Matc
             <div className="entry__detail">
               <div className="entry__stamps">
                 {candidate.account.verified ? (
-                  <Stamp tone="sealed">Rango verificado</Stamp>
+                  <Stamp tone="sealed">Verificada</Stamp>
                 ) : (
-                  <Stamp tone="warn">Rango sin verificar</Stamp>
+                  <Stamp tone="warn">Sin verificar</Stamp>
                 )}
+                {simulated ? <DemoTag className="entry__demo" /> : null}
                 <span className="note note--faint">
-                  Leído {timeAgo(candidate.account.lastSyncedAt)} desde {game.source}
+                  Última lectura {timeAgo(candidate.account.lastSyncedAt)}
                 </span>
               </div>
 
@@ -141,7 +198,15 @@ export const MatchEntry = forwardRef<HTMLElement, MatchEntryProps>(function Matc
 });
 
 /** Afinidad como anillo que se llena: la columna que el ojo recorre para comparar. */
-function ScoreRing({ score, label }: { score: number; label: string }) {
+function ScoreRing({
+  score,
+  label,
+  simulated,
+}: {
+  score: number;
+  label: string;
+  simulated: boolean;
+}) {
   const tone = score >= 75 ? 'var(--volt)' : score >= 50 ? 'var(--ink)' : 'var(--ink-3)';
 
   return (
@@ -161,6 +226,7 @@ function ScoreRing({ score, label }: { score: number; label: string }) {
       </svg>
       <CountUp value={score} className="entry__score-value" />
       <span className="entry__score-label">{label}</span>
+      {simulated ? <DemoTag className="entry__demo" /> : null}
     </div>
   );
 }

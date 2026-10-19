@@ -27,9 +27,18 @@ export function toBlock(day: WeekDay, hour: number): TimeBlock {
   return `${day}-${hour}`;
 }
 
-export function parseBlock(block: TimeBlock): { day: WeekDay; hour: number } {
-  const [day, hour] = block.split('-').map(Number);
-  return { day: day as WeekDay, hour };
+// "<día>-<hora>": día 0..6, hora 0..23, sin ceros a la izquierda, signos ni espacios.
+// Sin la bandera `m`, `$` solo coincide al final del texto: "2-20\n" no es un bloque.
+// Mismo criterio que `backend/src/domain/availability.ts` (spec 005, DP5-9).
+const BLOCK_PATTERN = /^([0-6])-([0-9]|1[0-9]|2[0-3])$/;
+
+/** Día y hora de un bloque `"<día>-<hora>"`, o `null` si el texto no cumple el formato. */
+export function parseBlock(block: string): { day: WeekDay; hour: number } | null {
+  const match = BLOCK_PATTERN.exec(block);
+  if (match === null) return null;
+  const [, day, hour] = match;
+  if (day === undefined || hour === undefined) return null;
+  return { day: Number(day) as WeekDay, hour: Number(hour) };
 }
 
 export function formatHour(hour: number): string {
@@ -37,14 +46,34 @@ export function formatHour(hour: number): string {
 }
 
 export function formatBlock(block: TimeBlock): string {
-  const { day, hour } = parseBlock(block);
-  return `${WEEK_DAYS[day].short} ${formatHour(hour)}`;
+  const parsed = parseBlock(block);
+  if (parsed === null) return block;
+  return `${WEEK_DAYS[parsed.day].short} ${formatHour(parsed.hour)}`;
 }
 
-/** Bloques presentes en ambas disponibilidades. */
-export function intersectBlocks(a: TimeBlock[], b: TimeBlock[]): TimeBlock[] {
-  const setB = new Set(b);
-  return a.filter((block) => setB.has(block));
+/**
+ * Orden numérico por día y, dentro del día, por hora (`0-5` antes que `0-23`). Solo
+ * compara bloques válidos: un texto que no lo sea se trata como el menor (no se espera,
+ * `intersectBlocks` los descarta antes de ordenar).
+ */
+export function compareBlocks(a: string, b: string): number {
+  const first = parseBlock(a);
+  const second = parseBlock(b);
+  if (first === null || second === null) {
+    if (first === null && second === null) return 0;
+    return first === null ? -1 : 1;
+  }
+  return first.day - second.day || first.hour - second.hour;
+}
+
+/**
+ * Bloques presentes en ambas listas: solo bloques válidos, sin repetidos, ordenados por
+ * día y hora. No modifica las entradas.
+ */
+export function intersectBlocks(a: readonly string[], b: readonly string[]): string[] {
+  const inB = new Set(b.filter((block) => parseBlock(block) !== null));
+  const common = new Set(a.filter((block) => inB.has(block) && parseBlock(block) !== null));
+  return [...common].sort(compareBlocks);
 }
 
 /**
@@ -60,8 +89,9 @@ export interface BlockRange {
 export function groupBlocks(blocks: TimeBlock[]): BlockRange[] {
   const byDay = new Map<WeekDay, number[]>();
   for (const block of blocks) {
-    const { day, hour } = parseBlock(block);
-    byDay.set(day, [...(byDay.get(day) ?? []), hour]);
+    const parsed = parseBlock(block);
+    if (parsed === null) continue;
+    byDay.set(parsed.day, [...(byDay.get(parsed.day) ?? []), parsed.hour]);
   }
 
   const ranges: BlockRange[] = [];

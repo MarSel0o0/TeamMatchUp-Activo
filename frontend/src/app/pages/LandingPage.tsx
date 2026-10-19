@@ -8,6 +8,7 @@ import { intersectBlocks, toBlock } from '@/domain/availability';
 import { GAME_LIST } from '@/domain/games';
 import type { TimeBlock, WeekDay } from '@/domain/types';
 import { BrandMark } from '@/shared/components/BrandMark';
+import { DemoTag } from '@/shared/components/DemoTag';
 import { HoursSheet } from '@/shared/components/HoursSheet';
 import { Icon } from '@/shared/components/Icon';
 import { ThemeToggle } from '@/shared/components/ThemeToggle';
@@ -15,6 +16,7 @@ import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { Magnetic } from '@/shared/motion/Magnetic';
 import { EASE_OUT, rise, stagger } from '@/shared/motion/presets';
 import { Reveal } from '@/shared/motion/Reveal';
+import { REREAD_TEXT } from '@/shared/utils/copy';
 import { CrossingVisual } from './CrossingVisual';
 import './landing.css';
 
@@ -102,7 +104,7 @@ export default function LandingPage() {
             </h1>
 
             <motion.p className="lead hero__lead" variants={rise}>
-              Cruzamos tu rango verificado con tu horario semanal. Terminas con una sesión
+              Cruzamos tu rango con tu horario semanal. Terminas con una sesión
               agendada, no con una lista de desconocidos.
             </motion.p>
 
@@ -135,7 +137,6 @@ export default function LandingPage() {
                   <li key={`${game.id}-${index}`} className="marquee__item">
                     <span className="marquee__dot" style={{ background: game.accent }} />
                     <span>{game.name}</span>
-                    <span className="marquee__source">rango desde {game.source}</span>
                   </li>
                 ))}
               </ul>
@@ -162,8 +163,7 @@ export default function LandingPage() {
                   <span className="step__num num">01</span>
                   <h3 className="step__title">Tu rango se lee, no se declara</h3>
                   <p className="step__body">
-                    Vinculas tu Riot ID, Ubisoft ID o SteamID64 y leemos el nivel desde la fuente
-                    de cada juego. Se vuelve a leer cuando cambia.
+                    Vinculas tu Riot ID, Ubisoft ID o SteamID64. {REREAD_TEXT}
                   </p>
                 </div>
                 <RankDemo />
@@ -227,8 +227,9 @@ export default function LandingPage() {
 
       <footer className="landing__foot">
         <span className="label">TeamMatchUp · 2026</span>
-        <span className="note note--faint">
-          Proyecto académico. Los datos que ves son de demostración.
+        <span className="line">
+          <span className="note note--faint">Proyecto académico.</span>
+          <DemoTag />
         </span>
       </footer>
     </div>

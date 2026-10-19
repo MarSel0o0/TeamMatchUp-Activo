@@ -1,5 +1,6 @@
 # Plan 007 — Conectar la interfaz al servidor real
-Estado: borrador (2026-10-18), pendiente de aprobación del usuario.
+Estado: aprobado (2026-10-19, por el usuario); implementado (T1–T31, 2026-10-19).
+Borrador del 2026-10-18.
 Spec: `specs/007-integrar-frontend/spec.md` (aprobada el 2026-10-18, con las decisiones R19 y R20).
 Alineación del 2026-10-19 con la spec (RF-10, puntos 4, 5, 10, 12 y 13): textos de las specs 004
 y 005 en minúscula y sin punto final y 401 «token inválido» para el usuario eliminado; solo
@@ -12,8 +13,9 @@ T11); y se actualizan los estados de la precondición y del riesgo R-5. No cambi
 comportamiento.
 
 **Precondición para la validación final (T29):** las specs 004, 005 y 006 deben estar
-implementadas en `backend/`. Estado al 2026-10-19: la 004 y la 005 están implementadas (existen
-`/api/accounts` y `/api/matches`); hoy falta solo `/api/sessions` (spec 006).
+implementadas en `backend/`. Estado al 2026-10-19: la 004, la 005 y la 006 están implementadas
+y validadas (existen `/api/accounts`, `/api/matches` y `/api/sessions`); la precondición se
+cumple.
 T1 a T28 se pueden hacer antes: se comprueban contra el modo simulado, `typecheck`, `lint` y
 `build`. Si al empezar una tarea algo que este plan toma del backend no existe, el
 implementer **para y lo reporta**; esta spec no cambia el servidor.

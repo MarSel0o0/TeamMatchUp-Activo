@@ -1,12 +1,14 @@
-import { AlertCircle, ArrowRight } from 'lucide-react';
-import { useState, type FormEvent } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { AlertCircle, ArrowRight, Info } from 'lucide-react';
+import { useRef, useState, type FormEvent } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/app/routes';
 import { env } from '@/config/env';
+import { isSessionCleared } from '@/services/api';
 import { DEMO_CREDENTIALS } from '@/services/mock/seed';
 import { Icon } from '@/shared/components/Icon';
 import { TextField } from '@/shared/components/TextField';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import { LOGIN_NOTICES, NO_MESSAGE_TEXT, SENDING_TEXT, type LoginNotice } from '@/shared/utils/copy';
 import { isValid, validEmail, type FieldErrors } from '@/shared/utils/validation';
 import { useAuth } from '../useAuth';
 import './authForm.css';
@@ -16,17 +18,40 @@ interface LoginForm {
   password: string;
 }
 
+/** Lo que otra parte de la aplicación deja en la navegación hacia login (plan 3.6). */
+interface LoginNavigationState {
+  from?: string;
+  email?: string;
+  notice?: LoginNotice;
+}
+
+/** Lee el estado de navegación sin confiar en su forma: lo no reconocido se ignora. */
+function readNavigationState(raw: unknown): LoginNavigationState {
+  if (typeof raw !== 'object' || raw === null) return {};
+  const { from, email, notice } = raw as Record<string, unknown>;
+  return {
+    from: typeof from === 'string' && from.startsWith('/') ? from : undefined,
+    email: typeof email === 'string' ? email : undefined,
+    notice:
+      typeof notice === 'string' && Object.prototype.hasOwnProperty.call(LOGIN_NOTICES, notice)
+        ? (notice as LoginNotice)
+        : undefined,
+  };
+}
+
 export default function LoginPage() {
   useDocumentTitle('Entrar');
 
   const { login } = useAuth();
-  const navigate = useNavigate();
   const location = useLocation();
+  const { from, email, notice } = readNavigationState(location.state);
 
-  const [form, setForm] = useState<LoginForm>({ email: '', password: '' });
+  const [form, setForm] = useState<LoginForm>({ email: email ?? '', password: '' });
   const [errors, setErrors] = useState<FieldErrors<LoginForm>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  // Un solo envío por doble clic, aunque el estado de la escritura aún no se haya pintado (RF-20).
+  const sending = useRef(false);
 
   const update = (field: keyof LoginForm) => (event: { target: { value: string } }) => {
     setForm((previous) => ({ ...previous, [field]: event.target.value }));
@@ -35,6 +60,7 @@ export default function LoginPage() {
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
+    if (sending.current) return;
     setSubmitError(null);
 
     const nextErrors: FieldErrors<LoginForm> = {
@@ -44,15 +70,19 @@ export default function LoginPage() {
     setErrors(nextErrors);
     if (!isValid(nextErrors)) return;
 
+    sending.current = true;
     setSubmitting(true);
     try {
-      await login({ email: form.email.trim(), password: form.password });
-      // `from` guarda la vista a la que el usuario intentaba entrar antes del login.
-      const from = (location.state as { from?: string } | null)?.from;
-      navigate(from ?? ROUTES.home, { replace: true });
+      // `from` guarda la vista a la que el usuario intentaba entrar antes del login; el
+      // proveedor navega en el mismo lote que fija al usuario (RF-8).
+      await login({ email: form.email.trim(), password: form.password }, from ?? ROUTES.home);
     } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : 'No se pudo entrar.');
+      // El mensaje del servidor se muestra tal como llega; sin mensaje, el texto fijo (RF-9).
+      if (!isSessionCleared(error)) {
+        setSubmitError(error instanceof Error && error.message ? error.message : NO_MESSAGE_TEXT);
+      }
     } finally {
+      sending.current = false;
       setSubmitting(false);
     }
   };
@@ -68,6 +98,11 @@ export default function LoginPage() {
         <p className="notice notice--error" role="alert">
           <Icon as={AlertCircle} size={15} />
           {submitError}
+        </p>
+      ) : notice ? (
+        <p className="notice notice--pen" role="alert">
+          <Icon as={Info} size={15} />
+          {LOGIN_NOTICES[notice]}
         </p>
       ) : null}
 
@@ -94,7 +129,7 @@ export default function LoginPage() {
 
       <button type="submit" className="btn btn--pen btn--block access__submit" disabled={submitting}>
         {submitting ? <span className="btn__spin" /> : <Icon as={ArrowRight} size={15} />}
-        {submitting ? 'Entrando…' : 'Entrar'}
+        {submitting ? SENDING_TEXT : 'Entrar'}
       </button>
 
       {env.useMockApi ? (

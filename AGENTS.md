@@ -25,7 +25,7 @@ flujo termina en una sesión agendada, no en una lista de perfiles. Detalle en
   - `src/app/` composición, enrutado, layouts y control de acceso.
   - `src/config/` lectura de variables de entorno.
   - `src/domain/` reglas puras: tipos, catálogo de juegos y escala de rango, bloques horarios, motor de coincidencias.
-  - `src/services/` acceso a datos: `apiContract.ts` (contrato único), `http/` (cliente contra Express), `mock/` (backend simulado con datos semilla), `api.ts` (elige implementación según `VITE_API_URL`).
+  - `src/services/` acceso a datos: `apiContract.ts` (contrato único), `http/` (`httpClient.ts` y `httpApi.ts` contra Express; `transport.ts` con plazo de 30 s y clasificación de errores; `csrfStorage.ts` con el comprobante `X-CSRF-Token`; `sessionEvents.ts` con el aviso de 401), `mock/` (backend simulado que responde como el servidor: `mockApi.ts`, `simulatedProvider.ts` y datos ficticios en `seed.ts`), `api.ts` (elige la implementación: servidor real por defecto, modo simulado solo con `VITE_USE_MOCK_API=true`). La sesión va en la cookie HttpOnly; la interfaz guarda solo el comprobante CSRF, nunca un JWT.
   - `src/features/` una carpeta por dominio funcional (`auth`, `profile`, `matches`, `sessions`).
   - `src/shared/` componentes, hooks y utilidades reutilizables.
   - `src/styles/` tokens de diseño (`tokens.css`) y estilos globales.
@@ -47,7 +47,7 @@ flujo termina en una sesión agendada, no en una lista de perfiles. Detalle en
   - Variables en `backend/.env` (no se sube); plantilla en `backend/.env.example`.
 ## Comandos
 
-- Frontend (`cd frontend`): `npm run dev | build | preview | typecheck | lint`. No tiene script de test.
+- Frontend (`cd frontend`): `npm run dev | build | preview | typecheck | lint`. No tiene script de test. Por defecto habla con el servidor real (`VITE_API_URL=/api`, proxy de Vite a `VITE_PROXY_TARGET`, puerto de `backend/.env`); modo simulado: `VITE_USE_MOCK_API=true npm run dev` (en PowerShell: `$env:VITE_USE_MOCK_API="true"; npm run dev`). Cuenta demo del modo simulado: `demo@teammatchup.gg` / `demo1234`. Si `node_modules` no coincide con el lock, `npm ci`.
 - Backend (`cd backend`): `npm run dev | test | typecheck | lint`. `npm test` fija `NODE_ENV=test`, corre en serie y necesita MongoDB y `backend/.env`.
 - Gestor: npm. Toda dependencia se instala con `--save-exact`.
 

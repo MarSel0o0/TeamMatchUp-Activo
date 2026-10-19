@@ -1,8 +1,10 @@
 import { RefreshCw, Unlink } from 'lucide-react';
 import { formatRank, getGame } from '@/domain/games';
-import type { GameAccount } from '@/domain/types';
+import type { GameAccount, RankSnapshot } from '@/domain/types';
+import { DemoTag } from '@/shared/components/DemoTag';
 import { Icon } from '@/shared/components/Icon';
 import { Stamp } from '@/shared/components/Stamp';
+import { RESYNC_LABEL, RESYNC_NOTE, SENDING_TEXT } from '@/shared/utils/copy';
 import { timeAgo } from '@/shared/utils/format';
 import './accountRow.css';
 
@@ -10,12 +12,28 @@ interface AccountRowProps {
   account: GameAccount;
   onSync?: (accountId: string) => void;
   onUnlink?: (accountId: string) => void;
+  /** Esta cuenta se está resincronizando: su botón dice "Enviando…" (RF-20). */
   syncing?: boolean;
+  /** Esta cuenta se está desvinculando: su botón dice "Enviando…" (RF-20). */
+  unlinking?: boolean;
+  /** Hay otra escritura de cuentas en curso: los botones quedan deshabilitados. */
+  locked?: boolean;
 }
 
-/** Asiento de una cuenta vinculada: identificador, rango sellado y última lectura. */
-export function AccountRow({ account, onSync, onUnlink, syncing = false }: AccountRowProps) {
+/** Asiento de una cuenta vinculada: identificador, rango sellado, etiqueta de datos simulados y última lectura (RF-11, RF-18, RF-31). */
+export function AccountRow({
+  account,
+  onSync,
+  onUnlink,
+  syncing = false,
+  unlinking = false,
+  locked = false,
+}: AccountRowProps) {
   const game = getGame(account.gameId);
+  const busy = syncing || unlinking || locked;
+  // Defensivo (RF-14): el servidor no entrega cuentas sin rango vigente, pero si llegara una
+  // se muestra "Sin datos" y ningún valor derivado.
+  const rank: RankSnapshot | null | undefined = account.currentRank;
 
   return (
     <article className="account">
@@ -26,20 +44,28 @@ export function AccountRow({ account, onSync, onUnlink, syncing = false }: Accou
           </h3>
           <p className="note note--faint">{account.handle}</p>
         </div>
-        <Stamp
-          tone={account.verified ? 'sealed' : 'warn'}
-          pressKey={`${account.id}-${account.lastSyncedAt}`}
-        >
-          {account.verified ? 'Verificado' : 'Sin verificar'}
-        </Stamp>
+        <div className="account__mark">
+          <Stamp
+            tone={account.verified ? 'sealed' : 'warn'}
+            pressKey={`${account.id}-${account.lastSyncedAt}`}
+          >
+            {account.verified ? 'Verificada' : 'Sin verificar'}
+          </Stamp>
+          {account.simulated ? <DemoTag /> : null}
+        </div>
       </div>
 
       <dl className="account__entries">
         <div>
           <dt className="label">Rango vigente</dt>
           <dd className="num" style={{ color: game.accent }}>
-            {formatRank(account.gameId, account.currentRank)}
+            {rank ? formatRank(account.gameId, rank) : 'Sin datos'}
           </dd>
+          {account.simulated && rank ? (
+            <dd>
+              <DemoTag />
+            </dd>
+          ) : null}
         </div>
         <div>
           <dt className="label">Región</dt>
@@ -48,10 +74,6 @@ export function AccountRow({ account, onSync, onUnlink, syncing = false }: Accou
         <div>
           <dt className="label">Última lectura</dt>
           <dd className="num">{timeAgo(account.lastSyncedAt)}</dd>
-        </div>
-        <div>
-          <dt className="label">Fuente</dt>
-          <dd className="note">{game.source}</dd>
         </div>
       </dl>
 
@@ -62,10 +84,10 @@ export function AccountRow({ account, onSync, onUnlink, syncing = false }: Accou
               type="button"
               className="btn btn--sm"
               onClick={() => onSync(account.id)}
-              disabled={syncing}
+              disabled={busy}
             >
               {syncing ? <span className="btn__spin" /> : <Icon as={RefreshCw} size={13} />}
-              {syncing ? 'Leyendo…' : 'Volver a leer el rango'}
+              {syncing ? SENDING_TEXT : RESYNC_LABEL}
             </button>
           ) : null}
           {onUnlink ? (
@@ -73,13 +95,15 @@ export function AccountRow({ account, onSync, onUnlink, syncing = false }: Accou
               type="button"
               className="btn btn--danger btn--sm"
               onClick={() => onUnlink(account.id)}
+              disabled={busy}
             >
-              <Icon as={Unlink} size={13} />
-              Desvincular
+              {unlinking ? <span className="btn__spin" /> : <Icon as={Unlink} size={13} />}
+              {unlinking ? SENDING_TEXT : 'Desvincular'}
             </button>
           ) : null}
         </div>
       ) : null}
+      {onSync ? <p className="note note--faint">{RESYNC_NOTE}</p> : null}
     </article>
   );
 }

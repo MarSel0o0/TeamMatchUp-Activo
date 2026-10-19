@@ -1,5 +1,5 @@
 # Spec 007 — Conectar la interfaz al servidor real
-Estado: aprobada (2026-10-18)
+Estado: implementada (2026-10-19; T1–T31 hechas, recorrido manual T29 en `validation.md`). Aprobada el 2026-10-18.
 Alineación posterior a la implementación de las specs 004 y 005 (2026-10-19, aprobada por el
 usuario; commits `9b5cc87` y `88af4cd`): solo cambia RF-10 (puntos 4, 5 y 10, y puntos nuevos
 12 y 13), para que los textos que imita el modo simulado coincidan con los de las specs 004

@@ -19,9 +19,9 @@ interface PreviewLine {
  * como muestra para que nadie los confunda con actividad real de la plataforma.
  */
 const SAMPLE: PreviewLine[] = [
-  { hour: '20:00', gameId: 'lol', signed: ['C. Torres', 'D. Ayala', 'V. Oliva'], slots: 5 },
-  { hour: '21:00', gameId: 'cs2', signed: ['M. Zamorano', 'R. Pizarro'], slots: 5 },
-  { hour: '22:00', gameId: 'r6', signed: ['B. Estupiñán', 'P. Herrera', 'J. Rojas', 'K. Méndez', 'S. Valenzuela'], slots: 5 },
+  { hour: '20:00', gameId: 'lol', signed: ['F. Lagos', 'G. Pino', 'H. Cárdenas'], slots: 5 },
+  { hour: '21:00', gameId: 'cs2', signed: ['L. Vidal', 'R. Pizarro'], slots: 5 },
+  { hour: '22:00', gameId: 'r6', signed: ['N. Campos', 'P. Herrera', 'J. Rojas', 'K. Méndez', 'T. Fuentes'], slots: 5 },
   { hour: '23:00', gameId: 'lol', signed: ['I. Soto'], slots: 5 },
 ];
 
