@@ -7,6 +7,7 @@ import { User } from "../models/user.ts";
 import { CSRF_HEADER, SESSION_COOKIE, SESSION_MESSAGES, checkSession } from "../services/sessionToken.ts";
 import { USER_TARGET_MESSAGES, decodeSegment, matchUserRoute, resolveUserTarget } from "../services/userTarget.ts";
 import { ACCOUNT_ERRORS } from "../domain/accountRules.ts";
+import { isPlainObject } from "../domain/sessionRules.ts";
 import { MESSAGES, mapErrorToResponse } from "./errors.ts";
 import { logger } from "./logger.ts";
 import type { Logger } from "./logger.ts";
@@ -23,6 +24,22 @@ export type ErrorNext = (error: unknown) => void;
 // `response.json` fija el tipo de contenido JSON; en HEAD Node descarta el cuerpo (RF-7).
 export function unknownEndpoint(_request: unknown, response: JsonResponder): void {
   response.status(404).json({ error: MESSAGES.unknownEndpoint });
+}
+
+// Paso del cuerpo de la spec 006 (RF-20, RF-28, DP6-36; plan, sección 6): el parser de
+// `/api/sessions` acepta JSON escalar (`strict: false`), así que aquí se rechaza, antes de la
+// sesión, todo cuerpo presente que no sea un objeto plano (`[]`, `null`, `3`, `"x"`, `true`).
+// `undefined` (sin cuerpo, otro tipo de contenido o cuerpo vacío) pasa: equivale a `{}`.
+export function requireObjectBody(
+  request: { body?: unknown },
+  response: JsonResponder,
+  next: () => void,
+): void {
+  if (request.body !== undefined && !isPlainObject(request.body)) {
+    response.status(400).json({ error: MESSAGES.malformedJson });
+    return;
+  }
+  next();
 }
 
 export function createErrorHandler(log: Pick<Logger, "error">) {

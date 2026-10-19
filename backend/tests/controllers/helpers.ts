@@ -12,6 +12,10 @@ import { createApp } from "../../src/app.ts";
 import type { AppOptions } from "../../src/app.ts";
 import { User } from "../../src/models/user.ts";
 import { GameAccount } from "../../src/models/gameAccount.ts";
+import { PlaySession } from "../../src/models/playSession.ts";
+import type { PlaySessionDocument } from "../../src/models/playSession.ts";
+import { statusFor } from "../../src/domain/sessionState.ts";
+import type { GameId } from "../../src/domain/games.ts";
 import { CSRF_HEADER, SESSION_COOKIE } from "../../src/services/sessionToken.ts";
 import { testConfig } from "../server/helpers.ts";
 
@@ -305,6 +309,121 @@ export async function overlapFirstFindById<A, B>(
     if (settledEarly && calls === 0) {
       await firstResult; // si lanzó, propaga su error
       throw new Error("overlapFirstFindById: la primera operación terminó y no leyó la cuenta");
+    }
+    let secondResult: B;
+    try {
+      secondResult = await second();
+    } catch (error) {
+      secondIsDone(); // si la segunda falla, la primera no queda detenida
+      await firstResult.catch(() => undefined);
+      throw error;
+    }
+    secondIsDone();
+    return { first: await firstResult, second: secondResult };
+  } finally {
+    secondIsDone(); // nunca dejar la primera lectura detenida
+  }
+}
+
+// --- Spec 006 ---
+// (plan, secciones 1 y 9)
+
+// Sesiones de la base tal como las vería el cliente (`toJSON` serializado), ordenadas por
+// `_id`. El `toJSON` del modelo solo cambia `_id` por `id` y quita `__v`.
+export async function sessionsInDb(): Promise<unknown[]> {
+  const sessions = await PlaySession.find({}).sort({ _id: 1 });
+  return sessions.map((session): unknown => JSON.parse(JSON.stringify(session)));
+}
+
+// Documentos crudos (`lean()`), con `__v`, ordenados por `_id`.
+export function rawSessionsInDb() {
+  return PlaySession.find({}).sort({ _id: 1 }).lean();
+}
+
+// Cuenta válida fija por juego para `linkAccountFor` (cuerpo de `POST /api/accounts`).
+const ACCOUNT_BODY_BY_GAME: Record<GameId, { handle: string; region: string }> = {
+  lol: { handle: "Jugador1#LAS", region: "LAS" },
+  r6: { handle: "jugador2", region: "LATAM" },
+  cs2: { handle: "76561190000000001", region: "South America" },
+};
+
+// Vincula a `session` una cuenta del juego (exige 201); devuelve el id de la cuenta.
+export function linkAccountFor(session: SignedUp, gameId: GameId): Promise<string> {
+  return linkOk(session, { gameId, ...ACCOUNT_BODY_BY_GAME[gameId] });
+}
+
+export interface InsertSessionData {
+  host: string; // id del anfitrión (no hace falta que exista: sirve para RF-24)
+  gameId?: GameId;
+  title?: string;
+  notes?: string;
+  day?: number;
+  startHour?: number;
+  durationHours?: number;
+  slots?: number;
+  participants?: readonly string[]; // por defecto, solo el anfitrión
+  status?: "open" | "full"; // por defecto, el que corresponde a participantes y cupos
+  createdAt?: Date; // por defecto, FIXED_NOW
+}
+
+// Inserta una sesión directamente en la base, sin pasar por la API, para preparar estados
+// (incluido el intermedio de RF-24 con anfitrión o participantes eliminados).
+export function insertSession(data: InsertSessionData): Promise<PlaySessionDocument> {
+  const participants = data.participants ?? [data.host];
+  const slots = data.slots ?? 4;
+  return PlaySession.create({
+    gameId: data.gameId ?? "lol",
+    host: data.host,
+    title: data.title ?? "Ranked de noche",
+    notes: data.notes ?? "",
+    day: data.day ?? 2,
+    startHour: data.startHour ?? 21,
+    durationHours: data.durationHours ?? 2,
+    slots,
+    participants,
+    status: data.status ?? statusFor(participants.length, slots),
+    createdAt: data.createdAt ?? new Date(FIXED_NOW),
+  });
+}
+
+// Solapamiento determinista sobre sesiones (spec 006, RF-25; plan, sección 9). Análogo a
+// `overlapFirstFindById`, pero sustituye `PlaySession.findById`: la PRIMERA llamada, después de
+// leer la sesión, espera a que `second()` termine; las demás (las de `second` y los reintentos
+// de `first`) pasan directo y conservan la consulta de Mongoose (`.lean()` sigue disponible para
+// las lecturas de las vistas). Orden garantizado: `first` empieza y lee, `second` se ejecuta
+// completa, `first` continúa con la lectura vieja. Falla (en vez de colgarse) si `first` termina
+// sin leer ninguna sesión. La sustitución se restaura al terminar la prueba (`t.mock`).
+export async function overlapFirstSessionFindById<A, B>(
+  t: TestContext,
+  first: () => PromiseLike<A>,
+  second: () => PromiseLike<B>,
+): Promise<{ first: A; second: B }> {
+  const original = PlaySession.findById.bind(PlaySession);
+  let calls = 0;
+  let firstHasRead: () => void = () => undefined;
+  let secondIsDone: () => void = () => undefined;
+  const firstRead = new Promise<void>((resolve) => {
+    firstHasRead = resolve;
+  });
+  const secondFinished = new Promise<void>((resolve) => {
+    secondIsDone = resolve;
+  });
+  t.mock.method(PlaySession, "findById", (id: string) => {
+    calls += 1;
+    if (calls !== 1) return original(id);
+    return original(id).then(async (session) => {
+      firstHasRead();
+      await secondFinished; // la primera lectura queda detenida con el documento ya leído
+      return session;
+    });
+  });
+  const firstResult = Promise.resolve(first());
+  firstResult.catch(() => undefined); // si falla antes de leer, el error se informa más abajo
+  try {
+    const settledEarly = await Promise.race([firstRead.then(() => false), firstResult.then(() => true, () => true)]);
+    if (settledEarly && calls === 0) {
+      await firstResult; // si lanzó, propaga su error
+      throw new Error("overlapFirstSessionFindById: la primera operación terminó y no leyó la sesión");
     }
     let secondResult: B;
     try {

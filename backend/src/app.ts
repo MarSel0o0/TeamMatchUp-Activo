@@ -9,6 +9,7 @@ import type { Express } from "express";
 import { createAccountsRouter } from "./controllers/accounts.ts";
 import { createAuthRouter } from "./controllers/auth.ts";
 import { createMatchesRouter } from "./controllers/matches.ts";
+import { createSessionsRouter } from "./controllers/sessions.ts";
 import { createUsersRouter } from "./controllers/users.ts";
 import type { NodeEnv } from "./utils/config.ts";
 import { errorHandler, unknownEndpoint } from "./utils/middleware.ts";
@@ -28,6 +29,12 @@ export function createApp(options: AppOptions): Express {
   const { jwtSecret, nodeEnv, now = systemNow } = options;
   const app = express();
 
+  // Spec 006 (RF-23, RF-28, P6-1): `/api/sessions` acepta JSON escalar (`strict: false`) para
+  // que `requireObjectBody` distinga `null` y los primitivos de "sin cuerpo". Va ANTES del
+  // parser global: este sale sin leer si el cuerpo ya se consumió, así que no hay doble
+  // lectura y el resto de rutas no cambia. El mismo límite mantiene el 413 igual (D6-1).
+  app.use("/api/sessions", express.json({ limit: 102_400, strict: false }));
+
   // El cuerpo se interpreta antes de buscar la ruta: 400/413/415 ganan sobre 404.
   // Límite de 102 400 bytes exactos (RF-16 de la 001); `strict` rechaza JSON escalar o null.
   app.use(express.json({ limit: 102_400, strict: true }));
@@ -41,6 +48,7 @@ export function createApp(options: AppOptions): Express {
   app.use("/api/accounts", createAccountsRouter({ jwtSecret, now })); // spec 004: todas con sesión (RF-1)
 
   app.use("/api/matches", createMatchesRouter({ jwtSecret, now })); // spec 005: con sesión (RF-1)
+  app.use("/api/sessions", createSessionsRouter({ jwtSecret, now })); // spec 006: con sesión (RF-1)
 
   app.use(unknownEndpoint);
   app.use(errorHandler); // siempre el último

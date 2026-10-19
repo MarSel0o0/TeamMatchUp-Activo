@@ -25,6 +25,9 @@
 //   (T10, plan 6.8, P-20): cuentas (C1), usuario (C2) y barrido de cuentas en `finally`
 //   (C3). El usuario es lo último que desaparece: tras un 500 solo valen el estado (1) (el
 //   usuario sigue, con las cuentas que queden) o el (2) (ni usuario ni cuentas suyas).
+//
+// Spec 006 (plan, sección 6; T9): RF-16, RF-18. `DELETE /:id` agrega C4 tras C3: borra las
+// sesiones que organiza el usuario y lo quita de las demás (`removeUserFromSessions`).
 import { Router } from "express";
 import mongoose from "mongoose";
 import { User, toOwnUserJson, toPublicUserJson } from "../models/user.ts";
@@ -41,6 +44,8 @@ import { isGameId } from "../domain/games.ts";
 import type { SimulatedMatch } from "../domain/rankSimulator.ts";
 import { GameAccount, toGameAccountJson } from "../models/gameAccount.ts";
 import type { GameAccountDocument } from "../models/gameAccount.ts";
+import { PlaySession } from "../models/playSession.ts";
+import { removeUserFromSessions } from "../services/sessionWrites.ts";
 import type { NodeEnv } from "../utils/config.ts";
 import { createUserRoutesGuard, createWithUser } from "../utils/middleware.ts";
 
@@ -221,9 +226,16 @@ export function createUsersRouter({ jwtSecret, nodeEnv, now }: UsersRouterOption
       // también si C2 lanza (estado 1 sin cuentas, o estado 2 si ya borró al usuario).
       await GameAccount.deleteMany({ user: sessionUserId });
     }
-    // La cookie solo se borra si terminaron C1, C2 y C3: tras un 500 la sesión sigue sirviendo
-    // para repetir la eliminación mientras el usuario exista (la spec 006 insertará sus
-    // sesiones antes de C2 con el mismo patrón).
+    // Spec 006, RF-16 y RF-18 (plan, sección 6; Q3 aprobada): C4 va después de C3 para no reordenar
+    // C1 a C3 de la 004. Borra las sesiones que organiza y lo quita de las demás (recalculando su
+    // estado). No está en el `finally`: solo corre si C2 y C3 terminaron, así que si C2 lanza el
+    // usuario sigue con sus sesiones intactas. Riesgo aceptado: si C4 lanza, el usuario ya no
+    // existe, la respuesta es 500 y las sesiones residuales quedan ocultas por RF-24 (repetir la
+    // eliminación ya da 401 "token inválido").
+    await PlaySession.deleteMany({ host: sessionUserId });
+    await removeUserFromSessions(sessionUserId);
+    // La cookie solo se borra si terminaron C1, C2, C3 y C4: tras un 500 en C1 o C2 la sesión
+    // sigue sirviendo para repetir la eliminación mientras el usuario exista.
     response.clearCookie(SESSION_COOKIE, cookieOptions); // mismos atributos que la emisión
     response.status(204).end();
   });

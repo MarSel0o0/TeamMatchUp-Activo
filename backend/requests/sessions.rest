@@ -1,0 +1,173 @@
+# Prueba manual de la agenda de sesiones de juego (spec 006, T10): inicio de sesión → crear →
+# listar → obtener → sumarse con otro usuario → salir → editar → cancelar, y unos errores de
+# ejemplo.
+#
+# Formato de la extensión REST Client de VS Code: guarda la cookie `token` entre peticiones
+# (rest-client.rememberCookiesForSubsequentRequests, activo por defecto), lee la cabecera
+# X-CSRF-Token de la respuesta del inicio de sesión con {{login.response.headers...}} y el id
+# de la sesión creada con {{create.response.body.$.id}}.
+#
+# Requisitos: servidor en desarrollo (`npm run dev`) con MongoDB disponible y el `.env`
+# copiado de `.env.example`. No hace falta ninguna variable nueva ni conexión a Internet.
+#
+# Datos previos (datos de ejemplo, no reales):
+# - Dos usuarios registrados (paso 1 de `auth.rest`, una vez con cada correo) y, para quien
+#   organiza, una cuenta de LoL vinculada (paso 2 de `accounts.rest`): sin ella, crear responde
+#   400 "No tienes una cuenta vinculada en este juego." (RF-27). Sumarse no exige cuenta
+#   vinculada (RF-11).
+# - Como la cookie `token` es una sola, el recorrido cambia de usuario volviendo a iniciar
+#   sesión: la primera persona organiza (pasos 1 a 4), la segunda se suma y sale (pasos 5 a
+#   7) y la primera vuelve a iniciar sesión para editar y cancelar (pasos 8 a 10).
+#
+# Cada sesión lleva el anfitrión y los participantes como referencias de usuario (id, nombre de
+# usuario, nombre visible y color), sin correo ni contraseña (RNF-1). Quien organiza, se suma o
+# sale sale siempre de la sesión iniciada, nunca del cuerpo (RF-21). Los mensajes de error de
+# esta spec empiezan en mayúscula y terminan en punto, salvo los de la sesión (spec 002) y
+# "JSON mal formado" (spec 001).
+
+@baseUrl = http://localhost:3001
+@email = ana.ejemplo@example.com
+@password = contrasena-de-ejemplo
+@email2 = beto.ejemplo@example.com
+@password2 = contrasena-de-ejemplo
+
+### 1. Inicio de sesión de quien organiza (público): 200, cookie `token` y cabecera X-CSRF-Token (spec 002)
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### 2. Crear una sesión: 201 con la vista completa, estado "open" y quien organiza como único participante (RF-5, RF-6)
+# El título y las notas se guardan recortados y sin otra transformación (RNF-2). Los números
+# deben ser enteros JSON: day 0 (lunes) a 6, startHour 0 a 23, durationHours 1 a 4 y slots 2 a 6.
+# `hostId`, `participants`, `status` y `createdAt` del cuerpo se ignoran (RF-15).
+# @name create
+POST {{baseUrl}}/api/sessions
+Content-Type: application/json
+X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
+
+{
+  "gameId": "lol",
+  "title": "Ranked de noche",
+  "notes": "Buscamos jungla y soporte",
+  "day": 2,
+  "startHour": 21,
+  "durationHours": 2,
+  "slots": 3
+}
+
+### 3. Listar las sesiones: 200 con todas, ordenadas por día, hora de inicio y fecha de creación (RF-2)
+# Agrega `?game=lol` para filtrar por juego; `all` o sin filtro devuelve todas, también las llenas
+# y las propias (RF-22).
+GET {{baseUrl}}/api/sessions
+X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
+
+### 4. Obtener la sesión creada: 200 con la misma vista (RF-3, RF-4)
+GET {{baseUrl}}/api/sessions/{{create.response.body.$.id}}
+X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
+
+### 5. Inicio de sesión de la segunda persona (la cookie `token` pasa a ser la suya)
+# @name login2
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email2}}",
+  "password": "{{password2}}"
+}
+
+### 6. Sumarse a la sesión: 200 con dos participantes; con 3 cupos sigue "open" (RF-11, RF-12)
+# Sumarse de nuevo responde 409 "Ya estás inscrito en esta sesión." (RF-12). Al llenar los cupos
+# el estado pasa a "full" y la siguiente persona recibe 409 "Esta sesión ya no admite jugadores.".
+# El cuerpo se ignora (RF-15).
+POST {{baseUrl}}/api/sessions/{{create.response.body.$.id}}/join
+X-CSRF-Token: {{login2.response.headers.X-CSRF-Token}}
+
+### 7. Salir de la sesión: 200 con quien organiza como único participante (RF-13, RF-14, RF-17)
+# Salir sin estar inscrito responde 409 "No estás inscrito en esta sesión." (RF-17); quien
+# organiza no puede salir (RF-14): responde 409 "Eres quien organiza: cancela la sesión en lugar de salir.".
+POST {{baseUrl}}/api/sessions/{{create.response.body.$.id}}/leave
+X-CSRF-Token: {{login2.response.headers.X-CSRF-Token}}
+
+### 8. Volver a iniciar sesión como quien organiza
+# @name login3
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### 9. Editar la sesión: 200 con los cambios; los campos ausentes no cambian (RF-7, RF-8, RF-26)
+# Edición parcial: solo se cambian los campos enviados. `gameId` no se puede editar y se ignora.
+# `notes: ""` deja las notas vacías; `notes: null` responde 400. Bajar los cupos por debajo de
+# los participantes responde 400 "No puedes dejar menos cupos que jugadores inscritos.".
+PUT {{baseUrl}}/api/sessions/{{create.response.body.$.id}}
+Content-Type: application/json
+X-CSRF-Token: {{login3.response.headers.X-CSRF-Token}}
+
+{
+  "title": "Ranked de madrugada",
+  "startHour": 23,
+  "slots": 5
+}
+
+### 10. Cancelar la sesión: 204 sin cuerpo; la sesión se borra (RF-9, RF-10)
+# Solo quien organiza puede cancelar; otra persona recibe 403 "Solo quien organiza puede cancelar
+# la sesión.". Después, obtenerla responde 404 "Sesión no encontrada.".
+DELETE {{baseUrl}}/api/sessions/{{create.response.body.$.id}}
+X-CSRF-Token: {{login3.response.headers.X-CSRF-Token}}
+
+### Errores de ejemplo
+
+### 11. Obtener la sesión ya cancelada: 404 "Sesión no encontrada." (RF-3)
+GET {{baseUrl}}/api/sessions/{{create.response.body.$.id}}
+X-CSRF-Token: {{login3.response.headers.X-CSRF-Token}}
+
+### 12. Identificador con formato inválido: 400 "id con formato inválido" (RF-19)
+GET {{baseUrl}}/api/sessions/abc
+X-CSRF-Token: {{login3.response.headers.X-CSRF-Token}}
+
+### 13. Filtro de juego no válido: 400 "Juego no válido." (RF-22)
+# Los valores distinguen mayúsculas: `LOL` no es válido.
+GET {{baseUrl}}/api/sessions?game=LOL
+X-CSRF-Token: {{login3.response.headers.X-CSRF-Token}}
+
+### 14. Crear con un título demasiado corto: 400 "El título debe tener entre 3 y 60 caracteres." (RF-6)
+POST {{baseUrl}}/api/sessions
+Content-Type: application/json
+X-CSRF-Token: {{login3.response.headers.X-CSRF-Token}}
+
+{
+  "gameId": "lol",
+  "title": "ab",
+  "day": 2,
+  "startHour": 21,
+  "durationHours": 2,
+  "slots": 3
+}
+
+### 15. Crear con un cuerpo que no es un objeto: 400 "JSON mal formado" (RF-28)
+# Antes de comprobar la sesión: lo mismo ocurre sin credencial. Al crear y editar, `[]`, `3`,
+# `"x"`, `true` y `null` se rechazan así; las demás operaciones ignoran el cuerpo.
+POST {{baseUrl}}/api/sessions
+Content-Type: application/json
+X-CSRF-Token: {{login3.response.headers.X-CSRF-Token}}
+
+null
+
+### 16. JSON mal formado: 400 "JSON mal formado" (RF-23)
+# Gana sobre la sesión y sobre cualquier otro error, en las siete operaciones.
+POST {{baseUrl}}/api/sessions
+Content-Type: application/json
+X-CSRF-Token: {{login3.response.headers.X-CSRF-Token}}
+
+{ "gameId": "lol",
+
+### 17. Sin X-CSRF-Token: 401 "token inválido" (RF-1)
+GET {{baseUrl}}/api/sessions
