@@ -1,5 +1,10 @@
 # Spec 006 — Agenda de sesiones de juego
-Estado: aprobada (2026-10-18)
+Estado: implementada (2026-10-19)
+Aprobada el 2026-10-18. Cambio de requisitos del 2026-10-19, tras ajustar el plan al código
+real (preguntas Q1 y Q4 del plan): la credencial válida de un usuario eliminado responde 401
+"token inválido" y no "sesión no iniciada" (RF-1, RF-16, RF-18, casos límite, criterios de
+finalización y DP6-17; nueva DP6-39), y se corrige la frase sobre el lint (DP6-24 y "Impacto
+en otras specs"). Los textos propios de la 006 mantienen mayúscula inicial y punto final (Q2).
 
 ## Contexto y objetivo
 El flujo del producto termina en una sesión de juego agendada, no en una lista de perfiles
@@ -8,17 +13,19 @@ spec la lleva al servidor como la tercera entidad, con sus cinco operaciones RES
 obtener, crear, editar y cancelar) más sumarse y salir.
 
 - Depende de:
-  - spec 002: sesión iniciada, sus tres 401 (RF-10 a RF-12) y la identificación del usuario
+  - spec 002: sesión iniciada, sus tres 401 (RF-10 a RF-12), el 401 "token inválido" de la
+    credencial válida de un usuario eliminado (RF-22 y RF-24) y la identificación del usuario
     por la credencial (RF-15);
   - spec 003: el usuario, la regla de identificadores (RF-5) y la eliminación de usuarios
     (RF-11), que esta spec extiende con la cascada de RF-16;
   - spec 004: la definición de juego, los textos exactos (DP-6), el orden de errores con un
-    solo error por respuesta (DP-10) y el 401 de un usuario eliminado (RF-44, DP-37), además
-    de la cuenta vinculada que exige RF-27.
+    solo error por respuesta (DP-10) y el 401 "token inválido" de un usuario eliminado
+    (RF-44, DP-37), además de la cuenta vinculada que exige RF-27.
 - Precedentes: spec 005. Se ubica después de ella para cerrar el flujo coincidencia →
   sesión de juego; no depende de su funcionalidad, pero se apoya en sus precedentes
-  (RF-13, RF-17, DP5-5, DP5-11 y DP5-13).
-- Riesgo: las specs 002 y 003 siguen en borrador. De la 002 vienen los tres 401 y la
+  (RF-13 y DP5-16 —401 "token inválido" de un usuario eliminado—, RF-17, DP5-5, DP5-11 y
+  DP5-13).
+- Riesgo: las specs 002 y 003 siguen en borrador. De la 002 vienen los 401 y la
   identificación del usuario por la credencial; de la 003, la regla de identificadores, la
   eliminación de usuarios y la forma del usuario. Si cambia cualquiera de esas piezas, esta
   spec debe revisarse antes de su plan.
@@ -30,7 +37,8 @@ obtener, crear, editar y cancelar) más sumarse y salir.
   —sesión—, 5.5, 5.7 y 8 —pruebas de sesiones y de la aplicación—) están en la referencia y
   pasan al plan de esta spec, con las excepciones de "Qué prevalece sobre la referencia".
 - Las decisiones marcadas "(DP6-n)" salen de la clarificación del 2026-10-18 (tabla al
-  final; la descripción de cada bloque está encabezando la tabla). Las "DP-n" sin prefijo
+  final; la descripción de cada bloque está encabezando la tabla), salvo DP6-39, del
+  2026-10-19. Las "DP-n" sin prefijo
   son las de la spec 004 y las "DP5-n", las de la 005.
 
 ### Qué prevalece sobre la referencia
@@ -123,16 +131,20 @@ obtener, crear, editar y cancelar) más sumarse y salir.
 ## Requisitos funcionales
 Mensajes: todo error responde la respuesta de error de la spec 001 con el texto exacto que
 indica cada RF (spec 004, DP-6), pensado para mostrarse tal cual al jugador (spec 007,
-RF-9). Los textos propios de esta spec llevan mayúscula inicial y punto final. Los
-heredados se mantienen como están en su origen: los tres 401 de la spec 002, "id con
-formato inválido" (spec 003, RF-5) y "JSON mal formado" (referencia, sección 5.7).
+RF-9). Los textos propios de esta spec llevan mayúscula inicial y punto final; ese estilo
+difiere del de las specs 004 (DP-6) y 005 (DP5-17), que usan minúscula inicial y no llevan
+punto final, y el usuario lo mantiene (Q2, 2026-10-19). Los heredados se mantienen como
+están en su origen: los 401 de la spec 002 (incluido "token inválido" para el usuario
+eliminado, RF-18), "id con formato inválido" (spec 003, RF-5) y "JSON mal formado"
+(referencia, sección 5.7).
 
 - RF-1: EL SISTEMA exige sesión iniciada en todas las operaciones de esta spec: sin
   credencial, 401 "sesión no iniciada"; credencial alterada o sin comprobante anti-CSRF
   válido, 401 "token inválido"; credencial expirada, 401 "sesión expirada" (spec 002, RF-10
-  a RF-12). Una credencial válida cuyo usuario ya no existe se rige por RF-18. Antes que
-  estos 401 va el paso del cuerpo de RF-20: JSON mal formado en todas las operaciones
-  (RF-23) y, al crear o editar, JSON que no es un objeto (RF-28) (DP6-21, DP6-35).
+  a RF-12). Una credencial válida cuyo usuario ya no existe responde 401 "token inválido"
+  (RF-18; spec 002, RF-22). Antes que estos 401 va el paso del cuerpo de RF-20: JSON mal
+  formado en todas las operaciones (RF-23) y, al crear o editar, JSON que no es un objeto
+  (RF-28) (DP6-21, DP6-35).
 - RF-2: CUANDO un usuario lista sesiones de juego con un filtro de juego válido (RF-22), EL
   SISTEMA responde 200 con todas las sesiones de juego de ese juego, o de todos, incluidas
   las llenas y las que organiza o en las que participa el propio usuario, ordenadas por
@@ -215,13 +227,16 @@ formato inválido" (spec 003, RF-5) y "JSON mal formado" (referencia, sección 5
   estado de cada una. Al completar la eliminación no queda ninguna sesión de juego
   organizada por él ni ninguna en la que figure como participante, también si la
   eliminación coincide con una creación o un sumarse suyo: esa otra operación responde 201
-  o 200 si terminó antes (y la cascada la limpia) o el 401 de RF-18 si no (DP6-12).
+  o 200 si terminó antes (y la cascada la limpia) o el 401 "token inválido" de RF-18 si no
+  (DP6-12, DP6-39).
 - RF-17: SI un usuario pide salir de una sesión de juego en la que no está inscrito,
   ENTONCES EL SISTEMA responde 409 con "No estás inscrito en esta sesión." y no cambia nada.
-- RF-18: SI la credencial es válida pero su usuario ya no existe (fue eliminado), ENTONCES EL
-  SISTEMA responde 401 con "sesión no iniciada" en cualquier operación de esta spec (salvo
-  que antes aplique RF-23 o RF-28) y no crea ni cambia nada (spec 004, RF-44 y DP-37; spec 005,
-  RF-13; DP6-17).
+- RF-18: SI la credencial es válida (firma, vigencia y comprobante) pero su usuario ya no
+  existe (fue eliminado), ENTONCES EL SISTEMA responde 401 con "token inválido" (el mismo
+  texto que la credencial alterada de RF-1; "sesión no iniciada" queda solo para la
+  credencial ausente) en cualquier operación de esta spec (salvo que antes aplique RF-23 o
+  RF-28) y no crea ni cambia nada (spec 002, RF-22 y RF-24; spec 004, RF-44 y DP-37; spec
+  005, RF-13 y DP5-16; DP6-17 y DP6-39).
 - RF-19: SI el identificador de sesión de juego al obtener, editar, cancelar, sumarse o
   salir no tiene formato válido, ENTONCES EL SISTEMA responde 400 con "id con formato
   inválido"; SI tiene formato válido pero no existe, ENTONCES responde 404 con "Sesión no
@@ -388,8 +403,8 @@ formato inválido" (spec 003, RF-5) y "JSON mal formado" (referencia, sección 5
 - Se permiten sesiones de juego duplicadas (mismos datos), solapadas con otras del mismo
   anfitrión y fuera de la disponibilidad del anfitrión; no hay regla que lo impida
   (DP6-13).
-- Petición con una credencial todavía válida de un usuario ya eliminado: 401 "sesión no
-  iniciada" (RF-18).
+- Petición con una credencial todavía válida de un usuario ya eliminado: 401 "token
+  inválido", no "sesión no iniciada" (RF-18, DP6-39).
 - Sesión de juego cuyo anfitrión ya no existe durante la cascada: no aparece en el listado
   y obtenerla da 404 (RF-24). Sesión de juego con un participante (no anfitrión) que ya no
   existe: sigue en el listado y obtenerla da 200, sin ese participante en la lista, y puede
@@ -460,28 +475,29 @@ formato inválido" (spec 003, RF-5) y "JSON mal formado" (referencia, sección 5
       alguien se suma, cancelar mientras alguien se suma) y de la cascada de RF-16 (sesiones
       organizadas borradas, participaciones quitadas con estado recalculado, y eliminación
       simultánea a una creación y a un sumarse).
-- [ ] Hay una prueba de RF-18 (credencial de un usuario eliminado → 401 "sesión no
-      iniciada") y otras de RF-24: anfitrión inexistente → sesión omitida del listado y 404
+- [ ] Hay una prueba de RF-18 (credencial de un usuario eliminado → 401 "token inválido")
+      y otras de RF-24: anfitrión inexistente → sesión omitida del listado y 404
       por id; participante inexistente → sesión visible en el listado y 200 por id, sin ese
       participante en la lista.
 - [ ] Una prueba recorre todas las operaciones protegidas del servidor de las specs 002 a
       006 (las de la spec 002 son solo la consulta de la sesión actual; quedan fuera el
       registro, el inicio y el cierre de sesión) sin credencial y confirma 401 "sesión no
       iniciada" en cada una; y recorre las operaciones de esta spec con la credencial de un
-      usuario eliminado y confirma 401 "sesión no iniciada". En ambos recorridos cada
+      usuario eliminado y confirma 401 "token inválido" (RF-18). En ambos recorridos cada
       petición envía un objeto JSON o ningún cuerpo, porque un cuerpo mal formado (o, al
       crear o editar, uno que no es objeto) respondería antes el 400 de RF-23 o RF-28
       (DP6-21, DP6-28, DP6-32).
-- [ ] Pruebas y comprobación de tipos del servidor en verde (sin lint, DP6-24).
+- [ ] Pruebas y comprobación de tipos del servidor en verde (el lint no se exige, DP6-24).
 
 ## Dudas abiertas
 Ninguna.
 
 ## Impacto en otras specs
 No se editan desde aquí; cada cambio se hace en su spec cuando el usuario lo apruebe.
-- Spec 001 (deuda): el servidor no tiene comando de lint definido (solo `dev`, `test`,
-  `typecheck`, `seed`, `build` y `build:ui`); por eso esta spec no exige lint (DP6-24).
-  Agregarlo corresponde a otra spec.
+- Spec 001: el servidor ya tiene un comando de lint y está en verde (comprobado el
+  2026-10-19 en las specs 001 a 005). Esta spec no lo exige como criterio de finalización
+  (DP6-24, decisión del usuario Q4 del 2026-10-19); exigirlo, si se quisiera, sería un
+  cambio de criterio de esta spec, no de la 001.
 - Specs 004 y 005: el orden de errores es global al servidor, así que deben adoptar la
   misma excepción del paso del cuerpo antes de la sesión iniciada (en la 004, su RF-29).
   Se actualizarán por el flujo de cambio de requisitos, no desde esta spec (DP6-37).
@@ -527,7 +543,9 @@ respuestas del usuario a las incoherencias de la tercera ronda (D-a y D-b; D-c e
 nota en los criterios de finalización). Bloque E: respuestas del usuario a los huecos de la
 cuarta ronda (E-1 a E-5). Bloque F: decisiones del usuario y correcciones de coherencia de
 la segunda pasada de QA del revisor (F-1 a F-4) y la última decisión del usuario antes de
-aprobar la spec (F-5).
+aprobar la spec (F-5). Bloque G (2026-10-19): decisiones del usuario al ajustar el plan al
+código real: Q1 (DP6-39, texto del 401 del usuario eliminado), Q2 (se mantiene el estilo de
+texto de la 006, nota en "Mensajes"), Q3 (cascada, solo afecta al plan) y Q4 (nota en DP6-24).
 
 | DP | Origen | Decisión | Alternativa descartada |
 | --- | --- | --- | --- |
@@ -547,14 +565,14 @@ aprobar la spec (F-5).
 | DP6-14 | Bloque A (A12) | Orden de errores con un solo error: paso del cuerpo (JSON mal formado en todas; no objeto al crear o editar; DP6-21, DP6-35) → 401 → formato del id → existencia → anfitrión → datos → conflicto (precedente RF-29 de la spec 004). | Validar el cuerpo antes del anfitrión: daría a un no anfitrión detalles de validación de una sesión ajena. |
 | DP6-15 | Bloque A (A10) | Desempate del listado: día → hora de inicio → fecha de creación → identificador como texto. | Sin desempate: orden no determinista y pruebas frágiles. |
 | DP6-16 | Bloque A (A15) | Cancelar borra; el estado `cancelled` nunca se emite. | Marcar como `cancelled`: exige historial y filtros que están fuera de alcance. |
-| DP6-17 | Bloque A (A3) | Credencial válida de un usuario eliminado → 401 "sesión no iniciada" (spec 004, DP-37). | 404: dejaría a la interfaz dentro de la aplicación con una sesión inútil. |
+| DP6-17 | Bloque A (A3); texto precisado por DP6-39 | Credencial válida de un usuario eliminado → 401 (spec 004, DP-37); el texto es "token inválido" (DP6-39; la versión del 2026-10-18 decía "sesión no iniciada"). | 404: dejaría a la interfaz dentro de la aplicación con una sesión inútil. |
 | DP6-18 | Bloque A (A18) | Sesión de juego de un anfitrión inexistente o participante inexistente se omite sin error (spec 005, DP5-11); precisado en DP6-34. | 500 o referencia nula: rompería el listado de todos o la forma de la sesión. |
 | DP6-19 | Bloque A (A14) | En la edición el juego no se lee ni se valida. | Validarlo: un campo ignorado (RF-15) podría dar 400. |
 | DP6-20 | Usuario (C-6) | Parámetros desconocidos del listado se ignoran (precedente DP5-13). | Responder 400: un cliente con parámetros de caché dejaría de funcionar sin motivo. |
 | DP6-21 | Usuario (C-1) | Un único paso del cuerpo va primero en toda operación, antes que los 401: JSON mal formado (todas) y, al crear o editar, JSON que no es objeto (DP6-32, DP6-35); ambos 400 "JSON mal formado". Es la única excepción a "401 primero"; el usuario la mantiene en DP6-37. | Comprobar la sesión iniciada antes que el cuerpo: el usuario prefirió que un cuerpo roto se rechace igual con cualquier credencial. |
 | DP6-22 | Usuario (C-2) | Al editar, `notes: ""` (o solo espacios) se acepta y borra las notas, igual que al crear; "vacío → 400" no aplica a las notas. | 400 con notas vacías: no habría forma de borrar las notas de una sesión. |
 | DP6-23 | Usuario (C-3) | El salto de línea del título (LF, CR, U+2028 o U+2029; DP6-27) se comprueba tras recortar: `"Ranked\n"` se guarda como `"Ranked"`; solo un salto interno da 400 (ampliado a caracteres de control en DP6-31). | Comprobarlo antes de recortar: rechazaría un título que el recorte deja válido. |
-| DP6-24 | Usuario (C-4) | Los criterios de finalización exigen solo pruebas y comprobación de tipos del servidor; la falta de lint en el servidor queda como deuda de la spec 001. | Exigir lint: no hay comando de lint definido en el servidor. |
+| DP6-24 | Usuario (C-4; Q4, 2026-10-19) | Los criterios de finalización exigen solo pruebas y comprobación de tipos del servidor; el lint no se exige. Nota del 2026-10-19: la versión original decía que el servidor no tenía comando de lint; hoy existe y está en verde, y el usuario mantiene no exigirlo (Q4). | Exigir lint: añade un criterio que el usuario prefirió no exigir (Q4), aunque el comando ya existe. |
 | DP6-25 | Usuario (C-5) | Un único texto para notas inválidas (nulas, no texto o más de 160): "Las notas deben ser texto de hasta 160 caracteres.". | "Las notas no pueden superar 160 caracteres.": no describe el error con `null` o un número. |
 | DP6-26 | Usuario (C-6) | Aceptados tal cual: notas contadas en puntos de código; barrido del 401 de usuario eliminado limitado a las operaciones de esta spec; RF-24 con posible `full` visible con menos participantes durante la cascada (cuándo se omite la sesión y cuándo sigue visible lo precisa DP6-34); textos heredados en minúscula como en su origen; RF-27 reutiliza "No tienes una cuenta vinculada en este juego." con 400. | Recalcular el estado al leer durante la cascada o uniformar los textos heredados: cambios fuera del alcance de esta spec. |
 | DP6-27 | Usuario (D-a) | Recortar quita de los extremos estos espacios en blanco y fines de línea: U+0009, U+000B, U+000C, U+0020, U+00A0, U+FEFF, toda la categoría Zs, LF, CR, U+2028 y U+2029. Salto de línea = LF, CR, U+2028 o U+2029 (un salto interno en el título → 400). | Recortar solo espacio, tabulador, LF y CR: un U+00A0 o U+3000 en un extremo pasaría el recorte y contaría en el largo, y U+2028 dentro del título no se trataría como salto. |
@@ -569,3 +587,4 @@ aprobar la spec (F-5).
 | DP6-36 | Usuario (F-3) | La spec prevalece sobre la sección 5.5 de la referencia: la lectura del cuerpo cumple RF-15, RF-23 y RF-28, y un cuerpo enviado sin declararse como JSON se trata como sin cuerpo (equivale a `{}`: crear → "Juego no válido.", editar → 200 sin cambios). | Aplicar la 5.5 tal cual: no rechaza el JSON no objeto de RF-28 ni define qué pasa con un cuerpo no declarado como JSON. Responder 400 o 415 a un cuerpo no declarado como JSON: regla nueva sin necesidad del producto. |
 | DP6-37 | Usuario (F-4) | Se mantiene "cuerpo antes que 401". Como el orden de errores es global al servidor, las specs 004 (RF-29) y 005 deben adoptar la misma excepción; se cambian por el flujo de cambio de requisitos, no desde esta spec. | Volver a "401 primero" en esta spec: dejaría dos órdenes distintos en el mismo servidor. |
 | DP6-38 | Usuario (F-5) | Mientras dura la cascada de RF-16, en una sesión de juego con un participante ya eliminado, RF-8 (cupos bajo inscritos) y RF-12 (llena) cuentan los participantes guardados, incluido el eliminado hasta que la cascada lo quite, no los visibles (RF-24). | Contar los participantes visibles: el estado guardado (`full`) y la regla de sumarse podrían contradecirse, y una edición o un sumarse podría dejar más participantes guardados que cupos antes de que la cascada termine. |
+| DP6-39 | Usuario (Q1, 2026-10-19) | La credencial válida de un usuario eliminado responde 401 "token inválido" en todas las operaciones de esta spec, también en la compensación de RF-16 (crear o sumarse a la vez que se elimina al usuario). "Sesión no iniciada" queda solo para la credencial ausente (spec 002, RF-10). Alinea la 006 con la spec 002 (RF-22, RF-24), la 004 (RF-44, DP-37) y la 005 (RF-13, DP5-16), y con lo que ya responde el servidor implementado. Precisa el texto de DP6-17. | 401 "sesión no iniciada" (texto original de la 006, opción B de Q1): exigiría una comprobación propia de la 006, distinta de la de las specs 002 a 005, o cambiar la 004; y un mismo usuario eliminado recibiría textos distintos según la operación (agenda frente a cuentas, coincidencias y usuarios). |
