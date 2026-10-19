@@ -1,6 +1,6 @@
 # Spec 004 — Cuentas de juego y rango simulado
-Estado: implementada (2026-10-19); cambio DP6-37 aprobado (2026-10-19); queda por marcar la
-casilla de pruebas del paso del cuerpo en las operaciones de lectura (ver "Criterios de finalización")
+Estado: implementada (2026-10-19); cambio DP6-37 aprobado (2026-10-19); T26 (pruebas del paso
+del cuerpo en las operaciones de lectura) hecha, con su casilla de "Criterios de finalización" marcada (2026-10-19)
 Cambio DP6-37 (2026-10-19, aprobado por el usuario el 2026-10-19): la spec 006 (RF-20, DP6-37)
 fijó que el orden de errores es global al servidor, con un único paso del cuerpo antes de la
 sesión. Esta spec ya tenía ese paso (RF-29, primer punto); el cambio solo lo nombra como
@@ -907,7 +907,7 @@ fuentes) y RNF-6 (verificación con Steam).
 - [x] Hay una prueba por cada salto del orden de RF-29, de RF-2 y de RF-13, incluidos el
       400 "JSON mal formado" antes del 401, filtros repetidos, vacíos y con `ME`, `me`,
       `m%65` y `%zz`, parámetros desconocidos ignorados y el orden del listado.
-- [ ] Hay una prueba del paso del cuerpo de RF-29 (DP-43) en las tres operaciones de
+- [x] Hay una prueba del paso del cuerpo de RF-29 (DP-43) en las tres operaciones de
       lectura, que no leen el cuerpo (listar, obtener una cuenta y resumen por juego): con
       JSON mal formado responde 400 "JSON mal formado" y no 401; con un cuerpo de más de
       102 400 bytes, 413; con una codificación no soportada, 415; y con un cuerpo JSON `"x"`,

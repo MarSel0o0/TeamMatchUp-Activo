@@ -1,6 +1,6 @@
 # Tareas 004 — Cuentas de juego y rango simulado
 Estado: **hechas (2026-10-19); validadas por reviewer** (T1–T25; APROBADO tras 2 vueltas;
-1567 tests en verde); **T26 (cambio DP6-37): aprobado (2026-10-19)**.
+1567 tests en verde); **T26 (cambio DP6-37): hecha (2026-10-19)**.
 T1–T25 aprobadas el 2026-10-19 ("apruebo todo con tus recomendaciones"). La
 repetición de la suite sin conexión a Internet (T25) la hizo el usuario, que la confirmó el
 2026-10-19 (1567/1567 tests, 220 suites, 0 fallos, 0 cancelados, ~100 s, con el código ya
@@ -660,7 +660,7 @@ estuviera hecha (C1), y así fue; T25 no dependía de ella.
     sin conexión a Internet; cada fila de la trazabilidad (plan, 12) tiene su prueba en
     verde; y todas las casillas de "Criterios de finalización" de la spec se pueden marcar.
 
-- [ ] **T26. Pruebas del paso del cuerpo en las operaciones de lectura.** RF-29 (paso del cuerpo), RF-1, RF-2, RF-3, RF-12, RF-44, DP-43 *(cambio DP6-37; aprobado, 2026-10-19)*
+- [x] **T26. Pruebas del paso del cuerpo en las operaciones de lectura.** RF-29 (paso del cuerpo), RF-1, RF-2, RF-3, RF-12, RF-44, DP-43 *(cambio DP6-37; aprobado, 2026-10-19)*
   - Reabre: T21 (solo pruebas; el bloque «cuerpo antes que sesión (RF-29)» de
     `accounts.test.ts` cubre hoy POST, PUT, DELETE y sync). Depende de: — (T16 y T21 hechas).
     **Sin cambios de código de producción.** Excepción a la regla de T11 a T25: si una prueba

@@ -1,6 +1,6 @@
 # Tareas 005 — Coincidencias en el servidor
 Estado: **hechas (2026-10-19); validadas por reviewer** (T1–T10; APROBADO; 1567 tests en
-verde); **T11 (cambio DP6-37): aprobado (2026-10-19)**. T1–T10 aprobadas el
+verde); **T11 (cambio DP6-37): hecha (2026-10-19)**. T1–T10 aprobadas el
 2026-10-19. T1 a T8 se aprobaron el 2026-10-17 (con precondición: las
 specs 001 a 004 implementadas y el plan de la 003 confirmando el modelo `User`; cumplida, T1 a
 T8 están hechas); T9 y T10, de los cambios A y B, se aprobaron el 2026-10-19 y están hechas.
@@ -214,7 +214,7 @@ algo, parar y reportarlo.
     pruebas del servidor en verde"), junto con las que cierre T9.
   - Verificación: `cd backend && npm test && npm run typecheck`.
 
-- [ ] **T11. Pruebas del paso del cuerpo en `GET /api/matches` (criterio B14).** RF-16 (paso del cuerpo), RF-1, RF-13, RF-18, DP5-18 *(cambio C, DP6-37; aprobado, 2026-10-19)*
+- [x] **T11. Pruebas del paso del cuerpo en `GET /api/matches` (criterio B14).** RF-16 (paso del cuerpo), RF-1, RF-13, RF-18, DP5-18 *(cambio C, DP6-37; aprobado, 2026-10-19)*
   - Aprobada la spec el 2026-10-19; **aprobada esta tarea (2026-10-19)**. Depende de: — (T9
     y T10 hechas). **Sin cambios de código de producción.** Si una prueba nueva falla, se
     reporta como bug (caso, credencial y respuesta obtenida) y **no se corrige en esta tarea**.

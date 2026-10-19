@@ -510,9 +510,12 @@ No se editan desde aquí; cada cambio se hace en su spec cuando el usuario lo ap
   2026-10-19 en las specs 001 a 005). Esta spec no lo exige como criterio de finalización
   (DP6-24, decisión del usuario Q4 del 2026-10-19); exigirlo, si se quisiera, sería un
   cambio de criterio de esta spec, no de la 001.
-- Specs 004 y 005: el orden de errores es global al servidor, así que deben adoptar la
+- Specs 004 y 005: el orden de errores es global al servidor, así que debían adoptar la
   misma excepción del paso del cuerpo antes de la sesión iniciada (en la 004, su RF-29).
-  Se actualizarán por el flujo de cambio de requisitos, no desde esta spec (DP6-37).
+  Ya la adoptaron (2026-10-19) por el flujo de cambio de requisitos, no desde esta spec
+  (DP6-37): DP-43 en la 004 y DP5-18 en la 005, que documentan el comportamiento actual del
+  servidor. La diferencia con el intérprete de cuerpo no estricto de `/api/sessions` es
+  intencionada.
 - Spec 003 (en borrador): su RF-11 remite a esta spec para la cascada (RF-16). Conviene que
   adopte el 401 de un usuario eliminado (RF-18) para sus propias operaciones, como ya
   pidió la spec 004.
