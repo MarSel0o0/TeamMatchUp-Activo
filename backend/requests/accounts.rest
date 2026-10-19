@@ -1,20 +1,25 @@
-# Prueba manual de cuentas de juego y rango simulado (spec 004, T10): inicio de sesión →
-# vincular → resincronizar → resumen por juego → editar la región → desvincular.
+# Prueba manual de cuentas de juego y rango simulado (spec 004, T25): inicio de sesión →
+# vincular los tres juegos → listar y obtener → resincronizar → resumen por juego → editar la
+# región → desvincular → eliminar el usuario → sesión otra vez (401).
 #
 # Formato de la extensión REST Client de VS Code: guarda la cookie `token` entre peticiones
 # (rest-client.rememberCookiesForSubsequentRequests, activo por defecto), lee la cabecera
 # X-CSRF-Token de la respuesta del inicio de sesión con {{login.response.headers...}} y el
-# id de la cuenta vinculada con {{link.response.body.$.id}}.
+# id de cada cuenta vinculada con {{linkLol.response.body.$.id}} y similares.
 #
 # Requisitos: servidor en desarrollo (`npm run dev`) con MongoDB disponible y el `.env`
 # copiado de `.env.example`. No hace falta ninguna variable nueva ni conexión a Internet: el
-# rango lo genera el proveedor simulado (RF-34, RNF-9). La cuenta debe existir: créala antes
-# con el paso 1 de `auth.rest` (mismos datos de ejemplo, no reales). Si ya tiene una cuenta
-# de LoL vinculada, el paso 2 responde 400 "Ya tienes una cuenta vinculada en este juego.":
-# desvincúlala antes (paso 6) o usa otro juego.
+# rango, el historial, las partidas y la marca de verificada los genera el proveedor
+# simulado (RF-34, RNF-9). La cuenta de usuario debe existir: créala antes con el paso 1 de
+# `auth.rest` (mismos datos de ejemplo, no reales). Si ya tiene cuentas vinculadas, los pasos
+# 2 a 4 responden 400 "ya tienes una cuenta vinculada en este juego": desvincúlalas antes (el
+# paso 10 desvincula la de LoL) o elimina y vuelve a registrar el usuario. El paso 19 elimina
+# el usuario y todas sus cuentas: para repetir el recorrido, vuelve a registrarlo.
 #
-# Todas las cuentas que devuelve el servidor llevan `"simulated": true` y no llevan
-# partidas ni número de lectura (RF-37, DP-32, DP-33).
+# Todos los mensajes de error van en minúscula y sin punto final (DP-6). Toda cuenta que
+# devuelve el servidor lleva `"simulated": true` y no lleva partidas ni número de lectura
+# (RF-37, DP-32, DP-33): son datos simulados, inventados por el proveedor, no de Riot, Ubisoft
+# ni Valve (RNF-2).
 
 @baseUrl = http://localhost:3001
 @email = ana.ejemplo@example.com
@@ -32,8 +37,9 @@ Content-Type: application/json
 
 ### 2. Vincular una cuenta de LoL: 201 con la lectura simulada número 0 (RF-4, RF-6, RF-7)
 # La región se guarda con la grafía de la lista ("LAS"). `currentRank`, `verified` y
-# `simulated` del cuerpo se ignoran: los fija el proveedor simulado (RF-7).
-# @name link
+# `simulated` del cuerpo se ignoran: los fija el proveedor simulado (RF-7). La cuenta queda
+# a nombre del usuario de la sesión.
+# @name linkLol
 POST {{baseUrl}}/api/accounts
 Content-Type: application/json
 X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
@@ -46,23 +52,53 @@ X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
   "verified": true
 }
 
-### 3. Listar las cuentas propias: 200 con la cuenta recién vinculada (RF-2)
+### 3. Vincular una cuenta de Rainbow Six Siege: 201 con rango y partidas simulados (RF-4)
+# @name linkR6
+POST {{baseUrl}}/api/accounts
+Content-Type: application/json
+X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
+
+{
+  "gameId": "r6",
+  "handle": "Ejemplo.R6",
+  "region": "LATAM"
+}
+
+### 4. Vincular una cuenta de Counter-Strike 2: 201 (RF-4)
+# El SteamID64 de ejemplo es el primero del conjunto de pruebas de la spec (RF-41).
+# @name linkCs2
+POST {{baseUrl}}/api/accounts
+Content-Type: application/json
+X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
+
+{
+  "gameId": "cs2",
+  "handle": "76561190000000001",
+  "region": "south america"
+}
+
+### 5. Listar las cuentas propias: 200 con las tres, ordenadas por id (RF-2)
 GET {{baseUrl}}/api/accounts?user=me
 X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
 
-### 4. Resincronizar: 200; el rango se mueve como mucho un escalón y hay partidas nuevas (RF-10, RF-42, RF-43)
-# Repetirla varias veces: el historial y las partidas crecen (máximo 20 partidas, RF-15).
-POST {{baseUrl}}/api/accounts/{{link.response.body.$.id}}/sync
+### 6. Obtener una cuenta por su id: 200 (RF-3)
+GET {{baseUrl}}/api/accounts/{{linkLol.response.body.$.id}}
 X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
 
-### 5. Resumen propio de LoL: 200 con la cuenta, las 8 partidas más recientes, tasa de victorias y tendencia (RF-12)
+### 7. Resincronizar: 200; el rango se mueve como mucho un escalón y hay partidas nuevas (RF-10, RF-42, RF-43)
+# Repetirla varias veces: el historial crece cuando cambia el rango y las partidas se
+# acumulan hasta un máximo de 20 (RF-15). El cuerpo se ignora.
+POST {{baseUrl}}/api/accounts/{{linkLol.response.body.$.id}}/sync
+X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
+
+### 8. Resumen propio de LoL: 200 con la cuenta, las 8 partidas más recientes, tasa de victorias y tendencia (RF-12)
 GET {{baseUrl}}/api/users/me/games/lol
 X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
 
-### 6. Editar la región: 200; rango, historial y partidas no cambian (RF-8)
+### 9. Editar la región: 200; rango, historial y partidas no cambian (RF-8)
 # El identificador con otras mayúsculas se considera el mismo y se ignora (RF-22); el juego
 # del cuerpo se ignora (RF-7).
-PUT {{baseUrl}}/api/accounts/{{link.response.body.$.id}}
+PUT {{baseUrl}}/api/accounts/{{linkLol.response.body.$.id}}
 Content-Type: application/json
 X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
 
@@ -72,20 +108,20 @@ X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
   "gameId": "cs2"
 }
 
-### 7. Desvincular: 204 sin cuerpo; la cuenta deja de existir (RF-9, RF-33)
-DELETE {{baseUrl}}/api/accounts/{{link.response.body.$.id}}
+### 10. Desvincular la cuenta de LoL: 204 sin cuerpo; la cuenta deja de existir (RF-9)
+DELETE {{baseUrl}}/api/accounts/{{linkLol.response.body.$.id}}
 X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
 
-### 8. Obtener la cuenta desvinculada: 404 "Cuenta no encontrada." (RF-3)
-GET {{baseUrl}}/api/accounts/{{link.response.body.$.id}}
+### 11. Obtener la cuenta desvinculada: 404 "cuenta no encontrada" (RF-3)
+GET {{baseUrl}}/api/accounts/{{linkLol.response.body.$.id}}
 X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
 
-### Errores de ejemplo
+### Errores de ejemplo (ejecutar antes del paso 19)
 
-### 9. Sin cabecera X-CSRF-Token (con la cookie): 401 "token inválido" (RF-1, spec 002)
+### 12. Sin cabecera X-CSRF-Token (con la cookie): 401 "token inválido" (RF-1, spec 002)
 GET {{baseUrl}}/api/accounts
 
-### 10. Identificador con formato inválido: 400 "Riot ID no válido: usa el formato Nombre#TAG." (RF-6)
+### 13. Riot ID con formato inválido: 400 "Riot ID no válido: usa el formato Nombre#TAG, con 3 a 16 caracteres antes de # y 2 a 5 letras o dígitos después" (RF-6)
 POST {{baseUrl}}/api/accounts
 Content-Type: application/json
 X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
@@ -96,10 +132,50 @@ X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
   "region": "LAS"
 }
 
-### 11. Juego inválido en el resumen: 400 "Juego no válido." (RF-13)
+### 14. Vincular otra vez un juego ya vinculado (R6): 400 "ya tienes una cuenta vinculada en este juego" (RF-5)
+POST {{baseUrl}}/api/accounts
+Content-Type: application/json
+X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
+
+{
+  "gameId": "r6",
+  "handle": "OtroEjemplo",
+  "region": "EMEA"
+}
+
+### 15. Editar el identificador del juego: 400 "el identificador del juego no se puede editar: desvincula la cuenta y vuelve a vincularla" (RF-22)
+PUT {{baseUrl}}/api/accounts/{{linkR6.response.body.$.id}}
+Content-Type: application/json
+X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
+
+{
+  "handle": "OtroEjemplo"
+}
+
+### 16. Cuenta inexistente (id válido): 404 "cuenta no encontrada" (RF-29)
+POST {{baseUrl}}/api/accounts/000000000000000000000000/sync
+X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
+
+### 17. Juego inválido en el resumen: 400 "juego no válido" (RF-13)
 GET {{baseUrl}}/api/users/me/games/valorant
 X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
 
-### 12. Resumen sin cuenta en el juego: 404 "El jugador no tiene una cuenta vinculada en este juego." (RF-13)
-GET {{baseUrl}}/api/users/me/games/r6
+### 18. Resumen sin cuenta en el juego (LoL, ya desvinculada): 404 "el jugador no tiene una cuenta vinculada en este juego" (RF-13)
+GET {{baseUrl}}/api/users/me/games/lol
+X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
+
+### 19. Eliminar el usuario propio: 204 y borrado de la cookie; borra también sus cuentas (spec 003, RF-11; RF-14)
+# La cascada borra las cuentas del usuario, luego el usuario y, al final, las cuentas que una
+# vinculación simultánea haya dejado sin dueño. Después, `GET /api/accounts` sin filtro no
+# muestra ninguna cuenta suya.
+DELETE {{baseUrl}}/api/users/me
+X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
+
+### 20. Operar después de eliminar el usuario: 401 "sesión no iniciada" (la cookie ya no está)
+# REST Client descarta la cookie borrada, así que esta petición va sin credencial y responde
+# 401 "sesión no iniciada". Con una credencial vieja que todavía no ha expirado (por ejemplo,
+# la cookie `token` y el X-CSRF-Token copiados con curl antes del paso 19), cualquier
+# operación de cuentas responde 401 "token inválido" y no crea ni cambia nada (RF-44, DP-37;
+# spec 002, RF-22).
+GET {{baseUrl}}/api/accounts
 X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}

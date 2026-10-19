@@ -2,6 +2,7 @@ import { describe, test } from "node:test";
 import assert from "node:assert/strict";
 import {
   applySync,
+  compareCodePoints,
   compareMatches,
   initialState,
   mergeMatches,
@@ -66,9 +67,45 @@ describe("compareMatches (RF-28)", () => {
     assert.ok(compareMatches(ten, nine) > 0);
   });
 
+  test("misma fecha con identificadores astral y U+FFFF: primero el astral", () => {
+    const astral = match("m-\u{1F600}", NOW);
+    const bmp = match("m-\uFFFF", NOW);
+    assert.ok(compareMatches(astral, bmp) < 0);
+    assert.ok(compareMatches(bmp, astral) > 0);
+    assert.deepEqual(ids([bmp, astral].sort(compareMatches)), ["m-\u{1F600}", "m-\uFFFF"]);
+  });
+
   test("misma partida → 0", () => {
     const a = match("m-1-0", NOW);
     assert.strictEqual(compareMatches(a, match("m-1-0", NOW)), 0);
+  });
+});
+
+describe("compareCodePoints (RF-28, T14)", () => {
+  test("compara por código Unicode, no por unidades UTF-16: U+1F600 va después de U+FFFF", () => {
+    assert.ok(compareCodePoints("m-\u{1F600}", "m-\uFFFF") > 0);
+    assert.ok(compareCodePoints("m-\uFFFF", "m-\u{1F600}") < 0);
+  });
+
+  test("U+FF5E frente a U+1F600: el astral es mayor", () => {
+    assert.ok(compareCodePoints("\u{1F600}", "\uFF5E") > 0);
+    assert.ok(compareCodePoints("\uFF5E", "\u{1F600}") < 0);
+  });
+
+  test("el prefijo más corto va antes", () => {
+    assert.ok(compareCodePoints("m-1", "m-1-0") < 0);
+    assert.ok(compareCodePoints("m-1-0", "m-1") > 0);
+    assert.ok(compareCodePoints("", "a") < 0);
+  });
+
+  test("iguales → 0", () => {
+    assert.strictEqual(compareCodePoints("m-1-0", "m-1-0"), 0);
+    assert.strictEqual(compareCodePoints("", ""), 0);
+    assert.strictEqual(compareCodePoints("m-\u{1F600}", "m-\u{1F600}"), 0);
+  });
+
+  test("texto ASCII: orden por código ('m-9-0' > 'm-10-0')", () => {
+    assert.ok(compareCodePoints("m-9-0", "m-10-0") > 0);
   });
 });
 

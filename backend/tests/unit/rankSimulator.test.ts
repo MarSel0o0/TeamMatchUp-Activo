@@ -97,7 +97,7 @@ function assertReadingShape(gameId: GameId, handle: string, n: number, reading: 
   assert.ok(Number.isInteger(snapshot.points), label);
   const band = pointsBand(gameId, step);
   assert.ok(snapshot.points >= band.min, label);
-  if (band.max !== null) assert.ok(snapshot.points <= band.max, label);
+  assert.ok(snapshot.points <= band.max, label);
   assert.equal(snapshot.normalized, normalizeStep(gameId, step), label);
   assert.equal(snapshot.recordedAt.getTime(), NOW.getTime(), label);
 
@@ -157,6 +157,12 @@ describe("primitivas (plan, 4.1)", () => {
     assert.equal(canonicalHandle("  Jugador1#LAS "), "jugador1#las");
     assert.equal(canonicalHandle("\tJUGADOR1\n"), "jugador1");
     assert.equal(canonicalHandle("76561190000000001"), "76561190000000001");
+  });
+
+  test("canonicalHandle pliega con Unicode: Ñandú = ñandú, pero ß no se pliega a ss (T15, DP-19)", () => {
+    assert.equal(canonicalHandle("Ñandú#LAS"), canonicalHandle("ñandú#LAS"));
+    assert.equal(canonicalHandle("Ñandú#LAS"), "ñandú#las");
+    assert.notEqual(canonicalHandle("ß"), canonicalHandle("ss"));
   });
 });
 
@@ -280,6 +286,44 @@ describe("evolución (RF-42)", () => {
   });
 });
 
+describe("el rango cambia de verdad (RF-42, DP-40)", () => {
+  test("para cada identificador, en al menos 5 de las lecturas 1 a 10 la fotografía difiere de la anterior en tier, división o puntos", () => {
+    for (const gameId of GAME_IDS) {
+      for (const handle of handleSet(gameId)) {
+        let previous = read(gameId, handle, 0).snapshot;
+        let changes = 0;
+        for (let n = 1; n <= 10; n += 1) {
+          const current = read(gameId, handle, n).snapshot;
+          if (
+            current.tier !== previous.tier ||
+            current.division !== previous.division ||
+            current.points !== previous.points
+          ) {
+            changes += 1;
+          }
+          previous = current;
+        }
+        assert.ok(changes >= 5, `${gameId} ${handle}: ${changes} cambios de 10`);
+      }
+    }
+  });
+
+  test("al menos 50 de los 100 identificadores cambian de escalón al menos una vez entre las lecturas 0 y 10", () => {
+    for (const gameId of GAME_IDS) {
+      let moved = 0;
+      for (const handle of handleSet(gameId)) {
+        const rungs = new Set<string>();
+        for (let n = 0; n <= 10; n += 1) {
+          const { tier, division } = read(gameId, handle, n).snapshot;
+          rungs.add(`${tier}|${division ?? ""}`);
+        }
+        if (rungs.size > 1) moved += 1;
+      }
+      assert.ok(moved >= 50, `${gameId}: ${moved} de 100`);
+    }
+  });
+});
+
 describe("verificada (RF-41)", () => {
   const examples: readonly { gameId: GameId; handle: string; verified: boolean }[] = [
     { gameId: "lol", handle: "jugador1#las", verified: true },
@@ -322,6 +366,136 @@ describe("verificada (RF-41)", () => {
         }
       }
     }
+  });
+});
+
+// Lectura literal fija (spec 004, RF-35, RF-43; plan, R4 y T13).
+// Prueba de regresión del orden de consumo del generador, no de diseño. Los valores se
+// tomaron UNA sola vez de la salida del simulador el 2026-10-19 (tras comprobar a mano banda,
+// 1 a 8 partidas, partida principal con playedAt = now y verified según la tabla 4.4).
+// Valor fijado el 2026-10-19 como prueba de regresión del orden de consumo, R4; si cambia a
+// propósito el generador, se actualiza aquí y en todas las lecturas de demostración.
+// No cambiar sin pasar por el plan (R4).
+describe("lectura literal fija (R4)", () => {
+  const FIXED_NOW = new Date("2026-10-19T12:00:00.000Z");
+
+  test("LoL jugador1#las, n = 0", () => {
+    assert.deepStrictEqual(read("lol", "jugador1#las", 0, FIXED_NOW), {
+      snapshot: {
+        tier: "Emerald",
+        division: "II",
+        points: 59,
+        normalized: 73,
+        recordedAt: new Date("2026-10-19T12:00:00.000Z"),
+      },
+      matches: [
+        {
+          id: "m-0-0",
+          gameId: "lol",
+          playedAt: new Date("2026-10-19T12:00:00.000Z"),
+          result: "loss",
+          summary: "Lux · 8/0/10",
+          durationMinutes: 44,
+          rankDelta: -15,
+        },
+        {
+          id: "m-0-1",
+          gameId: "lol",
+          playedAt: new Date("2026-10-19T09:27:00.000Z"),
+          result: "win",
+          summary: "Leona · 4/2/13",
+          durationMinutes: 41,
+          rankDelta: 17,
+        },
+      ],
+      mainMatchId: "m-0-0",
+      verified: true,
+    });
+  });
+
+  test("R6 jugador2, n = 0", () => {
+    assert.deepStrictEqual(read("r6", "jugador2", 0, FIXED_NOW), {
+      snapshot: {
+        tier: "Bronze",
+        division: "V",
+        points: 1501,
+        normalized: 14,
+        recordedAt: new Date("2026-10-19T12:00:00.000Z"),
+      },
+      matches: [
+        {
+          id: "m-0-0",
+          gameId: "r6",
+          playedAt: new Date("2026-10-19T12:00:00.000Z"),
+          result: "win",
+          summary: "Doc · 5 bajas",
+          durationMinutes: 17,
+          rankDelta: 30,
+        },
+        {
+          id: "m-0-1",
+          gameId: "r6",
+          playedAt: new Date("2026-10-19T09:38:00.000Z"),
+          result: "win",
+          summary: "Mute · 2 bajas",
+          durationMinutes: 39,
+          rankDelta: 29,
+        },
+      ],
+      mainMatchId: "m-0-0",
+      verified: true,
+    });
+  });
+
+  test("CS2 76561190000000001, n = 0", () => {
+    assert.deepStrictEqual(read("cs2", "76561190000000001", 0, FIXED_NOW), {
+      snapshot: {
+        tier: "Red",
+        points: 28063,
+        normalized: 83,
+        recordedAt: new Date("2026-10-19T12:00:00.000Z"),
+      },
+      matches: [
+        {
+          id: "m-0-0",
+          gameId: "cs2",
+          playedAt: new Date("2026-10-19T12:00:00.000Z"),
+          result: "win",
+          summary: "Anubis · 13-11",
+          durationMinutes: 25,
+          rankDelta: 55,
+        },
+        {
+          id: "m-0-1",
+          gameId: "cs2",
+          playedAt: new Date("2026-10-19T11:17:00.000Z"),
+          result: "win",
+          summary: "Mirage · 13-7",
+          durationMinutes: 28,
+          rankDelta: 239,
+        },
+        {
+          id: "m-0-2",
+          gameId: "cs2",
+          playedAt: new Date("2026-10-19T10:51:00.000Z"),
+          result: "loss",
+          summary: "Train · 1-13",
+          durationMinutes: 31,
+          rankDelta: -145,
+        },
+        {
+          id: "m-0-3",
+          gameId: "cs2",
+          playedAt: new Date("2026-10-19T08:09:00.000Z"),
+          result: "loss",
+          summary: "Inferno · 10-13",
+          durationMinutes: 37,
+          rankDelta: -116,
+        },
+      ],
+      mainMatchId: "m-0-0",
+      verified: true,
+    });
   });
 });
 

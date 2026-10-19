@@ -2,7 +2,7 @@
 // plan, sección 4). Todo depende solo de (juego, identificador canónico, número de lectura);
 // el instante llega como parámetro y solo fija las fechas. Sin reloj, azar, Express ni Mongoose.
 import type { GameId } from "./games.ts";
-import { generationRange, ladder, normalizeStep } from "./rankScale.ts";
+import { ladder, normalizeStep, pointsBand } from "./rankScale.ts";
 
 export interface SimulatedMatch {
   id: string;
@@ -154,7 +154,7 @@ export function simulateReading(input: ReadingInput): SimulatedReading {
   const step = stepAt(gameId, canonical, n);
   const ladderStep = ladder(gameId)[step];
   if (ladderStep === undefined) throw new RangeError(`escalón fuera de la escala de ${gameId}: ${step}`);
-  const range = generationRange(gameId, step);
+  const range = pointsBand(gameId, step);
   const points = randInt(rng, range.min, range.max);
   const snapshot: Snapshot = {
     tier: ladderStep.tier,

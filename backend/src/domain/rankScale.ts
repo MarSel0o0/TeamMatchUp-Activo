@@ -69,30 +69,19 @@ export function normalizeRank(gameId: GameId, tier: string, division?: string): 
   return stepIndex === null ? 0 : normalizeStep(gameId, stepIndex);
 }
 
-/** Banda de puntos válida del escalón (DP-34); `max: null` = sin tope. */
-export function pointsBand(gameId: GameId, stepIndex: number): { min: number; max: number | null } {
+/**
+ * Banda cerrada de puntos del escalón (DP-34): LoL 0–99 con división y 0–999 en Master+;
+ * CS2 de 5000 en 5000 y Gold 30000–34999; R6 de 100 en 100 desde 1000 y Champion 4500–4999.
+ */
+export function pointsBand(gameId: GameId, stepIndex: number): { min: number; max: number } {
   assertStep(gameId, stepIndex);
   const top = stepIndex === LADDERS[gameId].length - 1;
   switch (gameId) {
     case "lol":
-      return stepIndex < 28 ? { min: 0, max: 99 } : { min: 0, max: null };
+      return stepIndex < 28 ? { min: 0, max: 99 } : { min: 0, max: 999 };
     case "cs2":
-      return top ? { min: 30000, max: null } : { min: 5000 * stepIndex, max: 5000 * stepIndex + 4999 };
+      return top ? { min: 30000, max: 34999 } : { min: 5000 * stepIndex, max: 5000 * stepIndex + 4999 };
     case "r6":
-      return top ? { min: 4500, max: null } : { min: 1000 + 100 * stepIndex, max: 1000 + 100 * stepIndex + 99 };
-  }
-}
-
-/** Rango de puntos que genera el simulador; siempre dentro de `pointsBand`. */
-export function generationRange(gameId: GameId, stepIndex: number): { min: number; max: number } {
-  const band = pointsBand(gameId, stepIndex);
-  if (band.max !== null) return { min: band.min, max: band.max };
-  switch (gameId) {
-    case "lol":
-      return { min: 0, max: 999 };
-    case "cs2":
-      return { min: 30000, max: 34999 };
-    case "r6":
-      return { min: 4500, max: 4999 };
+      return top ? { min: 4500, max: 4999 } : { min: 1000 + 100 * stepIndex, max: 1000 + 100 * stepIndex + 99 };
   }
 }

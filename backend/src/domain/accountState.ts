@@ -54,13 +54,32 @@ export function shouldAppendSnapshot(previous: Snapshot, next: Snapshot): boolea
 }
 
 /**
- * Orden de RF-28: más reciente primero; a igual fecha, identificador mayor como texto
- * (unidades UTF-16; los identificadores son ASCII, así que coincide con el código Unicode).
+ * Compara dos textos por puntos de código Unicode (no por unidades UTF-16): el primer código
+ * distinto decide y, si uno es prefijo del otro, el más corto va antes.
+ */
+export function compareCodePoints(a: string, b: string): number {
+  let i = 0;
+  let j = 0;
+  while (i < a.length && j < b.length) {
+    const ca = a.codePointAt(i) ?? 0;
+    const cb = b.codePointAt(j) ?? 0;
+    if (ca !== cb) return ca < cb ? -1 : 1;
+    i += ca > 0xffff ? 2 : 1;
+    j += cb > 0xffff ? 2 : 1;
+  }
+  if (i < a.length) return 1;
+  if (j < b.length) return -1;
+  return 0;
+}
+
+/**
+ * Orden de RF-28: más reciente primero; a igual fecha, identificador mayor primero según
+ * `compareCodePoints`.
  */
 export function compareMatches(a: SimulatedMatch, b: SimulatedMatch): number {
   const byDate = b.playedAt.getTime() - a.playedAt.getTime();
   if (byDate !== 0) return byDate;
-  return a.id < b.id ? 1 : a.id > b.id ? -1 : 0;
+  return compareCodePoints(b.id, a.id);
 }
 
 /**

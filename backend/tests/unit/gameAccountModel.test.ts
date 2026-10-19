@@ -1,5 +1,5 @@
-// Modelo `GameAccount` sin base de datos (spec 004, RF-33, RF-37, DP-32, DP-33; plan, secciones
-// 5 y 11). `toJSON` sobre documentos no guardados; `accounts` de `User` (RF-33, DP-16).
+// Modelo `GameAccount` sin base de datos (spec 004, RF-37, DP-32, DP-33; plan, secciones
+// 5 y 11). `toJSON` sobre documentos no guardados; `User` sin `accounts` (T19).
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
 import mongoose from "mongoose";
@@ -270,7 +270,7 @@ describe("GameAccount: esquema (plan, sección 5)", () => {
   });
 });
 
-describe("User: lista de cuentas (RF-33, DP-16)", () => {
+describe("User: sin lista de cuentas (spec 004, plan, R9)", () => {
   function newUser() {
     return new User({
       email: "ana@example.com",
@@ -281,25 +281,23 @@ describe("User: lista de cuentas (RF-33, DP-16)", () => {
     });
   }
 
-  test("un usuario nuevo tiene la lista de cuentas vacía", () => {
-    assert.deepStrictEqual([...newUser().accounts], []);
+  test("el esquema no tiene el campo accounts", () => {
+    assert.strictEqual(User.schema.path("accounts"), undefined);
   });
 
-  test("la lista de cuentas referencia a GameAccount", () => {
-    const path = User.schema.path("accounts");
-    assert.ok(path !== undefined);
-    const caster: unknown = Reflect.get(path, "caster");
-    const options: unknown = typeof caster === "object" && caster !== null ? Reflect.get(caster, "options") : undefined;
-    assert.strictEqual(typeof options === "object" && options !== null ? Reflect.get(options, "ref") : undefined, "GameAccount");
+  test("un usuario nuevo no tiene la clave accounts, ni en el objeto ni en toJSON", () => {
+    const user = newUser();
+    user.set("createdAt", NOW);
+    assert.ok(!("accounts" in user.toObject()));
+    assert.ok(!("accounts" in user.toJSON()));
   });
 
-  test("con cuentas, toJSON no incluye la lista", () => {
+  test("un valor accounts asignado se descarta (esquema estricto) y no se serializa", () => {
     const user = newUser();
     const accountId = new mongoose.Types.ObjectId();
     user.set("createdAt", NOW);
     user.set("accounts", [accountId]);
-    const json: Record<string, unknown> = user.toJSON();
-    assert.ok(!("accounts" in json));
+    assert.ok(!("accounts" in user.toObject()));
     const text = JSON.stringify(user);
     assert.ok(!text.includes("accounts"));
     assert.ok(!text.includes(accountId.toHexString()));

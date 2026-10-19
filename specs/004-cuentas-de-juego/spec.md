@@ -1,10 +1,18 @@
 # Spec 004 — Cuentas de juego y rango simulado
-Estado: aprobada (2026-10-18)
-Revisión del 2026-10-18 tras la revisión QA (hallazgos 1 a 25) y las decisiones del
-usuario del 2026-10-18. Retira la aprobación del 2026-10-17: la spec vuelve a necesitar la
-aprobación explícita del usuario antes del plan. Incluye las respuestas del usuario a P1
-(hallazgo 25, 2026-10-18: se retira la lista de cuentas del usuario) y a P2 (2026-10-18:
-la eliminación del usuario nunca deja cuentas huérfanas). No quedan dudas abiertas.
+Estado: implementada (2026-10-19)
+Validada por el reviewer RF por RF tras el rework (T10–T25); 1567 tests en verde.
+Pruebas sin conexión a Internet (RNF-1, RNF-9): el usuario confirmó el 2026-10-19 que ejecutó
+`npm test` con la red desconectada y con el código ya reescrito (T10–T25): 1567 tests, 220
+suites, 0 fallos, 0 cancelados, unos 100 s. Su casilla de "Criterios de finalización" está
+marcada.
+Pendiente fuera del código: la etiqueta de datos simulados (RF-37) en la interfaz con el
+servidor real es de la spec 007 ("Dependencias externas"; esta spec no tiene casilla propia
+para ella).
+Historial: revisión del 2026-10-18 tras la revisión QA (hallazgos 1 a 25) y las decisiones
+del usuario del 2026-10-18; retiró la aprobación del 2026-10-17 y el usuario la aprobó de
+nuevo el 2026-10-18. Incluye las respuestas del usuario a P1 (hallazgo 25, 2026-10-18: se
+retira la lista de cuentas del usuario) y a P2 (2026-10-18: la eliminación del usuario nunca
+deja cuentas huérfanas). No quedan dudas abiertas.
 
 ## Contexto y objetivo
 El rango es la segunda mitad del cruce (`PRODUCT.md`, principio 1). En este hito el rango,
@@ -47,23 +55,27 @@ que alimenta el perfil. También agrega la lectura simulada del rango.
     las notaciones literales (`Nombre#TAG`, `#`) conservan su forma (spec 002, RNF-7;
     spec 003, RNF-4).
 
-### Dependencias externas (no se cumplen cerrando esta spec)
-- **Constitución, principio 5** ("nada de datos reales inventados"): según la decisión del
-  usuario del 2026-10-18 (abajo), etiquetar los datos simulados y no atribuirlos a una
-  fuente real basta para cumplir el principio, aunque el identificador en el juego
-  vinculado sea real. Para que no haya conflicto, `docs/constitution.md` debe aclararse
-  con esta interpretación. Mientras no se aclare, la spec queda en conflicto con el
-  principio 5 (que prevalece sobre todo, `AGENTS.md`) y no debe pasar a implementación.
-  Esta spec no edita la constitución.
+### Dependencias externas (constitución y `AGENTS.md` resueltas; la de la spec 007 sigue abierta)
+- **Constitución, principio 5** ("nada de datos reales inventados"): **resuelta.** Según la
+  decisión del usuario del 2026-10-18 (abajo), etiquetar los datos simulados y no
+  atribuirlos a una fuente real basta para cumplir el principio, aunque el identificador en
+  el juego vinculado sea real. `docs/constitution.md` ya recoge esa interpretación en el
+  principio 5: "Los datos que la plataforma simula (rango, historial, partidas y marca de
+  verificada) no cuentan como datos reales inventados siempre que vayan marcados y se
+  muestren etiquetados como simulados y nunca se atribuyan a una fuente real, aunque estén
+  asociados a un identificador de juego real." Por tanto la spec no está en conflicto con
+  el principio 5 y pudo pasar a implementación. Esta spec no edita la constitución.
 - **Spec 007**: la convención de `AGENTS.md` ("Los datos de demostración se etiquetan
   siempre como tales en la interfaz") y `PRODUCT.md`, principio 5, solo se cumplen con el
   servidor real cuando la spec 007 muestre la etiqueta de datos simulados guiada por la
   marca de RF-37. Esta spec entrega la marca (parte del servidor); la etiqueta es de la
   spec 007, cuyo RF-11 hoy oculta toda etiqueta con el servidor real (ver "Impacto en otras
   specs").
-- **`AGENTS.md`**: describe el dominio del servidor como "la copia del dominio del
-  frontend". La normalización de DP-26 difiere de la de la interfaz (RF-48), así que esa
-  frase debe matizarse hasta que la spec 007 adopte la normalización de esta spec.
+- **`AGENTS.md`**: **resuelta.** Describía el dominio del servidor como "la copia del
+  dominio del frontend"; la normalización de DP-26 difiere de la de la interfaz (RF-48).
+  `AGENTS.md` ya lo matiza ("Copia del dominio del frontend, salvo la normalización de
+  rango (spec 004, RF-48)"); la salvedad puede retirarse cuando la spec 007 adopte la
+  normalización de esta spec.
 
 ### Decisiones del usuario
 - **2026-10-18 — Eliminación del usuario que falla a medias: sin cuentas huérfanas (P2).**
@@ -85,7 +97,8 @@ que alimenta el perfil. También agrega la lectura simulada del rango.
   marca de verificada (RF-37) y prohibir atribuirlos a una fuente real (RNF-2) cumple
   "nada de datos reales inventados" de la constitución, también cuando el identificador
   en el juego vinculado es real (por ejemplo, el Riot ID de un tercero). Deja de ser una
-  tensión aceptada; queda como dependencia la aclaración de la constitución (arriba).
+  tensión aceptada; la aclaración de la constitución que requería ya está hecha en su
+  principio 5 (arriba).
 - **2026-10-18 — Mensajes y códigos de las specs 002 y 003.** "Confirmo que la 004 debe
   utilizar los mensajes y códigos de las specs 002 y 003": credencial válida de un usuario
   que ya no existe → 401 "token inválido" (RF-44); 404 de usuario → "usuario no
@@ -630,8 +643,8 @@ cambia.
   de datos simulados (RF-37), y ningún mensaje ni respuesta atribuye esos datos a Riot,
   Ubisoft, Valve, FACEIT ni a ninguna fuente real ("Riot ID", "Ubisoft ID" y "SteamID64"
   nombran el formato del identificador, no una fuente de datos). Con la interpretación del
-  usuario del 2026-10-18, esto cumple la constitución, principio 5, sujeto a la aclaración
-  de `docs/constitution.md` (Dependencias externas). `PRODUCT.md`, principio 5, y la
+  usuario del 2026-10-18, esto cumple la constitución, principio 5, tal como lo aclara ya
+  `docs/constitution.md` (Dependencias externas). `PRODUCT.md`, principio 5, y la
   convención de `AGENTS.md` sobre datos de demostración se cumplen con el servidor real
   cuando la spec 007 muestre la etiqueta (Dependencias externas).
 - RNF-3: Representación (forma exacta de las respuestas):
@@ -824,72 +837,72 @@ fuentes) y RNF-6 (verificación con Steam).
 - [x] El usuario aprueba explícitamente la spec, incluidas las decisiones de la tabla
       "Decisiones propuestas" que siguen pendientes y las deducciones del planner (P1 y
       P2 quedaron respondidas el 2026-10-18; no quedan dudas abiertas).
-- [ ] Las reglas de normalización tienen pruebas unitarias: Iron IV = 0, Diamond I = 90,
+- [x] Las reglas de normalización tienen pruebas unitarias: Iron IV = 0, Diamond I = 90,
       Master = 93, Challenger = 100, Grey = 0, Light Blue = 17, Gold = 100, Copper V = 0,
       Diamond I de R6 = 97, Champion = 100, tier inexistente = 0 (también `master`),
       división ausente o desconocida (`iv`) = la más baja, división en un tier sin
       divisiones ignorada (Master I = 93, Grey II = 0).
-- [ ] Las reglas de validación tienen pruebas unitarias: los patrones de los tres
+- [x] Las reglas de validación tienen pruebas unitarias: los patrones de los tres
       identificadores con los ejemplos válidos e inválidos de las Definiciones (incluidos
       los límites 3/16 y 2/5 de LoL y un emoji en el nombre), el recorte (tabulador, NBSP,
       BOM; U+0085 no se recorta), la forma canónica (`Ñandú` = `ñandú`, `ß` ≠ `ss`), las
       regiones (grafía de la lista, `"South  America"` y `"KR"` inválidas) y el juego
       exacto (`LOL` y `" lol "` inválidos).
-- [ ] La lectura simulada tiene pruebas unitarias en los tres juegos: mismas entradas dan la
+- [x] La lectura simulada tiene pruebas unitarias en los tres juegos: mismas entradas dan la
       misma lectura; identificadores que solo difieren en mayúsculas o en caracteres
       recortables dan la misma lectura; la región no la cambia; la fotografía cumple la
       escala y la banda cerrada de puntos de su escalón; hay entre 1 y 8 partidas, con el
       juego de la cuenta, identificadores distintos, una sola con fecha = instante actual y
       las demás anteriores.
-- [ ] La evolución de la lectura tiene pruebas unitarias: entre las lecturas n y n + 1 el
+- [x] La evolución de la lectura tiene pruebas unitarias: entre las lecturas n y n + 1 el
       escalón cambia como mucho uno y nunca sale de la escala; la partida principal de la
       lectura n + 1 es nueva; el mismo número de lectura a horas distintas da todo igual
       salvo las fechas, desplazadas por la diferencia de instantes; y las dos medidas de
       cambio de RF-42 se cumplen en los tres conjuntos de RF-41 (RF-42, RF-43).
-- [ ] La marca de verificada tiene pruebas unitarias: es igual en todas las lecturas de un
+- [x] La marca de verificada tiene pruebas unitarias: es igual en todas las lecturas de un
       identificador; en cada juego, al menos dos identificadores concretos salen
       verificados y dos no; en cada conjunto de RF-41 salen verificados entre 40 y 60.
-- [ ] La tasa de victorias tiene pruebas unitarias: 5 de 8 = 63, 0 de 8 = 0. La unión de
+- [x] La tasa de victorias tiene pruebas unitarias: 5 de 8 = 63, 0 de 8 = 0. La unión de
       partidas tiene pruebas unitarias: sin repetidos, orden por fecha con desempate por
       identificador como texto, corte en 20 y partida principal conservada cuando hay más
       de 20 partidas con fecha igual o posterior. La tendencia tiene pruebas unitarias:
       historial de un elemento = 0.
-- [ ] Cada RF tiene al menos una prueba automática en verde que verifica la respuesta (con
+- [x] Cada RF tiene al menos una prueba automática en verde que verifica la respuesta (con
       el texto exacto del mensaje en los errores) y, en las escrituras, la base de datos.
-- [ ] Una prueba confirma que vincular con un dueño, un rango, una marca de verificada, un
+- [x] Una prueba confirma que vincular con un dueño, un rango, una marca de verificada, un
       número de lectura o una marca de datos simulados en el cuerpo deja la cuenta a nombre
       del usuario de la sesión, con los valores de la lectura.
-- [ ] Una prueba vincula y resincroniza dos veces una cuenta de cada juego (incluido R6) con
+- [x] Una prueba vincula y resincroniza dos veces una cuenta de cada juego (incluido R6) con
       instantes fijos y comprueba los valores exactos de rango, historial y partidas
       (RNF-1).
-- [ ] Una prueba confirma la forma exacta de RNF-3 en toda cuenta entregada (listar,
+- [x] Una prueba confirma la forma exacta de RNF-3 en toda cuenta entregada (listar,
       obtener, vincular, editar, resincronizar y resumen): `simulated: true`, sin partidas
       ni número de lectura, `division` ausente en los tiers sin división, `id` en
       minúsculas aunque se pida en mayúsculas y fechas `AAAA-MM-DDTHH:mm:ss.sssZ`.
-- [ ] Una prueba confirma que tras una resincronización sin cambio de rango el último
+- [x] Una prueba confirma que tras una resincronización sin cambio de rango el último
       elemento del historial coincide con el vigente salvo la fecha (DP-36).
-- [ ] Hay una prueba por cada salto del orden de RF-29, de RF-2 y de RF-13, incluidos el
+- [x] Hay una prueba por cada salto del orden de RF-29, de RF-2 y de RF-13, incluidos el
       400 "JSON mal formado" antes del 401, filtros repetidos, vacíos y con `ME`, `me`,
       `m%65` y `%zz`, parámetros desconocidos ignorados y el orden del listado.
-- [ ] Hay una prueba por cada caso de RF-39 (dos resincronizaciones, edición y
+- [x] Hay una prueba por cada caso de RF-39 (dos resincronizaciones, edición y
       resincronización, dos ediciones, desvinculación con edición, desvinculación con
       resincronización y dos desvinculaciones). Cada prueba fuerza el solapamiento de forma
       determinista: detiene la primera operación después de leer la cuenta y antes de
       escribirla, ejecuta la segunda completa y después deja seguir a la primera; comprueba
       las dos respuestas y el estado final de la base.
-- [ ] Hay una prueba por cada rama de RF-47 que fuerza el borrado del usuario entre la
+- [x] Hay una prueba por cada rama de RF-47 que fuerza el borrado del usuario entre la
       revisión de la sesión y la escritura (vincular → 404 "usuario no encontrado" sin
       cuenta; editar y resincronizar → 404 "cuenta no encontrada") y otra en la que la
       vinculación termina antes del borrado (201 y la cuenta se borra con el usuario).
-- [ ] Hay una prueba de RF-44 (credencial de un usuario eliminado → 401 "token inválido"),
+- [x] Hay una prueba de RF-44 (credencial de un usuario eliminado → 401 "token inválido"),
       otra de RF-45 (fallo forzado durante una resincronización deja la cuenta y su número
       de lectura igual) y otras de RF-46 (fallo forzado durante una vinculación no deja la
       cuenta y la vinculación siguiente responde 201; fallo forzado durante una
       desvinculación deja la cuenta completa).
-- [ ] Una prueba confirma que vincular, editar, resincronizar y desvincular dejan los datos
+- [x] Una prueba confirma que vincular, editar, resincronizar y desvincular dejan los datos
       guardados del usuario exactamente iguales (RF-46), y otra que eliminar el usuario no
       deja ninguna cuenta cuyo dueño sea él (RF-14).
-- [ ] Hay pruebas de RF-14 que fuerzan un 500 en la eliminación de un usuario con cuentas
+- [x] Hay pruebas de RF-14 que fuerzan un 500 en la eliminación de un usuario con cuentas
       en los tres juegos en cada punto (antes de borrar ninguna cuenta, tras borrar
       algunas, tras borrarlas todas y tras borrar el usuario) y comprueban en la base que
       queda el estado (1) o el (2) de RF-14 y nunca una cuenta cuyo dueño no exista; en el
@@ -897,9 +910,11 @@ fuentes) y RNF-6 (verificación con Steam).
       cuentas suyas. Otra prueba fuerza una vinculación que crea la cuenta después de que
       la eliminación borrara las demás y comprueba que esa cuenta tampoco sobrevive, con
       la eliminación terminando en 204 y en 500.
-- [ ] Las pruebas del servidor pasan sin conexión a Internet y sin variables de entorno
-      distintas de las de las specs 001 y 002 (RNF-1, RNF-9).
-- [ ] Comprobación de tipos, lint y pruebas del servidor en verde, sin `any`, sin
+- [x] Las pruebas del servidor pasan sin conexión a Internet y sin variables de entorno
+      distintas de las de las specs 001 y 002 (RNF-1, RNF-9). Confirmado por el usuario el
+      2026-10-19: `npm test` con la red desconectada y con el código ya reescrito
+      (T10–T25), 1567 tests, 220 suites, 0 fallos, 0 cancelados, unos 100 s.
+- [x] Comprobación de tipos, lint y pruebas del servidor en verde, sin `any`, sin
       `@ts-ignore` y sin ningún `.only`.
 
 ## Dudas abiertas
@@ -934,10 +949,10 @@ specs aprobadas o del plan aprobado el 2026-10-17; el usuario puede objetarlas a
 ## Impacto en otras specs
 No se editan desde aquí; cada cambio se hace en su spec cuando el usuario apruebe la
 decisión correspondiente.
-- Constitución (no es una spec): aclarar el principio 5 con la interpretación del usuario
-  del 2026-10-18 (Dependencias externas).
-- `AGENTS.md` (no es una spec): matizar que el dominio del servidor es copia del de la
-  interfaz, salvo la normalización (RF-48), hasta la spec 007.
+- Constitución (no es una spec): el principio 5 ya recoge la interpretación del usuario del
+  2026-10-18 (Dependencias externas); hecho.
+- `AGENTS.md` (no es una spec): ya matiza que el dominio del servidor es copia del de la
+  interfaz, salvo la normalización (RF-48), hasta la spec 007; hecho.
 - Spec 001: la definición de "variable obligatoria" deja de mencionar las claves de la spec
   004 (RNF-9). La tabla de errores que pasa a su plan (sección 5.7 de la referencia) no
   incluye 503 de fuente ni ningún 409 de esta spec. Su RF-6 (500) vuelve a no tener
@@ -1035,8 +1050,9 @@ decisión correspondiente.
 ## Decisiones propuestas
 DP-18 estaba aprobada antes. Las demás, propuestas por el planificador como la opción
 conservadora, las aprobó el usuario el 2026-10-17 ("Apruebo todo"). Las marcadas
-"2026-10-18" cambian en esta revisión: las que vienen de una decisión del usuario lo
-indican; el resto son deducciones del planner pendientes de la aprobación del usuario.
+"2026-10-18" cambiaron en la revisión de ese día: las que vienen de una decisión del usuario
+lo indican; el resto son deducciones del planner que el usuario aprobó con la spec el
+2026-10-18 (ver el encabezado), por lo que ya no figuran como pendientes.
 
 | DP | Estado | Decisión propuesta | Alternativa descartada |
 | --- | --- | --- | --- |
@@ -1053,7 +1069,7 @@ indican; el resto son deducciones del planner pendientes de la aprobación del u
 | DP-16 | **Revocada por el usuario (2026-10-18, P1)**; había sido aprobada el 2026-10-17 | *Revocada.* Decía: se mantiene la lista de cuentas en el usuario (vincular agrega, desvincular quita), sin exponerla, prevaleciendo sobre RT-07. Motivo de la revocación: sin transacciones, vincular y desvincular escribían por separado la cuenta y la lista del dueño, y un fallo entre ambas las dejaba incoherentes (y una cuenta huérfana bloqueaba volver a vincular, RF-5). Ahora las cuentas de un usuario son las que lo tienen como dueño (Definiciones) y RF-33 queda retirado. | Mantener la lista con compensación (P1 b): la lista dejaría de ser fiable si la compensación fallara. Mantenerla con transacciones (P1 c): exige MongoDB en replica set en todos los entornos. Exponerla como hace RT-07: cambia la forma de usuario que consume la interfaz (spec 003, RNF-2). |
 | DP-17 | Aprobada por el usuario (2026-10-17; cambia) | El mismo identificador en el juego puede vincularlo más de un usuario; todos reciben la misma lectura simulada y la misma marca de verificada (esto último aceptado por el usuario). | Identificador único entre usuarios: un tercero podría bloquear al dueño real. |
 | DP-18 | **Aprobada por el usuario** | Para cambiar el identificador en el juego se desvincula y se vuelve a vincular, perdiendo el historial. | Editar el identificador conservando el historial: choca con "identificador no editable". |
-| DP-19 | Aprobada por el usuario (2026-10-17); 2026-10-18 precisa, pendiente | El identificador en el juego se guarda recortado (`String.prototype.trim`, como "Recortar" de la spec 003) y con sus mayúsculas; se compara y se usa en la lectura en su forma canónica (`toLowerCase` sin configuración regional, como el correo de la spec 002); los límites de longitud se miden en unidades UTF-16 sobre el texto recortado. | Guardar la forma canónica: cambiaría lo que escribió el jugador. Comparación exacta: un cambio solo de mayúsculas daría un 400 confuso. Plegar solo ASCII: `Ñandú` y `ñandú` serían cuentas distintas. |
+| DP-19 | Aprobada por el usuario (2026-10-17); 2026-10-18 precisa, aprobada con la spec | El identificador en el juego se guarda recortado (`String.prototype.trim`, como "Recortar" de la spec 003) y con sus mayúsculas; se compara y se usa en la lectura en su forma canónica (`toLowerCase` sin configuración regional, como el correo de la spec 002); los límites de longitud se miden en unidades UTF-16 sobre el texto recortado. | Guardar la forma canónica: cambiaría lo que escribió el jugador. Comparación exacta: un cambio solo de mayúsculas daría un 400 confuso. Plegar solo ASCII: `Ñandú` y `ñandú` serían cuentas distintas. |
 | DP-23 | Aprobada por el usuario (2026-10-17; ajusta) | Editar con cuerpo vacío o solo campos ignorados = 200 sin cambios; región o identificador presentes con valor nulo, vacío o solo caracteres recortables son inválidos (no ausentes). | Tratar nulo o vacío como ausente: ocultaría un error del cliente. |
 | DP-24 | Aprobada por el usuario (2026-10-17; cambia) | Ninguna fuente real ni scraping; resincronización solo a pedido del dueño. | Reobtención periódica: sin fuente real solo generaría cambios inventados sin que nadie los pida. |
 | DP-26 | Aprobada por el usuario (2026-10-17; cambia); 2026-10-18 precisa | Normalización por escalones: Master, Grandmaster, Challenger (LoL) y Champion (R6) sin división; los puntos no influyen; división ausente o desconocida = la más baja; división en un tier sin divisiones se ignora; tier y división se comparan de forma exacta. Prevalece sobre la normalización de la interfaz (RF-48). | Escala actual de la interfaz: inventa divisiones en tiers que no las tienen y Challenger I sería el único 100. Valer 0 ante una división en un tier sin divisiones: hundiría un Master por un dato sobrante. |
@@ -1063,14 +1079,14 @@ indican; el resto son deducciones del planner pendientes de la aprobación del u
 | DP-31 | Aprobada por el usuario (2026-10-17; cambia) | Todo el contenido de una lectura depende solo del juego, del identificador canónico y del número de lectura; el instante solo fija las fechas. La partida principal es nueva, lleva el instante actual y la unión de RF-28 la conserva siempre entre las 20. | Que el contenido dependa también del instante: la misma resincronización daría resultados distintos según la hora y las pruebas no serían reproducibles. Dar el instante a cualquier partida de la lectura y cortar solo por fecha: la partida realmente nueva podría quedar fuera de las 20. |
 | DP-32 | Aprobada por el usuario (2026-10-17; nueva) | La representación de la cuenta no incluye sus partidas; las partidas solo se entregan en el resumen por juego (las 8 primeras). | Incluir las 20 partidas guardadas en la cuenta: cambia la forma de cuenta que consume la interfaz y las candidaturas de la spec 005. |
 | DP-33 | Aprobada por el usuario (2026-10-17; nueva) | El número de lectura se guarda con la cuenta como dato interno, no aparece en ninguna respuesta y solo lo consume una resincronización que responde 200; una operación que falla deja la cuenta como estaba. | Exponerlo en la respuesta: cambia la forma que consume la interfaz sin uso para el jugador. Consumirlo aunque falle: la siguiente lectura saltaría un número y las pruebas de valores exactos dependerían de fallos. |
-| DP-34 | Aprobada por el usuario (2026-10-17; nueva); 2026-10-18 cierra las bandas, pendiente | Los puntos de cada fotografía quedan dentro de la banda cerrada de su escalón: LoL 0–99 LP con división y 0–999 en Master+; CS2 en bandas de 5000 CS Rating (Grey 0–4999 … Gold 30000–34999); R6 100 MMR por división desde Copper V 1000–1099, Champion 4500–4999. Entre lecturas, cualquier valor de la banda del nuevo escalón. Son los rangos de generación del plan aprobado. | Bandas abiertas (versión del 2026-10-17): no se podía probar un tope. Limitar la variación de puntos entre lecturas: realismo que nadie pidió y que complica la regla. Puntos libres sin relación con el tier: "Grey · 28000 CS Rating". |
-| DP-35 | Aprobada por el usuario (2026-10-17; nueva); 2026-10-18 precisa, pendiente | La región se recorta, se compara sin distinguir mayúsculas solo en letras ASCII y se guarda con la grafía de la lista del juego. | Comparación exacta: rechazaría `" LAS"` o `"las"`. Plegado de mayúsculas de Unicode: `"KR"` (signo de kelvin) valdría como `KR`. Guardar lo enviado: la misma región aparecería escrita de varias formas. |
+| DP-34 | Aprobada por el usuario (2026-10-17; nueva); 2026-10-18 cierra las bandas, aprobada con la spec | Los puntos de cada fotografía quedan dentro de la banda cerrada de su escalón: LoL 0–99 LP con división y 0–999 en Master+; CS2 en bandas de 5000 CS Rating (Grey 0–4999 … Gold 30000–34999); R6 100 MMR por división desde Copper V 1000–1099, Champion 4500–4999. Entre lecturas, cualquier valor de la banda del nuevo escalón. Son los rangos de generación del plan aprobado. | Bandas abiertas (versión del 2026-10-17): no se podía probar un tope. Limitar la variación de puntos entre lecturas: realismo que nadie pidió y que complica la regla. Puntos libres sin relación con el tier: "Grey · 28000 CS Rating". |
+| DP-35 | Aprobada por el usuario (2026-10-17; nueva); 2026-10-18 precisa, aprobada con la spec | La región se recorta, se compara sin distinguir mayúsculas solo en letras ASCII y se guarda con la grafía de la lista del juego. | Comparación exacta: rechazaría `" LAS"` o `"las"`. Plegado de mayúsculas de Unicode: `"KR"` (signo de kelvin) valdría como `KR`. Guardar lo enviado: la misma región aparecería escrita de varias formas. |
 | DP-36 | Aprobada por el usuario (2026-10-17; nueva) | El historial va en el orden de las lecturas que lo agregaron, no por fecha; su último elemento coincide con el vigente en tier, división, puntos y normalizado, y puede tener una fecha anterior. | Reordenar por fecha: con el reloj atrasado el vigente dejaría de ser el último. Agregar siempre para igualar fechas: contradice DP-9. |
 | DP-37 | **Decisión del usuario (2026-10-18; cambia)** | Una credencial válida cuyo usuario ya no existe responde 401 "token inválido" (spec 002, RF-22; spec 003, RF-22), sin crear ni cambiar nada. Una operación ya en curso cuando se elimina el usuario responde como en la spec 003, RF-22: vincular, 201 o 404 "usuario no encontrado"; operar sobre una cuenta, 200/204 o 404 "cuenta no encontrada" (RF-47). | 401 "sesión no iniciada" (versión del 2026-10-17): contradice las specs 002 y 003 y lo que ya devuelve el servidor. |
-| DP-38 | 2026-10-18, nueva, pendiente | Listado ordenado por identificador de la cuenta ascendente, sin tope ni paginación; parámetros de consulta desconocidos ignorados. | Ordenar por fecha de sincronización: el orden cambiaría con cada resincronización. Responder 400 ante un parámetro desconocido: más estricto que el trato de los campos del cuerpo (RF-7). |
-| DP-39 | 2026-10-18, nueva, pendiente | El juego es el texto exacto `lol`, `r6` o `cs2`: no se recorta ni se pliegan mayúsculas, en el cuerpo, en el filtro y en la ruta del resumen. | Recortarlo y plegar mayúsculas como la región: el juego es un código que elige la interfaz, no un texto que escribe el jugador, igual que `me` en la spec 003. |
-| DP-40 | 2026-10-18, nueva, pendiente | Los conjuntos de 100 identificadores de RF-41 los fija la spec (no el plan), y RF-42 exige que el rango cambie de verdad con dos medidas sobre esos conjuntos. | Dejar el conjunto al plan: la proporción se cumpliría por construcción. No medir el cambio: un generador constante cumpliría RF-42. |
-| DP-41 | 2026-10-18, nueva, pendiente | RF-39 cubre también edición con resincronización, dos ediciones y dos desvinculaciones, con resultado igual al serial. | Cubrir solo dos resincronizaciones y desvinculación: una edición simultánea a una resincronización podría perder la región o la lectura. |
+| DP-38 | 2026-10-18, nueva, aprobada con la spec | Listado ordenado por identificador de la cuenta ascendente, sin tope ni paginación; parámetros de consulta desconocidos ignorados. | Ordenar por fecha de sincronización: el orden cambiaría con cada resincronización. Responder 400 ante un parámetro desconocido: más estricto que el trato de los campos del cuerpo (RF-7). |
+| DP-39 | 2026-10-18, nueva, aprobada con la spec | El juego es el texto exacto `lol`, `r6` o `cs2`: no se recorta ni se pliegan mayúsculas, en el cuerpo, en el filtro y en la ruta del resumen. | Recortarlo y plegar mayúsculas como la región: el juego es un código que elige la interfaz, no un texto que escribe el jugador, igual que `me` en la spec 003. |
+| DP-40 | 2026-10-18, nueva, aprobada con la spec | Los conjuntos de 100 identificadores de RF-41 los fija la spec (no el plan), y RF-42 exige que el rango cambie de verdad con dos medidas sobre esos conjuntos. | Dejar el conjunto al plan: la proporción se cumpliría por construcción. No medir el cambio: un generador constante cumpliría RF-42. |
+| DP-41 | 2026-10-18, nueva, aprobada con la spec | RF-39 cubre también edición con resincronización, dos ediciones y dos desvinculaciones, con resultado igual al serial. | Cubrir solo dos resincronizaciones y desvinculación: una edición simultánea a una resincronización podría perder la región o la lectura. |
 | DP-42 | **Decisión del usuario (2026-10-18; nueva, P2)** | La eliminación del usuario nunca deja cuentas cuyo dueño no exista: el usuario es lo último que se borra, y tras un 500 o el usuario sigue existiendo (con todas, algunas o ninguna de sus cuentas, y puede repetir la eliminación) o ya no queda ninguna cuenta suya (RF-14). Sin transacciones. | Todo o nada (P2 b): exige transacciones (MongoDB en replica set) o restaurar las cuentas ya borradas. Sin garantía (P2 c): cuentas sin dueño visibles en el listado que nadie puede editar ni desvincular. |
 
 Retiradas en esta versión: DP-1 (cola Solo/Dúo), DP-3 (CS2 sin partidas), DP-4 (campos de

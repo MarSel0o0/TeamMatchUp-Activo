@@ -1,28 +1,34 @@
 # Tareas 004 — Cuentas de juego y rango simulado
-Estado: **aprobadas (cambio T8b aprobado el 2026-10-18)**: "Apruebo, haz T8b". Nueva tarea
-T8b (servidor de prueba en loopback IPv4, plan P-18) entre T8 y T9; debe cerrarse antes de
-empezar T9. Ajusta T9 (sus pruebas usan `await authApp()` y `closeTestServers()`). T1–T8 y
-T3b siguen hechas; ninguna tarea cambia de número ni de RF; T10 no cambia. Respuestas del
-usuario del 2026-10-18 recogidas en T8b: `getFreePort` recibe el host ("Que reciba el
-host"), no se toca el plan de la spec 003 ("No, solo el plan 004") y se aceptan
-`loopbackServer.test.ts` y `after(closeTestServers)` sin `mongoose.disconnect()` en
-`app.test.ts`.
+Estado: **hechas (2026-10-19); validadas por reviewer** (T1–T25; APROBADO tras 2 vueltas;
+1567 tests en verde). Aprobadas el 2026-10-19 ("apruebo todo con tus recomendaciones"). La
+repetición de la suite sin conexión a Internet (T25) la hizo el usuario, que la confirmó el
+2026-10-19 (1567/1567 tests, 220 suites, 0 fallos, 0 cancelados, ~100 s, con el código ya
+reescrito): no queda ninguna tarea pendiente. Spec: `spec.md` (aprobada el 2026-10-18, sin
+cambios de requisitos). Plan: `plan.md` (aprobado el 2026-10-19).
+Decisiones del usuario del 2026-10-19 sobre este documento:
+- **C1:** la T24 (retirar `createWithExistingUser` y `missingUserError`) quedaba **bloqueada
+  hasta que la T9 de la spec 005 estuviera hecha** (Q3 resuelta); se cumplió y la T24 está
+  hecha.
+- **C2:** la T13 (lectura literal fija) queda aprobada; es una excepción deliberada a P-13
+  (Q4 resuelta).
+- **C3:** no se divide la spec pese a superar las 10 tareas (Q5 resuelta).
+- **C4:** el riesgo R3 (404 si el usuario desaparece entre crear la cuenta y comprobar que
+  existe) sigue vigente por la decisión del 2026-10-18.
+Orden global con la spec 005 (seguido y cumplido): T9 de la 005 → T11 a T25 de esta spec
+(orden de la tabla siguiente) → T10 de la 005 (después de la T11 de esta spec).
 
-Versión anterior: **aprobadas (cambio T3b aprobado el 2026-10-18)**: "Aprobar y ajustar P-17".
-Nueva tarea T3b (aislamiento de `domain/`, plan P-17 y sección 2.1); la idea la aceptó
-antes el usuario de palabra ("vale, me convenciste, hagamos el cambio que habías
-propuesto"). T3b va entre T3 y T4 y debe cerrarse antes de empezar T4. T1–T3 siguen
-hechas; T4–T10 no cambian de número, RF ni contenido.
+Cambio de esta revisión: la spec se reescribió el 2026-10-18 (commit `685e4af`) después de
+implementar T1–T9 y reviewer emitió CAMBIOS NECESARIOS. El usuario decidió rehacer el código
+para alinearlo con la spec vigente. **T1–T9 (con T3b y T8b) se conservan tal como se
+cerraron, marcadas como hechas**; donde su texto contradice la spec vigente (mensajes con
+mayúscula y punto, `User.accounts`, "sesión no iniciada", `createWithExistingUser`), manda la
+spec y lo corrigen las tareas nuevas. **T10** (hecha) se acota a la cascada ordenada al
+eliminar el usuario; su parte de cierre pasa a T25. Se añaden **T11 a T25**, cada una con
+las tareas anteriores cuyo código reabre.
 
-Versión anterior: **aprobadas (reaprobación 2026-10-18)**: "Apruebo el plan y las tareas, sigue con
-T1". Reaprobadas tras el cambio del 2026-10-18 ("Corregir plan primero":
-alineación con el backend real de las specs 001–003). La versión anterior la aprobó el
-usuario el 2026-10-17 ("Apruebo y vamos con spec 005"). Cambian la precondición, T5, T6 y
-T9 (archivos y forma de las pruebas); T1–T4, T7, T8 y T10 no cambian. Ninguna tarea cambia
-de número ni de RF.
-Spec: `spec.md` (aprobada el 2026-10-17, sin cambios). Plan: `plan.md` (aprobado, cambio
-T8b aprobado el 2026-10-18; Q1 y Q2 resueltas por el usuario el 2026-10-18: "Mantener la spec" y
-"Mantener clock.ts").
+Historial de aprobaciones anteriores (siguen valiendo para T1–T9): 2026-10-17 ("Apruebo y
+vamos con spec 005"); 2026-10-18 reaprobación ("Apruebo el plan y las tareas, sigue con T1");
+T3b ("Aprobar y ajustar P-17"); T8b ("Apruebo, haz T8b").
 
 Reglas para cada tarea: tests primero (en rojo), después el código, verificación en verde,
 marcar la tarea y parar. Sin `any`, `@ts-ignore` ni `.only`. Ninguna dependencia nueva.
@@ -32,13 +38,52 @@ Verificación de todas las tareas:
 cd backend && npm test && npm run typecheck && npm run lint
 ```
 
+Reglas añadidas para T11 a T25:
+- Los textos de error esperados se escriben como **literales de la spec** (plan, 7.2), nunca
+  importados de `ACCOUNT_ERRORS` (plan, P-23).
+- Una prueba que nace en verde (refuerzo de cobertura) no cuenta como "en rojo primero": el
+  implementer la rompe a propósito (cambio temporal en el código que vigila, revertido, sin
+  commit), comprueba que falla y lo anota en su reporte (plan, R9). Si una prueba de refuerzo
+  revela un incumplimiento de la spec, corrige el código en la misma tarea; si el
+  incumplimiento exige decidir algo, para y lo reporta.
+- Las tareas que cambian aserciones de tests existentes lo hacen solo para alinearlas con la
+  spec vigente (textos, 401 de usuario eliminado, `User.accounts`); no se cambia ninguna otra
+  aserción.
+- Pruebas HTTP: `const app = await authApp()` y `await closeTestServers()` en `after` (plan,
+  11.1, P-18).
+
 Precondición de T1: specs 001, 002 y 003 implementadas (comprobado el 2026-10-18) con los
-archivos y firmas de la sección 0 del plan (`createApp`, `createWithUser`,
-`createUserRoutesGuard`, `matchUserRoute`, `resolveUserTarget`, `helpers.ts` con `authApp`,
-`signUp`, `loginAs(app, email, password)`, `withSession` y `nonExistingId`).
-`backend/src/domain/` no existe todavía: lo crea T1. Si falta algún elemento de esa lista o
-tiene otra firma, parar y reportarlo. Pruebas de controladores con el patrón de
-`users.test.ts` (plan, sección 11).
+archivos y firmas de la sección 0 del plan. Si falta algún elemento de esa lista o tiene otra
+firma, parar y reportarlo.
+
+## Orden de ejecución seguido y dependencias
+Todas las tareas (T1–T25, con T3b y T8b) están hechas. T1–T9 se hicieron antes del rework;
+T11 a T25 se hicieron en este orden (la tabla queda como registro):
+
+| Orden | Tarea | Depende de | Reabre código de | Estado |
+| --- | --- | --- | --- | --- |
+| 1 | T11 Textos exactos | — | T3, T6, T7, T9 | hecha |
+| 2 | T12 Región solo ASCII | T11 (mismo archivo) | T3 | hecha |
+| 3 | T13 Lectura literal fija (aprobada, C2) | — | T2 (solo pruebas) | hecha |
+| 4 | T14 Bandas cerradas y código Unicode | T13 si se hace (protege el simulador) | T1, T2, T4 | hecha |
+| 5 | T15 Pruebas puras que faltan | T12, T14 | T2, T3 (solo pruebas) | hecha |
+| 6 | T16 Sesión con `withUser` | T11 | T5, T6, T9 | hecha |
+| 7 | T17 Ayudantes de prueba y solapamiento determinista | T16 | T8, T9 (solo pruebas) | hecha |
+| 8 | T18 Vincular con compensación | T11, T16 | T5, T6 | hecha |
+| 9 | T19 Desvincular y retirar `User.accounts` | T17, T18 | T5, T7 | hecha |
+| 10 | T20 Listar y obtener sin cuentas sin dueño | T11 | T6 | hecha |
+| 11 | T21 Pruebas HTTP de filtros, resumen y orden | T11, T12, T16, T20 | T6, T9 (solo pruebas) | hecha |
+| 12 | T10 Cascada ordenada | T16, T17, T18, T19, T20 | T9 | hecha |
+| 13 | T22 Concurrencia de RF-39 | T17, T19 | T8 (solo pruebas) | hecha |
+| 14 | T23 Ramas de RF-47 | T10, T17, T22 | T8, T9 (solo pruebas) | hecha |
+| 15 | T24 Retirar `createWithExistingUser` (esperó a la T9 de la 005, C1) | T16 y T9 de la 005 | T5, T9 | hecha |
+| 16 | T25 Cierre | todas | — | hecha (suite sin red confirmada por el usuario el 2026-10-19) |
+
+T11 a T15 son de dominio puro o de textos y podían hacerse en otro orden entre sí mientras se
+respetaran las dependencias de la tabla. T24 no podía empezar hasta que la T9 de la 005
+estuviera hecha (C1), y así fue; T25 no dependía de ella.
+
+---
 
 - [x] **T1. Escala de rango, normalización y bandas.** RF-36, DP-2, DP-26, DP-34
   - Tests primero: `backend/tests/unit/rankScale.test.ts` (tamaños 31/7/36; todos los
@@ -246,16 +291,361 @@ tiene otra firma, parar y reportarlo. Pruebas de controladores con el patrón de
   - Hecho cuando: `gameSummary.test.ts` en verde y `users.test.ts` de la spec 003 sigue
     verde.
 
-- [ ] **T10. Cascada ordenada al eliminar el usuario, fallos forzados y cierre.** RF-14, RF-47 (vinculación simultánea; editar, resincronizar y desvincular en curso), RNF-1, RNF-2, RNF-8, RNF-9, RF-34
-  - Tests primero: `tests/controllers/userDeletionCascade.test.ts` (los cinco puntos de
-    fallo, el estado (1) operable y repetible, la vinculación simultánea con 204 y con
-    500) y, en `tests/controllers/accountConcurrency.test.ts`, las tres ramas de RF-47 con
-    `DELETE /api/users/me` entre la lectura y la escritura (→ 404 "cuenta no encontrada",
-    nunca 500).
-  - Archivos: `src/controllers/users.ts` (`DELETE /:id`: C1 → C2 → C3 en `finally`, plan
-    6.8); `requests/accounts.rest`.
-  - Hecho cuando: `userDeletionCascade.test.ts` y `accountConcurrency.test.ts` en verde,
-    `userDeletion.test.ts` de la 003 sigue verde, la verificación en verde sin conexión a
-    Internet, las comprobaciones de plan 9.3 sin resultados, cada fila de la trazabilidad
-    (plan 11) tiene su prueba en verde y todas las casillas de "Criterios de finalización"
-    de la spec se pueden marcar.
+- [x] **T10. Cascada ordenada al eliminar el usuario y fallos forzados.** RF-14, RF-47 (vinculación simultánea), RF-44 (credencial tras el borrado), DP-42
+  - Depende de: T16, T17, T18, T19 y T20 (la vinculación ya responde 404 al usuario borrado,
+    la credencial de un usuario eliminado ya responde "token inválido", el listado ya oculta
+    cuentas sin dueño y existen los ayudantes de prueba). Reabre T9: la cascada de
+    `DELETE /:id` (hoy `User.deleteOne` y luego `GameAccount.deleteMany`, sin `finally`) y
+    las dos pruebas de "eliminar usuario" de `gameSummary.test.ts`. Se acota respecto de la
+    versión anterior: el cierre (`requests/accounts.rest`, verificaciones, trazabilidad y
+    criterios de la spec) pasa a T25 y las ramas de RF-47 de editar, resincronizar y
+    desvincular a T23.
+  - Tests primero: `backend/tests/controllers/userDeletionCascade.test.ts` (nuevo; plan,
+    sección 11.2):
+    - usuario con cuentas en los tres juegos → `DELETE /api/users/me` 204; ni usuario ni
+      cuentas suyas; las de otro usuario intactas; `Set-Cookie` de borrado de la sesión;
+      `GET /api/accounts` sin filtro no muestra ninguna cuenta sin dueño;
+    - orden observable C1 → C2 → C3: con `t.mock.method` sobre `GameAccount.deleteMany` y
+      `User.deleteOne` (que delegan en la real) se registra el orden de las llamadas:
+      `deleteMany`, `deleteOne`, `deleteMany`;
+    - los cinco puntos de fallo, uno por `test`, con tres cuentas (una por juego): (1)
+      `GameAccount.deleteMany` (1.ª llamada) lanza sin borrar → 500, estado (1) con las
+      tres; (2) la 1.ª `deleteMany` borra una cuenta con el driver y lanza → 500, estado (1)
+      con dos completas, y volver a vincular ese juego → 201; (3) `User.deleteOne` lanza sin
+      borrar → 500, el barrido corre, estado (1) sin cuentas; (4) `User.deleteOne` borra el
+      usuario con el driver y lanza → 500, estado (2), y la credencial → 401 "token
+      inválido"; (5) la 2.ª `deleteMany` (barrido) lanza tras borrar el usuario → 500,
+      estado (2). En cada 500, la respuesta no trae `Set-Cookie` de borrado;
+    - estado (1) operable: la sesión sigue valiendo, las cuentas que quedan se obtienen,
+      editan, resincronizan y desvinculan, y repetir `DELETE /api/users/me` → 204 sin
+      cuentas suyas ni usuario; ningún estado distinto de (1) o (2) en ningún caso;
+    - vinculación simultánea: `User.deleteOne` ejecuta primero una vinculación completa
+      (201, cuenta creada después de la 1.ª `deleteMany`) y luego delega; (a) eliminación
+      en 204 y (b) la sustitución lanza tras delegar → 500; en ambos, ni usuario ni cuenta;
+    - en `gameSummary.test.ts`, las dos pruebas de "eliminar usuario" que dependen del orden
+      antiguo (la de la vinculación simultánea que acepta "201 o 401" y la de "justo antes
+      del borrado de cuentas") se **mueven** al archivo nuevo en su versión determinista;
+      queda la de "borra todas sus cuentas y no las de otros".
+  - Archivos: `backend/src/controllers/users.ts` (`DELETE /:id`: C1 → C2 en `try` → C3 en
+    `finally`, cookie solo si terminan los tres; comentarios de cabecera; plan, 6.8).
+  - Hecho cuando: `userDeletionCascade.test.ts` en verde, `userDeletion.test.ts` de la 003
+    sigue verde, y la verificación completa en verde.
+
+- [x] **T11. Textos exactos de error.** RF-2, RF-3, RF-5, RF-6, RF-11, RF-13, RF-22, RF-29, RF-38, DP-6
+  - Reabre: T3 (`domain/accountRules.ts`), T6, T7 y T9 (aserciones de controladores y uso de
+    `ACCOUNT_ERRORS.forbidden` y `ACCOUNT_ERRORS.userNotFound`). Depende de: —.
+  - Tests primero (literales de la spec; plan, 7.2 y P-23): en
+    `backend/tests/unit/accountRules.test.ts`, `deepStrictEqual` de `ACCOUNT_ERRORS` contra
+    los textos `juego no válido`; `Riot ID no válido: usa el formato Nombre#TAG, con 3 a 16
+    caracteres antes de # y 2 a 5 letras o dígitos después`; `Ubisoft ID no válido: usa de 3
+    a 20 letras, dígitos, punto, guion o guion bajo`; `SteamID64 no válido: son 17 dígitos
+    que empiezan por 7656119`; `región no válida para League of Legends` / `Rainbow Six
+    Siege` / `Counter-Strike 2`; `ya tienes una cuenta vinculada en este juego`; `el
+    identificador del juego no se puede editar: desvincula la cuenta y vuelve a vincularla`;
+    `cuenta no encontrada`; `el jugador no tiene una cuenta vinculada en este juego`; y las
+    claves de `ACCOUNT_ERRORS` son exactamente las propias (sin `forbidden` ni
+    `userNotFound`). En `accounts.test.ts` y `gameSummary.test.ts`, cambiar las aserciones que
+    importan `ACCOUNT_ERRORS.*` o escriben el texto antiguo (`Juego no válido.`, `Cuenta no
+    encontrada.`, etc.) por los literales, y comprobar por HTTP al menos un caso de cada
+    texto: juego (cuerpo, filtro y resumen), los tres identificadores, región (vincular y
+    editar), duplicado, RF-22, 403 al editar, desvincular y resincronizar una cuenta ajena
+    (`no tienes permiso para esta operación`), cuenta no encontrada (obtener, editar,
+    desvincular y resincronizar), `usuario no encontrado` y jugador sin cuenta (resumen).
+    En rojo: todas fallan con los textos antiguos.
+  - Archivos: `backend/src/domain/accountRules.ts` (`ACCOUNT_ERRORS` ~l.11-32: textos nuevos,
+    quitar `forbidden` y `userNotFound`); `backend/src/controllers/accounts.ts` y
+    `backend/src/services/accountWrites.ts` (403 con `MESSAGES.forbidden`);
+    `backend/src/controllers/users.ts` (404 de usuario con `USER_TARGET_MESSAGES.userNotFound`);
+    `backend/src/utils/middleware.ts` sigue importando `ACCOUNT_ERRORS` (aceptado).
+  - Hecho cuando: las pruebas anteriores en verde y ningún texto antiguo (p. ej. `Juego no
+    válido.`, `Cuenta no encontrada.`) queda en los archivos de la spec 004: en `src/`,
+    `backend/src/domain/accountRules.ts`, `backend/src/controllers/accounts.ts`,
+    `backend/src/controllers/users.ts`, `backend/src/services/accountWrites.ts` y
+    `backend/src/utils/middleware.ts`; en `tests/`, `backend/tests/unit/accountRules.test.ts`,
+    `backend/tests/controllers/accounts.test.ts` y `backend/tests/controllers/gameSummary.test.ts`
+    (cualquier `grep` de textos antiguos se limita a esos archivos). **Exceptuados** (spec 005,
+    no se tocan en esta tarea): `backend/src/domain/matchQuery.ts` (`MATCH_ERRORS.game =
+    'Juego no válido.'`), `backend/src/controllers/matches.ts`,
+    `backend/src/services/matchInputs.ts`, `backend/tests/unit/matchQuery.test.ts`,
+    `backend/tests/controllers/matches.test.ts`, `backend/tests/controllers/matchInputs.test.ts`
+    y `backend/requests/matches.rest`. Nota: los textos de la 005 se alinean en su T10 (después
+    de esta T11). Los 401 siguen siendo los de la 002 (esta tarea no los toca).
+
+- [x] **T12. Región: plegado de mayúsculas solo ASCII.** RF-6, RF-8, RF-38, DP-35
+  - Reabre: T3 (`normalizeRegion` en `domain/accountRules.ts`). Depende de: T11 (mismo archivo).
+  - Tests primero: `backend/tests/unit/accountRules.test.ts` — `normalizeRegion("lol",
+    "KR")` (signo de kelvin en lugar de `K`) → `null` (hoy devuelve `KR`);
+    `validateLinkPayload` y `validateAccountEdit` con esa región → error `región no válida
+    para League of Legends`; `"South  America"` (dos espacios) → `null`; `"south america"` →
+    `South America`; `" las "`, `"Las"`, `"lAs"` → `LAS`; región rodeada de tabulador o NBSP
+    se recorta; `"ＬＡＳ"` (anchura completa) → `null`. En `accounts.test.ts`: `POST` y `PUT`
+    con `"KR"` → 400 `región no válida para League of Legends` y la base sin cambios.
+  - Archivos: `backend/src/domain/accountRules.ts` (`normalizeRegion` ~l.48-53: función
+    `asciiLower` que solo pliega `A`-`Z`; no `toLowerCase`).
+  - Hecho cuando: las pruebas anteriores en verde y `normalizeRegion` no usa `toLowerCase`.
+
+- [x] **T13. Lectura literal fija del simulador.** RF-35, RF-43; plan R4 y P-13
+  - Aprobada (2026-10-19, C2; antes opcional, Q4). Reabre: T2 (solo pruebas; excepción
+    deliberada a P-13, que descartó valores literales el 2026-10-17).
+    Depende de: —. Se hace antes de T14 para proteger el simulador.
+  - Tests primero: `backend/tests/unit/rankSimulator.test.ts` — para `simulateReading` con
+    `now` fijo literal, `jugador1#las` (LoL), `readingNumber` 0, el `deepStrictEqual` contra
+    un valor literal completo (tier, división, puntos, normalizado, `recordedAt`, número de
+    partidas y, por partida, identificador, fecha, resultado, resumen, duración y variación;
+    `mainMatchId`; `verified: true`, según la tabla 4.4 del plan). Opcional: una lectura
+    literal por cada uno de los otros dos juegos (`jugador2` en R6 y `76561190000000001` en
+    CS2, n = 0). Los valores se toman **una sola vez** de la salida del código actual, tras
+    comprobar a mano que cumplen las reglas (banda, 1–8 partidas, principal con `playedAt =
+    now`, `verified`); es una prueba de regresión del orden de consumo del generador, no de
+    diseño. Comentario en la prueba: "no cambiar sin pasar por el plan (R4)".
+  - Archivos: solo `backend/tests/unit/rankSimulator.test.ts`.
+  - Hecho cuando: la prueba en verde y demostrado que falla si se intercambian dos llamadas
+    al generador en `simulateReading` (cambio temporal, revertido); anotado en el reporte.
+
+- [x] **T14. Bandas cerradas de puntos y orden de partidas por código Unicode.** RF-28, RF-36, RF-48, DP-34
+  - Reabre: T1 (`pointsBand` devuelve `max: null` y existe un `generationRange` aparte), T2
+    (el simulador usa `generationRange`) y T4 (`compareMatches` compara con `<` por unidades
+    UTF-16). Depende de: T13 si se hace.
+  - Tests primero: `backend/tests/unit/rankScale.test.ts` — `pointsBand` devuelve `max`
+    numérico en todos los escalones; LoL escalones 0 a 27 → `{0, 99}`; Master, Grandmaster y
+    Challenger (28, 29, 30) → `{0, 999}`; CS2 escalón `i` → `{5000·i, 5000·i + 4999}` y Gold
+    (6) → `{30000, 34999}`; R6 escalón `i` (0 a 34) → `{1000 + 100·i, 1000 + 100·i + 99}`,
+    Diamond I (34) → `{4400, 4499}` y Champion (35) → `{4500, 4999}`. Se eliminan las
+    aserciones de `generationRange`. `backend/tests/unit/accountState.test.ts` —
+    `compareCodePoints("m-\u{1F600}", "m-￿")` es positivo (por código Unicode U+1F600 >
+    U+FFFF; con `<` sobre unidades UTF-16 salía al revés); prefijo más corto va antes; iguales
+    → 0; `compareMatches` con la misma fecha e identificadores astral y U+FFFF pone primero el
+    astral; el desempate `m-9-0` antes que `m-10-0` sigue valiendo. En rojo hoy: los topes y
+    el astral.
+  - Archivos: `backend/src/domain/rankScale.ts` (`pointsBand` cerrada; quitar
+    `generationRange`), `backend/src/domain/rankSimulator.ts` (usa `pointsBand`),
+    `backend/src/domain/accountState.ts` (`compareCodePoints` y `compareMatches`).
+  - Hecho cuando: pruebas en verde; ninguna lectura cambia (`rankSimulator.test.ts`, incluida
+    T13 si existe, sigue en verde sin modificar); el typecheck confirma que nada más usaba
+    `generationRange` ni `max: null`.
+
+- [x] **T15. Pruebas puras que faltan: patrones, recorte, forma canónica y medidas de RF-42.** RF-6, RF-42, DP-19, DP-40
+  - Reabre: T2 y T3 (solo pruebas; si una revela un incumplimiento, se corrige el código en
+    esta tarea). Depende de: T12 y T14 (mismos archivos de prueba).
+  - Tests primero:
+    - `backend/tests/unit/accountRules.test.ts`: nombre de LoL con un emoji de 2 unidades
+      UTF-16 (un nombre de 16 unidades con emoji → válido; de 17 → `Riot ID no válido…`);
+      `"\tJugador1#LAS\t"` y `" Jugador1#LAS "` se guardan como `Jugador1#LAS`; NBSP
+      (` `) y BOM (`﻿`) en los extremos se recortan; U+0085 en un extremo **no**
+      se recorta: al inicio cuenta dentro del nombre (válido si el nombre sigue entre 3 y 16
+      unidades) y al final rompe la etiqueta (inválido); si ya existen casos de los límites
+      3/16 y 2/5, no se duplican.
+    - `backend/tests/unit/rankSimulator.test.ts`: `canonicalHandle("Ñandú#LAS") ===
+      canonicalHandle("ñandú#LAS")`; `canonicalHandle("ß") !== canonicalHandle("ss")`; las
+      **dos medidas de RF-42** sobre los conjuntos de RF-41 de cada juego (LoL
+      `jugador<i>#las`, R6 `jugador<i>`, CS2 `7656119` + `i` con ceros a la izquierda hasta
+      10 dígitos, i = 1 a 100): (a) para cada identificador, en al menos 5 de las lecturas 1
+      a 10 la fotografía difiere de la anterior en tier, división o puntos; (b) al menos 50
+      de los 100 identificadores cambian de escalón al menos una vez entre las lecturas 0
+      y 10.
+  - Archivos: normalmente ninguno de `src/`. Si la medida (a) o (b) fallara, el implementer
+    para y se vuelve al plan (la regla es contrato, RF-41; plan, 4.2).
+  - Hecho cuando: pruebas en verde y demostrado, rompiendo temporalmente el código vigilado
+    (por ejemplo, fijar el escalón de la lectura n al de la n − 1, o quitar el `trim`), que
+    cada grupo falla; anotado en el reporte.
+
+- [x] **T16. Sesión de las rutas de la 004 con `withUser` ("token inválido").** RF-1, RF-13, RF-29, RF-44, DP-37
+  - Reabre: T5 (`missingUserError` y `createWithExistingUser` en `utils/middleware.ts`), T6
+    (`controllers/accounts.ts`) y T9 (guardia y `controllers/users.ts`). Depende de: T11.
+  - Tests primero: `accounts.test.ts` — con la credencial de un usuario eliminado
+    (`User.deleteOne` directo en la base), las seis operaciones de `/api/accounts` (listar,
+    obtener, vincular, editar, desvincular, resincronizar) responden 401 `token inválido` y
+    la base no cambia; la regresión `GET /api/users/me` con esa misma credencial sigue
+    respondiendo `token inválido`. `gameSummary.test.ts` — el resumen de `me` y de otro
+    usuario con esa credencial → 401 `token inválido`. Los pasos 1 a 4 no cambian (sin
+    cookie `sesión no iniciada`, sin comprobante `token inválido`, expirada `sesión
+    expirada`). En rojo: hoy responden `sesión no iniciada`.
+  - Archivos: `backend/src/controllers/accounts.ts` (`router.use(createWithUser(...))`);
+    `backend/src/controllers/users.ts` (deja de crear `withExistingUser`);
+    `backend/src/utils/middleware.ts` (`createUserRoutesGuard({ withUser })`: la ruta `games`
+    usa `withUser` y conserva la decodificación de los dos segmentos en el orden de RF-13).
+    **No** se retiran `createWithExistingUser` ni `missingUserError` (los usa
+    `controllers/matches.ts` de la 005 y `withExistingUser.test.ts`; ver T24 y Q3), y no se
+    toca la 005.
+  - Hecho cuando: pruebas en verde, el resto de la suite (002, 003, 005) en verde sin
+    modificarla, y el resumen con id inválido y juego sin decodificar sigue respondiendo
+    primero `id con formato inválido`.
+
+- [x] **T17. Ayudantes de prueba de cuentas y solapamiento determinista.** RF-39 (infraestructura), RF-47 (infraestructura)
+  - Reabre: T8 (la prueba "desvincular y resincronizar a la vez" de `accounts.test.ts`, ~l.1206,
+    que acepta dos resultados) y T9 (importar ayudantes). Depende de: T16.
+  - Tests primero: crear `backend/tests/controllers/accountConcurrency.test.ts` con dos
+    pruebas deterministas que reemplazan a la de ~l.1206 de `accounts.test.ts` (que se
+    elimina de ahí): (i) la resincronización se detiene tras leer la cuenta, la desvinculación
+    se completa (204) y la resincronización continúa → 404 `cuenta no encontrada`; (ii) la
+    desvinculación se detiene tras leer, la resincronización se completa (200) y la
+    desvinculación continúa → 204; en ambas, la cuenta no existe al final. El resultado
+    único de cada una prueba que el solapamiento ocurrió.
+  - Archivos: `backend/tests/controllers/helpers.ts`, bloque `// --- Spec 004 ---`: `link`,
+    `linkOk`, `sync`, `unlink`, `edit` y `deleteMe` (hoy locales de `accounts.test.ts` y
+    `gameSummary.test.ts`; se **mueven** y los dos archivos los importan, sin cambiar ninguna
+    aserción) y `overlapFirstFindById(t, first, second)`: sustituye `GameAccount.findById`
+    para que la primera llamada, después de leer la cuenta, espere a que `second()` termine;
+    las demás llamadas (de `second` y reintentos) pasan directo; devuelve las dos respuestas.
+    Excepción explícita, solo para esta tarea y como la de T8b: cambia tests existentes
+    únicamente para mover ayudantes y quitar la prueba reemplazada.
+  - Hecho cuando: `accountConcurrency.test.ts` en verde, `node --test
+    tests/controllers/accounts.test.ts tests/controllers/accountConcurrency.test.ts` (con
+    `NODE_ENV=test`) 10 veces seguidas en verde, y ninguna prueba del repositorio acepta ya
+    "200 o 404" para este caso.
+
+- [x] **T18. Vincular con compensación y sin lista de cuentas en el usuario.** RF-4, RF-5, RF-29, RF-33 (retirado), RF-46, RF-47 (vincular)
+  - Reabre: T5/T6 (`linkAccount` en `services/accountWrites.ts`, que hace `$addToSet` y
+    responde 401). Depende de: T11 y T16.
+  - Tests primero: en `accounts.test.ts` (describe "vincular" y "fallo"; plan, 6.4):
+    1. los datos del usuario (`User.findById(...).lean()`) quedan exactamente iguales antes y
+       después de vincular en los tres juegos, y vincular no llama a `User.updateOne` (mock
+       con `callCount` 0); se eliminan las aserciones de T6 que comprobaban la cuenta en
+       `User.accounts` tras vincular;
+    2. RF-46: `User.exists` sustituido para lanzar en su 2.ª llamada (la 1.ª es la de
+       `withUser`) → 500 `error interno del servidor`, ninguna cuenta en la base, y la
+       siguiente vinculación del mismo juego → 201; se comprueba el `callCount` para evitar
+       falsos verdes (R6);
+    3. RF-46: `GameAccount.create` lanza → 500, ninguna cuenta, y la siguiente vinculación
+       → 201;
+    4. RF-47: `GameAccount.create` sustituido para borrar antes al usuario con el driver
+       (`User.collection.deleteOne`) y luego delegar → 404 `usuario no encontrado`, ninguna
+       cuenta en la base. En rojo hoy: responde 401 `sesión no iniciada`;
+    5. dos vinculaciones simultáneas del mismo juego → un 201 y un 400 `ya tienes una cuenta
+       vinculada en este juego` (se conserva).
+  - Archivos: `backend/src/services/accountWrites.ts` (`linkAccount`: crear, comprobar con
+    `User.exists`, compensar con `deleteOne` y relanzar; devuelve 404 con
+    `USER_TARGET_MESSAGES.userNotFound`; `WriteResult` sin 401; sin `User.updateOne`);
+    `backend/src/controllers/accounts.ts` solo si cambia la forma del resultado. **No** se
+    quita todavía el campo `User.accounts` del esquema (lo hace T19).
+  - Hecho cuando: pruebas en verde y `accountWrites.ts` ya no importa `SESSION_MESSAGES` ni
+    llama a `User.updateOne`.
+
+- [x] **T19. Desvincular con un solo borrado y retirar `User.accounts`.** RF-9, RF-11, RF-29, RF-33 (retirado), RF-39 (dos desvinculaciones), RF-46
+  - Reabre: T5 (campo `accounts` de `models/user.ts`) y T7 (desvincular con `$pull` y sin
+    comprobar `deletedCount`). Depende de: T17 (solapamiento) y T18.
+  - Tests primero:
+    1. `accounts.test.ts`: `GameAccount.deleteOne` lanza → 500, la cuenta sigue completa
+       (`rawAccountsInDb()` igual) y los datos del usuario no cambian; la siguiente
+       desvinculación → 204;
+    2. `accountConcurrency.test.ts`: dos desvinculaciones con `overlapFirstFindById`: la
+       detenida lee, la otra se completa (204), la detenida continúa → 404 `cuenta no
+       encontrada` (exactamente un 204); hoy responde 204 las dos;
+    3. desvincular no llama a `User.updateOne`; los datos del usuario (`lean()`) son iguales
+       antes y después de editar, resincronizar y desvincular;
+    4. modelo: `User.schema.path("accounts")` es `undefined` y el documento crudo de un
+       usuario recién registrado no tiene la clave `accounts`;
+    5. se eliminan `accountIdsOf` y toda aserción sobre `User.accounts` de `accounts.test.ts`
+       y `gameSummary.test.ts`.
+  - Archivos: `backend/src/controllers/accounts.ts` (`DELETE`: `findById` → 404, dueño →
+    403, `GameAccount.deleteOne({ _id, user })`, `deletedCount` 0 → 404 `cuenta no
+    encontrada`; sin `$pull`; quitar el import de `User` si queda sin uso);
+    `backend/src/models/user.ts` (quitar `accounts` de `UserFields`, del esquema y del
+    comentario de cabecera).
+  - Hecho cuando: pruebas en verde, las suites de las specs 001 a 003 y 005 siguen en verde
+    sin modificarlas y el typecheck confirma que nada usa `User.accounts`.
+
+- [x] **T20. Listar y obtener no muestran cuentas sin dueño.** RF-2, RF-3, RF-14, RNF-3
+  - Reabre: T6 (`GET /` y `GET /:id` de `controllers/accounts.ts`). Depende de: T11.
+  - Tests primero: `accounts.test.ts` — se crea una cuenta y se borra su usuario con el
+    driver (`User.collection.deleteOne`), dejando una cuenta sin dueño: `GET /api/accounts`
+    sin filtro, con `game` y con `user=<id borrado>` (→ `[]`) no la incluyen y las demás
+    siguen saliendo por identificador ascendente; `GET /api/accounts/<id>` → 404 `cuenta no
+    encontrada`; dos listados seguidos devuelven el mismo orden, igual al orden ascendente de
+    los identificadores en minúsculas. En rojo: hoy se muestran.
+  - Archivos: `backend/src/services/accountReads.ts` (nuevo: `withExistingOwners(cuentas)`,
+    una sola consulta `User.find({ _id: { $in } }, { _id: 1 })`, y `ownerExists(cuenta)`);
+    `backend/src/controllers/accounts.ts` (los usa en `GET /` y `GET /:id`).
+  - Hecho cuando: pruebas en verde y el listado conserva el orden `_id` ascendente.
+
+- [x] **T21. Pruebas HTTP de filtros, resumen y orden de revisión.** RF-1, RF-2, RF-13, RF-29
+  - Reabre: T6 y T9 (solo pruebas; si una revela un incumplimiento, se corrige el código en
+    esta tarea). Depende de: T11, T12, T16 y T20.
+  - Tests primero:
+    - `accounts.test.ts`, listar: `user=Me`, `user=ME`, `user=%20me` → 400 `id con formato
+      inválido`; `user=m%65` → 200 con las cuentas del usuario de la sesión; `user=%zz` → 400
+      id; `user=` y `user=<id>&user=<id>` → 400 id; `game=LOL`, `game=%20lol`, `game=` y
+      `game=lol&game=cs2` → 400 `juego no válido`; `user=abc&game=xyz` → solo el error de
+      `user`; `page=2`, `User=abc` y `user[]=abc` se ignoran (200, lista completa).
+    - `gameSummary.test.ts`: `/api/users/Me/games/lol`, `/ME/`, `/%20me/` → 400 id; `m%65` →
+      200 como `me`; juego `LOL` y `%20lol` → 400 juego; `Me` + juego `%zz` → 400 id; `%zz` en
+      el usuario → 400 id.
+    - Orden "cuerpo antes que sesión" en `/api/accounts` (POST, PUT, DELETE y sync), con y sin
+      sesión: cuerpo `{"a":` → 400 `JSON mal formado`; cuerpo de más de 102 400 bytes → 413
+      `cuerpo demasiado grande`; codificación no soportada (técnica de `app.test.ts`) → 415
+      `codificación no soportada`; cuerpo JSON `"x"`, `5`, `true` o `null` → 400 `JSON mal
+      formado` (también en DELETE y sync, que no leen el cuerpo). Sin sesión y con cuerpo
+      válido → 401.
+  - Archivos: normalmente ninguno de `src/`.
+  - Hecho cuando: pruebas en verde y, para cada grupo, demostrado que falla si se rompe a
+    propósito la regla que vigila (plan, R9); anotado en el reporte.
+
+- [x] **T22. Concurrencia de RF-39 con solapamiento determinista.** RF-39 (edición con resincronización, dos ediciones, desvinculación con edición o resincronización), DP-29, DP-41
+  - Reabre: T8 (solo pruebas; si una revela un incumplimiento de `updateOwnedAccount`, se
+    corrige en esta tarea). Depende de: T17 y T19.
+  - Tests primero: `accountConcurrency.test.ts`, cada caso con `overlapFirstFindById`, en las
+    dos direcciones y comprobando las dos respuestas y el estado final de la base contra la
+    aplicación en serie (valores calculados con las funciones puras y `FIXED_NOW`):
+    1. edición + resincronización (detenida la edición y detenida la resincronización): las
+       dos 200, estado final con la región de la edición y la lectura de la resincronización,
+       cada respuesta con la cuenta tal como quedó tras aplicarse ella;
+    2. dos ediciones con regiones distintas: las dos 200; la región final es la de la que se
+       aplicó en último lugar; cada respuesta con la suya;
+    3. desvinculación + edición y desvinculación + resincronización, con la desvinculación en
+       medio (la otra → 404 `cuenta no encontrada`) y con la desvinculación detenida (la otra
+       → 200 y la desvinculación → 204); la cuenta ni su historial ni sus partidas existen al
+       final;
+    4. las dos resincronizaciones (ya en `accounts.test.ts`) y las dos desvinculaciones (T19)
+       no se repiten.
+  - Archivos: normalmente solo `backend/tests/controllers/accountConcurrency.test.ts`.
+  - Hecho cuando: pruebas en verde, `node --test` del archivo 10 veces seguidas en verde y
+    cada caso demostrado frágil (por ejemplo, quitando el reintento de `updateOwnedAccount`
+    fallan los casos 1 y 2); anotado en el reporte.
+
+- [x] **T23. Ramas de RF-47: operación en curso al eliminar el usuario.** RF-47 (editar, resincronizar y desvincular), RF-14, RF-44
+  - Reabre: T8 y T9 (solo pruebas). Depende de: T10, T17 y T22.
+  - Tests primero: `accountConcurrency.test.ts` — `overlapFirstFindById` con
+    `DELETE /api/users/me` como segunda operación (cascada real de T10): (a) editar,
+    (b) resincronizar y (c) desvincular una cuenta propia detenidas tras leer; el borrado del
+    usuario se completa (204); la operación continúa → 404 `cuenta no encontrada`, nunca 500;
+    al final no queda el usuario ni ninguna cuenta suya; la credencial responde 401 `token
+    inválido`. Casos "se aplicó antes": editar (200), resincronizar (200) y desvincular (204)
+    completas y luego `DELETE /api/users/me` → 204 y ninguna cuenta.
+  - Archivos: normalmente solo `backend/tests/controllers/accountConcurrency.test.ts`.
+  - Hecho cuando: pruebas en verde y demostrado, quitando temporalmente la comprobación de
+    `deletedCount` de desvincular o el reintento de `updateOwnedAccount`, que fallan las
+    ramas correspondientes; anotado en el reporte.
+
+- [x] **T24. (Esperó a que la T9 de la spec 005 estuviera hecha; C1) Retirar `createWithExistingUser` y `missingUserError`.** RF-44, DP-37
+  - Reabre: T5 (`utils/middleware.ts`) y T9. Depende de: T16 y de la **T9 de la spec 005**
+    (`controllers/matches.ts` y sus pruebas usan `createWithUser` y "token inválido"; la spec,
+    el plan y las tareas de la 005 ya están aprobados desde el 2026-10-19). Antes de empezar,
+    el implementer comprueba que `matches.ts` ya no importa `createWithExistingUser`; si lo
+    importa, la tarea no empieza.
+  - Tests primero: `backend/tests/unit/withExistingUser.test.ts` se reduce a las pruebas de
+    `createWithUser` con "token inválido" por defecto (se eliminan las de `missingUserError` y
+    `createWithExistingUser`); el resto de la suite, incluida la 005, en verde.
+  - Archivos: `backend/src/utils/middleware.ts` (quitar `createWithExistingUser` y la opción
+    `missingUserError`); `backend/tests/unit/withExistingUser.test.ts` (renombrar si se
+    quiere, p. ej. `withUser.test.ts`, solo si el usuario lo acepta).
+  - Hecho cuando: ningún archivo de `src/` ni de `tests/` menciona `createWithExistingUser` ni
+    `missingUserError`, y la verificación completa en verde.
+
+- [x] **T25. Cierre de la spec 004.** RF-34, RF-37, RF-41, RF-45, RNF-1, RNF-2, RNF-3, RNF-7, RNF-8, RNF-9
+  - Depende de: T10 a T23 (y T24 si se hizo). Reabre: —.
+  - Nota de cierre (2026-10-19): la repetición de la suite sin conexión a Internet la hizo el
+    usuario, no el implementer (que solo pudo comprobar la parte estática: ninguna llamada de
+    red en `src/`). El usuario confirmó el 2026-10-19 que ejecutó `npm test` sin conexión con
+    el código ya reescrito (T10–T25) y pasaron 1567/1567 tests (220 suites, 0 fallos, 0
+    cancelados, ~100 s). Con eso se marcó la casilla correspondiente de "Criterios de
+    finalización" de la spec (RNF-1, RNF-9); todas las casillas de esa sección están marcadas.
+  - Tests primero: no aplica (verificación); las pruebas que falten para que cada fila de la
+    trazabilidad (plan, 12) tenga una prueba en verde se escriben antes de cerrar.
+  - Archivos: `backend/requests/accounts.rest` (revisar: login → vincular → resincronizar →
+    resumen → editar con `PUT` → desvincular, y eliminar el usuario; sin textos antiguos).
+  - Hecho cuando: la verificación completa en verde; las comprobaciones de plan 11.3 sin
+    resultados (sin `.only`, `any`, `@ts-ignore`, `Math.random`, `Date.now`, `new Date()` sin
+    argumentos, `process.env`, `fetch` ni `node:http` en `src/domain/`; `package.json` y
+    `.env.example` sin dependencias ni variables nuevas); el usuario repite la suite completa
+    sin conexión a Internet; cada fila de la trazabilidad (plan, 12) tiene su prueba en
+    verde; y todas las casillas de "Criterios de finalización" de la spec se pueden marcar.

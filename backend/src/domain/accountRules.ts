@@ -6,23 +6,26 @@ import { GAMES, isGameId } from "./games.ts";
 import type { GameId } from "./games.ts";
 import { canonicalHandle } from "./rankSimulator.ts";
 
-/** Textos exactos de la sección 7 del plan propios de esta spec (los 401 y el 500 no). */
+/**
+ * Textos exactos de la sección 7.2 del plan propios de esta spec (DP-6): minúscula inicial y
+ * sin punto final, salvo `Riot ID`, `Ubisoft ID` y `SteamID64`. Los 401 y el 500 no son
+ * suyos. El 403 (`MESSAGES.forbidden`) y el 404 de usuario (`USER_TARGET_MESSAGES.userNotFound`)
+ * tampoco: viven en `utils/` y `services/`, que `domain/` no puede importar (P-17, P-23).
+ */
 export const ACCOUNT_ERRORS = {
   invalidId: INVALID_ID_MESSAGE,
-  invalidGame: "Juego no válido.",
+  invalidGame: "juego no válido",
   invalidHandle: {
-    lol: "Riot ID no válido: usa el formato Nombre#TAG.",
-    r6: "Ubisoft ID no válido: usa de 3 a 20 letras, dígitos, punto, guion o guion bajo.",
-    cs2: "SteamID64 no válido: son 17 dígitos que empiezan por 7656119.",
+    lol: "Riot ID no válido: usa el formato Nombre#TAG, con 3 a 16 caracteres antes de # y 2 a 5 letras o dígitos después",
+    r6: "Ubisoft ID no válido: usa de 3 a 20 letras, dígitos, punto, guion o guion bajo",
+    cs2: "SteamID64 no válido: son 17 dígitos que empiezan por 7656119",
   } satisfies Record<GameId, string>,
-  invalidRegion: (gameId: GameId): string => `Región no válida para ${GAMES[gameId].name}.`,
-  duplicate: "Ya tienes una cuenta vinculada en este juego.",
+  invalidRegion: (gameId: GameId): string => `región no válida para ${GAMES[gameId].name}`,
+  duplicate: "ya tienes una cuenta vinculada en este juego",
   handleNotEditable:
-    "El identificador no se puede editar: desvincula la cuenta y vuelve a vincularla.",
-  forbidden: "No puedes modificar la cuenta de otro jugador.",
-  accountNotFound: "Cuenta no encontrada.",
-  userNotFound: "Usuario no encontrado.",
-  noAccountForGame: "El jugador no tiene una cuenta vinculada en este juego.",
+    "el identificador del juego no se puede editar: desvincula la cuenta y vuelve a vincularla",
+  accountNotFound: "cuenta no encontrada",
+  noAccountForGame: "el jugador no tiene una cuenta vinculada en este juego",
 } as const;
 
 export type RuleResult<T> = { ok: true; value: T } | { ok: false; status: 400; error: string };
@@ -50,12 +53,20 @@ function asObject(body: unknown): Record<string, unknown> {
   return body as Record<string, unknown>;
 }
 
-/** Grafía de la lista del juego si coincide sin espacios en los extremos ni mayúsculas (DP-35). */
+/** Pliega solo `A`-`Z` a `a`-`z`; el resto de caracteres queda igual (DP-35). */
+function asciiLower(text: string): string {
+  return text.replace(/[A-Z]/g, (letter) => String.fromCharCode(letter.charCodeAt(0) + 32));
+}
+
+/**
+ * Grafía de la lista del juego si coincide sin espacios en los extremos y sin distinguir
+ * mayúsculas ASCII (DP-35). El plegado de Unicode daría por válida «KR» con el signo de kelvin (U+212A).
+ */
 export function normalizeRegion(gameId: GameId, value: unknown): string | null {
   const trimmed = trimmedText(value);
   if (trimmed === null) return null;
-  const wanted = trimmed.toLowerCase();
-  return GAMES[gameId].regions.find((region) => region.toLowerCase() === wanted) ?? null;
+  const wanted = asciiLower(trimmed);
+  return GAMES[gameId].regions.find((region) => asciiLower(region) === wanted) ?? null;
 }
 
 /** Orden juego → identificador → región; primer error y nada más (RF-6). Ignora el resto (RF-7). */

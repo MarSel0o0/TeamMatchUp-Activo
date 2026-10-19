@@ -1,7 +1,7 @@
-// Resumen por juego y cascada al eliminar usuario (spec 004, plan, secciones 6, 8 y 11).
+// Resumen por juego y eliminación de usuario (spec 004, plan, secciones 6, 8 y 11).
 // RF-12, RF-13, RF-14, RF-29 (resumen), RF-37, RF-39 (usuario), RF-44.
 // - `GET /api/users/:id/games/:gameId`: la guardia de usuarios lo reconoce (`kind: "games"`)
-//   y usa `withExistingUser` (P-14, P-15).
+//   y usa `withUser` (P-14, P-15).
 // - Valores exactos (RNF-1, P-13): el esperado se calcula con `simulateReading` +
 //   `initialState` / `applySync` y las funciones puras del resumen (`recentMatches`,
 //   `winRate`, `trend`) con los mismos instantes fijos.
@@ -17,7 +17,6 @@ import { GameAccount } from "../../src/models/gameAccount.ts";
 import { connectDatabase } from "../../src/server.ts";
 import { SESSION_MESSAGES } from "../../src/services/sessionToken.ts";
 import { clock } from "../../src/utils/clock.ts";
-import { ACCOUNT_ERRORS } from "../../src/domain/accountRules.ts";
 import { applySync, initialState, recentMatches, trend, winRate } from "../../src/domain/accountState.ts";
 import type { AccountState } from "../../src/domain/accountState.ts";
 import { canonicalHandle, simulateReading } from "../../src/domain/rankSimulator.ts";
@@ -28,9 +27,12 @@ import {
   accountsInDb,
   authApp,
   closeTestServers,
+  deleteMe,
+  linkOk,
   nonExistingId,
   rawAccountsInDb,
   signUp,
+  sync,
   withSession,
 } from "./helpers.ts";
 import type { SignedUp } from "./helpers.ts";
@@ -39,6 +41,30 @@ const app = await authApp();
 
 const ANA = { email: "ana@example.com", username: "Ana" } as const;
 const BETO = { email: "beto@example.com", username: "Beto" } as const;
+
+// Textos exactos de la spec 004 (RF-2, RF-3, RF-5, RF-6, RF-11, RF-13, RF-22, RF-29, RF-38,
+// DP-6), escritos como literales: no se importan de `ACCOUNT_ERRORS` (plan, P-23).
+const ERR = {
+  invalidId: "id con formato inválido",
+  invalidGame: "juego no válido",
+  invalidHandle: {
+    lol: "Riot ID no válido: usa el formato Nombre#TAG, con 3 a 16 caracteres antes de # y 2 a 5 letras o dígitos después",
+    r6: "Ubisoft ID no válido: usa de 3 a 20 letras, dígitos, punto, guion o guion bajo",
+    cs2: "SteamID64 no válido: son 17 dígitos que empiezan por 7656119",
+  },
+  invalidRegion: {
+    lol: "región no válida para League of Legends",
+    r6: "región no válida para Rainbow Six Siege",
+    cs2: "región no válida para Counter-Strike 2",
+  },
+  duplicate: "ya tienes una cuenta vinculada en este juego",
+  handleNotEditable:
+    "el identificador del juego no se puede editar: desvincula la cuenta y vuelve a vincularla",
+  forbidden: "no tienes permiso para esta operación",
+  accountNotFound: "cuenta no encontrada",
+  userNotFound: "usuario no encontrado",
+  noAccountForGame: "el jugador no tiene una cuenta vinculada en este juego",
+} as const;
 
 const LINKS = {
   lol: { gameId: "lol", handle: "Jugador1#LAS", region: "LAS" },
@@ -84,33 +110,8 @@ function asJson(value: unknown): unknown {
   return JSON.parse(JSON.stringify(value));
 }
 
-function bodyId(response: Response): string {
-  const body: unknown = response.body;
-  const id: unknown = typeof body === "object" && body !== null ? Reflect.get(body, "id") : undefined;
-  assert.ok(typeof id === "string", "la respuesta debería traer el id de la cuenta");
-  return id;
-}
-
-function link(session: SignedUp, body: unknown): supertest.Test {
-  return withSession(session.agent.post("/api/accounts"), session.csrf).send(body as object);
-}
-
-async function linkOk(session: SignedUp, body: unknown): Promise<string> {
-  const response = await link(session, body);
-  assert.strictEqual(response.status, 201);
-  return bodyId(response);
-}
-
-function sync(session: SignedUp, id: string): supertest.Test {
-  return withSession(session.agent.post(`/api/accounts/${id}/sync`), session.csrf);
-}
-
 function summary(session: SignedUp, user: string, game: string): supertest.Test {
   return withSession(session.agent.get(`/api/users/${user}/games/${game}`), session.csrf);
-}
-
-function deleteMe(session: SignedUp): supertest.Test {
-  return withSession(session.agent.delete("/api/users/me"), session.csrf);
 }
 
 // Estado tras vincular en FIXED_NOW y resincronizar en cada instante de `syncs`.
@@ -251,11 +252,11 @@ describe("orden de errores del resumen (RF-13, RF-29)", () => {
       ["abc", "%zz"],
       ["%20me", "lol"],
     ]) {
-      assertStatusError(await summary(ana, user ?? "", game ?? ""), 400, ACCOUNT_ERRORS.invalidId);
+      assertStatusError(await summary(ana, user ?? "", game ?? ""), 400, ERR.invalidId);
     }
   });
 
-  test("juego inválido → 400 \"Juego no válido.\" (antes que la existencia del usuario)", async (t) => {
+  test("juego inválido → 400 \"juego no válido\" (antes que la existencia del usuario)", async (t) => {
     fixClock(t);
     const ana = await signUp(app, ANA);
     for (const [user, game] of [
@@ -265,23 +266,96 @@ describe("orden de errores del resumen (RF-13, RF-29)", () => {
       [nonExistingId(), "xx"],
       [nonExistingId(), "%zz"],
     ]) {
-      assertStatusError(await summary(ana, user ?? "", game ?? ""), 400, ACCOUNT_ERRORS.invalidGame);
+      assertStatusError(await summary(ana, user ?? "", game ?? ""), 400, ERR.invalidGame);
     }
   });
 
-  test("usuario inexistente → 404 \"Usuario no encontrado.\"", async (t) => {
+  test("usuario inexistente → 404 \"usuario no encontrado\"", async (t) => {
     fixClock(t);
     const ana = await signUp(app, ANA);
-    assertStatusError(await summary(ana, nonExistingId(), "lol"), 404, ACCOUNT_ERRORS.userNotFound);
+    assertStatusError(await summary(ana, nonExistingId(), "lol"), 404, ERR.userNotFound);
   });
 
-  test("sin cuenta en ese juego → 404 \"El jugador no tiene una cuenta vinculada en este juego.\"", async (t) => {
+  test("sin cuenta en ese juego → 404 \"el jugador no tiene una cuenta vinculada en este juego\"", async (t) => {
     fixClock(t);
     const ana = await signUp(app, ANA);
     const beto = await signUp(app, BETO);
     await linkOk(ana, LINKS.lol);
-    assertStatusError(await summary(ana, "me", "r6"), 404, ACCOUNT_ERRORS.noAccountForGame);
-    assertStatusError(await summary(ana, beto.id, "lol"), 404, ACCOUNT_ERRORS.noAccountForGame);
+    assertStatusError(await summary(ana, "me", "r6"), 404, ERR.noAccountForGame);
+    assertStatusError(await summary(ana, beto.id, "lol"), 404, ERR.noAccountForGame);
+  });
+});
+
+// T21 (RF-13, DP-10): `me` exacto sobre el identificador ya decodificado; el orden de revisión
+// es me y formato del usuario → juego → usuario existe → cuenta existe.
+describe("referencia propia y orden de revisión del resumen (RF-13)", () => {
+  for (const user of ["Me", "ME", "%20me", "me%20", "mE"]) {
+    test(`/api/users/${user}/games/lol → 400 "id con formato inválido"`, async (t) => {
+      fixClock(t);
+      const ana = await signUp(app, ANA);
+      await linkOk(ana, LINKS.lol);
+      assertStatusError(await summary(ana, user, "lol"), 400, ERR.invalidId);
+    });
+  }
+
+  test("/api/users/ME/ con barra final y juego lol → 400 \"id con formato inválido\"", async (t) => {
+    fixClock(t);
+    const ana = await signUp(app, ANA);
+    await linkOk(ana, LINKS.lol);
+    assertStatusError(await withSession(ana.agent.get("/api/users/ME/games/lol/"), ana.csrf), 400, ERR.invalidId);
+  });
+
+  test("/api/users/m%65/games/lol → 200, igual que con me", async (t) => {
+    fixClock(t);
+    const ana = await signUp(app, ANA);
+    await linkOk(ana, LINKS.lol);
+    const own = await summary(ana, "me", "lol");
+    assert.strictEqual(own.status, 200);
+    const encoded = await summary(ana, "m%65", "lol");
+    assert.strictEqual(encoded.status, 200);
+    assertSummaryShape(encoded.body);
+    assert.deepStrictEqual(encoded.body, own.body);
+  });
+
+  test("juego LOL y %20lol con me → 400 \"juego no válido\"", async (t) => {
+    fixClock(t);
+    const ana = await signUp(app, ANA);
+    await linkOk(ana, LINKS.lol);
+    assertStatusError(await summary(ana, "me", "LOL"), 400, ERR.invalidGame);
+    assertStatusError(await summary(ana, "me", "%20lol"), 400, ERR.invalidGame);
+    assertStatusError(await summary(ana, "m%65", "LOL"), 400, ERR.invalidGame);
+  });
+
+  test("Me con juego %zz → 400 \"id con formato inválido\" (el usuario se revisa antes que el juego)", async (t) => {
+    fixClock(t);
+    const ana = await signUp(app, ANA);
+    assertStatusError(await summary(ana, "Me", "%zz"), 400, ERR.invalidId);
+    assertStatusError(await summary(ana, "ME", "LOL"), 400, ERR.invalidId);
+    assertStatusError(await summary(ana, "%20me", "%20lol"), 400, ERR.invalidId);
+  });
+
+  test("%zz en el usuario → 400 \"id con formato inválido\", con juego válido, inválido o sin decodificar", async (t) => {
+    fixClock(t);
+    const ana = await signUp(app, ANA);
+    await linkOk(ana, LINKS.lol);
+    for (const game of ["lol", "LOL", "xx", "%zz"]) {
+      assertStatusError(await summary(ana, "%zz", game), 400, ERR.invalidId);
+    }
+  });
+
+  test("me con juego %zz → 400 \"juego no válido\"", async (t) => {
+    fixClock(t);
+    const ana = await signUp(app, ANA);
+    assertStatusError(await summary(ana, "me", "%zz"), 400, ERR.invalidGame);
+    assertStatusError(await summary(ana, "m%65", "%zz"), 400, ERR.invalidGame);
+  });
+
+  test("juego inválido antes que usuario inexistente; usuario inexistente antes que cuenta ausente", async (t) => {
+    fixClock(t);
+    const ana = await signUp(app, ANA);
+    assertStatusError(await summary(ana, nonExistingId(), "LOL"), 400, ERR.invalidGame);
+    assertStatusError(await summary(ana, nonExistingId(), "lol"), 404, ERR.userNotFound);
+    assertStatusError(await summary(ana, "me", "lol"), 404, ERR.noAccountForGame);
   });
 });
 
@@ -297,18 +371,18 @@ describe("sesión del resumen (RF-1, RF-29, RF-44)", () => {
     assertStatusError(await ana.agent.get("/api/users/me/games/lol"), 401, SESSION_MESSAGES.invalidToken);
   });
 
-  test("credencial de usuario eliminado → 401 \"sesión no iniciada\"", async (t) => {
+  test("credencial de usuario eliminado → 401 \"token inválido\"", async (t) => {
     fixClock(t);
     const ana = await signUp(app, ANA);
     const beto = await signUp(app, BETO);
     await linkOk(beto, LINKS.lol);
     await User.deleteOne({ _id: ana.id });
-    assertStatusError(await summary(ana, "me", "lol"), 401, SESSION_MESSAGES.notLoggedIn);
-    assertStatusError(await summary(ana, beto.id, "lol"), 401, SESSION_MESSAGES.notLoggedIn);
+    assertStatusError(await summary(ana, "me", "lol"), 401, SESSION_MESSAGES.invalidToken);
+    assertStatusError(await summary(ana, beto.id, "lol"), 401, SESSION_MESSAGES.invalidToken);
   });
 });
 
-describe("eliminar usuario (RF-14, RF-39)", () => {
+describe("eliminar usuario (RF-14, RF-39; la cascada y sus fallos, en userDeletionCascade.test.ts)", () => {
   test("DELETE /api/users/me borra todas sus cuentas y no las de otros", async (t) => {
     fixClock(t);
     const ana = await signUp(app, ANA);
@@ -323,38 +397,6 @@ describe("eliminar usuario (RF-14, RF-39)", () => {
       remaining.map((account) => [account._id.toString(), account.user.toString()]),
       [[betoAccount, beto.id]],
     );
-    assert.strictEqual(await GameAccount.countDocuments({ user: ana.id }), 0);
-  });
-
-  test("eliminación simultánea a una vinculación → 204, vinculación 201 o 401 y ninguna cuenta del usuario", async (t) => {
-    fixClock(t);
-    for (let i = 0; i < 5; i += 1) {
-      const user = await signUp(app, { email: `simul${i}@example.com`, username: `Simul${i}` });
-      const [linked, deleted] = await Promise.all([link(user, LINKS.lol), deleteMe(user)]);
-      assert.strictEqual(deleted.status, 204, `iteración ${i}`);
-      assert.ok([201, 401].includes(linked.status), `iteración ${i}: ${linked.status}`);
-      if (linked.status === 401) {
-        assert.deepStrictEqual(linked.body, { error: SESSION_MESSAGES.notLoggedIn });
-      }
-      assert.strictEqual(await GameAccount.countDocuments({ user: user.id }), 0, `iteración ${i}`);
-      assert.strictEqual(await User.exists({ _id: user.id }), null);
-    }
-  });
-
-  test("vinculación que termina justo antes del borrado de cuentas → la cascada la borra", async (t) => {
-    fixClock(t);
-    const ana = await signUp(app, ANA);
-    // La vinculación completa ocurre entre `User.deleteOne` y la cascada: se intercala
-    // ejecutando primero la vinculación y después el borrado real del usuario.
-    const original = User.deleteOne;
-    let linkedStatus = 0;
-    t.mock.method(User, "deleteOne", async (...args: unknown[]) => {
-      linkedStatus = (await link(ana, LINKS.lol)).status;
-      const result: unknown = await Reflect.apply(original, User, args);
-      return result;
-    });
-    assert.strictEqual((await deleteMe(ana)).status, 204);
-    assert.strictEqual(linkedStatus, 201);
     assert.strictEqual(await GameAccount.countDocuments({ user: ana.id }), 0);
   });
 });

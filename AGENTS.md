@@ -31,18 +31,19 @@ flujo termina en una sesión agendada, no en una lista de perfiles. Detalle en
   - `src/styles/` tokens de diseño (`tokens.css`) y estilos globales.
 - `backend/` — Express 5 + Mongoose + TypeScript, Node ≥ 22.18 ejecutando `.ts` directo (ESM).
   Base definida en `specs/001-crear-backend`; autenticación en `specs/002-autenticacion`;
-  usuarios y disponibilidad en `specs/003-usuarios-y-disponibilidad`:
+  usuarios y disponibilidad en `specs/003-usuarios-y-disponibilidad`; cuentas de juego y
+  rango simulado en `specs/004-cuentas-de-juego`; coincidencias en `specs/005-coincidencias`:
   - `src/index.ts` punto de entrada: carga y valida la configuración y arranca el servidor.
   - `src/app.ts` composición de Express (cuerpo JSON, 404, manejador de errores); sin conexión a la base.
   - `src/server.ts` arranque: conectar a MongoDB y luego escuchar.
-  - `src/controllers/` rutas por recurso: `users.ts` (registro, listado, obtener, actualizar perfil, eliminar cuenta y disponibilidad) y `auth.ts` (sesión).
-  - `src/models/` esquemas de Mongoose: `user.ts`.
-  - `src/services/` lógica sin Express: `credentials.ts` (validación), `passwords.ts` (bcrypt), `sessionToken.ts` (JWT, cookie y comprobante), `userTarget.ts` (identificador de ruta, `me`, formato y propiedad), `profile.ts` (validación del perfil), `availability.ts` (validación de bloques horarios), `timezones.ts` (zonas válidas) y `zoneTab.ts` (`zone.tab` de tzdata 2025b, incrustada).
+  - `src/controllers/` rutas por recurso: `users.ts` (registro, listado, obtener, actualizar perfil, eliminar cuenta con su cascada ordenada C1 → C2 → C3, disponibilidad y resumen por juego), `auth.ts` (sesión), `accounts.ts` (cuentas de juego) y `matches.ts` (coincidencias).
+  - `src/models/` esquemas de Mongoose: `user.ts` (sin lista de cuentas: son las que lo tienen como dueño) y `gameAccount.ts`.
+  - `src/services/` lógica sin Express: `credentials.ts` (validación), `passwords.ts` (bcrypt), `sessionToken.ts` (JWT, cookie y comprobante), `userTarget.ts` (identificador de ruta, `me`, formato y propiedad), `profile.ts` (validación del perfil), `availability.ts` (validación de bloques horarios), `timezones.ts` (zonas válidas), `zoneTab.ts` (`zone.tab` de tzdata 2025b, incrustada), `accountWrites.ts` (vincular con compensación, escritura de la cuenta propia), `accountReads.ts` (lecturas sin cuentas sin dueño), `rankProvider.ts` (proveedor de rango simulado) y `matchInputs.ts` (datos de las coincidencias).
   - `src/types/` ampliaciones de tipos: `express.d.ts` (`request.userId`).
-  - `src/utils/` `config.ts` (variables de entorno), `errors.ts`, `logger.ts` (único sitio con `console`) y `middleware.ts` (incluye la guardia de rutas de usuario).
-  - `src/domain/` reservado para la copia del dominio del frontend (specs 004 en adelante); las specs 004 a 006 amplían también las carpetas anteriores.
+  - `src/utils/` `config.ts` (variables de entorno), `errors.ts`, `logger.ts` (único sitio con `console`), `clock.ts` (reloj inyectable) y `middleware.ts` (`createWithUser`, que responde 401 «token inválido» a la credencial de un usuario eliminado, y la guardia de rutas de usuario).
+  - `src/domain/` reglas puras sin Express, Mongoose ni reloj, aisladas de `services/`, `utils/`, `models/` y `controllers/` (lo vigila `tests/unit/domainIsolation.test.ts`): `games`, `rankScale`, `rankSimulator`, `accountRules`, `accountState`, `userId` (spec 004) y `matchQuery`, `availability`, `matching` (spec 005). Adaptación del dominio del frontend (catálogo, bloques horarios, motor), con dos diferencias propias del backend: la normalización de rango (`rankScale`, spec 004, RF-48) y el plegado de región solo ASCII (`accountRules`, DP-35). La spec 006 amplía las carpetas anteriores.
   - `requests/` archivos `.rest` para probar la API a mano.
-  - `tests/` con `unit/`, `controllers/` (supertest), `server/` (arranque y procesos hijo) y `fixtures/` (copia oficial de `zone.tab` de tzdata 2025b).
+  - `tests/` con `unit/`, `controllers/` (supertest; incluye `userDeletionCascade.test.ts` con fallos forzados de la cascada y `accountConcurrency.test.ts` con solapamiento determinista), `server/` (arranque y procesos hijo) y `fixtures/` (copia oficial de `zone.tab` de tzdata 2025b).
   - Variables en `backend/.env` (no se sube); plantilla en `backend/.env.example`.
 ## Comandos
 

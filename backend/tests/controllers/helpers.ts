@@ -1,4 +1,6 @@
 // Utilidades de las pruebas de controladores (plan §6.1). No es un archivo de prueba.
+import assert from "node:assert/strict";
+import type { TestContext } from "node:test";
 import supertest from "supertest";
 import type { Agent, Response } from "supertest";
 import http from "node:http";
@@ -206,7 +208,8 @@ export async function setCreatedAt(ids: readonly string[], date: Date): Promise<
   await User.collection.updateMany({ _id: { $in: objectIds } }, { $set: { createdAt: date } });
 }
 
-// --- Spec 004 (plan, secciones 9 y 11; P-16) ---
+// --- Spec 004 ---
+// (plan, secciones 9 y 11; P-16)
 
 // Instante fijo de las cuentas en milisegundos: `t.mock.method(clock, "now", () => new Date(FIXED_NOW))`.
 // Es pasado a propósito; no afecta a las credenciales (reloj de `createApp`, sin `overrides`).
@@ -222,4 +225,98 @@ export async function accountsInDb(): Promise<unknown[]> {
 // Documentos crudos (`lean()`), con `matches`, `readingNumber` y `__v`, ordenados por `_id`.
 export function rawAccountsInDb() {
   return GameAccount.find({}).sort({ _id: 1 }).lean();
+}
+
+// Identificador de la cuenta que trae el cuerpo de una respuesta (falla si no lo trae).
+export function bodyId(response: Response): string {
+  const body: unknown = response.body;
+  const id: unknown = typeof body === "object" && body !== null ? Reflect.get(body, "id") : undefined;
+  assert.ok(typeof id === "string", "la respuesta debería traer el id de la cuenta");
+  return id;
+}
+
+// `POST /api/accounts` con la sesión de `session`.
+export function link(session: SignedUp, body: unknown): supertest.Test {
+  return withSession(session.agent.post("/api/accounts"), session.csrf).send(body as object);
+}
+
+// Vincula y exige 201; devuelve el id de la cuenta creada.
+export async function linkOk(session: SignedUp, body: unknown): Promise<string> {
+  const response = await link(session, body);
+  assert.strictEqual(response.status, 201);
+  return bodyId(response);
+}
+
+// `PUT /api/accounts/:id`.
+export function edit(session: SignedUp, id: string, body: unknown): supertest.Test {
+  return withSession(session.agent.put(`/api/accounts/${id}`), session.csrf).send(body as object);
+}
+
+// `DELETE /api/accounts/:id`.
+export function unlink(session: SignedUp, id: string): supertest.Test {
+  return withSession(session.agent.delete(`/api/accounts/${id}`), session.csrf);
+}
+
+// `POST /api/accounts/:id/sync`.
+export function sync(session: SignedUp, id: string): supertest.Test {
+  return withSession(session.agent.post(`/api/accounts/${id}/sync`), session.csrf);
+}
+
+// `DELETE /api/users/me`.
+export function deleteMe(session: SignedUp): supertest.Test {
+  return withSession(session.agent.delete("/api/users/me"), session.csrf);
+}
+
+// Solapamiento determinista (RF-39, RF-47). Sustituye `GameAccount.findById` para que la
+// PRIMERA llamada, después de leer la cuenta, espere a que `second()` termine; las demás
+// llamadas (las de `second` y los reintentos de `first`) pasan directo. Orden garantizado:
+// `first` empieza y lee, `second` se ejecuta completa, `first` continúa con la lectura vieja.
+// Devuelve el resultado de las dos. Falla (en vez de colgarse) si `first` termina sin leer la
+// cuenta. La sustitución se restaura al terminar la prueba (`t.mock`).
+export async function overlapFirstFindById<A, B>(
+  t: TestContext,
+  first: () => PromiseLike<A>,
+  second: () => PromiseLike<B>,
+): Promise<{ first: A; second: B }> {
+  const original = GameAccount.findById.bind(GameAccount);
+  let calls = 0;
+  let firstHasRead: () => void = () => undefined;
+  let secondIsDone: () => void = () => undefined;
+  const firstRead = new Promise<void>((resolve) => {
+    firstHasRead = resolve;
+  });
+  const secondFinished = new Promise<void>((resolve) => {
+    secondIsDone = resolve;
+  });
+  t.mock.method(GameAccount, "findById", async (id: string) => {
+    calls += 1;
+    const position = calls;
+    const account = await original(id);
+    if (position === 1) {
+      firstHasRead();
+      await secondFinished; // la primera lectura queda detenida con el documento ya leído
+    }
+    return account;
+  });
+  const firstResult = Promise.resolve(first());
+  firstResult.catch(() => undefined); // si falla antes de leer, el error se informa más abajo
+  try {
+    const settledEarly = await Promise.race([firstRead.then(() => false), firstResult.then(() => true, () => true)]);
+    if (settledEarly && calls === 0) {
+      await firstResult; // si lanzó, propaga su error
+      throw new Error("overlapFirstFindById: la primera operación terminó y no leyó la cuenta");
+    }
+    let secondResult: B;
+    try {
+      secondResult = await second();
+    } catch (error) {
+      secondIsDone(); // si la segunda falla, la primera no queda detenida
+      await firstResult.catch(() => undefined);
+      throw error;
+    }
+    secondIsDone();
+    return { first: await firstResult, second: secondResult };
+  } finally {
+    secondIsDone(); // nunca dejar la primera lectura detenida
+  }
 }

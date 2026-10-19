@@ -1,6 +1,7 @@
-// Paso 5 de la sesión con mensaje configurable (spec 004, RF-44, DP-37; plan, P-14 y sección 1).
-// `createWithUser` sigue respondiendo "token inválido" por defecto (spec 002, RF-22);
-// `createWithExistingUser` responde "sesión no iniciada". Sin base: `User.exists` simulado.
+// Paso 5 de `createWithUser`: usuario inexistente (spec 002, RF-22; spec 004, RF-44, DP-37).
+// La credencial de un usuario eliminado responde siempre 401 «token inválido»: el mensaje
+// no es configurable (las variantes con mensaje propio se retiraron en la T24 de la 004).
+// Sin base: `User.exists` simulado.
 import { after, afterEach, describe, mock, test } from "node:test";
 import assert from "node:assert/strict";
 import cookieParser from "cookie-parser";
@@ -11,10 +12,10 @@ import mongoose from "mongoose";
 import supertest from "supertest";
 import { User } from "../../src/models/user.ts";
 import { CSRF_HEADER, SESSION_COOKIE, signSessionToken } from "../../src/services/sessionToken.ts";
-import { createWithExistingUser, createWithUser } from "../../src/utils/middleware.ts";
+import { createWithUser } from "../../src/utils/middleware.ts";
 import { closeTestServers, listenOnLoopback } from "../controllers/helpers.ts";
 
-const SECRET = "secreto-de-prueba-para-withExistingUser";
+const SECRET = "secreto-de-prueba-para-withUser";
 const NOW_SECONDS = 1_800_000_000;
 const now = (): number => NOW_SECONDS;
 const USER_ID = new mongoose.Types.ObjectId().toHexString();
@@ -52,12 +53,13 @@ describe("createWithUser: usuario inexistente (spec 002, RF-22)", () => {
     assert.deepStrictEqual(response.body, { error: "token inválido" });
   });
 
-  test("con missingUserError responde ese mensaje", async () => {
+  test("el mensaje del paso 5 no es configurable: una opción de mensaje ajena se ignora", async () => {
     userExists(false);
-    const guard = createWithUser({ jwtSecret: SECRET, now, missingUserError: "sesión no iniciada" });
-    const response = await sessionRequest(await appWith(guard));
+    // Objeto intermedio: la comprobación de propiedades sobrantes solo afecta a literales.
+    const options = { jwtSecret: SECRET, now, mensaje: "sesión no iniciada" };
+    const response = await sessionRequest(await appWith(createWithUser(options)));
     assert.strictEqual(response.status, 401);
-    assert.deepStrictEqual(response.body, { error: "sesión no iniciada" });
+    assert.deepStrictEqual(response.body, { error: "token inválido" });
   });
 
   test("con el usuario existente deja pasar con request.userId", async () => {
@@ -68,24 +70,10 @@ describe("createWithUser: usuario inexistente (spec 002, RF-22)", () => {
   });
 });
 
-describe("createWithExistingUser (RF-44, DP-37)", () => {
-  test("usuario eliminado: 401 «sesión no iniciada»", async () => {
-    userExists(false);
-    const response = await sessionRequest(await appWith(createWithExistingUser({ jwtSecret: SECRET, now })));
-    assert.strictEqual(response.status, 401);
-    assert.deepStrictEqual(response.body, { error: "sesión no iniciada" });
-  });
-
-  test("usuario existente: deja pasar con request.userId", async () => {
+describe("createWithUser: pasos 1 a 4 de la sesión (spec 002, RF-24)", () => {
+  test("sin cookie «sesión no iniciada», sin comprobante «token inválido», expirada «sesión expirada»", async () => {
     userExists(true);
-    const response = await sessionRequest(await appWith(createWithExistingUser({ jwtSecret: SECRET, now })));
-    assert.strictEqual(response.status, 200);
-    assert.deepStrictEqual(response.body, { userId: USER_ID });
-  });
-
-  test("los pasos 1 a 4 no cambian: sin cookie «sesión no iniciada», sin comprobante «token inválido», expirada «sesión expirada»", async () => {
-    userExists(true);
-    const app = await appWith(createWithExistingUser({ jwtSecret: SECRET, now }));
+    const app = await appWith(createWithUser({ jwtSecret: SECRET, now }));
     const withoutCookie = await supertest(app).get("/protegida").set(CSRF_HEADER, CSRF);
     assert.strictEqual(withoutCookie.status, 401);
     assert.deepStrictEqual(withoutCookie.body, { error: "sesión no iniciada" });
@@ -106,7 +94,7 @@ describe("createWithExistingUser (RF-44, DP-37)", () => {
 
   test("no consulta la base si la credencial falla antes", async () => {
     const exists = mock.method(User, "exists", async () => null);
-    const app = await appWith(createWithExistingUser({ jwtSecret: SECRET, now }));
+    const app = await appWith(createWithUser({ jwtSecret: SECRET, now }));
     await supertest(app).get("/protegida");
     assert.strictEqual(exists.mock.callCount(), 0);
   });

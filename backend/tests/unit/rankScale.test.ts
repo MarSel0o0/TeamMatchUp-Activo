@@ -3,7 +3,6 @@ import assert from "node:assert/strict";
 import { GAMES, GAME_IDS, isGameId } from "../../src/domain/games.ts";
 import type { GameId } from "../../src/domain/games.ts";
 import {
-  generationRange,
   ladder,
   normalizeRank,
   normalizeStep,
@@ -134,6 +133,28 @@ describe("normalización (DP-26, criterios de la spec)", () => {
     assert.equal(normalizeRank("lol", "Diamond"), 80);
   });
 
+  test("tier y división se comparan de forma exacta: «master», «iv» y « IV» (T26, DP-26, RF-48)", () => {
+    // Tier en minúscula: no está en la escala, vale 0 (el Master exacto vale 93).
+    assert.equal(normalizeRank("lol", "master"), 0);
+    assert.equal(normalizeRank("lol", "Master"), 93);
+    assert.equal(stepIndexOf("lol", "master"), null);
+    assert.equal(normalizeRank("lol", "gold", "I"), 0);
+    // División en minúscula o con espacio inicial: desconocida, cuenta como la más baja.
+    assert.equal(normalizeRank("lol", "Gold", "iv"), normalizeRank("lol", "Gold", "IV"));
+    assert.equal(normalizeRank("lol", "Gold", " IV"), normalizeRank("lol", "Gold", "IV"));
+    assert.equal(normalizeRank("lol", "Gold", "iii"), normalizeRank("lol", "Gold", "IV"));
+    assert.equal(normalizeRank("lol", "Gold", " III"), normalizeRank("lol", "Gold", "IV"));
+    assert.equal(normalizeRank("lol", "Gold", "III") > normalizeRank("lol", "Gold", "IV"), true);
+    assert.equal(normalizeRank("lol", "Gold", "IV"), 40); // escalón 12 de 31: round(12 * 100 / 30)
+    assert.equal(normalizeRank("r6", "Gold", "v"), normalizeRank("r6", "Gold", "V"));
+    assert.equal(normalizeRank("r6", "Gold", " V"), normalizeRank("r6", "Gold", "V"));
+    assert.equal(stepIndexOf("lol", "Gold", "iv"), stepIndexOf("lol", "Gold", "IV"));
+    assert.equal(stepIndexOf("lol", "Gold", " IV"), stepIndexOf("lol", "Gold", "IV"));
+    // Un tier con espacios alrededor tampoco se recorta.
+    assert.equal(normalizeRank("lol", " Gold", "I"), 0);
+    assert.equal(normalizeRank("lol", "Gold ", "I"), 0);
+  });
+
   test("normalizeStep = round(paso * 100 / (tamaño - 1)) y coincide con normalizeRank", () => {
     for (const gameId of GAME_IDS) {
       const steps = ladder(gameId);
@@ -152,63 +173,49 @@ describe("normalización (DP-26, criterios de la spec)", () => {
   });
 });
 
-describe("bandas de puntos y rango de generación (DP-34, plan sección 3)", () => {
-  test("LoL: 0–99 con división; Master+ ≥ 0 y genera 0–999", () => {
+describe("bandas de puntos cerradas (DP-34, plan sección 3)", () => {
+  test("LoL: 0–99 con división; Master, Grandmaster y Challenger 0–999", () => {
     for (let i = 0; i <= 27; i++) {
       assert.deepEqual(pointsBand("lol", i), { min: 0, max: 99 }, `${i}`);
-      assert.deepEqual(generationRange("lol", i), { min: 0, max: 99 }, `${i}`);
     }
     for (const i of [28, 29, 30]) {
-      assert.deepEqual(pointsBand("lol", i), { min: 0, max: null }, `${i}`);
-      assert.deepEqual(generationRange("lol", i), { min: 0, max: 999 }, `${i}`);
+      assert.deepEqual(pointsBand("lol", i), { min: 0, max: 999 }, `${i}`);
     }
   });
 
-  test("CS2: bandas de 5000; Gold ≥ 30000 y genera 30000–34999", () => {
-    const expected: [number, number][] = [
-      [0, 4999],
-      [5000, 9999],
-      [10000, 14999],
-      [15000, 19999],
-      [20000, 24999],
-      [25000, 29999],
-    ];
-    expected.forEach(([min, max], i) => {
-      assert.deepEqual(pointsBand("cs2", i), { min, max }, `${i}`);
-      assert.deepEqual(generationRange("cs2", i), { min, max }, `${i}`);
-    });
-    assert.deepEqual(pointsBand("cs2", 6), { min: 30000, max: null });
-    assert.deepEqual(generationRange("cs2", 6), { min: 30000, max: 34999 });
+  test("CS2: bandas de 5000; Gold 30000–34999", () => {
+    for (let i = 0; i <= 5; i++) {
+      assert.deepEqual(pointsBand("cs2", i), { min: 5000 * i, max: 5000 * i + 4999 }, `${i}`);
+    }
+    assert.deepEqual(pointsBand("cs2", 0), { min: 0, max: 4999 });
+    assert.deepEqual(pointsBand("cs2", 5), { min: 25000, max: 29999 });
+    assert.deepEqual(pointsBand("cs2", 6), { min: 30000, max: 34999 });
   });
 
-  test("R6: 100 por división desde Copper V 1000–1099; Champion ≥ 4500 y genera 4500–4999", () => {
+  test("R6: 100 por división desde Copper V 1000–1099; Champion 4500–4999", () => {
     for (let i = 0; i <= 34; i++) {
       const min = 1000 + 100 * i;
       assert.deepEqual(pointsBand("r6", i), { min, max: min + 99 }, `${i}`);
-      assert.deepEqual(generationRange("r6", i), { min, max: min + 99 }, `${i}`);
     }
     assert.deepEqual(pointsBand("r6", 0), { min: 1000, max: 1099 });
     assert.deepEqual(pointsBand("r6", 4), { min: 1400, max: 1499 });
     assert.deepEqual(pointsBand("r6", 34), { min: 4400, max: 4499 });
-    assert.deepEqual(pointsBand("r6", 35), { min: 4500, max: null });
-    assert.deepEqual(generationRange("r6", 35), { min: 4500, max: 4999 });
+    assert.deepEqual(pointsBand("r6", 35), { min: 4500, max: 4999 });
   });
 
-  test("el rango de generación siempre está dentro de la banda", () => {
+  test("todos los escalones tienen un tope numérico entero mayor o igual que el mínimo", () => {
     for (const gameId of GAME_IDS) {
       ladder(gameId).forEach((_step, i) => {
         const band = pointsBand(gameId, i);
-        const range = generationRange(gameId, i);
-        assert.ok(Number.isInteger(range.min) && Number.isInteger(range.max), `${gameId} ${i}`);
-        assert.ok(range.min <= range.max, `${gameId} ${i}`);
-        assert.ok(range.min >= band.min, `${gameId} ${i}`);
-        assert.ok(band.max === null || range.max <= band.max, `${gameId} ${i}`);
+        assert.equal(typeof band.max, "number", `${gameId} ${i}`);
+        assert.ok(Number.isInteger(band.min) && Number.isInteger(band.max), `${gameId} ${i}`);
+        assert.ok(band.min <= band.max, `${gameId} ${i}`);
       });
     }
   });
 
-  test("bandas y rangos rechazan posiciones fuera de la escala", () => {
+  test("las bandas rechazan posiciones fuera de la escala", () => {
     assert.throws(() => pointsBand("lol", 31), RangeError);
-    assert.throws(() => generationRange("r6", -1), RangeError);
+    assert.throws(() => pointsBand("r6", -1), RangeError);
   });
 });

@@ -15,13 +15,16 @@
 //   la propia (§3.7: RF-10, RF-13, RF-14, RF-18, RF-22, RNF-1).
 // - `DELETE /:id` eliminar la propia cuenta (§3.5: RF-10, RF-11, RF-22): un único
 //   `deleteOne` del usuario de la sesión, que se lleva su disponibilidad (D1), y el borrado
-//   de la cookie con los mismos atributos que la emisión (D8 de la 002).
+//   de la cookie con los mismos atributos que la emisión (D8 de la 002); desde la spec 004
+//   va dentro de la cascada de cuentas (ver abajo).
 //
 // Spec 004 (plan, secciones 6 y 8; T9): RF-12, RF-13, RF-14, RF-29, RF-37, RF-39, RF-44.
-// - `GET /:id/games/:gameId` resumen por juego. La guardia usa `withExistingUser` para esta
-//   ruta (401 "sesión no iniciada" con la credencial de un usuario eliminado, P-14).
-// - `DELETE /:id` borra también las cuentas de juego del usuario, **después** de
-//   `User.deleteOne` (P-7): una vinculación intercalada nunca deja una cuenta suya.
+// - `GET /:id/games/:gameId` resumen por juego. La guardia usa `withUser` también para esta
+//   ruta (401 "token inválido" con la credencial de un usuario eliminado, RF-44).
+// - `DELETE /:id` borra también las cuentas de juego del usuario con una cascada ordenada
+//   (T10, plan 6.8, P-20): cuentas (C1), usuario (C2) y barrido de cuentas en `finally`
+//   (C3). El usuario es lo último que desaparece: tras un 500 solo valen el estado (1) (el
+//   usuario sigue, con las cuentas que queden) o el (2) (ni usuario ni cuentas suyas).
 import { Router } from "express";
 import mongoose from "mongoose";
 import { User, toOwnUserJson, toPublicUserJson } from "../models/user.ts";
@@ -39,7 +42,7 @@ import type { SimulatedMatch } from "../domain/rankSimulator.ts";
 import { GameAccount, toGameAccountJson } from "../models/gameAccount.ts";
 import type { GameAccountDocument } from "../models/gameAccount.ts";
 import type { NodeEnv } from "../utils/config.ts";
-import { createUserRoutesGuard, createWithExistingUser, createWithUser } from "../utils/middleware.ts";
+import { createUserRoutesGuard, createWithUser } from "../utils/middleware.ts";
 
 export interface UsersRouterOptions {
   jwtSecret: string;
@@ -93,7 +96,6 @@ export function createUsersRouter({ jwtSecret, nodeEnv, now }: UsersRouterOption
   const router = Router();
   const cookieOptions = sessionCookieOptions(nodeEnv);
   const withUser = createWithUser({ jwtSecret, now });
-  const withExistingUser = createWithExistingUser({ jwtSecret, now });
 
   router.post("/", async (request, response) => {
     const validation = validateRegistration(request.body);
@@ -131,7 +133,7 @@ export function createUsersRouter({ jwtSecret, nodeEnv, now }: UsersRouterOption
 
   // Desde aquí, las rutas de la spec 003: la guardia ya comprobó la sesión (RF-1) y que el
   // segmento se puede decodificar (RF-5). `withUser` no se repite en cada ruta.
-  router.use(createUserRoutesGuard({ withUser, withExistingUser }));
+  router.use(createUserRoutesGuard({ withUser }));
 
   // RF-2: todos, por fecha de creación y, si empatan, por identificador (D10: lista blanca).
   router.get("/", async (request, response) => {
@@ -204,11 +206,24 @@ export function createUsersRouter({ jwtSecret, nodeEnv, now }: UsersRouterOption
       response.status(403).json({ error: USER_TARGET_MESSAGES.forbidden }); // RF-10
       return;
     }
-    // RF-11: usuario y disponibilidad en una sola operación (D1). Con `deletedCount` 0 (una
-    // segunda eliminación en curso) la respuesta es la misma: idempotente, nunca 500 (RF-22).
-    await User.deleteOne({ _id: sessionUserId });
-    // Spec 004, RF-14 y RF-39: después del usuario, sus cuentas de juego (P-7).
+    // Spec 004, RF-14, RF-47 y DP-42 (plan, 6.8, P-20): el usuario es lo último que se borra,
+    // así que ninguna cuenta se queda sin dueño aunque la eliminación falle. Las llamadas son
+    // métodos estáticos sin encadenar para que las pruebas las sustituyan.
+    // C1: las cuentas primero. Si lanza, el usuario sigue (estado 1 con todas o algunas).
     await GameAccount.deleteMany({ user: sessionUserId });
+    try {
+      // C2: el usuario y su disponibilidad en una sola operación (spec 003, RF-11, D1). Con
+      // `deletedCount` 0 (una segunda eliminación en curso) la respuesta es la misma:
+      // idempotente, nunca 500 (RF-22).
+      await User.deleteOne({ _id: sessionUserId });
+    } finally {
+      // C3: barrido de la cuenta que una vinculación en curso haya creado entre C1 y C2,
+      // también si C2 lanza (estado 1 sin cuentas, o estado 2 si ya borró al usuario).
+      await GameAccount.deleteMany({ user: sessionUserId });
+    }
+    // La cookie solo se borra si terminaron C1, C2 y C3: tras un 500 la sesión sigue sirviendo
+    // para repetir la eliminación mientras el usuario exista (la spec 006 insertará sus
+    // sesiones antes de C2 con el mismo patrón).
     response.clearCookie(SESSION_COOKIE, cookieOptions); // mismos atributos que la emisión
     response.status(204).end();
   });
@@ -276,7 +291,7 @@ export function createUsersRouter({ jwtSecret, nodeEnv, now }: UsersRouterOption
       return;
     }
     if ((await User.exists({ _id: target.id })) === null) {
-      response.status(404).json({ error: ACCOUNT_ERRORS.userNotFound });
+      response.status(404).json({ error: USER_TARGET_MESSAGES.userNotFound });
       return;
     }
     const account = await GameAccount.findOne({ user: target.id, gameId });

@@ -1,5 +1,5 @@
 // Cuentas de juego: `/api/accounts` (spec 004, plan, secciones 6, 7, 8, 9 y 11).
-// T6: listar, obtener y vincular. RF-1, RF-2, RF-3, RF-4, RF-5, RF-6, RF-7, RF-29, RF-33,
+// T6: listar, obtener y vincular. RF-1, RF-2, RF-3, RF-4, RF-5, RF-6, RF-7, RF-29,
 // RF-37, RF-44, RNF-2, RNF-3.
 // - Valores exactos (RNF-1, P-13): el esperado se calcula con las funciones puras
 //   (`simulateReading` + `initialState`) y el mismo instante fijo (`FIXED_NOW`), y se compara
@@ -19,7 +19,6 @@ import { connectDatabase } from "../../src/server.ts";
 import { SESSION_MESSAGES } from "../../src/services/sessionToken.ts";
 import { clock } from "../../src/utils/clock.ts";
 import { MESSAGES } from "../../src/utils/errors.ts";
-import { ACCOUNT_ERRORS } from "../../src/domain/accountRules.ts";
 import { applySync, initialState, shouldAppendSnapshot } from "../../src/domain/accountState.ts";
 import type { AccountState } from "../../src/domain/accountState.ts";
 import { canonicalHandle, simulateReading } from "../../src/domain/rankSimulator.ts";
@@ -32,10 +31,16 @@ import {
   ISO_MS_Z,
   accountsInDb,
   authApp,
+  bodyId,
   closeTestServers,
+  edit,
+  link,
+  linkOk,
   nonExistingId,
   rawAccountsInDb,
   signUp,
+  sync,
+  unlink,
   withSession,
 } from "./helpers.ts";
 import type { SignedUp } from "./helpers.ts";
@@ -44,6 +49,30 @@ const app = await authApp();
 
 const ANA = { email: "ana@example.com", username: "Ana" } as const;
 const BETO = { email: "beto@example.com", username: "Beto" } as const;
+
+// Textos exactos de la spec 004 (RF-2, RF-3, RF-5, RF-6, RF-11, RF-13, RF-22, RF-29, RF-38,
+// DP-6), escritos como literales: no se importan de `ACCOUNT_ERRORS` (plan, P-23).
+const ERR = {
+  invalidId: "id con formato inválido",
+  invalidGame: "juego no válido",
+  invalidHandle: {
+    lol: "Riot ID no válido: usa el formato Nombre#TAG, con 3 a 16 caracteres antes de # y 2 a 5 letras o dígitos después",
+    r6: "Ubisoft ID no válido: usa de 3 a 20 letras, dígitos, punto, guion o guion bajo",
+    cs2: "SteamID64 no válido: son 17 dígitos que empiezan por 7656119",
+  },
+  invalidRegion: {
+    lol: "región no válida para League of Legends",
+    r6: "región no válida para Rainbow Six Siege",
+    cs2: "región no válida para Counter-Strike 2",
+  },
+  duplicate: "ya tienes una cuenta vinculada en este juego",
+  handleNotEditable:
+    "el identificador del juego no se puede editar: desvincula la cuenta y vuelve a vincularla",
+  forbidden: "no tienes permiso para esta operación",
+  accountNotFound: "cuenta no encontrada",
+  userNotFound: "usuario no encontrado",
+  noAccountForGame: "el jugador no tiene una cuenta vinculada en este juego",
+} as const;
 
 // Una cuenta válida por juego (región con la grafía de la lista).
 const LINKS = {
@@ -168,13 +197,6 @@ function expectedRawAccount(
   };
 }
 
-function bodyId(response: Response): string {
-  const body: unknown = response.body;
-  const id: unknown = typeof body === "object" && body !== null ? Reflect.get(body, "id") : undefined;
-  assert.ok(typeof id === "string", "la respuesta debería traer el id de la cuenta");
-  return id;
-}
-
 // RNF-3, RF-37: forma exacta de una cuenta y ninguna mención de fuentes reales (RNF-2).
 function assertAccountShape(account: unknown): void {
   assert.ok(typeof account === "object" && account !== null);
@@ -188,22 +210,6 @@ function assertAccountShape(account: unknown): void {
   assert.ok(typeof current === "object" && current !== null);
   assert.match(String(Reflect.get(current, "recordedAt")), ISO_MS_Z);
   assert.doesNotMatch(JSON.stringify(account), REAL_SOURCES);
-}
-
-function link(session: SignedUp, body: unknown): supertest.Test {
-  return withSession(session.agent.post("/api/accounts"), session.csrf).send(body as object);
-}
-
-async function linkOk(session: SignedUp, body: unknown): Promise<string> {
-  const response = await link(session, body);
-  assert.strictEqual(response.status, 201);
-  return bodyId(response);
-}
-
-async function accountIdsOf(userId: string): Promise<string[]> {
-  const user = await User.findById(userId).lean();
-  assert.ok(user !== null);
-  return user.accounts.map((id) => id.toString());
 }
 
 describe("sesión (RF-1, RF-44)", () => {
@@ -229,12 +235,12 @@ describe("sesión (RF-1, RF-44)", () => {
       assert.deepStrictEqual(await rawAccountsInDb(), []);
     });
 
-    test(`${operation.name} con credencial de usuario eliminado → 401 "sesión no iniciada"`, async (t) => {
+    test(`${operation.name} con credencial de usuario eliminado → 401 "token inválido"`, async (t) => {
       fixClock(t);
       const ana = await signUp(app, ANA);
       await User.deleteOne({ _id: ana.id });
       const response = await withSession(ana.agent[operation.method](operation.path), ana.csrf).send(LINKS.lol);
-      assertStatusError(response, 401, SESSION_MESSAGES.notLoggedIn);
+      assertStatusError(response, 401, SESSION_MESSAGES.invalidToken);
       assert.deepStrictEqual(await rawAccountsInDb(), []);
     });
   }
@@ -314,6 +320,100 @@ describe("listar", () => {
     assert.deepStrictEqual(response.body, []);
   });
 
+  // RF-14, P-21: cuenta sin dueño (el usuario se borra con el driver, sin la cascada). Beto
+  // vincula lol y cs2 y se borra; Ana y Carla conservan sus cuentas.
+  async function seedWithOrphans(t: TestContext): Promise<{ ana: SignedUp; beto: SignedUp; carla: SignedUp }> {
+    fixClock(t);
+    const ana = await signUp(app, ANA);
+    const beto = await signUp(app, BETO);
+    const carla = await signUp(app, { email: "carla@example.com", username: "Carla" });
+    await linkOk(beto, LINKS.lol);
+    await linkOk(ana, LINKS.lol);
+    await linkOk(beto, LINKS.cs2);
+    await linkOk(carla, LINKS.r6);
+    await linkOk(ana, LINKS.r6);
+    const deleted = await User.collection.deleteOne({ _id: new mongoose.Types.ObjectId(beto.id) });
+    assert.strictEqual(deleted.deletedCount, 1);
+    assert.strictEqual(await GameAccount.countDocuments({ user: beto.id }), 2);
+    return { ana, beto, carla };
+  }
+
+  function userIdOf(account: unknown): unknown {
+    return typeof account === "object" && account !== null ? Reflect.get(account, "userId") : undefined;
+  }
+
+  test("RF-14: sin filtro no incluye las cuentas sin dueño y conserva el orden por id", async (t) => {
+    const { ana, beto } = await seedWithOrphans(t);
+    const response = await list(ana, "");
+    assert.strictEqual(response.status, 200);
+    const expected = byFilter(await accountsInDb(), (account) => account.userId !== beto.id);
+    assert.strictEqual(expected.length, 3);
+    assert.deepStrictEqual(response.body, expected);
+    assert.ok((response.body as unknown[]).every((account) => userIdOf(account) !== beto.id));
+    for (const account of response.body as unknown[]) assertAccountShape(account);
+  });
+
+  test("RF-14: con game no incluye las cuentas sin dueño", async (t) => {
+    const { ana, beto } = await seedWithOrphans(t);
+    for (const gameId of ["lol", "cs2", "r6"] as const) {
+      const response = await list(ana, `?game=${gameId}`);
+      assert.strictEqual(response.status, 200);
+      const expected = byFilter(
+        await accountsInDb(),
+        (account) => account.gameId === gameId && account.userId !== beto.id,
+      );
+      assert.deepStrictEqual(response.body, expected);
+    }
+    assert.strictEqual(((await list(ana, "?game=cs2")).body as unknown[]).length, 0);
+    assert.strictEqual(((await list(ana, "?game=lol")).body as unknown[]).length, 1);
+  });
+
+  test("RF-14: user=<id borrado> → 200 con lista vacía (con y sin game)", async (t) => {
+    const { ana, beto } = await seedWithOrphans(t);
+    for (const query of [`?user=${beto.id}`, `?user=${beto.id}&game=lol`]) {
+      const response = await list(ana, query);
+      assert.strictEqual(response.status, 200);
+      assert.deepStrictEqual(response.body, []);
+    }
+  });
+
+  test("RF-14: las cuentas de los demás usuarios siguen saliendo en ambos filtros", async (t) => {
+    const { ana, carla } = await seedWithOrphans(t);
+    const byUser = await list(ana, `?user=${carla.id}`);
+    assert.strictEqual(byUser.status, 200);
+    assert.deepStrictEqual(byUser.body, byFilter(await accountsInDb(), (account) => account.userId === carla.id));
+    assert.strictEqual((byUser.body as unknown[]).length, 1);
+    const mine = await list(ana, "?user=me");
+    assert.deepStrictEqual(mine.body, byFilter(await accountsInDb(), (account) => account.userId === ana.id));
+    assert.strictEqual((mine.body as unknown[]).length, 2);
+  });
+
+  test("RF-14: dos listados seguidos dan el mismo orden, el de los id en minúsculas ascendentes", async (t) => {
+    const { ana } = await seedWithOrphans(t);
+    const first = await list(ana, "");
+    const second = await list(ana, "");
+    assert.strictEqual(first.status, 200);
+    assert.deepStrictEqual(second.body, first.body);
+    const ids = (first.body as unknown[]).map((account) => String(Reflect.get(account as object, "id")));
+    assert.strictEqual(ids.length, 3);
+    for (const id of ids) assert.match(id, HEX24_LOWER);
+    assert.deepStrictEqual(ids, [...ids].sort());
+  });
+
+  test("RF-14: una cuenta insertada con un dueño que nunca existió tampoco aparece", async (t) => {
+    const { ana } = await seed(t);
+    const before = (await list(ana, "")).body as unknown[];
+    const orphan = await GameAccount.collection.insertOne({
+      ...(await rawAccountsInDb())[0],
+      _id: new mongoose.Types.ObjectId(),
+      user: new mongoose.Types.ObjectId(),
+    });
+    assert.ok(orphan.acknowledged);
+    assert.strictEqual(await GameAccount.countDocuments({}), 5);
+    const response = await list(ana, "");
+    assert.deepStrictEqual(response.body, before);
+  });
+
   test("game=lol → solo las de ese juego", async (t) => {
     const { ana } = await seed(t);
     const response = await list(ana, "?game=lol");
@@ -344,7 +444,7 @@ describe("listar", () => {
   for (const { name, query } of invalidUser) {
     test(`${name} → 400 "id con formato inválido"`, async (t) => {
       const { ana } = await seed(t);
-      assertStatusError(await list(ana, query), 400, ACCOUNT_ERRORS.invalidId);
+      assertStatusError(await list(ana, query), 400, ERR.invalidId);
     });
   }
 
@@ -355,11 +455,198 @@ describe("listar", () => {
     { name: "user válido y game inválido", query: "?user=me&game=dota" },
   ];
   for (const { name, query } of invalidGame) {
-    test(`${name} → 400 "Juego no válido."`, async (t) => {
+    test(`${name} → 400 "juego no válido"`, async (t) => {
       const { ana } = await seed(t);
-      assertStatusError(await list(ana, query), 400, ACCOUNT_ERRORS.invalidGame);
+      assertStatusError(await list(ana, query), 400, ERR.invalidGame);
     });
   }
+
+  // T21 (RF-2, DP-10, DP-38): `me` exacto, ya decodificado; todo lo demás con formato propio.
+  describe("filtros estrictos (RF-2)", () => {
+    const strictUser = [
+      { name: "user=Me", query: "?user=Me" },
+      { name: "user=ME", query: "?user=ME" },
+      { name: "user=%20me (espacio)", query: "?user=%20me" },
+      { name: "user=me%20 (espacio final)", query: "?user=me%20" },
+      { name: "user=%zz (codificación mal formada)", query: "?user=%zz" },
+      { name: "user= (vacío)", query: "?user=" },
+      { name: "user repetido con dos identificadores", query: "?user=aaaaaaaaaaaaaaaaaaaaaaaa&user=aaaaaaaaaaaaaaaaaaaaaaaa" },
+      { name: "user=%zz con game inválido → solo el de user", query: "?user=%zz&game=xyz" },
+      { name: "user=abc&game=xyz → solo el de user", query: "?user=abc&game=xyz" },
+      { name: "user= con game inválido → solo el de user", query: "?user=&game=LOL" },
+    ];
+    for (const { name, query } of strictUser) {
+      test(`${name} → 400 "id con formato inválido"`, async (t) => {
+        const { ana } = await seed(t);
+        assertStatusError(await list(ana, query), 400, ERR.invalidId);
+      });
+    }
+
+    test("user=m%65 (se decodifica a me) → 200 con las cuentas del usuario de la sesión", async (t) => {
+      const { ana } = await seed(t);
+      const response = await list(ana, "?user=m%65");
+      assert.strictEqual(response.status, 200);
+      const expected = byFilter(await accountsInDb(), (account) => account.userId === ana.id);
+      assert.strictEqual(expected.length, 2);
+      assert.deepStrictEqual(response.body, expected);
+      assert.deepStrictEqual(response.body, (await list(ana, "?user=me")).body);
+    });
+
+    const strictGame = [
+      { name: "game=LOL", query: "?game=LOL" },
+      { name: "game=%20lol (espacio)", query: "?game=%20lol" },
+      { name: "game= (vacío)", query: "?game=" },
+      { name: "game=lol&game=cs2 (repetido)", query: "?game=lol&game=cs2" },
+      { name: "user=me&game=LOL", query: "?user=me&game=LOL" },
+    ];
+    for (const { name, query } of strictGame) {
+      test(`${name} → 400 "juego no válido"`, async (t) => {
+        const { ana } = await seed(t);
+        assertStatusError(await list(ana, query), 400, ERR.invalidGame);
+      });
+    }
+
+    // Los nombres se comparan exactamente: `User`, `user[]` y `page` son otros nombres (DP-38).
+    const ignored = [
+      { name: "page=2", query: "?page=2" },
+      { name: "User=abc", query: "?User=abc" },
+      { name: "user[]=abc", query: "?user[]=abc" },
+      { name: "Game=xyz", query: "?Game=xyz" },
+      { name: "page=2&User=abc&user[]=abc", query: "?page=2&User=abc&user[]=abc" },
+    ];
+    for (const { name, query } of ignored) {
+      test(`${name} se ignora → 200 con la lista completa`, async (t) => {
+        const { ana } = await seed(t);
+        const response = await list(ana, query);
+        assert.strictEqual(response.status, 200);
+        assert.deepStrictEqual(response.body, await accountsInDb());
+        assert.strictEqual((response.body as unknown[]).length, 4);
+      });
+    }
+
+    test("un parámetro ignorado no cambia los filtros válidos que lo acompañan", async (t) => {
+      const { ana } = await seed(t);
+      const response = await list(ana, "?page=2&user=me&User=abc&game=r6");
+      assert.strictEqual(response.status, 200);
+      assert.deepStrictEqual(
+        response.body,
+        byFilter(await accountsInDb(), (account) => account.userId === ana.id && account.gameId === "r6"),
+      );
+    });
+
+    test("los filtros inválidos no dependen de que la lista tenga cuentas", async (t) => {
+      fixClock(t);
+      const ana = await signUp(app, ANA);
+      assertStatusError(await list(ana, "?user=Me"), 400, ERR.invalidId);
+      assertStatusError(await list(ana, "?game=LOL"), 400, ERR.invalidGame);
+      assert.deepStrictEqual((await list(ana, "?page=2")).body, []);
+    });
+  });
+});
+
+// T21 (RF-29): la interpretación del cuerpo (spec 001) va antes que la sesión, en todas las
+// operaciones de `/api/accounts`, aunque no lean el cuerpo (DELETE y sync). Cada caso se
+// prueba sin sesión (el error del cuerpo y nunca el 401) y con sesión (el mismo error, sin
+// ejecutar la operación: la cuenta de Ana queda intacta).
+describe("cuerpo antes que sesión (RF-29)", () => {
+  const BODY_LIMIT = 102_400;
+
+  // Arma `{"a":"xxx…"}` con exactamente `bytes` bytes.
+  function jsonBodyOfBytes(bytes: number): string {
+    const wrapperBytes = Buffer.byteLength('{"a":""}');
+    const body = `{"a":"${"x".repeat(bytes - wrapperBytes)}"}`;
+    assert.strictEqual(Buffer.byteLength(body), bytes);
+    return body;
+  }
+
+  type Method = "post" | "put" | "delete";
+  interface Operation {
+    name: string;
+    method: Method;
+    path: (accountId: string) => string;
+  }
+  const operations: readonly Operation[] = [
+    { name: "POST /api/accounts", method: "post", path: () => "/api/accounts" },
+    { name: "PUT /api/accounts/:id", method: "put", path: (id) => `/api/accounts/${id}` },
+    { name: "DELETE /api/accounts/:id", method: "delete", path: (id) => `/api/accounts/${id}` },
+    { name: "POST /api/accounts/:id/sync", method: "post", path: (id) => `/api/accounts/${id}/sync` },
+  ];
+
+  interface BodyCase {
+    name: string;
+    status: number;
+    error: string;
+    body: string;
+    encoding?: string;
+  }
+  const bodyCases: readonly BodyCase[] = [
+    { name: 'JSON truncado {"a":', status: 400, error: "JSON mal formado", body: '{"a":' },
+    { name: "cuerpo de 102 401 bytes", status: 413, error: "cuerpo demasiado grande", body: jsonBodyOfBytes(BODY_LIMIT + 1) },
+    {
+      name: "codificación no soportada",
+      status: 415,
+      error: "codificación no soportada",
+      body: '{"a":1}',
+      encoding: "desconocida",
+    },
+    { name: 'cuerpo JSON "x"', status: 400, error: "JSON mal formado", body: '"x"' },
+    { name: "cuerpo JSON 5", status: 400, error: "JSON mal formado", body: "5" },
+    { name: "cuerpo JSON true", status: 400, error: "JSON mal formado", body: "true" },
+    { name: "cuerpo JSON false", status: 400, error: "JSON mal formado", body: "false" },
+    { name: "cuerpo JSON null", status: 400, error: "JSON mal formado", body: "null" },
+  ];
+
+  function raw(request: supertest.Test, body: string, encoding: string | undefined): supertest.Test {
+    const json = request.set("Content-Type", "application/json");
+    return (encoding === undefined ? json : json.set("Content-Encoding", encoding)).send(body);
+  }
+
+  for (const operation of operations) {
+    for (const bodyCase of bodyCases) {
+      test(`${operation.name} con ${bodyCase.name} → ${bodyCase.status} "${bodyCase.error}", con y sin sesión`, async (t) => {
+        fixClock(t);
+        const ana = await signUp(app, ANA);
+        const accountId = await linkOk(ana, LINKS.lol);
+        const before = await rawAccountsInDb();
+        const path = operation.path(accountId);
+
+        // Sin sesión: el error del cuerpo, no el 401.
+        const anonymous = await raw(supertest(app)[operation.method](path), bodyCase.body, bodyCase.encoding);
+        assertStatusError(anonymous, bodyCase.status, bodyCase.error);
+
+        // Con sesión y comprobante: el mismo error, sin tocar la cuenta.
+        const request = withSession(ana.agent[operation.method](path), ana.csrf);
+        assertStatusError(await raw(request, bodyCase.body, bodyCase.encoding), bodyCase.status, bodyCase.error);
+
+        // Con credencial de usuario eliminado: sigue ganando el cuerpo (antes que "token inválido").
+        const other = await signUp(app, BETO);
+        await User.deleteOne({ _id: other.id });
+        const stale = withSession(other.agent[operation.method](path), other.csrf);
+        assertStatusError(await raw(stale, bodyCase.body, bodyCase.encoding), bodyCase.status, bodyCase.error);
+
+        assert.deepStrictEqual(await rawAccountsInDb(), before);
+      });
+    }
+
+    test(`${operation.name} sin sesión y con cuerpo válido → 401 "sesión no iniciada"`, async (t) => {
+      fixClock(t);
+      const ana = await signUp(app, ANA);
+      const accountId = await linkOk(ana, LINKS.lol);
+      const before = await rawAccountsInDb();
+      const request = supertest(app)[operation.method](operation.path(accountId));
+      const response = await request.set("Content-Type", "application/json").send(JSON.stringify(LINKS.lol));
+      assertStatusError(response, 401, SESSION_MESSAGES.notLoggedIn);
+      assert.deepStrictEqual(await rawAccountsInDb(), before);
+    });
+  }
+
+  test("el 102 400 bytes exactos sí se acepta: sin sesión → 401, no 413", async () => {
+    const response = await supertest(app)
+      .post("/api/accounts")
+      .set("Content-Type", "application/json")
+      .send(jsonBodyOfBytes(BODY_LIMIT));
+    assertStatusError(response, 401, SESSION_MESSAGES.notLoggedIn);
+  });
 });
 
 describe("obtener", () => {
@@ -393,18 +680,34 @@ describe("obtener", () => {
     assert.strictEqual(bodyId(response), id);
   });
 
+  test("RF-14: cuenta cuyo dueño ya no existe → 404 \"cuenta no encontrada\"", async (t) => {
+    fixClock(t);
+    const ana = await signUp(app, ANA);
+    const beto = await signUp(app, BETO);
+    const orphanId = await linkOk(beto, LINKS.lol);
+    const otherId = await linkOk(ana, LINKS.lol);
+    await User.collection.deleteOne({ _id: new mongoose.Types.ObjectId(beto.id) });
+    assert.strictEqual(await GameAccount.countDocuments({ _id: orphanId }), 1);
+    for (const id of [orphanId, orphanId.toUpperCase()]) {
+      assertStatusError(await withSession(ana.agent.get(`/api/accounts/${id}`), ana.csrf), 404, ERR.accountNotFound);
+    }
+    const other = await withSession(ana.agent.get(`/api/accounts/${otherId}`), ana.csrf);
+    assert.strictEqual(other.status, 200);
+    assert.strictEqual(bodyId(other), otherId);
+  });
+
   for (const bad of ["abc", "me", `${"a".repeat(23)}g`, "a".repeat(25)]) {
     test(`id mal formado (${bad}) → 400 "id con formato inválido"`, async () => {
       const ana = await signUp(app, ANA);
       const response = await withSession(ana.agent.get(`/api/accounts/${bad}`), ana.csrf);
-      assertStatusError(response, 400, ACCOUNT_ERRORS.invalidId);
+      assertStatusError(response, 400, ERR.invalidId);
     });
   }
 
-  test("id inexistente → 404 \"Cuenta no encontrada.\"", async () => {
+  test("id inexistente → 404 \"cuenta no encontrada\"", async () => {
     const ana = await signUp(app, ANA);
     const response = await withSession(ana.agent.get(`/api/accounts/${nonExistingId()}`), ana.csrf);
-    assertStatusError(response, 404, ACCOUNT_ERRORS.accountNotFound);
+    assertStatusError(response, 404, ERR.accountNotFound);
   });
 
   test("%zz sin sesión → 401 \"sesión no iniciada\"", async () => {
@@ -415,7 +718,7 @@ describe("obtener", () => {
   test("%zz con sesión → 400 \"id con formato inválido\"", async () => {
     const ana = await signUp(app, ANA);
     const response = await withSession(ana.agent.get("/api/accounts/%zz"), ana.csrf);
-    assertStatusError(response, 400, ACCOUNT_ERRORS.invalidId);
+    assertStatusError(response, 400, ERR.invalidId);
   });
 });
 
@@ -437,12 +740,18 @@ describe("vincular", () => {
     });
   }
 
-  test("la cuenta se agrega a User.accounts y no aparece en las respuestas de usuario (RF-33)", async (t) => {
+  test("vincular no cambia ningún dato del usuario ni lo escribe, en los tres juegos (RF-46)", async (t) => {
     fixClock(t);
     const ana = await signUp(app, ANA);
-    const lol = await linkOk(ana, LINKS.lol);
-    const cs2 = await linkOk(ana, LINKS.cs2);
-    assert.deepStrictEqual(await accountIdsOf(ana.id), [lol, cs2]);
+    const before = await User.findById(ana.id).lean();
+    assert.ok(before !== null);
+    const writing = t.mock.method(User, "updateOne");
+    for (const gameId of ["lol", "r6", "cs2"] as const) {
+      await linkOk(ana, LINKS[gameId]);
+      assert.deepStrictEqual(await User.findById(ana.id).lean(), before, gameId);
+    }
+    assert.strictEqual(writing.mock.callCount(), 0);
+    assert.strictEqual((await rawAccountsInDb()).length, 3);
     const me = await withSession(ana.agent.get("/api/users/me"), ana.csrf);
     assert.strictEqual(me.status, 200);
     assert.strictEqual(Reflect.get(me.body as object, "accounts"), undefined);
@@ -480,18 +789,16 @@ describe("vincular", () => {
     const id = bodyId(response);
     assert.deepStrictEqual(response.body, expectedAccountJson(id, ana.id, LINKS.r6, state));
     assert.deepStrictEqual(await rawAccountsInDb(), [expectedRawAccount(id, ana.id, LINKS.r6, state)]);
-    assert.deepStrictEqual(await accountIdsOf(beto.id), []);
   });
 
   test("duplicado → 400 RF-5 y no se crea otra", async (t) => {
     fixClock(t);
     const ana = await signUp(app, ANA);
-    const id = await linkOk(ana, LINKS.lol);
+    await linkOk(ana, LINKS.lol);
     const before = await rawAccountsInDb();
     const response = await link(ana, { gameId: "lol", handle: "Otro#TAG", region: "NA" });
-    assertStatusError(response, 400, ACCOUNT_ERRORS.duplicate);
+    assertStatusError(response, 400, ERR.duplicate);
     assert.deepStrictEqual(await rawAccountsInDb(), before);
-    assert.deepStrictEqual(await accountIdsOf(ana.id), [id]);
   });
 
   test("dos vinculaciones simultáneas del mismo juego → un 201 y un 400 RF-5", async (t) => {
@@ -503,12 +810,11 @@ describe("vincular", () => {
     const created = responses.find((response) => response.status === 201);
     const rejected = responses.find((response) => response.status === 400);
     assert.ok(created !== undefined && rejected !== undefined);
-    assertStatusError(rejected, 400, ACCOUNT_ERRORS.duplicate);
+    assertStatusError(rejected, 400, ERR.duplicate);
     const id = bodyId(created);
     assert.deepStrictEqual(await rawAccountsInDb(), [
       expectedRawAccount(id, ana.id, LINKS.cs2, expectedState("cs2", LINKS.cs2.handle)),
     ]);
-    assert.deepStrictEqual(await accountIdsOf(ana.id), [id]);
   });
 
   test("otro juego del mismo usuario no es duplicado", async (t) => {
@@ -549,16 +855,17 @@ describe("vincular", () => {
   });
 
   const invalid = [
-    { name: "cuerpo vacío", body: {}, error: ACCOUNT_ERRORS.invalidGame },
-    { name: "juego inexistente", body: { ...LINKS.lol, gameId: "dota" }, error: ACCOUNT_ERRORS.invalidGame },
-    { name: "todo inválido → solo el juego", body: { gameId: 1, handle: null, region: null }, error: ACCOUNT_ERRORS.invalidGame },
-    { name: "identificador nulo (LoL)", body: { ...LINKS.lol, handle: null }, error: ACCOUNT_ERRORS.invalidHandle.lol },
-    { name: "identificador solo espacios (R6)", body: { ...LINKS.r6, handle: "   " }, error: ACCOUNT_ERRORS.invalidHandle.r6 },
-    { name: "identificador que no es texto (CS2)", body: { ...LINKS.cs2, handle: 7656119 }, error: ACCOUNT_ERRORS.invalidHandle.cs2 },
-    { name: "identificador y región inválidos → solo el identificador", body: { gameId: "r6", handle: "x", region: "" }, error: ACCOUNT_ERRORS.invalidHandle.r6 },
-    { name: "región vacía", body: { ...LINKS.lol, region: "" }, error: ACCOUNT_ERRORS.invalidRegion("lol") },
-    { name: "región de otro juego", body: { ...LINKS.cs2, region: "LAS" }, error: ACCOUNT_ERRORS.invalidRegion("cs2") },
-    { name: "región que no es texto", body: { ...LINKS.r6, region: 3 }, error: ACCOUNT_ERRORS.invalidRegion("r6") },
+    { name: "cuerpo vacío", body: {}, error: ERR.invalidGame },
+    { name: "juego inexistente", body: { ...LINKS.lol, gameId: "dota" }, error: ERR.invalidGame },
+    { name: "todo inválido → solo el juego", body: { gameId: 1, handle: null, region: null }, error: ERR.invalidGame },
+    { name: "identificador nulo (LoL)", body: { ...LINKS.lol, handle: null }, error: ERR.invalidHandle.lol },
+    { name: "identificador solo espacios (R6)", body: { ...LINKS.r6, handle: "   " }, error: ERR.invalidHandle.r6 },
+    { name: "identificador que no es texto (CS2)", body: { ...LINKS.cs2, handle: 7656119 }, error: ERR.invalidHandle.cs2 },
+    { name: "identificador y región inválidos → solo el identificador", body: { gameId: "r6", handle: "x", region: "" }, error: ERR.invalidHandle.r6 },
+    { name: "región vacía", body: { ...LINKS.lol, region: "" }, error: ERR.invalidRegion.lol },
+    { name: "región «KR» con signo de kelvin (DP-35)", body: { ...LINKS.lol, region: "\u212AR" }, error: ERR.invalidRegion.lol },
+    { name: "región de otro juego", body: { ...LINKS.cs2, region: "LAS" }, error: ERR.invalidRegion.cs2 },
+    { name: "región que no es texto", body: { ...LINKS.r6, region: 3 }, error: ERR.invalidRegion.r6 },
   ];
   for (const { name, body, error } of invalid) {
     test(`${name} → 400 "${error}" sin crear nada (RF-6)`, async (t) => {
@@ -566,7 +873,6 @@ describe("vincular", () => {
       const ana = await signUp(app, ANA);
       assertStatusError(await link(ana, body), 400, error);
       assert.deepStrictEqual(await rawAccountsInDb(), []);
-      assert.deepStrictEqual(await accountIdsOf(ana.id), []);
     });
   }
 
@@ -574,7 +880,7 @@ describe("vincular", () => {
     fixClock(t);
     const ana = await signUp(app, ANA);
     await linkOk(ana, LINKS.lol);
-    assertStatusError(await link(ana, { ...LINKS.lol, region: "XX" }), 400, ACCOUNT_ERRORS.invalidRegion("lol"));
+    assertStatusError(await link(ana, { ...LINKS.lol, region: "XX" }), 400, ERR.invalidRegion.lol);
   });
 
   test("ninguna respuesta de error menciona fuentes reales (RNF-2)", async (t) => {
@@ -590,15 +896,7 @@ describe("vincular", () => {
   });
 });
 
-// --- T7: editar y desvincular. RF-7, RF-8, RF-9, RF-11, RF-22, RF-29, RF-33, RF-38, RF-40 ---
-
-function edit(session: SignedUp, id: string, body: unknown): supertest.Test {
-  return withSession(session.agent.put(`/api/accounts/${id}`), session.csrf).send(body as object);
-}
-
-function unlink(session: SignedUp, id: string): supertest.Test {
-  return withSession(session.agent.delete(`/api/accounts/${id}`), session.csrf);
-}
+// --- T7: editar y desvincular. RF-7, RF-8, RF-9, RF-11, RF-22, RF-29, RF-38, RF-40 ---
 
 // Documento crudo sin `__v`: la versión es interna de la concurrencia optimista (DP-29).
 function withoutVersion(account: object): Record<string, unknown> {
@@ -634,7 +932,6 @@ describe("editar", () => {
     assert.deepStrictEqual(withoutVersion(after), { ...withoutVersion(before), region: "EUW" });
     assert.strictEqual(after.readingNumber, 0);
     assert.deepStrictEqual(after.lastSyncedAt, new Date(FIXED_NOW));
-    assert.deepStrictEqual(await accountIdsOf(ana.id), [id]);
   });
 
   test("región igual a la guardada con otra grafía → 200 sin cambios", async (t) => {
@@ -708,7 +1005,6 @@ describe("editar", () => {
     assert.strictEqual(response.status, 200);
     assert.deepStrictEqual(response.body, (await accountsInDb())[0]);
     assert.deepStrictEqual(await rawAccountsInDb(), before);
-    assert.deepStrictEqual(await accountIdsOf(beto.id), []);
   });
 
   test("un juego en el cuerpo se ignora aunque no exista; la región se valida con el juego de la cuenta (RF-7)", async (t) => {
@@ -725,7 +1021,7 @@ describe("editar", () => {
     assert.strictEqual(Reflect.get(otherGame.body as object, "gameId"), "lol");
     assert.strictEqual(Reflect.get(otherGame.body as object, "region"), "KR");
     // Región de R6 con un juego de R6 en el cuerpo: inválida para la cuenta de LoL.
-    assertStatusError(await edit(ana, id, { gameId: "r6", region: "LATAM" }), 400, ACCOUNT_ERRORS.invalidRegion("lol"));
+    assertStatusError(await edit(ana, id, { gameId: "r6", region: "LATAM" }), 400, ERR.invalidRegion.lol);
     const [after] = await rawAccountsInDb();
     assert.ok(after !== undefined);
     assert.deepStrictEqual(withoutVersion(after), { ...withoutVersion(before), region: "KR" });
@@ -742,8 +1038,8 @@ describe("editar", () => {
     test(`identificador ${name} → 400 RF-22 y la base no cambia`, async (t) => {
       const { ana, id } = await seedLol(t);
       const before = await rawAccountsInDb();
-      assertStatusError(await edit(ana, id, { handle }), 400, ACCOUNT_ERRORS.handleNotEditable);
-      assertStatusError(await edit(ana, id, { handle, region: "EUW" }), 400, ACCOUNT_ERRORS.handleNotEditable);
+      assertStatusError(await edit(ana, id, { handle }), 400, ERR.handleNotEditable);
+      assertStatusError(await edit(ana, id, { handle, region: "EUW" }), 400, ERR.handleNotEditable);
       assert.deepStrictEqual(await rawAccountsInDb(), before);
     });
   }
@@ -755,12 +1051,13 @@ describe("editar", () => {
     { name: "solo espacios", region: "   " },
     { name: "que no es texto", region: 3 },
     { name: "de otro juego", region: "South America" },
+    { name: "«KR» con signo de kelvin (DP-35)", region: "\u212AR" },
   ];
   for (const { name, region } of badRegions) {
     test(`región ${name} → 400 RF-38 y la base no cambia`, async (t) => {
       const { ana, id } = await seedLol(t);
       const before = await rawAccountsInDb();
-      assertStatusError(await edit(ana, id, { region }), 400, ACCOUNT_ERRORS.invalidRegion("lol"));
+      assertStatusError(await edit(ana, id, { region }), 400, ERR.invalidRegion.lol);
       assert.deepStrictEqual(await rawAccountsInDb(), before);
     });
   }
@@ -771,8 +1068,8 @@ describe("editar", () => {
     const r6 = await linkOk(ana, LINKS.r6);
     const cs2 = await linkOk(ana, LINKS.cs2);
     const before = await rawAccountsInDb();
-    assertStatusError(await edit(ana, r6, { region: "LAS" }), 400, ACCOUNT_ERRORS.invalidRegion("r6"));
-    assertStatusError(await edit(ana, cs2, { region: "LATAM" }), 400, ACCOUNT_ERRORS.invalidRegion("cs2"));
+    assertStatusError(await edit(ana, r6, { region: "LAS" }), 400, ERR.invalidRegion.r6);
+    assertStatusError(await edit(ana, cs2, { region: "LATAM" }), 400, ERR.invalidRegion.cs2);
     assert.deepStrictEqual(await rawAccountsInDb(), before);
   });
 
@@ -785,11 +1082,11 @@ describe("editar", () => {
       assert.deepStrictEqual(await rawAccountsInDb(), before);
     });
 
-    test("credencial de usuario eliminado → 401 \"sesión no iniciada\" (RF-44)", async (t) => {
+    test("credencial de usuario eliminado → 401 \"token inválido\" (RF-44)", async (t) => {
       const { ana, id } = await seedLol(t);
       await User.deleteOne({ _id: ana.id });
       const before = await rawAccountsInDb();
-      assertStatusError(await edit(ana, id, { region: "EUW" }), 401, SESSION_MESSAGES.notLoggedIn);
+      assertStatusError(await edit(ana, id, { region: "EUW" }), 401, SESSION_MESSAGES.invalidToken);
       assert.deepStrictEqual(await rawAccountsInDb(), before);
     });
 
@@ -797,20 +1094,20 @@ describe("editar", () => {
       test(`id mal formado (${bad}), incluso con datos inválidos → 400 "id con formato inválido"`, async (t) => {
         const { ana } = await seedLol(t);
         const before = await rawAccountsInDb();
-        assertStatusError(await edit(ana, bad, { handle: null, region: "XX" }), 400, ACCOUNT_ERRORS.invalidId);
+        assertStatusError(await edit(ana, bad, { handle: null, region: "XX" }), 400, ERR.invalidId);
         assert.deepStrictEqual(await rawAccountsInDb(), before);
       });
     }
 
     test("%zz con sesión → 400 \"id con formato inválido\"", async (t) => {
       const { ana } = await seedLol(t);
-      assertStatusError(await edit(ana, "%zz", { region: "EUW" }), 400, ACCOUNT_ERRORS.invalidId);
+      assertStatusError(await edit(ana, "%zz", { region: "EUW" }), 400, ERR.invalidId);
     });
 
-    test("inexistente, incluso con datos inválidos → 404 \"Cuenta no encontrada.\"", async (t) => {
+    test("inexistente, incluso con datos inválidos → 404 \"cuenta no encontrada\"", async (t) => {
       const { ana } = await seedLol(t);
       const before = await rawAccountsInDb();
-      assertStatusError(await edit(ana, nonExistingId(), { handle: null, region: "XX" }), 404, ACCOUNT_ERRORS.accountNotFound);
+      assertStatusError(await edit(ana, nonExistingId(), { handle: null, region: "XX" }), 404, ERR.accountNotFound);
       assert.deepStrictEqual(await rawAccountsInDb(), before);
     });
 
@@ -822,19 +1119,18 @@ describe("editar", () => {
     ];
     for (const { name, body } of foreignBodies) {
       test(`cuenta ajena con ${name} → 403 RF-11 y la base no cambia`, async (t) => {
-        const { ana, id } = await seedLol(t);
+        const { id } = await seedLol(t);
         const beto = await signUp(app, BETO);
         const before = await rawAccountsInDb();
-        assertStatusError(await edit(beto, id, body), 403, ACCOUNT_ERRORS.forbidden);
+        assertStatusError(await edit(beto, id, body), 403, ERR.forbidden);
         assert.deepStrictEqual(await rawAccountsInDb(), before);
-        assert.deepStrictEqual(await accountIdsOf(ana.id), [id]);
       });
     }
 
     test("identificador distinto y región inválida → solo RF-22", async (t) => {
       const { ana, id } = await seedLol(t);
       const before = await rawAccountsInDb();
-      assertStatusError(await edit(ana, id, { handle: "Otro#TAG", region: "XX" }), 400, ACCOUNT_ERRORS.handleNotEditable);
+      assertStatusError(await edit(ana, id, { handle: "Otro#TAG", region: "XX" }), 400, ERR.handleNotEditable);
       assert.deepStrictEqual(await rawAccountsInDb(), before);
     });
 
@@ -849,7 +1145,7 @@ describe("editar", () => {
 });
 
 describe("desvincular", () => {
-  test("cuenta propia → 204 sin cuerpo; la cuenta se borra y sale de User.accounts (RF-9, RF-33)", async (t) => {
+  test("cuenta propia → 204 sin cuerpo; la cuenta se borra (RF-9)", async (t) => {
     fixClock(t);
     const ana = await signUp(app, ANA);
     const beto = await signUp(app, BETO);
@@ -862,10 +1158,8 @@ describe("desvincular", () => {
     const remaining = (await rawAccountsInDb()).map((account) => account._id.toString());
     assert.deepStrictEqual(remaining, [cs2, betoLol]);
     assert.strictEqual(await GameAccount.exists({ _id: lol }), null);
-    assert.deepStrictEqual(await accountIdsOf(ana.id), [cs2]);
-    assert.deepStrictEqual(await accountIdsOf(beto.id), [betoLol]);
     const get = await withSession(ana.agent.get(`/api/accounts/${lol}`), ana.csrf);
-    assertStatusError(get, 404, ACCOUNT_ERRORS.accountNotFound);
+    assertStatusError(get, 404, ERR.accountNotFound);
   });
 
   test("id en mayúsculas → 204 sobre la misma cuenta", async (t) => {
@@ -874,7 +1168,6 @@ describe("desvincular", () => {
     const id = await linkOk(ana, LINKS.r6);
     assert.strictEqual((await unlink(ana, id.toUpperCase())).status, 204);
     assert.deepStrictEqual(await rawAccountsInDb(), []);
-    assert.deepStrictEqual(await accountIdsOf(ana.id), []);
   });
 
   test("tras desvincular se puede volver a vincular el mismo juego (RF-5)", async (t) => {
@@ -882,16 +1175,39 @@ describe("desvincular", () => {
     const ana = await signUp(app, ANA);
     const id = await linkOk(ana, LINKS.lol);
     assert.strictEqual((await unlink(ana, id)).status, 204);
-    const again = await linkOk(ana, LINKS.lol);
-    assert.deepStrictEqual(await accountIdsOf(ana.id), [again]);
+    await linkOk(ana, LINKS.lol);
   });
 
-  test("dos veces la misma cuenta → la segunda 404 \"Cuenta no encontrada.\"", async (t) => {
+  test("dos veces la misma cuenta → la segunda 404 \"cuenta no encontrada\"", async (t) => {
     fixClock(t);
     const ana = await signUp(app, ANA);
     const id = await linkOk(ana, LINKS.lol);
     assert.strictEqual((await unlink(ana, id)).status, 204);
-    assertStatusError(await unlink(ana, id), 404, ACCOUNT_ERRORS.accountNotFound);
+    assertStatusError(await unlink(ana, id), 404, ERR.accountNotFound);
+  });
+
+  test("desvincular no escribe al usuario: sus datos son idénticos tras editar, resincronizar y desvincular (RF-46)", async (t) => {
+    fixClock(t);
+    const ana = await signUp(app, ANA);
+    const id = await linkOk(ana, LINKS.lol);
+    const before = await User.findById(ana.id).lean();
+    assert.ok(before !== null);
+    const writing = t.mock.method(User, "updateOne");
+    assert.strictEqual((await edit(ana, id, { region: "BR" })).status, 200);
+    assert.deepStrictEqual(await User.findById(ana.id).lean(), before);
+    assert.strictEqual((await sync(ana, id)).status, 200);
+    assert.deepStrictEqual(await User.findById(ana.id).lean(), before);
+    assert.strictEqual((await unlink(ana, id)).status, 204);
+    assert.deepStrictEqual(await User.findById(ana.id).lean(), before);
+    assert.strictEqual(writing.mock.callCount(), 0);
+    assert.deepStrictEqual(await rawAccountsInDb(), []);
+  });
+
+  test("el documento crudo de un usuario recién registrado no tiene la clave accounts", async () => {
+    const ana = await signUp(app, ANA);
+    const raw = await User.collection.findOne({ _id: new mongoose.Types.ObjectId(ana.id) });
+    assert.ok(raw !== null);
+    assert.ok(!("accounts" in raw));
   });
 
   describe("orden de errores (RF-29)", () => {
@@ -904,13 +1220,13 @@ describe("desvincular", () => {
       assert.deepStrictEqual(await rawAccountsInDb(), before);
     });
 
-    test("credencial de usuario eliminado → 401 \"sesión no iniciada\" (RF-44)", async (t) => {
+    test("credencial de usuario eliminado → 401 \"token inválido\" (RF-44)", async (t) => {
       fixClock(t);
       const ana = await signUp(app, ANA);
       const id = await linkOk(ana, LINKS.lol);
       await User.deleteOne({ _id: ana.id });
       const before = await rawAccountsInDb();
-      assertStatusError(await unlink(ana, id), 401, SESSION_MESSAGES.notLoggedIn);
+      assertStatusError(await unlink(ana, id), 401, SESSION_MESSAGES.invalidToken);
       assert.deepStrictEqual(await rawAccountsInDb(), before);
     });
 
@@ -920,30 +1236,28 @@ describe("desvincular", () => {
         const ana = await signUp(app, ANA);
         await linkOk(ana, LINKS.lol);
         const before = await rawAccountsInDb();
-        assertStatusError(await unlink(ana, bad), 400, ACCOUNT_ERRORS.invalidId);
+        assertStatusError(await unlink(ana, bad), 400, ERR.invalidId);
         assert.deepStrictEqual(await rawAccountsInDb(), before);
       });
     }
 
-    test("inexistente → 404 \"Cuenta no encontrada.\"", async (t) => {
+    test("inexistente → 404 \"cuenta no encontrada\"", async (t) => {
       fixClock(t);
       const ana = await signUp(app, ANA);
-      const id = await linkOk(ana, LINKS.lol);
+      await linkOk(ana, LINKS.lol);
       const before = await rawAccountsInDb();
-      assertStatusError(await unlink(ana, nonExistingId()), 404, ACCOUNT_ERRORS.accountNotFound);
+      assertStatusError(await unlink(ana, nonExistingId()), 404, ERR.accountNotFound);
       assert.deepStrictEqual(await rawAccountsInDb(), before);
-      assert.deepStrictEqual(await accountIdsOf(ana.id), [id]);
     });
 
-    test("cuenta ajena → 403 RF-11; la cuenta y User.accounts no cambian", async (t) => {
+    test("cuenta ajena → 403 RF-11; la cuenta no cambia", async (t) => {
       fixClock(t);
       const ana = await signUp(app, ANA);
       const beto = await signUp(app, BETO);
       const id = await linkOk(ana, LINKS.lol);
       const before = await rawAccountsInDb();
-      assertStatusError(await unlink(beto, id), 403, ACCOUNT_ERRORS.forbidden);
+      assertStatusError(await unlink(beto, id), 403, ERR.forbidden);
       assert.deepStrictEqual(await rawAccountsInDb(), before);
-      assert.deepStrictEqual(await accountIdsOf(ana.id), [id]);
     });
   });
 });
@@ -951,10 +1265,6 @@ describe("desvincular", () => {
 // --- T8: resincronizar, concurrencia y fallo forzado (RF-10, RF-11, RF-15, RF-28, RF-29,
 // RF-39, RF-42, RF-43, RF-45; DP-9, DP-36). El esperado se calcula con `simulateReading` +
 // `initialState` / `applySync` y los mismos instantes fijos (P-13).
-
-function sync(session: SignedUp, id: string): supertest.Test {
-  return withSession(session.agent.post(`/api/accounts/${id}/sync`), session.csrf);
-}
 
 // Estado tras vincular en `linkedAt` y resincronizar en cada instante de `syncs` (lecturas 1..k).
 function expectedSyncedState(gameId: GameId, handle: string, linkedAt: number, syncs: readonly number[]): AccountState {
@@ -1015,7 +1325,6 @@ describe("resincronizar", () => {
         assert.deepStrictEqual(await onlyRawAccount(), expectedRawSynced(id, ana.id, data, state));
         assert.strictEqual(Reflect.get(response.body as object, "lastSyncedAt"), new Date(at).toISOString());
       }
-      assert.deepStrictEqual(await accountIdsOf(ana.id), [id]); // RF-33: la lista no cambia
     });
   }
 
@@ -1103,11 +1412,11 @@ describe("resincronizar", () => {
       assert.deepStrictEqual(await rawAccountsInDb(), before);
     });
 
-    test("credencial de usuario eliminado → 401 \"sesión no iniciada\" (RF-44)", async (t) => {
+    test("credencial de usuario eliminado → 401 \"token inválido\" (RF-44)", async (t) => {
       const { ana, id } = await seed(t);
       await User.deleteOne({ _id: ana.id });
       const before = await rawAccountsInDb();
-      assertStatusError(await sync(ana, id), 401, SESSION_MESSAGES.notLoggedIn);
+      assertStatusError(await sync(ana, id), 401, SESSION_MESSAGES.invalidToken);
       assert.deepStrictEqual(await rawAccountsInDb(), before);
     });
 
@@ -1115,26 +1424,25 @@ describe("resincronizar", () => {
       test(`id mal formado (${bad}) → 400 "id con formato inválido"`, async (t) => {
         const { ana } = await seed(t);
         const before = await rawAccountsInDb();
-        assertStatusError(await sync(ana, bad), 400, ACCOUNT_ERRORS.invalidId);
+        assertStatusError(await sync(ana, bad), 400, ERR.invalidId);
         assert.deepStrictEqual(await rawAccountsInDb(), before);
       });
     }
 
-    test("inexistente → 404 \"Cuenta no encontrada.\"", async (t) => {
+    test("inexistente → 404 \"cuenta no encontrada\"", async (t) => {
       const { ana } = await seed(t);
       const before = await rawAccountsInDb();
-      assertStatusError(await sync(ana, nonExistingId()), 404, ACCOUNT_ERRORS.accountNotFound);
+      assertStatusError(await sync(ana, nonExistingId()), 404, ERR.accountNotFound);
       assert.deepStrictEqual(await rawAccountsInDb(), before);
     });
 
     test("cuenta ajena → 403 RF-11 y la base no cambia", async (t) => {
-      const { ana, id } = await seed(t);
+      const { id } = await seed(t);
       const beto = await signUp(app, BETO);
       const before = await rawAccountsInDb();
       fixClock(t, FIXED_NOW + ONE_HOUR);
-      assertStatusError(await sync(beto, id), 403, ACCOUNT_ERRORS.forbidden);
+      assertStatusError(await sync(beto, id), 403, ERR.forbidden);
       assert.deepStrictEqual(await rawAccountsInDb(), before);
-      assert.deepStrictEqual(await accountIdsOf(ana.id), [id]);
     });
 
     test("id en mayúsculas → 200 sobre la misma cuenta (lectura 1)", async (t) => {
@@ -1203,18 +1511,6 @@ describe("concurrencia", () => {
     assert.strictEqual(new Set(ids).size, ids.length); // ninguna partida repetida
   });
 
-  test("desvincular y resincronizar a la vez → 204, sync 200 o 404 y la cuenta no existe al final (RF-39)", async (t) => {
-    fixClock(t);
-    const ana = await signUp(app, ANA);
-    const id = await linkOk(ana, LINKS.cs2);
-    const [unlinked, synced] = await Promise.all([unlink(ana, id), sync(ana, id)]);
-    assert.strictEqual(unlinked.status, 204);
-    assert.ok([200, 404].includes(synced.status), `sync respondió ${synced.status}`);
-    if (synced.status === 404) assertStatusError(synced, 404, ACCOUNT_ERRORS.accountNotFound);
-    assert.deepStrictEqual(await rawAccountsInDb(), []);
-    assert.deepStrictEqual(await accountIdsOf(ana.id), []);
-  });
-
   test("desvinculación entre la lectura y la escritura de la sync → 204 y 404; save no recrea la cuenta (RF-39)", async (t) => {
     fixClock(t);
     const ana = await signUp(app, ANA);
@@ -1231,9 +1527,8 @@ describe("concurrencia", () => {
     );
     const synced = await sync(ana, id);
     assert.strictEqual(unlinked?.status, 204);
-    assertStatusError(synced, 404, ACCOUNT_ERRORS.accountNotFound);
+    assertStatusError(synced, 404, ERR.accountNotFound);
     assert.deepStrictEqual(await rawAccountsInDb(), []);
-    assert.deepStrictEqual(await accountIdsOf(ana.id), []);
   });
 
   test("resincronizar y desvincular en serie → 200 y 204; la cuenta no existe al final (RF-39)", async (t) => {
@@ -1247,6 +1542,87 @@ describe("concurrencia", () => {
 });
 
 describe("fallo", () => {
+  // Fotografía del documento del usuario (`lean()`): debe quedar idéntica (RF-46).
+  async function userSnapshot(userId: string) {
+    const user = await User.findById(userId).lean();
+    assert.ok(user !== null);
+    return user;
+  }
+
+  test("la comprobación del usuario lanza → 500, ninguna cuenta, usuario intacto y la siguiente vinculación → 201 (RF-46)", async (t) => {
+    fixClock(t);
+    const ana = await signUp(app, ANA);
+    const userBefore = await userSnapshot(ana.id);
+    const original = User.exists.bind(User);
+    let calls = 0;
+    const failing = t.mock.method(User, "exists", (filter: Parameters<typeof User.exists>[0]) => {
+      calls += 1;
+      if (calls === 2) throw new Error("fallo forzado"); // la 1.ª llamada es la de withUser
+      return original(filter);
+    });
+    assertStatusError(await link(ana, LINKS.lol), 500, MESSAGES.internal);
+    assert.strictEqual(failing.mock.callCount(), 2);
+    assert.deepStrictEqual(await rawAccountsInDb(), []);
+    assert.deepStrictEqual(await userSnapshot(ana.id), userBefore);
+    failing.mock.restore();
+    const id = await linkOk(ana, LINKS.lol);
+    assert.deepStrictEqual(await rawAccountsInDb(), [
+      expectedRawAccount(id, ana.id, LINKS.lol, expectedState("lol", LINKS.lol.handle)),
+    ]);
+    assert.deepStrictEqual(await userSnapshot(ana.id), userBefore);
+  });
+
+  test("GameAccount.create lanza → 500, ninguna cuenta, usuario intacto y la siguiente vinculación → 201 (RF-46)", async (t) => {
+    fixClock(t);
+    const ana = await signUp(app, ANA);
+    const userBefore = await userSnapshot(ana.id);
+    const failing = t.mock.method(GameAccount, "create", async () => {
+      throw new Error("fallo forzado");
+    });
+    assertStatusError(await link(ana, LINKS.r6), 500, MESSAGES.internal);
+    assert.strictEqual(failing.mock.callCount(), 1);
+    assert.deepStrictEqual(await rawAccountsInDb(), []);
+    assert.deepStrictEqual(await userSnapshot(ana.id), userBefore);
+    failing.mock.restore();
+    await linkOk(ana, LINKS.r6);
+    assert.strictEqual((await rawAccountsInDb()).length, 1);
+    assert.deepStrictEqual(await userSnapshot(ana.id), userBefore);
+  });
+
+  test("GameAccount.deleteOne lanza al desvincular → 500, la cuenta sigue completa, usuario intacto y la siguiente desvinculación → 204 (RF-46)", async (t) => {
+    fixClock(t);
+    const ana = await signUp(app, ANA);
+    const id = await linkOk(ana, LINKS.cs2);
+    const accountsBefore = await rawAccountsInDb();
+    const userBefore = await userSnapshot(ana.id);
+    const failing = t.mock.method(GameAccount, "deleteOne", () => {
+      throw new Error("fallo forzado");
+    });
+    assertStatusError(await unlink(ana, id), 500, MESSAGES.internal);
+    assert.strictEqual(failing.mock.callCount(), 1);
+    assert.deepStrictEqual(await rawAccountsInDb(), accountsBefore);
+    assert.deepStrictEqual(await userSnapshot(ana.id), userBefore);
+    failing.mock.restore();
+    assert.strictEqual((await unlink(ana, id)).status, 204);
+    assert.deepStrictEqual(await rawAccountsInDb(), []);
+    assert.deepStrictEqual(await userSnapshot(ana.id), userBefore);
+  });
+
+  test("usuario borrado justo antes de crear la cuenta → 404 \"usuario no encontrado\" y ninguna cuenta (RF-47)", async (t) => {
+    fixClock(t);
+    const ana = await signUp(app, ANA);
+    const original = GameAccount.create.bind(GameAccount);
+    const deleting = t.mock.method(GameAccount, "create", async (...args: unknown[]) => {
+      await User.collection.deleteOne({ _id: new mongoose.Types.ObjectId(ana.id) });
+      const created: unknown = await Reflect.apply(original, GameAccount, args);
+      return created;
+    });
+    assertStatusError(await link(ana, LINKS.lol), 404, ERR.userNotFound);
+    assert.strictEqual(deleting.mock.callCount(), 1);
+    assert.deepStrictEqual(await rawAccountsInDb(), []);
+    assert.strictEqual(await User.exists({ _id: ana.id }), null);
+  });
+
   test("save forzado a fallar → 500, base idéntica y la siguiente sync usa el mismo número (RF-45)", async (t) => {
     fixClock(t);
     const ana = await signUp(app, ANA);

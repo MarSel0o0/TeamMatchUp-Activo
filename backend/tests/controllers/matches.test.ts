@@ -5,7 +5,7 @@
 // - Datos armados por la prueba: usuarios por la API de registro, bloques con `User.updateOne`
 //   y cuentas con `GameAccount.create`; rangos y verificada los elige la prueba.
 // - Los valores esperados de distancia y puntaje se escriben a mano (plan, sección 3.3).
-import { after, before, beforeEach, describe, test } from "node:test";
+import { after, afterEach, before, beforeEach, describe, mock, test } from "node:test";
 import assert from "node:assert/strict";
 import mongoose from "mongoose";
 import supertest from "supertest";
@@ -50,6 +50,10 @@ before(async () => {
 beforeEach(async () => {
   await User.deleteMany({});
   await GameAccount.deleteMany({});
+});
+
+afterEach(() => {
+  mock.restoreAll();
 });
 
 after(async () => {
@@ -147,17 +151,33 @@ describe("sesión", () => {
     assertStatusError(response, 401, SESSION_MESSAGES.expired);
   });
 
-  test("credencial de usuario eliminado → 401 \"sesión no iniciada\", no 404 (RF-13)", async () => {
+  test("credencial de usuario eliminado (con cuenta en el juego) → 401 \"token inválido\", no 404 (RF-13)", async () => {
     const ana = await signUp(app, ANA);
     await createAccount(ana.id);
     await User.deleteOne({ _id: ana.id });
-    assertStatusError(await get(ana, "?game=lol"), 401, SESSION_MESSAGES.notLoggedIn);
+    assertStatusError(await get(ana, "?game=lol"), 401, SESSION_MESSAGES.invalidToken);
   });
 
-  test("credencial de usuario eliminado con consulta inválida → 401 (la sesión va antes)", async () => {
+  test("credencial de usuario eliminado con consulta inválida → 401 \"token inválido\" (la sesión va antes)", async () => {
     const ana = await signUp(app, ANA);
     await User.deleteOne({ _id: ana.id });
-    assertStatusError(await get(ana, "?game=nada"), 401, SESSION_MESSAGES.notLoggedIn);
+    assertStatusError(await get(ana, "?game=nada"), 401, SESSION_MESSAGES.invalidToken);
+  });
+
+  test("usuario borrado entre la guardia y la lectura de datos → 401 \"token inválido\", no 404 ni 500 (RF-13, noSession)", async () => {
+    const ana = await signUp(app, ANA);
+    await createAccount(ana.id);
+    // La guardia comprueba con `User.exists`; la copia devuelve su resultado (no nulo) y borra
+    // al usuario justo después, así `loadMatchInputs` encuentra `noSession`.
+    const original = User.exists.bind(User);
+    const exists = mock.method(User, "exists", async (...args: Parameters<typeof original>) => {
+      const found = await original(...args);
+      await User.deleteOne({ _id: ana.id });
+      return found;
+    });
+    assertStatusError(await get(ana, "?game=lol"), 401, SESSION_MESSAGES.invalidToken);
+    assert.strictEqual(exists.mock.callCount(), 1);
+    assert.strictEqual(await User.countDocuments({ _id: ana.id }), 0);
   });
 
   test("el cuerpo y la cabecera Authorization no sustituyen a la cookie", async () => {
