@@ -12,8 +12,11 @@ Specs 001 (`001-crear-backend`), 002 (`002-autenticacion`) y 003
 (`003-usuarios-y-disponibilidad`) implementadas y validadas (reviewer: APROBADO).
 Spec 004 (`004-cuentas-de-juego`) implementada (T1–T10, con T3b y T8b) en la rama
 `marselo`, **sin validación de reviewer** por decisión del usuario ("saltate la revision
-con reviewer"). Specs 005 y 006 con plan y tareas aprobados, sin empezar. Siguiente fase
-SDD: implementación de la spec 005.
+con reviewer"). Specs 005 y 006 con spec, plan y tareas aprobados, sin empezar. Spec 007
+aprobada, con plan y tareas en borrador. Spec 008 con spec, plan y tareas aprobados. Spec
+009 (`009-detalle-de-sesion`) con spec, plan y tareas aprobados el 2026-10-18 (fase de
+tareas cerrada; su implementación espera a la 007 y a la 008). Spec 010 en borrador.
+Siguiente fase SDD: implementación de la spec 005 y aprobación del plan de la 007.
 
 ## Estado del código
 
@@ -68,11 +71,11 @@ SDD: implementación de la spec 005.
 | `002-autenticacion` | Implementada y validada | 28 RF y 7 RNF cumplidos; decisiones P1–P9 abajo. |
 | `003-usuarios-y-disponibilidad` | Implementada y validada | spec, plan y tasks aprobados; T1–T10 hechas; `spec.md` en «implementada». `requests/users.rest` probado a mano contra el servidor: todos los códigos coinciden. `AGENTS.md` actualizado. |
 | `004-cuentas-de-juego` | Implementada, sin validar | Rama `marselo`, sin commit. T1–T10, T3b y T8b hechas. Sin reviewer por decisión del usuario. `spec.md` sigue en «aprobada» (no se pasó a «implementada» sin validación). Falta la prueba sin Internet (ver Deuda). |
-| `005-coincidencias` | Plan y tareas aprobados | Sin empezar. |
-| `006-agenda` | Plan y tareas aprobados | Sin empezar. |
-| `007-integrar-frontend` | Borrador | Elimina el script `seed`. Debe incorporar la etiqueta de datos simulados de RF-37 de la 004 (criterio pendiente de la 004). |
-| `008-ficha-de-jugador` | Borrador | — |
-| `009-detalle-de-sesion` | Borrador | — |
+| `005-coincidencias` | Spec, plan y tareas aprobados | Sin empezar. |
+| `006-agenda` | Spec, plan y tareas aprobados (2026-10-18) | Sin empezar. |
+| `007-integrar-frontend` | Spec aprobada (2026-10-18); plan y tareas en borrador | No define ningún script `seed` (la entrada anterior de esta memoria era errónea; el backend no tiene ese script). Debe incorporar la etiqueta de datos simulados de RF-37 de la 004. Por decisión de la usuaria, «no se debe cambiar nada de la 007». |
+| `008-ficha-de-jugador` | Spec, plan y tareas aprobados (2026-10-18) | Precondición: plan de la 007 aprobado y sus T1–T26 hechas. Los enlaces de RF-2 son su T9. |
+| `009-detalle-de-sesion` | Spec, plan y tareas aprobados (2026-10-18) | 18 tareas (T0–T17), sin dividir la spec por decisión de la usuaria. T0 exige plan de la 007 aprobado, T1–T26 de la 007 hechas y la tarea de enlaces de la 008 hecha: hoy no se cumple. La validación de reviewer espera a que estén implementadas la 006, la 007 y la 008. No cambia el backend. Sin commit. |
 | `010-despliegue` | Borrador | Servirá la interfaz desde el servidor (rutas fuera de `/api`). |
 
 ## Deuda conocida
@@ -98,6 +101,13 @@ SDD: implementación de la spec 005.
   - `npm test` tardó 121 s al cerrar T10 (antes, 83–85 s). Antes hubo dos peticiones muy
     lentas (144 s y 178 s) que no se repitieron; sin investigar.
 
+- Spec 009 (2026-10-18):
+  - El dominio nuevo del frontend se prueba con scripts de Node sin versionar en el
+    scratchpad (D-26): no hay script `test` en el frontend, así que esas pruebas no se
+    repiten solas; su salida queda en `validation.md`.
+  - En una sesión `open` con un participante eliminado aún guardado (cascada), bajar los
+    cupos puede dar 400: limitación transitoria aceptada (Q22).
+
 - `httpApi.ts` y `mockApi.ts` guardan el JWT en `localStorage` (`tmu.token`): choca con el
   principio 5. Lo corrige la spec 007 (RF-2).
 - El frontend no tiene runner de test (el principio 4 aplica solo al backend por decisión
@@ -121,6 +131,36 @@ SDD: implementación de la spec 005.
   pruebas no tocan la base de desarrollo» fue débil (reviewer lo confirmó revisando el código).
 
 ## Decisiones recientes
+
+- Spec 009 (clarificación, plan y tareas; 2026-10-18):
+  - Reviewer la revisó contra 003, 006, 007 y 008 aprobadas (15 hallazgos). Planner los
+    corrigió en varias rondas (cuarta revisión QA: Q16–Q27, D24–D30, CR4-1 a CR4-5 y
+    CR5-1 a CR5-5). Un repaso posterior encontró 1 bloqueante (U+0085) y 8 menores, todos
+    corregidos.
+  - Q16: el aviso global «Datos de demostración» también se muestra con el servidor real
+    (como la 007 RF-11).
+  - Q17/D30: el botón de una acción en curso queda deshabilitado con «Enviando…» (como la
+    007 RF-20); los botones bloqueados («Sin cupos», «Editar sesión», «Cancelar sesión»,
+    «Descartar», «Volver») conservan el foco.
+  - Q18: una sola regla de dominio para el título (006 DP6-33: recorte Unicode,
+    caracteres prohibidos, 3 a 60 caracteres Unicode), usada en la edición y en el
+    formulario de creación de la agenda (RF-24 nuevo). Q23: las notas de creación también
+    admiten 160 caracteres Unicode. Q27: «Sesión con <nombre>» con caracteres prohibidos
+    muestra el error de RF-24 al enviar.
+  - Q19: la edición envía siempre los seis campos; el modo simulado imita la edición
+    parcial de la 006 (RF-7, RF-26) con sus mensajes literales.
+  - Q20: en modo simulado el id de sesión no distingue mayúsculas (como la 008 P49).
+  - Q21: una sesión `full` con menos participantes visibles (cascada) no muestra «cupo
+    libre». Q22: si está `full`, el mínimo de cupos es el número actual de cupos.
+  - Q25: mientras «Sí, cancelar sesión» está en curso, el foco va al título de la
+    ventana. Q26: Tab recorre la ventana sin salir de ella.
+  - Plan (D-1 a D-30): ruta `/agenda/:sessionId`; el contrato gana `sessions.get` y
+    `sessions.update`; D-27: el cliente comprueba los puntos 2 a 4 de RF-22 con los textos
+    de la 006 («No puedes dejar menos cupos que jugadores inscritos.»); D-28: orden de
+    implementación; D-29 y D-30 en Notas técnicas.
+  - Tareas: 18 (T0–T17); la usuaria prefirió no dividir la spec.
+  - «No se debe cambiar nada de la 007» (decisión de la usuaria). Un planner tocó por
+    error la 007 RF-20 y añadió R21; se revirtió.
 
 - Spec 002 (clarificación y plan):
   - P1: comprobante CSRF en la cabecera `X-CSRF-Token`, en la respuesta y en la petición.
@@ -171,17 +211,32 @@ SDD: implementación de la spec 005.
 - Spec 007: si hay CORS con orígenes distintos, hará falta
   `Access-Control-Expose-Headers: X-CSRF-Token`.
 
+- Frontend (spec 009): regla única del título en el dominio (`sessionRules.ts`), usada
+  por la edición del detalle y por el formulario de creación de la agenda.
+- `limitToCodePoints` (D-29) funciona como `maxLength` contando puntos de código: solo
+  entra lo insertado que cabe y los emojis compuestos entran enteros o no entran. La
+  selección se lee en el `beforeinput` nativo (D-30).
+- Las pruebas del dominio del frontend usan el gancho de resolución de la 007 (por los
+  imports sin `.ts`).
+
 ## Avisos
 
 - npm bloquea los install-scripts de `bcrypt`. No afecta en linux-x64 (trae el binario ya
   compilado); en otra plataforma, ejecutar `npm install-scripts approve bcrypt`.
 - Cada `backend/.env` local necesita la línea `JWT_SECRET` (copiarla de `.env.example`).
 - Windows: MongoDB nativo en `127.0.0.1:27017`; `npm test --script-shell=bash`.
+- La reversión de `specs/007-integrar-frontend/spec.md` está completa: a 2026-10-18
+  `git status` y `git diff --stat` no lo muestran modificado (no hace falta
+  `git checkout`).
+- Por subir de la spec 009: `spec.md` (modificado), `plan.md` y `tasks.md` (nuevos) y este
+  `MEMORY.md`. Los `.DS_Store` (raíz y `frontend/`) no deberían subirse.
 
 ## Próximo paso
 
 Implementar la spec 005 (`005-coincidencias`) desde su T1 (`/sdd-implement 005 T1`); después
-la 006. Antes conviene que el usuario confirme las decisiones de T9 de la 004, decida sobre
+la 006. En paralelo, aprobar el plan y las tareas de la 007 e implementarla (T1–T26);
+después, la tarea de enlaces de la 008 (T9) y el resto de la 008; después, la 009 desde
+su T0 (`/sdd-implement 009-detalle-de-sesion T0`). Antes conviene que el usuario confirme las decisiones de T9 de la 004, decida sobre
 `.gitattributes` y haga la prueba sin Internet. Adaptar el frontend queda para la spec 007,
 después de las 004 a 006, por decisión del usuario. Requisito local para ejecutar los tests
 del backend: `backend/.env` (copiado de `.env.example`, con `JWT_SECRET`) y MongoDB en

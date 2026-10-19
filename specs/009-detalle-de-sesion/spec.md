@@ -1,11 +1,12 @@
 # Spec 009 — Vista nueva: detalle de sesión
-Estado: borrador (contenido aprobado por el usuario el 2026-10-18; aprobación definitiva pendiente de la condición previa: aprobación de las specs 007 y 008, que a su vez esperan a las specs 001 a 006)
+Estado: aprobada (2026-10-18)
 
 ## Contexto y objetivo
 Es la segunda de las dos vistas nuevas que exige el enunciado del Hito 2. La propuso la
 spec 001 original (sección 7) y el usuario confirmó que las dos vistas nuevas son la ficha
-de jugador (spec 008) y este detalle (spec 008, P5). `MEMORY.md` todavía las registra como
-"propuesta sin confirmar" y queda pendiente de actualizar fuera de esta spec.
+de jugador (spec 008) y este detalle (spec 008, P5). La referencia
+(`specs/_referencia/001-crear-backend-original.md`, sección 7) las presentaba como
+"propuesta sin confirmar"; esa confirmación es la de la spec 008, P5 (corrección, CR4-1).
 
 Hoy una sesión de juego solo existe como tarjeta dentro de la agenda: no tiene una
 dirección propia que compartir y el anfitrión no puede editarla, solo cancelarla, y sin
@@ -18,20 +19,25 @@ enlaza a su detalle (RF-2), también sin desplazamiento horizontal a 360 px (RNF
 cancelar pide la misma confirmación que en el detalle (RF-19, RF-23); tras cancelar, en la
 agenda o desde el detalle, el foco va al título del panel, que recibe el foco aunque no sea
 interactivo (RF-8, RF-19, RNF-2); la agenda refleja las acciones hechas en el detalle
-(RF-15); y vuelve a pedir sus sesiones de juego tras un 404 al cancelar en ella (RF-19) o
-tras mostrar el detalle su estado vacío (RF-15) (corrección, C4).
+(RF-15); vuelve a pedir sus sesiones de juego tras un 404 al cancelar en ella (RF-19) o
+tras mostrar el detalle su estado vacío (RF-15) (corrección, C4); y su formulario de
+creación ("Anotar una sesión") comprueba el título con la misma regla que la edición
+(RF-24), como pide la spec 006 ("Impacto en otras specs", DP6-33) (decisión de la
+usuaria, Q18), y cuenta sus notas en caracteres Unicode, como la edición y el servidor
+(RF-24) (decisión de la usuaria, Q23).
 
 - Depende de: spec 007 (usuario de la sesión, rutas protegidas, ruta de origen, 401 y
   cambio de sesión en otra pestaña, errores con y sin mensaje, modo simulado), spec 008
   (ficha de jugador a la que enlazan los participantes) y, de forma directa, spec 006
   (sesión, estado, referencia de usuario y sus operaciones) y spec 003 (regla de
   identificadores inválidos, RF-5).
-  **Condición previa**: esta spec no se aprueba ni se empieza su plan hasta que estén
-  aprobadas las specs 007 y 008. La 007 no se aprueba hasta que lo estén las specs 001 a
-  006 (spec 007, P1 y D4), y la 008 espera a la 007 (spec 008, condición previa;
-  constitución, principio 2). Si al aprobarse cambian algo que esta spec cita, se revisa
-  esta spec antes de aprobarla. Mientras tanto se puede corregir y clarificar (decisión
-  del usuario: "sí, adelante"). Además, la validación de esta spec (Criterios de
+  **Condición previa cumplida**: esta spec no se aprobaba ni se empezaba su plan hasta que
+  estuvieran aprobadas las specs 007 y 008 (constitución, principio 2). Las specs 001 a 008
+  están aprobadas (2026-10-18), y esta spec se revisó contra sus versiones aprobadas en la
+  cuarta revisión QA (Decisiones de clarificación, Q16 a Q25, D24 a D29 y CR4-1 a CR4-5)
+  y en el repaso QA posterior (Q26, Q27, D30 y CR5-1 a CR5-5). Esta
+  spec no cambia ninguna de ellas. Si alguna de ellas cambia algo que esta spec cita, se
+  revisa esta spec antes de seguir (corrección, CR4-2). Además, la validación de esta spec (Criterios de
   finalización) no empieza hasta que estén implementadas la spec 006 (servidor real con
   obtener y editar una sesión por su identificador, RF-3 y RF-7), la spec 007 (al menos
   RF-7, RF-10 y RF-24) y la spec 008 (al menos RF-9, RF-15 y RF-20), porque sus pasos
@@ -44,11 +50,18 @@ tras mostrar el detalle su estado vacío (RF-15) (corrección, C4).
 - Origen: HU-12, RF-24 (vista 2) y sección 7 (V2) de la spec original.
 - Las decisiones técnicas ya tomadas (sección 6, punto 4 —operaciones nuevas del contrato—
   y sección 7 —ruta, componentes y estados—) están en
-  `specs/_referencia/001-crear-backend-original.md` y pasan al `plan.md` de esta spec.
+  `specs/_referencia/001-crear-backend-original.md` y pasan al `plan.md` de esta spec, con
+  esta excepción: la referencia (sección 6, punto 4, y sección 7, V2) describe la edición
+  como un reemplazo completo con las validaciones de su borrador; prevalece la spec 006
+  aprobada, cuya edición es parcial (RF-7, RF-26; "Qué prevalece sobre la referencia";
+  DP6-1) y cuyas reglas del título adopta esta spec (RF-22, RF-24; DP6-33) (corrección,
+  CR4-3).
 
 ## Usuarios
 - Anfitrión de una sesión de juego.
 - Participante inscrito, o jugador con la sesión iniciada que quiere sumarse.
+- Jugador que anota una sesión de juego desde el formulario de creación de la agenda
+  (RF-24).
 
 ## Historias de usuario
 - HU-1. Como jugador, quiero una página propia para cada sesión de juego donde ver el
@@ -87,20 +100,55 @@ tras mostrar el detalle su estado vacío (RF-15) (corrección, C4).
   acción (decisión recomendada, R3).
 - **Acción en curso**: una acción enviada al servidor que todavía no recibió respuesta ni
   superó el plazo de RF-20.
+- **Botón deshabilitado**: en esta spec, solo el botón de la acción en curso (spec 007,
+  RF-20): muestra "Enviando…", no se puede activar de nuevo, de modo que la acción no se
+  envía dos veces, y el navegador puede sacarle el foco mientras espera la respuesta
+  (RF-11, RF-23). Esta spec no llama "deshabilitado" a ningún otro botón (deducción, D30).
+- **Botón bloqueado** (o "no disponible"): un botón que se ve y que un lector de pantalla
+  anuncia como no disponible, que sigue recibiendo el foco y entrando en el recorrido con
+  Tab, que conserva el foco si ya lo tenía y que, al activarlo, no hace nada. Lo son "Sin
+  cupos" (RF-9; P1) y los botones que RF-11 y RF-23 bloquean sin que estén en curso. Es
+  el mismo comportamiento que la spec 007, RF-29, y la spec 008, RNF-2, llaman
+  "deshabilitado" en "Proponer" y "Proponer sesión", que siguen recibiendo el foco y
+  anuncian su motivo; esta spec solo usa otra palabra para no confundirlo con el botón
+  deshabilitado (deducción, D30).
+  El mecanismo concreto con que se consigue cada uno (atributos, roles o estilos) lo
+  elige el plan, siempre que se cumplan el texto "Enviando…" del botón en curso, que
+  ninguna acción se pueda enviar dos veces y la regla de foco de RNF-2 (D30).
 - **Zona de acciones**: el lugar del detalle donde están los botones de sumarse, salir,
   "Editar sesión" y "Cancelar sesión". Es siempre el mismo, cambie o no el botón que
   contiene (deducción, D13).
 - **Ventana de confirmación de cancelar**: la ventana de RF-23. Usa el mismo componente
   de ventana que el formulario de creación de la agenda ("Anotar una sesión").
 - **Horario de la agenda**: el de la spec 008 (de las 12:00 a las 23:00, más las 00:00 y
-  las 01:00, en ese orden).
+  las 01:00). La spec 008 fija qué horas son, no su orden.
 - **Horas de inicio de la edición**: las del formulario de creación, que coinciden con el
-  horario de la agenda, más la hora de inicio actual de la sesión de juego si no está
-  entre ellas (decisión del usuario, P5).
+  horario de la agenda, en el orden en que las ofrece hoy ese formulario (de las 12:00 a
+  las 23:00 y después las 00:00 y las 01:00, como la grilla de la agenda), más la hora de
+  inicio actual de la sesión de juego si no está entre ellas, al final de la lista,
+  después de las 01:00 (decisiones del usuario, P5 y Q2; deducción, D25). Este orden de
+  presentación no es el "orden de los bloques" de la spec 008, que pone las 00:00 y las
+  01:00 antes que las 12:00 para elegir un bloque, no para listar horas.
+- **Regla del título**: la del servidor (spec 006, Definiciones y RF-6; DP6-5, DP6-7,
+  DP6-23, DP6-27 y DP6-31): se recorta el título (spec 006, "Recortar un texto": quita de
+  los extremos tabulador, U+000B, U+000C, espacio, U+00A0, U+FEFF, toda la categoría Zs,
+  LF, CR, U+2028 y U+2029); el título recortado no puede contener ningún carácter
+  prohibido en el título (spec 006: categoría Cc, incluidos tabulador, LF, CR y U+0085,
+  más U+2028 y U+2029) y su largo, contado en caracteres Unicode (puntos de código: un
+  emoji como 🎮 cuenta 1; spec 006, "Largo de un texto"), va de 3 a 60. Como el recorte
+  no quita U+0085 (spec 006, "Recortar un texto"), ese carácter hace inválido el título
+  también en los extremos, mientras que un tabulador, LF, CR, U+2028 o U+2029 solo en los
+  extremos se recortan y no lo invalidan (corrección, CR5-1). Es una sola regla
+  del dominio que usan el formulario de edición (RF-22) y el de creación de la agenda
+  (RF-24) (decisión de la usuaria, Q18).
 - **Identificador del backend simulado** (sesión de juego): el texto `session-` seguido de
   uno o más dígitos (por ejemplo `session-3` o `session-1760000000000`), que es la forma
   de los identificadores que hoy da el backend simulado a las sesiones de juego semilla y a
-  las creadas (deducción, D3).
+  las creadas (deducción, D3). La forma se reconoce y el identificador se compara sin
+  distinguir mayúsculas de minúsculas, como el servidor compara los identificadores (spec
+  003, Definiciones) y como hace el backend simulado con los de usuario (spec 008, P49):
+  `SESSION-3`, `Session-3` y `session-3` tienen esa forma y designan la misma sesión de
+  juego (decisión de la usuaria, Q20).
 - **Error con mensaje**, **error sin mensaje**, **Texto de error sin mensaje** ("No se
   pudo conectar con el servidor. Inténtalo de nuevo."), **ruta de origen**, **limpiar la
   sesión del cliente**, **cambio de sesión en otra pestaña** y **modo simulado**: los de la
@@ -133,11 +181,16 @@ tras mostrar el detalle su estado vacío (RF-15) (corrección, C4).
   marca de juego que usa la agenda); el título; las notas, solo si no están vacías (como
   la tarjeta de la agenda); el día y el rango horario con el mismo formato que la agenda,
   que en una sesión que cruza la medianoche termina en la hora del día siguiente (por
-  ejemplo, "Lunes · 23:00–03:00"); los cupos como "<ocupados>/<totales> jugadores"; el
-  estado, como el sello "Cupos llenos" cuando es `full` y sin sello cuando es `open`; y
-  los participantes en el orden que entrega el servidor, cada uno con su color de avatar y
-  su nombre visible, el anfitrión marcado con "organiza" (como la tarjeta de la agenda), y
-  un "cupo libre" por cada cupo sin ocupar. Muestra además, según el rol en el detalle,
+  ejemplo, "Lunes · 23:00–03:00"); los cupos como "<ocupados>/<totales> jugadores", donde
+  los ocupados son los participantes visibles que entrega el servidor; el estado, como el
+  sello "Cupos llenos" cuando es `full` y sin sello cuando es `open`; y los participantes
+  en el orden que entrega el servidor, cada uno con su color de avatar y su nombre
+  visible, el anfitrión marcado con "organiza" (como la tarjeta de la agenda). MIENTRAS el
+  estado es `open`, muestra un "cupo libre" por cada cupo sin ocupar; SI el estado es
+  `full`, ENTONCES no muestra ningún "cupo libre", aunque durante la cascada de la spec
+  006 (RF-16 y RF-24) haya menos participantes visibles que cupos: el contador sigue
+  siendo "<visibles>/<totales> jugadores" y se ve "Cupos llenos" (decisión de la usuaria,
+  Q21). Muestra además, según el rol en el detalle,
   "La organizas" o "Estás dentro" con el mismo sello que la agenda (deducción, D9); a
   diferencia de la agenda, en el detalle ese sello no es una región de estado y un lector
   de pantalla no lo anuncia al aparecer ni al cambiar, solo lo lee al recorrer la página,
@@ -154,34 +207,52 @@ tras mostrar el detalle su estado vacío (RF-15) (corrección, C4).
   (spec 006, RF-14).
 - RF-6: CUANDO el anfitrión pulsa "Editar sesión", EL SISTEMA abre en la misma página, sin
   ventana, un formulario de edición con los campos título, notas, día, hora de inicio,
-  duración y cupos, rellenados con los valores actuales de la sesión de juego mostrada,
-  porque el servidor reemplaza todos (spec 006, RF-7), y con los botones "Guardar
-  cambios" y "Descartar" (decisión del usuario, P3). Mientras el formulario está abierto,
+  duración y cupos, rellenados con los valores actuales de la sesión de juego mostrada, y
+  con los botones "Guardar cambios" y "Descartar" (decisión del usuario, P3). Al guardar,
+  el formulario envía siempre los seis campos, también cuando no se cambió ninguno, para
+  que la sesión de juego guardada quede exactamente como muestra el formulario: el
+  servidor cambia solo los campos enviados y conserva los ausentes (spec 006, RF-7 y
+  RF-26), y aquí se envían todos (decisión de la usuaria, Q19). Mientras el formulario está abierto,
   "Editar sesión" no se muestra; "Cancelar sesión" sigue disponible y abre la ventana de
   confirmación de cancelar sobre el formulario, que sigue abierto detrás con lo escrito
   (decisión recomendada, R6). CUANDO el detalle muestra datos nuevos de la sesión de juego
   con el formulario abierto (la nueva lectura de RF-21, tras un rechazo al guardar o al
   cancelar), EL SISTEMA conserva en el formulario los valores que escribió el anfitrión y
-  solo recalcula el rango de cupos del punto 4 con los participantes nuevos; si los cupos
+  solo recalcula el rango de cupos del punto 4 con los datos nuevos (participantes,
+  cupos y estado); si los cupos
   elegidos quedan por debajo del nuevo mínimo, pasan a ese mínimo (decisión del usuario,
   Q4; R6). El juego se muestra pero no se edita (Fuera de alcance;
   spec 006, RF-15). Los valores que ofrece cada campo son:
   1. Día: de lunes a domingo, como en el formulario de creación.
-  2. Hora de inicio: las horas de inicio de la edición (Definiciones). Si la hora de
-     inicio actual de la sesión de juego está fuera del horario de la agenda, se añade a la lista para que guardar sin tocarla
-     no la mueva (decisión del usuario, P5); se añade al final de la lista, después de las
-     01:00 (decisión del usuario, Q2).
+  2. Hora de inicio: las horas de inicio de la edición (Definiciones), en su orden: de
+     las 12:00 a las 23:00, las 00:00 y las 01:00. Si la hora de inicio actual de la sesión
+     de juego está fuera del horario de la agenda, se añade a la lista para que guardar
+     sin tocarla no la mueva (decisión del usuario, P5); se añade al final de la lista,
+     después de las 01:00 (decisión del usuario, Q2; deducción, D25).
   3. Duración: de 1 a 4 horas, como en el formulario de creación.
-  4. Cupos: de max(2, número de participantes de la sesión de juego mostrada) a 6
-     (decisión del usuario, P4).
-  5. Título y notas: no admiten escribir más de 60 y 160 caracteres, como en el formulario
-     de creación (spec 006, RF-6). El campo "Título" se rellena con el título guardado tal
-     cual, con sus espacios de los extremos, aunque así pase de 60 caracteres (el servidor
-     solo limita el título sin esos espacios); mientras pase de 60, el campo no admite
-     escribir más pero sí borrar, y al guardar se envía tal como está en el campo, sin
-     quitarle espacios, como el formulario de creación, de modo que guardar sin tocarlo
-     envía el título exacto; el valor que guarda el servidor lo decide la spec 006
-     (decisión recomendada, R13; R18).
+  4. Cupos: MIENTRAS el estado de la sesión de juego mostrada es `open`, de max(2, número
+     de participantes visibles de la sesión de juego mostrada) a 6 (decisión del usuario,
+     P4); SI el estado es `full`, ENTONCES de los cupos actuales de la sesión de juego
+     mostrada a 6, porque con `full` los participantes guardados igualan a los cupos
+     (spec 006, RF-8 y RF-25), aunque durante la cascada de la spec 006 (RF-16 y RF-24) se
+     vean menos (decisión de la usuaria, Q22). **Limitación declarada transitoria**: si el
+     estado es `open` y el servidor aún guarda un participante eliminado que ya no se ve,
+     unos cupos elegidos dentro de la lista pueden recibir el 400 de la spec 006, RF-8,
+     que se trata según RF-10 y RF-21, hasta que termina la cascada (Q22).
+  5. Título y notas: no admiten escribir más de 60 y 160 caracteres, contados en
+     caracteres Unicode (un emoji cuenta 1; spec 006, "Largo de un texto"), de modo que se
+     pueden escribir 60 emojis en el título y 160 en las notas (spec 006, RF-6); el título
+     y las notas del formulario de creación cuentan igual (RF-24) (decisiones de la
+     usuaria, Q18 y Q23; deducción, D28 en las notas). El campo "Título" se rellena con el título guardado tal cual y al guardar
+     se envía tal como está en el campo, sin quitarle espacios, como el formulario de
+     creación, de modo que guardar sin tocarlo envía el título exacto; el valor que guarda
+     el servidor lo decide la spec 006 (decisión recomendada, R13; R18). Con el servidor de
+     la spec 006 el título llega siempre ya recortado y con 3 a 60 caracteres (spec 006,
+     RF-5, RF-7 y RNF-2); solo con datos que no pasaron esas reglas (por ejemplo, guardados
+     por el backend simulado antes de adoptar la spec 006) puede llegar con espacios en los
+     extremos o con más de 60 caracteres. Para ese caso, que es defensivo, se mantiene R13:
+     el campo lo muestra completo, no admite escribir más mientras pase de 60, pero sí
+     borrar (deducción, D26).
 - RF-7: CUANDO el anfitrión pulsa "Guardar cambios", EL SISTEMA aplica antes las
   comprobaciones del cliente de RF-22; si alguna falla, muestra su texto y no envía nada.
   Si pasan, envía la edición al servidor y, con su respuesta 200, cierra el formulario,
@@ -191,7 +262,7 @@ tras mostrar el detalle su estado vacío (RF-15) (corrección, C4).
   desaparece al iniciar otra acción (Definiciones) o al volver a abrir el formulario
   (decisión del usuario, Q1); abrir la ventana de confirmación de cancelar no lo oculta, y
   desaparece al pulsar "Sí, cancelar sesión" (R3). Guardar sin cambios también envía la
-  edición.
+  edición, con los seis campos (RF-6; Q19).
 - RF-8: CUANDO el anfitrión pulsa "Cancelar sesión" en el detalle, EL SISTEMA abre la
   ventana de confirmación de cancelar (RF-23). Si confirma y el servidor responde 204, EL
   SISTEMA lleva a la agenda reemplazando en el historial la entrada del detalle, de modo
@@ -211,10 +282,18 @@ tras mostrar el detalle su estado vacío (RF-15) (corrección, C4).
   respuesta (los cupos, los participantes y el sello "Estás dentro", que aparece o
   desaparece) se ven en la página, pero un lector de pantalla no los anuncia (RF-3)
   (decisión del usuario, Q12; R2; regla general en RNF-2). MIENTRAS la sesión de juego mostrada está llena y el rol es no inscrito, EL
-  SISTEMA muestra el botón deshabilitado con el texto "Sin cupos", como la agenda; a
-  diferencia de ella, el botón sigue recibiendo el foco, un lector de pantalla anuncia
+  SISTEMA muestra el botón bloqueado (Definiciones) con el texto "Sin cupos", como la agenda. "Llena"
+  se mide por el estado que entrega el servidor (`full`), no por el número de
+  participantes visibles: durante la cascada de la spec 006 (RF-16 y RF-24) una sesión de
+  juego puede llegar `full` con menos participantes visibles que cupos, y el servidor
+  sigue respondiendo 409 al sumarse porque cuenta los participantes guardados (spec 006,
+  Definiciones y RF-12; DP6-38) (deducción, D27). A
+  diferencia de la agenda, el botón sigue recibiendo el foco, un lector de pantalla anuncia
   "Sin cupos" y que no está disponible, y activarlo no envía nada (decisión del usuario,
-  P1). EL SISTEMA permite sumarse aunque el usuario de la sesión no tenga cuenta en el
+  P1). Es un botón bloqueado, como los de RF-11 que no están en curso, y no un botón
+  deshabilitado como el de la acción en curso de la spec 007, RF-20 (Definiciones; Q17;
+  D30); P1 y la spec 008, RNF-2, se cumplen igual, porque lo que exigen es que se vea como
+  no disponible, reciba el foco y anuncie su motivo. EL SISTEMA permite sumarse aunque el usuario de la sesión no tenga cuenta en el
   juego de la sesión de juego, como hoy; el servidor tampoco lo impide (spec 006, RF-11)
   (decisión del usuario, P2).
 - RF-10: SI el servidor responde a una acción con un error con mensaje distinto de 401 y
@@ -226,29 +305,56 @@ tras mostrar el detalle su estado vacío (RF-15) (corrección, C4).
   el mensaje del servidor no indica el campo; y el de cancelar, dentro de la ventana de
   confirmación de cancelar (RF-23). SI una acción falla con un error sin mensaje o un 5xx
   sin mensaje, ENTONCES EL SISTEMA muestra en ese mismo lugar el Texto de error sin
-  mensaje, sin limpiar la sesión del cliente (spec 007, RF-9). Los mensajes del servidor no
-  son literales de esta spec: la spec 006 (RF-8, RF-10 y RF-12) no los fija. Tras un
+  mensaje, sin limpiar la sesión del cliente (spec 007, RF-9). Los mensajes los fija la
+  spec 006 de forma literal y el detalle los muestra tal como llegan, sin reescribirlos:
+  "No puedes dejar menos cupos que jugadores inscritos." (RF-8); "Solo quien organiza
+  puede editar la sesión." y "Solo quien organiza puede cancelar la sesión." (RF-10); "Ya
+  estás inscrito en esta sesión." y "Esta sesión ya no admite jugadores." (RF-12); "Eres
+  quien organiza: cancela la sesión en lugar de salir." (RF-14); "No estás inscrito en
+  esta sesión." (RF-17); "id con formato inválido" y "Sesión no encontrada." (RF-19); y,
+  al guardar, los textos de cada campo de RF-6. El modo simulado los reproduce literales
+  (spec 007, RF-10; RF-16) (deducción, D24, que corrige D10). Tras un
   rechazo 400, 403 o 409, EL SISTEMA vuelve a pedir la sesión de juego según RF-21; tras
   un error sin mensaje o un 5xx, no.
 - RF-11: MIENTRAS se carga la sesión de juego al abrir el detalle (Definiciones: también
   al recargar, con "Atrás" o "Adelante" y aunque haya datos en memoria), EL SISTEMA muestra
   un estado de carga en lugar de todo el detalle, porque sus datos llegan en una sola
-  petición (R1). MIENTRAS hay una acción en curso, EL SISTEMA marca como en curso el botón
-  de esa acción, no permite enviarla de nuevo ni iniciar otra acción, y deja visible el
-  resto del detalle (como la agenda hoy, que bloquea sus acciones mientras una está en
-  curso) (deducción, D5). Mientras hay una acción en curso o dura la nueva lectura de
+  petición (R1). MIENTRAS hay una acción en curso, EL SISTEMA deshabilita el botón de esa
+  acción y muestra en él "Enviando…", como la spec 007, RF-20, fija para toda escritura
+  iniciada por el jugador y que las vistas nuevas heredan (spec 007, RF-20, R5 y R9); no
+  permite enviarla de nuevo ni iniciar otra acción, y deja visible el resto del detalle
+  (como la agenda, que bloquea sus acciones mientras una está en curso) (deducción, D5;
+  decisión de la usuaria, Q17). Mientras hay una acción en curso o dura la nueva lectura de
   RF-21, "Editar sesión" y "Cancelar sesión" tampoco se pueden pulsar, como en la agenda,
-  que deshabilita todos sus botones mientras una acción está en curso (R3). Mientras
+  que bloquea todos sus botones mientras una acción está en curso (R3). Mientras
   "Guardar cambios" está en curso, "Descartar" tampoco se puede pulsar, igual que la
   ventana no se cierra mientras la cancelación está en curso (RF-23) (decisión
   recomendada, R5). Mientras dura solo la nueva lectura de RF-21, "Descartar" y cerrar la
   ventana sí funcionan, porque no envían nada; la nueva lectura sigue y su resultado se
-  aplica igual al detalle (RF-21) (decisión recomendada, R4). Los botones bloqueados por
-  este requisito, incluido el que está en curso, siguen pudiendo recibir el foco, como
-  "Sin cupos" (RF-9): el que lo tenía lo conserva, un lector de pantalla anuncia que no
-  está disponible y activarlo no hace nada, para que el foco no caiga al cuerpo de la
-  página (RNF-2) (deducción, D23). La nueva lectura de RF-21 no
-  muestra el estado de carga, y "Reintentar" tampoco (RF-13). CUANDO lo que reemplaza el
+  aplica igual al detalle (RF-21) (decisión recomendada, R4). Los botones que este
+  requisito bloquea sin que estén en curso ("Editar sesión", "Cancelar sesión",
+  "Descartar" y, durante la nueva lectura de RF-21, el botón de la acción que acaba de
+  responder) son botones bloqueados (Definiciones), como "Sin cupos" (RF-9): siguen
+  pudiendo recibir el foco, el que lo tenía lo conserva, un lector de pantalla anuncia que
+  no está disponible y activarlo no hace nada (deducción, D23, acotada por Q17; D30). El
+  botón en curso, en cambio, es un botón deshabilitado (Definiciones), y el navegador
+  puede sacarle el foco mientras espera la respuesta. CUANDO la acción termina (con
+  respuesta o por el plazo de RF-20),
+  EL SISTEMA devuelve el foco a ese botón si sigue existiendo y, si no, lo lleva al
+  destino que fija la regla general de RNF-2 (el botón nuevo de sumarse o salir, "Editar
+  sesión", el mensaje de la zona de acciones, el título "Esta sesión no existe" o el
+  título del panel de la agenda), de modo que al terminar la acción el foco nunca queda
+  en el cuerpo de la página (decisión de la usuaria, Q17). Excepción: SI la acción
+  responde cuando el usuario ya no está en el detalle en el que la inició (salió de él o
+  lo volvió a abrir), ENTONCES la respuesta no mueve el foco, según RF-15 (decisión
+  recomendada, R16; corrección, CR5-3). Si "Guardar cambios" se envió
+  con Intro desde el campo "Título", el foco sigue en el campo, que no se deshabilita ni
+  se bloquea (RF-22; R9). En la ventana de confirmación de cancelar, mientras "Sí,
+  cancelar sesión" está deshabilitado, el foco pasa al título de la ventana y Tab y
+  Mayús+Tab siguen recorriendo los controles de la ventana sin salir de ella (RF-23; Q25,
+  Q26). La nueva lectura de RF-21 no
+  muestra el estado de carga, y "Reintentar" tampoco (RF-13); "Reintentar" no es una
+  escritura y sigue RF-13. CUANDO lo que reemplaza el
   estado de carga al abrir el detalle (Definiciones) es la sesión de juego, EL SISTEMA lleva el foco a su título; si es el
   estado vacío, a "Esta sesión no existe" (RF-12); y si es el error, al mensaje (RF-13)
   (decisión del usuario, Q15; regla general en RNF-2).
@@ -319,18 +425,31 @@ tras mostrar el detalle su estado vacío (RF-15) (corrección, C4).
 - RF-16: EL SISTEMA obtiene todos los datos del detalle a través del contrato único, del
   servidor real o, en modo simulado, del backend simulado, nunca de los dos a la vez (spec
   007, RF-1). MIENTRAS está activo el modo simulado, el backend simulado responde a las
-  operaciones de esta spec como el servidor: obtener una sesión de juego responde 200 con
-  ella, 400 con "id con formato inválido" para un identificador que no tiene la forma del
-  identificador del backend simulado (Definiciones; spec 003, RF-5) y 404 para uno con esa
-  forma que no existe, por ejemplo `session-999999`; editar reaplica las reglas de la spec
-  006, RF-6 (400 sin guardar nada), RF-8 (400 si los cupos quedan bajo los participantes,
-  sin cambiar nada), RF-10 (403 si no es el anfitrión, sin cambiar nada) y RF-15 (ignora
-  cualquier otro campo, incluidos juego, anfitrión, participantes y estado), recalcula el
-  estado y responde 200 con la sesión de juego; editar, sumarse, salir y cancelar una
-  sesión de juego inexistente responden 404. El backend simulado aplica estas reglas
+  operaciones de esta spec como el servidor, con los mensajes literales de la spec 006
+  (RF-10; D24): obtener una sesión de juego responde 200 con ella, 400 con "id con formato
+  inválido" para un identificador que no tiene la forma del identificador del backend
+  simulado (Definiciones; spec 003, RF-5) y 404 con "Sesión no encontrada." para uno con
+  esa forma que no existe, por ejemplo `session-999999` o `SESSION-999999`; la forma y el
+  identificador se comparan sin distinguir mayúsculas de minúsculas, así que `SESSION-3`
+  abre la sesión de juego `session-3` (Definiciones; decisión de la usuaria, Q20). Editar
+  reaplica la edición parcial de la spec 006: RF-7 (cambia solo los campos enviados entre
+  título, notas, día, hora de inicio, duración y cupos, conserva los ausentes, guarda
+  título y notas recortados y acepta notas vacías, que las dejan como texto vacío;
+  DP6-22), RF-26 (400 con el texto de RF-6 de ese campo, sin cambiar nada, si un campo
+  editable llega nulo, de tipo incorrecto o con un valor que RF-6 rechaza, incluida la
+  regla del título; 200 con la sesión de juego sin cambios si la edición llega vacía o
+  solo con campos ignorados), RF-6 (textos y orden de los campos), RF-8 (400 si los cupos
+  quedan bajo los participantes, sin cambiar nada), RF-10 (403 si no es el anfitrión, sin
+  cambiar nada) y RF-15 (ignora cualquier otro campo, incluidos juego, anfitrión,
+  participantes y estado), en el orden de la spec 006, RF-20; recalcula el estado y
+  responde 200 con la sesión de juego (decisión de la usuaria, Q19). Editar, sumarse,
+  salir y cancelar una sesión de juego inexistente responden 404 "Sesión no encontrada.".
+  Aunque el formulario de esta spec siempre envía los seis campos (RF-6), el backend
+  simulado imita la edición parcial porque responde como el servidor a cualquier
+  petición (spec 007, RF-10). El backend simulado aplica estas reglas
   aunque el cliente ya compruebe las de RF-22, porque las repite y no las sustituye
   (RNF-6). Esta lista amplía, solo para las operaciones de esta spec, la de la spec 007,
-  RF-10 (cuyo punto 10 ya alinea salir sin estar inscrito); sus datos semilla siguen la
+  RF-10 (cuyo punto 8 ya alinea salir sin estar inscrito; corrección, CR4-4); sus datos semilla siguen la
   spec 007, RF-21 y RF-27. Como el backend simulado guarda sus datos en el navegador, un
   detalle abierto por su dirección tras recargar muestra la sesión de juego, sea semilla o
   creada desde la interfaz (deducción, D3). **Limitación declarada del modo simulado**:
@@ -340,10 +459,10 @@ tras mostrar el detalle su estado vacío (RF-15) (corrección, C4).
   pestaña puede sobrescribirlo (por ejemplo, devolver una sesión de juego cancelada). Los
   casos límite con "otra pestaña" u "otro navegador" solo se cumplen con el servidor real,
   y el modo simulado no cambia su forma de guardar por esta spec (decisión recomendada,
-  R11). MIENTRAS está activo el modo simulado, el detalle, como ruta protegida, muestra el
-  aviso "Datos de demostración" en la barra de navegación y en el pie, como las demás
-  vistas protegidas (spec 007, RF-11), sin un aviso propio; con el servidor real no lo
-  muestra (`AGENTS.md`; deducción, D19).
+  R11). El detalle, como ruta protegida, muestra el aviso global "Datos de demostración"
+  en la barra de navegación y en el pie, con el servidor real y en modo simulado, como las
+  demás vistas protegidas (spec 007, RF-11 y R19; spec 008, RF-27), sin un aviso propio
+  (`AGENTS.md`; deducción, D19, corregida por la decisión de la usuaria Q16).
 - RF-17: EL SISTEMA no vuelve a pedir la sesión de juego por sí solo: ni de forma
   periódica ni al volver el foco a la ventana o a la pestaña del navegador, como la spec
   008, RF-26 (decisión del usuario, P12). La pide solo al abrir el detalle (Definiciones,
@@ -405,24 +524,34 @@ tras mostrar el detalle su estado vacío (RF-15) (corrección, C4).
   que envía el formulario como en el formulario de creación (decisión recomendada, R9),
   EL SISTEMA comprueba en el cliente, con las reglas de la spec 006 (RF-6 y RF-8) y antes
   de enviar nada (decisión del usuario, P4):
-  1. que el título tenga de 3 a 60 caracteres sin contar los espacios de los extremos; si
-     no, muestra "El título debe tener entre 3 y 60 caracteres.";
-  2. que las notas tengan como máximo 160 caracteres;
-  3. que los cupos estén entre max(2, número de participantes de la sesión de juego
-     mostrada) y 6;
+  1. que el título cumpla la regla del título (Definiciones): tras recortarlo, sin ningún
+     carácter prohibido en el título y con un largo de 3 a 60 caracteres Unicode; si no,
+     muestra "El título debe tener entre 3 y 60 caracteres.", que es el texto que la spec
+     006 (RF-6 y RF-26) da a todo título inválido, también al que contiene un carácter
+     prohibido o queda vacío (decisión de la usuaria, Q18);
+  2. que las notas, tras recortarlas, tengan como máximo 160 caracteres Unicode (spec 006,
+     RF-6; deducción, D28);
+  3. que los cupos estén dentro del rango de RF-6, punto 4: entre max(2, número de
+     participantes visibles de la sesión de juego mostrada) y 6 si su estado es `open`, y
+     entre sus cupos actuales y 6 si es `full` (decisión de la usuaria, Q22);
   4. que día, hora de inicio y duración sean de los valores que ofrece RF-6.
   Los textos se muestran en el mismo lugar que los errores del servidor al guardar
   (RF-10). Los puntos 2 a 4 no pueden fallar desde la interfaz, porque los campos solo
-  admiten esos valores (RF-6), así que no tienen texto propio (deducción, D14). Las
-  comprobaciones no sustituyen las del servidor: con datos viejos, los cupos pueden pasar
-  en el cliente y recibir el 400 del servidor (RF-10, RF-21).
+  admiten esos valores (RF-6), así que no tienen texto propio (deducción, D14). El punto 1
+  sí puede fallar: por largo (por ejemplo `ab`) y por un carácter prohibido que llegue al
+  campo pegado, como un tabulador, U+0085 o U+2028 en el interior, o U+0085 también en
+  los extremos, porque el recorte no lo quita (Q18; CR5-1). Las
+  comprobaciones no sustituyen las del servidor: con datos viejos, o con un participante
+  eliminado que el servidor aún guarda en una sesión de juego `open` (limitación declarada
+  transitoria, RF-6, punto 4; Q22), los cupos pueden pasar en el cliente y recibir el 400
+  del servidor (RF-10, RF-21).
 - RF-23: EL SISTEMA confirma la cancelación, en el detalle y en la agenda, con una ventana
   que usa el mismo componente de ventana que el formulario de creación, con el título
   "¿Cancelar esta sesión?", el texto "Se borrará para todos los participantes y no se
   puede deshacer." y los botones "Sí, cancelar sesión" y "Volver" (decisión del usuario,
-  P6). Al abrirse, el foco está en "Volver". Mientras está abierta, la ventana retiene el
-  foco: Tab y Mayús+Tab recorren solo sus controles y no salen a la página que queda
-  detrás. El formulario de creación, que usa el mismo componente, conserva su
+  P6). Al abrirse, el foco está en "Volver". Mientras está abierta, también con la
+  cancelación en curso, la ventana retiene el foco: Tab y Mayús+Tab recorren solo sus
+  controles y no salen a la página que queda detrás (Q26). El formulario de creación, que usa el mismo componente, conserva su
   comportamiento de foco de hoy (decisión recomendada, R10). Escape, el botón de cerrar de la ventana y
   pulsar fuera de ella equivalen a "Volver": cierran la ventana sin enviar nada y
   devuelven el foco al botón "Cancelar sesión" que la abrió (deducción, D12), salvo que
@@ -432,12 +561,53 @@ tras mostrar el detalle su estado vacío (RF-15) (corrección, C4).
   cancelar sesión" envía la cancelación y queda marcado como en curso (RF-11); mientras
   está en curso la ventana no se puede cerrar: "Volver", Escape, el botón de cerrar y
   pulsar fuera no hacen nada hasta la respuesta o el plazo de RF-20 (decisión del usuario,
-  Q7). Mientras está en curso, "Sí, cancelar sesión", en el detalle y en la agenda, sigue
-  pudiendo recibir el foco y lo conserva, bloqueado y no deshabilitado, como los botones de
-  RF-11 (D23; decisión recomendada, R15). Si la
+  Q7). Mientras está en curso, "Sí, cancelar sesión", en el detalle y en la agenda, queda
+  deshabilitado y muestra "Enviando…" (spec 007, RF-20, que las vistas nuevas heredan;
+  decisión de la usuaria, Q17); "Volver" y el botón de cerrar son botones bloqueados
+  (Definiciones), como los botones de RF-11 que no están en curso (D23, D30). CUANDO "Sí,
+  cancelar sesión" pasa a estar deshabilitado, EL SISTEMA lleva el foco al título de la
+  ventana, "¿Cancelar esta sesión?", sin que caiga a la página que queda detrás ni al
+  cuerpo de la página (decisión de la usuaria, Q25). MIENTRAS sigue deshabilitado, Tab y
+  Mayús+Tab siguen recorriendo los controles de la ventana: "Volver" y el botón de
+  cerrar, que reciben el foco, un lector de pantalla los anuncia como no disponibles y
+  activarlos no hace nada, sin salir de la ventana, con la misma retención del foco de
+  este requisito (decisión de la usuaria, Q26). Ese título no es interactivo: recibe el
+  foco solo por esta regla, no entra en el recorrido con Tab (Tab y Mayús+Tab no vuelven
+  a él), el lector de pantalla lee su texto al recibirlo y el foco se ve sobre él, como
+  el título del panel y "Esta sesión no existe" (RNF-2). Vale en el detalle y en la
+  agenda (Q25, Q26). CUANDO la cancelación termina, el
+  foco sigue RNF-2, aunque durante la espera el jugador lo haya llevado con Tab a
+  "Volver" o al botón de cerrar: si la ventana sigue abierta, vuelve a "Sí, cancelar sesión"; si se
+  cierra tras un 204, va al título del panel de la agenda (RF-8, RF-19); y con un 404 en
+  el detalle, al título "Esta sesión no existe" (RF-12). Si la
   cancelación falla, la ventana sigue abierta y muestra el mensaje según RF-10, salvo un
   404 en el detalle, que aplica RF-12. Mientras dura la nueva lectura que sigue a un
   rechazo (RF-21), la ventana sí se puede cerrar (R4).
+- RF-24: CUANDO el jugador envía el formulario de creación de la agenda ("Anotar una
+  sesión"), EL SISTEMA comprueba antes en el cliente el título con la misma regla del
+  dominio que RF-22, punto 1 (la regla del título, Definiciones); si falla, muestra "El
+  título debe tener entre 3 y 60 caracteres." en el lugar donde ese formulario muestra hoy
+  sus errores y no envía nada. Esa comprobación sustituye a la que hoy hace el formulario
+  solo con el título vacío, y a su texto propio: un título vacío o formado solo por
+  espacios muestra también "El título debe tener entre 3 y 60 caracteres." (spec 006, RF-6
+  y RF-26) (deducción, D29). El campo "Título" del formulario de creación no admite
+  escribir más de 60 caracteres Unicode (un emoji cuenta 1), de modo que admite 60 emojis,
+  y el título se envía tal como está en el campo, como hoy. El campo "Notas" del
+  formulario de creación no admite escribir más de 160 caracteres Unicode (un emoji cuenta
+  1), de modo que admite 160 emojis, igual que las notas de la edición (RF-6, punto 5) y
+  que el servidor (spec 006, RF-6, "Largo de un texto"), y las notas se envían tal como
+  están en el campo, como hoy (decisión de la usuaria, Q23). El resto del formulario de
+  creación (sus campos, valores por defecto, otros textos, botones y comportamiento de
+  foco) no cambia por esta spec (R10) (decisiones de la usuaria, Q18 y Q23). La comprobación del
+  cliente no sustituye la del servidor (spec 006, RF-6), que sigue mandando (RNF-6).
+  Tampoco cambia cómo se rellena el título de una propuesta que llega desde coincidencias
+  o desde la ficha de jugador, "Sesión con <nombre visible>" (spec 007, RF-29; spec 008,
+  RF-7). SI ese nombre visible lleva un tabulador, un salto de línea u otro carácter
+  prohibido en el título que el recorte no quita (la spec 003 no los prohíbe en el nombre
+  visible), ENTONCES, al enviar el formulario, EL SISTEMA muestra "El título debe tener
+  entre 3 y 60 caracteres." y no envía nada, como con cualquier otro título inválido, y
+  el jugador corrige el título en el campo antes de volver a enviarlo (decisión de la
+  usuaria, Q27).
 
 ## Requisitos no funcionales
 - RNF-1: Usa los componentes, tokens de diseño y patrones existentes; ningún color escrito
@@ -449,17 +619,29 @@ tras mostrar el detalle su estado vacío (RF-15) (corrección, C4).
   su motivo (RF-9), como en la spec 008, RNF-2. Al abrir el formulario de edición el foco
   pasa al campo "Título" y al cerrarlo (con "Guardar cambios" o "Descartar") vuelve a
   "Editar sesión" (decisión del usuario, Q1).
-  Regla general del foco (decisiones del usuario, Q10 a Q15). Tras cada cambio que
+  Regla general del foco (decisiones del usuario, Q10 a Q15 y Q17). Tras cada cambio que
   describen los puntos a, b y c, y tras la redirección del punto d, el foco nunca queda en
   el cuerpo de la página. La navegación hacia la agenda que no es esa redirección ("Ir a la
   agenda", "Atrás", "Adelante" o la barra de navegación) queda fuera de esta garantía y deja
-  el foco como hoy (RF-2) (corrección, C3):
+  el foco como hoy (RF-2) (corrección, C3). También queda fuera de esta garantía la
+  respuesta de una acción que llega cuando el usuario ya no está en el detalle en el que
+  la inició (salió de él o lo volvió a abrir): no mueve el foco (RF-11, RF-15; R16;
+  corrección, CR5-3). Mientras una acción está en curso, su botón
+  es un botón deshabilitado (Definiciones; spec 007, RF-20; RF-11) y el navegador puede
+  sacarle el foco; en el detalle, esa espera queda fuera de la garantía, y en la ventana
+  de confirmación de cancelar el foco pasa al título de la ventana, "¿Cancelar esta
+  sesión?", y desde ahí Tab y Mayús+Tab siguen recorriendo los controles de la ventana
+  ("Volver" y el botón de cerrar, bloqueados) sin salir de ella (RF-23; Q25, Q26). Al
+  terminar la acción, "el elemento
+  que tenía el foco" es el botón de esa acción (o el campo "Título", si se envió con
+  Intro), aunque el navegador le haya sacado el foco mientras estaba deshabilitado, y el
+  foco se coloca según los puntos a a d (Q17):
   a. CUANDO una acción termina con un rechazo o un error mostrado (RF-10, RF-14, RF-23),
      CUANDO falla una comprobación del cliente (RF-22), CUANDO llega la nueva lectura que
      sigue a un rechazo (RF-21) o la agenda vuelve a pedir sus sesiones de juego (RF-19),
      y CUANDO se cierra el formulario de edición o la ventana de confirmación de cancelar
      (también cuando la ventana de la agenda se cierra sola tras un 204, RF-19), EL
-     SISTEMA deja el foco en el elemento que lo tenía (o lo devuelve al botón de origen:
+     SISTEMA deja o devuelve el foco al elemento que lo tenía (o lo devuelve al botón de origen:
      "Editar sesión" al cerrar el formulario, "Cancelar sesión" al cerrar la ventana) si
      ese elemento sigue existiendo; si ya no existe, lo lleva, en el detalle, al mensaje
      de la zona de acciones y, en la agenda, al título del panel, con el texto que muestre
@@ -486,20 +668,20 @@ tras mostrar el detalle su estado vacío (RF-15) (corrección, C4).
   estado: el botón de sumarse es el mismo como "Unirme" y como "Sin cupos"; "Unirme" y
   "Salir" son elementos distintos, y "Editar sesión" y "Cancelar sesión" dejan de existir
   cuando el usuario de la sesión deja de ser el anfitrión. La regla cubre, entre otros:
-  1. 409 al pulsar "Unirme" con nueva lectura que muestra "Sin cupos": el foco se queda
-     en el botón (Q11).
+  1. 409 al pulsar "Unirme" con nueva lectura que muestra "Sin cupos": el foco vuelve al
+     botón al terminar la acción y se queda en él (Q11, Q17).
   2. 409 al pulsar "Unirme" o "Salir" con nueva lectura que cambia el botón a "Salir" o a
      "Unirme": el foco va al mensaje de la zona de acciones (Q11).
   3. Rechazo 400 o 403 al guardar, o un error sin mensaje, con el usuario de la sesión aún
-     anfitrión: el formulario sigue abierto y el foco se queda en el elemento desde el que
-     se envió, "Guardar cambios" o, si se envió con Intro, el campo "Título", aunque la
+     anfitrión: el formulario sigue abierto y el foco vuelve al elemento desde el que se
+     envió, "Guardar cambios" o, si se envió con Intro, el campo "Título", aunque la
      nueva lectura cambie el rango de cupos (RF-21, RF-22; R9). Un 403 por la sesión
      iniciada de otro usuario sigue este caso (RF-14; D18).
   4. Rechazo cuya nueva lectura muestra que el usuario de la sesión ya no es el anfitrión
      (regla defensiva, que con la spec 006 no ocurre; RF-14, D18): el formulario o la
      ventana se cierran y el foco va al mensaje de la zona de acciones (Q10).
   5. Error sin mensaje o plazo de 30 segundos en una acción, sin nueva lectura (RF-10,
-     RF-20): el botón sigue existiendo y el foco se queda en él.
+     RF-20): el botón sigue existiendo y el foco vuelve a él (Q17).
   6. Ventana de la agenda que se cierra cuando su tarjeta ya desapareció, por "Volver",
      Escape, su botón de cerrar o pulsar fuera, o sola tras un 204: el foco va al título
      del panel (Q10; D15).
@@ -522,8 +704,14 @@ tras mostrar el detalle su estado vacío (RF-15) (corrección, C4).
       reemplace el estado de carga (Q15; R1).
   13. Cancelar desde el detalle con respuesta 204: en la agenda, el foco va al título del
       panel (Q15; RF-8).
+  14. Cancelación con error y la ventana abierta, en el detalle o en la agenda: cuando
+      "Sí, cancelar sesión" pasa a estar deshabilitado, el foco va al título de la
+      ventana, "¿Cancelar esta sesión?" (Q25), y Tab y Mayús+Tab pueden llevarlo a
+      "Volver" o al botón de cerrar, bloqueados, sin salir de la ventana (Q26); al llegar
+      el error, vuelve a "Sí, cancelar sesión" (RF-23; Q17).
   El mensaje de la zona de acciones, el título del panel, el título del estado vacío, el
-  mensaje de error de RF-13 y el título de la sesión de juego no son interactivos: reciben
+  mensaje de error de RF-13, el título de la sesión de juego y el título de la ventana de
+  confirmación de cancelar ("¿Cancelar esta sesión?") no son interactivos: reciben
   el foco solo por esta regla, no entran en el recorrido con Tab, el lector de pantalla lee
   su texto al recibirlo y el foco se ve sobre ellos.
 - RNF-3: Ningún contenido de otros usuarios (título, notas y nombres visibles) se inserta
@@ -545,7 +733,10 @@ tras mostrar el detalle su estado vacío (RF-15) (corrección, C4).
   RNF-5) (deducción, D7).
 - RNF-6: Son reglas puras del dominio, sin reloj ni interfaz (constitución, principio 3):
   el rol en el detalle y qué acciones se ofrecen, con el estado "Sin cupos" (RF-9); el
-  rango horario mostrado; las horas de inicio de la edición y el rango de cupos (RF-6); el
+  rango horario mostrado; cuántos "cupo libre" se muestran según el estado (RF-3; Q21);
+  las horas de inicio de la edición y el rango de cupos, que empieza en max(2,
+  participantes visibles) con `open` y en los cupos actuales con `full` (RF-6, punto 4;
+  Q22); el
   ajuste de los cupos elegidos al nuevo mínimo cuando el rango cambia con datos nuevos
   (RF-6, RF-21); la clasificación de cada respuesta según su código y la petición que la
   recibe (obtener la sesión de juego, su nueva lectura o una acción): estado vacío (RF-12),
@@ -553,7 +744,10 @@ tras mostrar el detalle su estado vacío (RF-15) (corrección, C4).
   RF-21), detalle sin cambios con el mensaje del rechazo (RF-21) o éxito; y las
   comprobaciones del cliente de RF-22, en una sola regla que no se duplica en los
   componentes y que repite, sin sustituirlas, las de la spec 006 (RF-6 y RF-8), porque
-  manda el servidor (deducción, D21). El 401 no entra en esa clasificación: lo trata la
+  manda el servidor (deducción, D21). La regla del título (Definiciones), con el recorte,
+  los caracteres prohibidos y el largo en caracteres Unicode, es una sola función del
+  dominio que usan el formulario de edición (RF-22) y el de creación (RF-24), sin
+  duplicarse en ninguno de los dos (decisión de la usuaria, Q18). El 401 no entra en esa clasificación: lo trata la
   spec 007, RF-7.
 
 ## Casos límite
@@ -594,34 +788,87 @@ tras mostrar el detalle su estado vacío (RF-15) (corrección, C4).
 - Editar los cupos justo al número de participantes: el servidor responde 200 con el
   estado `full` y aparece "Cupos llenos" (RF-3; spec 006, caso límite).
 - Título "ab", o de tres o más caracteres pero rodeado de espacios con menos de tres
-  dentro: se muestra "El título debe tener entre 3 y 60 caracteres." y no se envía nada
-  (RF-22).
+  dentro (también con U+00A0 o U+3000 en los extremos): se muestra "El título debe tener
+  entre 3 y 60 caracteres." y no se envía nada (RF-22), en la edición y en la creación
+  (RF-24).
+- Título con un tabulador, U+0085 o U+2028 pegado en su interior (por ejemplo
+  `Ranked<tab>noche`): se muestra "El título debe tener entre 3 y 60 caracteres." y no se
+  envía nada, en la edición y en la creación. Si un tabulador o U+2028 solo están en los
+  extremos, el recorte los quita y el título pasa; U+0085, en cambio, no se recorta (spec
+  006, "Recortar un texto") y es un carácter prohibido en el título, así que también en
+  los extremos (por ejemplo `Ranked noche` seguido de U+0085) se muestra el mismo texto y
+  no se envía nada (Definiciones, regla del título; RF-22, RF-24; spec 006, DP6-27 y
+  DP6-31; corrección, CR5-1).
+- Propuesta desde coincidencias o desde la ficha cuyo título rellenado, "Sesión con
+  <nombre visible>", lleva un tabulador o un salto de línea en su interior porque el
+  nombre visible los tiene (la spec 003 no los prohíbe): el formulario de creación se
+  abre con ese título y, al enviarlo, muestra "El título debe tener entre 3 y 60
+  caracteres." sin enviar nada; el jugador corrige el título y lo envía (RF-24; Q27).
+- Título de 60 emojis: se puede escribir y se guarda, en la edición y en la creación; un
+  emoji más no se puede escribir (RF-6, RF-22, RF-24; spec 006, "Largo de un texto").
+- Notas de 160 emojis: se pueden escribir y se guardan, en la edición y en la creación;
+  un emoji más no se puede escribir (RF-6, punto 5; RF-24; Q23).
+- Formulario de creación con el título vacío o solo con espacios: se muestra "El título
+  debe tener entre 3 y 60 caracteres." en lugar del texto que muestra hoy, y no se envía
+  nada (RF-24; D29).
 - Guardar sin cambios: se envía igual, el formulario se cierra y aparece "Cambios
   guardados." (RF-7).
 - "Descartar": el formulario se cierra sin enviar nada; al volver a abrirlo trae los
   valores de la sesión de juego mostrada, no los descartados (RF-6).
-- El anfitrión edita con datos viejos (otro se sumó mientras tanto): el servidor reemplaza
-  todos los campos con lo enviado (spec 006, RF-7); si los cupos quedan bajo los
-  participantes actuales, responde 400 (RF-10, RF-21). Gana la última edición guardada
-  (limitación declarada).
+- El anfitrión edita con datos viejos (otro se sumó, o el anfitrión editó en otra
+  pestaña, mientras tanto): el servidor cambia solo los campos enviados (spec 006, RF-7),
+  pero como el formulario envía siempre los seis, todos quedan como estaban en el
+  formulario (RF-6; Q19); si los cupos quedan bajo los participantes actuales, responde
+  400 (RF-10, RF-21). Gana la última edición guardada (limitación declarada).
 - Sumarse a una sesión de juego que se llenó mientras se miraba: el servidor responde 409,
   su mensaje se muestra en la zona de acciones y la nueva lectura muestra "Sin cupos" y
-  "Cupos llenos" con el mensaje aún visible; el foco se queda en el botón, ahora "Sin
-  cupos" (RF-10, RF-21, RNF-2).
+  "Cupos llenos" con el mensaje aún visible; al terminar la acción el foco vuelve al
+  botón, ahora "Sin cupos", y se queda en él (RF-10, RF-21, RNF-2; Q17).
 - Sumarse estando ya inscrito desde otra pestaña: 409; la nueva lectura muestra "Estás
   dentro" y "Salir", el mensaje sigue en la zona de acciones y el foco va a ese mensaje
   porque "Unirme" ya no existe (RF-21, RNF-2; D13, Q11).
-- Salir de una sesión de juego de la que ya se salió en otra pestaña: 409 "no estás
-  inscrito en esta sesión" (spec 006, RF-17), mostrado en la zona de acciones; la nueva
-  lectura muestra "Unirme" y el foco va al mensaje (RF-10, RF-21, RNF-2).
-- Sesión de juego llena y usuario no inscrito: "Sin cupos" deshabilitado, con foco, y
-  activarlo no envía nada (RF-9).
+- Salir de una sesión de juego de la que ya se salió en otra pestaña: 409 "No estás
+  inscrito en esta sesión." (spec 006, RF-17), mostrado en la zona de acciones; la nueva
+  lectura muestra "Unirme" y el foco va al mensaje (RF-10, RF-21, RNF-2). La spec 007
+  (RF-10, punto 8) escribe ese texto en minúscula y sin punto; prevalece el literal de la
+  spec 006, porque la propia spec 007, RF-10, obliga a reproducir los mensajes que fijan
+  las specs 002 a 006 (corrección, CR4-5; desajuste anotado en Dudas abiertas, sin cambiar la
+  spec 007).
+- Sesión de juego `full` con menos participantes visibles que cupos, porque se eliminó a
+  un participante que no es el anfitrión y la cascada aún no terminó (spec 006, RF-24): el
+  detalle se muestra (obtenerla responde 200), sin ese participante; para un no inscrito
+  el botón es "Sin cupos", porque "llena" se mide por el estado (RF-9; D27). No se
+  muestra ningún "cupo libre": con 4 cupos y 3 participantes visibles se ve "3/4
+  jugadores" y "Cupos llenos" (RF-3; Q21). En la edición, la lista de cupos empieza en los
+  cupos actuales (4 en el ejemplo), no en los participantes visibles (RF-6, punto 4;
+  RF-22, punto 3; Q22).
+- Sesión de juego `open` en la que el servidor aún guarda un participante eliminado que
+  ya no se ve: la lista de cupos empieza en max(2, participantes visibles) y unos cupos
+  por debajo de los guardados reciben el 400 de la spec 006, RF-8, que se muestra en el
+  formulario y lleva a la nueva lectura (limitación declarada transitoria, hasta que
+  termina la cascada; RF-6, RF-10, RF-21; Q22).
+- Sesión de juego llena y usuario no inscrito: "Sin cupos" bloqueado (Definiciones), con
+  foco, anunciado como no disponible, y activarlo no envía nada (RF-9; P1, D30).
 - Sumarse a una sesión de juego de un juego en el que el usuario de la sesión no tiene
   cuenta: se permite (RF-9; spec 006, RF-11).
 - Doble clic o dos acciones seguidas: mientras hay una acción en curso, o su nueva
   lectura, no se puede enviar otra (RF-11, RF-21).
+- Acción en curso: su botón queda deshabilitado con "Enviando…" (spec 007, RF-20) y el
+  navegador puede sacarle el foco; "Editar sesión", "Cancelar sesión" y "Descartar", si
+  están, siguen recibiendo el foco pero no hacen nada; al terminar la acción el foco vuelve
+  al botón si sigue existiendo o va al destino de la regla general, nunca al cuerpo de la
+  página (RF-11, RNF-2; Q17).
+- "Sí, cancelar sesión" en curso, en el detalle o en la agenda: queda deshabilitado con
+  "Enviando…" y el foco pasa al título de la ventana, "¿Cancelar esta sesión?", que el
+  lector de pantalla lee y que no entra en el recorrido con Tab; desde ahí, Tab y
+  Mayús+Tab recorren "Volver" y el botón de cerrar, bloqueados y anunciados como no
+  disponibles, sin salir de la ventana (Q26); al terminar, el foco
+  vuelve a "Sí, cancelar sesión" si la ventana sigue abierta tras un error, va al título
+  del panel tras un 204 (en el detalle, al de la agenda tras la redirección) y, con un 404
+  en el detalle, a "Esta sesión no existe" (RF-23, RNF-2; Q17, Q25).
 - Acción sin respuesta: a los 30 segundos se muestra el Texto de error sin mensaje en su
-  lugar y se desbloquean las acciones; una respuesta posterior no se muestra (RF-20).
+  lugar, se desbloquean las acciones y el foco vuelve al botón de la acción; una respuesta
+  posterior no se muestra (RF-20, RNF-2).
 - Falla la carga del detalle con la aplicación ya cargada (servidor caído al abrirlo con
   "Ver detalle", 5xx solo en esa petición o sin respuesta en 30 segundos): todo el detalle
   muestra el mensaje con "Reintentar", sin llevar a login y sin reintentos automáticos
@@ -644,7 +891,9 @@ tras mostrar el detalle su estado vacío (RF-15) (corrección, C4).
 - Salir del detalle ("Atrás" o la barra de navegación) con una acción en curso, o volver a
   abrirlo antes de que responda: la respuesta no redirige, no mueve el foco ni muestra
   mensajes; si tuvo éxito, la agenda de la pestaña la refleja, y el detalle abierto de nuevo
-  muestra lo que devuelve su propia lectura, sin la acción en curso (RF-15; R1, R16).
+  muestra lo que devuelve su propia lectura, sin la acción en curso (RF-15; R1, R16). Es
+  la excepción de RF-11 y RNF-2 a la regla de dónde queda el foco al terminar una acción
+  (CR5-3).
 - Abrir el detalle cuando la agenda de la pestaña tiene datos más viejos de esa sesión de
   juego: al volver a la agenda, muestra los datos que leyó el detalle (RF-15; R17).
 - Participante sin cuenta en el juego de la sesión de juego: su ficha se abre en su pestaña
@@ -694,16 +943,21 @@ tras mostrar el detalle su estado vacío (RF-15) (corrección, C4).
 - Intro en el campo "Título": envía el formulario como "Guardar cambios"; si la
   comprobación falla o el servidor rechaza, el foco se queda en el campo (RF-22, RNF-2;
   R9).
-- Tab y Mayús+Tab con la ventana de confirmación abierta: el foco no sale de la ventana
-  (RF-23; R10).
+- Tab y Mayús+Tab con la ventana de confirmación abierta, también con la cancelación en
+  curso: el foco no sale de la ventana (RF-23; R10, Q26).
 - 403 porque en otra pestaña se inició sesión con otra cuenta y esta pestaña aún no lo
   aplicó: el mensaje se muestra, la nueva lectura sigue mostrando al usuario de la sesión
   como anfitrión, el formulario o la ventana siguen abiertos y repetir da otro 403 hasta
   que la spec 007, RF-24, lleva a login (RF-14; D18).
-- Título guardado con espacios en los extremos que, contándolos, pasa de 60 caracteres: el
-  campo lo muestra completo, no admite escribir más hasta bajar de 60 y guardar sin tocarlo
-  envía el título sin quitarle espacios; el valor guardado lo decide la spec 006 (RF-6,
-  RF-22; R13, R18).
+- Título guardado con espacios en los extremos que, contándolos, pasa de 60 caracteres:
+  con el servidor de la spec 006 no ocurre, porque guarda y devuelve el título ya
+  recortado (spec 006, RNF-2); solo puede llegar con datos que no pasaron esas reglas, por
+  ejemplo guardados por el backend simulado antes de adoptar la spec 006. Regla
+  defensiva: el campo lo muestra completo, no admite escribir más hasta bajar de 60 y
+  guardar sin tocarlo envía el título sin quitarle espacios; el valor guardado lo decide
+  la spec 006 (RF-6, RF-22; R13, R18; D26).
+- Modo simulado, identificador con otras mayúsculas: `SESSION-3` abre el detalle de
+  `session-3`, y `SESSION-999999` muestra el estado vacío (RF-16; Q20).
 - Dos tarjetas de la agenda con el mismo título: sus enlaces "Ver detalle de <título>"
   tienen el mismo nombre accesible (limitación declarada, RF-2; R12).
 - Modo simulado con el detalle o la agenda abiertos en dos pestañas: cancelar en una no da
@@ -722,9 +976,12 @@ tras mostrar el detalle su estado vacío (RF-15) (corrección, C4).
 - Notificar a los participantes de una edición o cancelación (spec 006, fuera de alcance).
 - Expulsar participantes.
 - Cambiar el juego de una sesión de juego existente (spec 006, RF-15).
-- Cambiar las validaciones o los textos del formulario de creación de la agenda.
+- Cambiar en el formulario de creación de la agenda algo distinto de la regla del título y
+  su texto y del conteo de las notas en caracteres Unicode (RF-24) (decisiones de la
+  usuaria, Q18 y Q23).
 - Cambiar en la agenda algo distinto de lo que enumera el Contexto: el enlace "Ver
-  detalle" y su ajuste a 360 px (RF-2, RNF-5), la confirmación de cancelar (RF-19, RF-23),
+  detalle" y su ajuste a 360 px (RF-2, RNF-5), la regla del título y el conteo de las
+  notas del formulario de creación (RF-24), la confirmación de cancelar (RF-19, RF-23),
   el foco en el título del panel tras cancelar, que para eso recibe el foco aunque no sea
   interactivo (RF-8, RF-19, RNF-2), el reflejo de las acciones del detalle (RF-15) y la
   nueva petición de sus sesiones de juego tras un 404 al cancelar o tras el estado vacío
@@ -734,7 +991,8 @@ tras mostrar el detalle su estado vacío (RF-15) (corrección, C4).
 - Cambiar el comportamiento de foco del formulario de creación al dar a la ventana de
   confirmación la retención del foco (RF-23; R10).
 - Cambiar cómo guarda sus datos el backend simulado entre pestañas (RF-16; R11).
-- Mostrar en el detalle un aviso propio de datos de demostración (RF-16; D19).
+- Mostrar en el detalle un aviso propio de datos de demostración; el aviso global de la
+  spec 007 sí se muestra, con el servidor real y en modo simulado (RF-16; D19, Q16).
 - Pruebas automáticas de la interfaz (RNF-4; D20).
 - Exigir cuenta en el juego para sumarse (RF-9).
 - Volver a pedir la sesión de juego al volver el foco o de forma periódica (RF-17).
@@ -754,7 +1012,8 @@ tras mostrar el detalle su estado vacío (RF-15) (corrección, C4).
       2. Se ven LoL, `<b>x</b>` como texto literal, sin notas, "Lunes · 23:00–03:00",
          "1/2 jugadores", sin sello "Cupos llenos", A con "organiza" y "La organizas", un
          "cupo libre", y "Editar sesión" y "Cancelar sesión" sin "Unirme" ni "Salir"
-         (RF-3, RF-5, RNF-3).
+         (RF-3, RF-5, RNF-3); la barra de navegación y el pie muestran el aviso «Datos de
+         demostración» también con el servidor real (RF-16; Q16).
       3. A pulsa "Editar sesión": el formulario aparece en la página con los valores
          actuales y los cupos de 2 a 6; A escribe el título `ab`, pulsa "Guardar cambios"
          y ve "El título debe tener entre 3 y 60 caracteres." sin petición en la pestaña de
@@ -770,8 +1029,8 @@ tras mostrar el detalle su estado vacío (RF-15) (corrección, C4).
       6. C, sin cuenta de LoL, abre el detalle en una pestaña P1 y ve "Unirme" habilitado
          (RF-9). A, con B dentro, edita los cupos: la lista va de 2 a 6; los baja a 2 y
          aparece "Cupos llenos" (RF-6; caso límite).
-      7. C abre el detalle en otra pestaña P2: ve "Sin cupos" deshabilitado, lo alcanza con
-         Tab y activarlo no hace peticiones (RF-9). En P1, con datos viejos, C pulsa
+      7. C abre el detalle en otra pestaña P2: ve "Sin cupos" bloqueado, lo alcanza con
+         Tab, se anuncia como no disponible y activarlo no hace peticiones (RF-9; D30). En P1, con datos viejos, C pulsa
          "Unirme": el mensaje 409 aparece en la zona de acciones y la nueva lectura muestra
          "Sin cupos" y "Cupos llenos" con el mensaje aún visible y el foco en "Sin cupos"
          (RF-10, RF-21, RNF-2); C va a la
@@ -796,8 +1055,14 @@ tras mostrar el detalle su estado vacío (RF-15) (corrección, C4).
       servidor apagado, "Sí, cancelar sesión" deja la ventana abierta con "No se pudo
       conectar con el servidor. Inténtalo de nuevo." y la tarjeta sigue; con el servidor
       encendido y la red limitada a "3G lenta", mientras "Sí, cancelar sesión" está en
-      curso, Escape, "Volver" y pulsar fuera no cierran la ventana y el foco sigue visible
-      en "Sí, cancelar sesión", que NVDA anuncia como no disponible (D23; R15); al responder 204, la
+      curso, el botón aparece deshabilitado con "Enviando…" (spec 007, RF-20), Escape,
+      "Volver" y pulsar fuera no cierran la ventana y el foco queda visible en el título
+      de la ventana, "¿Cancelar esta sesión?", que NVDA lee, sin pasar a la página de
+      detrás (RF-23; Q17, Q25); desde ahí, Tab y Mayús+Tab llevan el foco a "Volver" y al
+      botón de cerrar, que NVDA anuncia como no disponibles y que no hacen nada al
+      activarlos, sin salir nunca de la ventana (RF-23; Q26);
+      repitiendo con el servidor apagado, al llegar el error el foco vuelve visible a "Sí,
+      cancelar sesión" (RNF-2, caso 14); al responder 204, la
       ventana se cierra, la tarjeta desaparece y el foco queda visible en el título del
       panel (RF-19, RF-23, RNF-2). A crea una tercera sesión
       de juego, la cancela desde su detalle en otra pestaña y, en la agenda sin recargar,
@@ -805,8 +1070,11 @@ tras mostrar el detalle su estado vacío (RF-15) (corrección, C4).
       desaparece; al cerrar la ventana con Escape, el foco queda visible en el título del
       panel, NVDA lee su texto y el siguiente Tab sigue desde ahí (RF-19, RNF-2).
 - [ ] Estados, dentro del mismo registro: con la red limitada a "3G lenta", al abrir el
-      detalle se ve el estado de carga y, al sumarse, el botón en curso con las demás
-      acciones bloqueadas (RF-11); un identificador `abc` y uno con formato válido
+      detalle se ve el estado de carga y, al sumarse, el botón en curso aparece
+      deshabilitado con "Enviando…" (spec 007, RF-20) y, al responder 200, el foco queda
+      visible en "Salir" (RF-9, RF-11, RNF-2; Q17); con el servidor apagado, tras pulsar
+      "Unirme" y recibir el Texto de error sin mensaje, el foco vuelve visible a "Unirme"
+      (RNF-2, caso 5; Q17); un identificador `abc` y uno con formato válido
       inexistente muestran "Esta sesión no existe", "Puede que se haya cancelado." y "Ir a
       la agenda", que lleva a la agenda (RF-12); con la sesión cerrada, abrir un detalle
       lleva a login y, al entrar, vuelve al detalle (RF-1); con la aplicación ya cargada en
@@ -833,14 +1101,19 @@ tras mostrar el detalle su estado vacío (RF-15) (corrección, C4).
       detalle con "Ver detalle" y vuelve con "Atrás": la agenda muestra los cupos que leyó
       el detalle (RF-15; R17).
 - [ ] Bloqueos y formulario, dentro del mismo registro, con la red limitada a "3G lenta":
-      mientras "Guardar cambios" está en curso, "Descartar" y "Cancelar sesión" no hacen
-      nada y el foco sigue visible en "Guardar cambios" (RF-11; R3, R5; D23); con "Cambios
+      mientras "Guardar cambios" está en curso, aparece deshabilitado con "Enviando…"
+      (spec 007, RF-20), y "Descartar" y "Cancelar sesión" se alcanzan con Tab pero no
+      hacen nada (RF-11; R3, R5; D23; Q17); al responder 200 el foco queda visible en
+      "Editar sesión" (RF-7, RNF-2) y, con un rechazo, vuelve visible a "Guardar cambios"
+      (RNF-2, caso 3; Q17); con "Cambios
       guardados." visible, abrir la ventana de cancelar no lo oculta (RF-7; R3); con el
       formulario abierto, "Cancelar sesión" abre la ventana y "Volver" la cierra con el
       formulario intacto (RF-6, RF-23; R6); Intro en "Título" con `ab` muestra el texto de
       RF-22 sin petición y deja el foco en el campo (RF-22; R9); Tab y Mayús+Tab con la
-      ventana abierta no salen de ella, y el formulario de creación de la agenda sigue
-      como hoy (RF-23; R10). Para el último paso se prepara de nuevo una sesión de juego
+      ventana abierta no salen de ella, y el formulario de creación de la agenda conserva
+      su comportamiento de foco de hoy (RF-23; R10); su regla del título y el conteo de
+      título y notas en caracteres Unicode sí cambian y se comprueban en el criterio
+      "Regla del título" (RF-24; D29, Q23) (corrección, CR5-4). Para el último paso se prepara de nuevo una sesión de juego
       propia: A abre el detalle de una sesión de juego de 4 cupos en la que solo está A, B
       y C se suman desde sus navegadores, y A, sin recargar, abre el formulario, elige 2
       cupos y guarda; si A pulsa "Descartar" mientras dura la nueva lectura que sigue al
@@ -853,6 +1126,28 @@ tras mostrar el detalle su estado vacío (RF-15) (corrección, C4).
       servidor aparece en el formulario, que sigue abierto, y la nueva lectura muestra
       "3/4 jugadores", la lista de cupos desde 3 con el 3 elegido y el resto de lo que
       escribió A sin cambios (RF-10, RF-21, RF-22).
+- [ ] Regla del título, dentro del mismo registro, en el formulario de edición del detalle
+      y en el de creación de la agenda: se escriben 60 emojis y el 61.º no entra; guardar
+      o crear con ellos responde 200 o 201 (RF-6, RF-24); un título pegado con un
+      tabulador interno (`Ranked<tab>noche`), uno con U+2028 interno, `ab` y `  ab  `
+      muestran "El título debe tener entre 3 y 60 caracteres." sin petición en la pestaña
+      de red (RF-22, RF-24); en la creación, el título vacío muestra ese mismo texto
+      (RF-24; D29); un título con U+00A0 o un tabulador solo en los extremos y 3
+      caracteres dentro se envía, y uno con U+0085 solo al final muestra el texto sin
+      petición (RF-22, RF-24; CR5-1). En coincidencias, con un candidato cuyo nombre
+      visible lleva un tabulador interno (fijado contra la API), "Proponer" abre el
+      formulario con "Sesión con <nombre visible>", enviarlo muestra "El título debe tener
+      entre 3 y 60 caracteres." sin petición y, tras corregir el título, crear responde
+      201 (RF-24; Q27). En los dos formularios se escriben 160 emojis en las notas y
+      el 161.º no entra; guardar o crear con ellas responde 200 o 201 (RF-6, punto 5;
+      RF-24; Q23). Una revisión del código encuentra una sola función de dominio
+      para la regla del título, usada por los dos formularios (RNF-6; Q18).
+- [ ] Sesión de juego `full` durante la cascada, que no se provoca de forma fiable desde la
+      interfaz: se comprueba revisando las reglas de dominio de RNF-6 con una sesión de
+      juego `full` de 4 cupos y 3 participantes visibles, que dan ningún "cupo libre", el
+      contador "3/4 jugadores" con "Cupos llenos" y la lista de cupos de la edición de 4 a
+      6; y con la misma sesión de juego `open`, 1 "cupo libre" y la lista de 3 a 6 (RF-3,
+      RF-6, RF-22; Q21, Q22). El resultado queda en el registro.
 - [ ] Hora fuera del horario: una sesión de juego creada contra la API a las 05:00 muestra
       las 05:00 elegidas en la edición, al final de la lista después de las 01:00, y,
       guardando sin cambios, sigue a las 05:00 (RF-6).
@@ -874,14 +1169,18 @@ tras mostrar el detalle su estado vacío (RF-15) (corrección, C4).
       queda en el registro.
 - [ ] Con el modo simulado y la cuenta demo, sin peticiones al servidor en la pestaña de
       red: abrir el detalle de una sesión de juego semilla desde la agenda, recargarlo, y
-      abrir por su dirección el de una sesión de juego recién creada (RF-16); `abc` y
-      `session-999999` muestran el estado vacío; editar, sumarse, salir y cancelar (con su
+      abrir por su dirección el de una sesión de juego recién creada (RF-16); la dirección
+      con el identificador de una semilla escrito en mayúsculas (por ejemplo `SESSION-3`)
+      abre esa sesión de juego (Q20); `abc`, `session-999999` y `SESSION-999999` muestran
+      el estado vacío; editar, sumarse, salir y cancelar (con su
       confirmación) funcionan y la agenda refleja cada cambio sin recargar (RF-15). Los
       casos de RF-16 que la interfaz no puede provocar (403, campos ignorados, datos
-      inválidos y cupos bajo los participantes, que el cliente impide por RF-22) se
+      inválidos, cupos bajo los participantes, que el cliente impide por RF-22, edición
+      parcial con campos ausentes, campo nulo o de tipo incorrecto y edición vacía de la
+      spec 006, RF-7 y RF-26, y los mensajes literales de la spec 006) se
       comprueban revisando el backend simulado frente a la spec 006, y el resultado queda
       en el registro. El detalle muestra el aviso "Datos de demostración" en la barra y en
-      el pie, y no lo muestra con el servidor real (RF-16; D19). Los casos con dos pestañas
+      el pie, igual que con el servidor real (RF-16; D19, Q16). Los casos con dos pestañas
       no se comprueban en modo simulado (limitación declarada, RF-16; R11).
 - [ ] Recorrido solo con teclado y con NVDA en Chrome, registrado: se llega al detalle
       desde la agenda por "Ver detalle" (NVDA anuncia "Ver detalle de <título>", RF-2), se
@@ -939,7 +1238,8 @@ tras mostrar el detalle su estado vacío (RF-15) (corrección, C4).
 - Respuesta del usuario a P1–P13: "Haz todo lo recomendado". Se aplicó la opción
   recomendada en todas:
   - P1 → RF-9, RNF-2, RNF-6: sesión llena y no inscrito, "Sin cupos" deshabilitado, con
-    foco y motivo anunciado.
+    foco y motivo anunciado (hoy se escribe "bloqueado", con el mismo comportamiento;
+    D30).
   - P2 → RF-9, Fuera de alcance: se puede sumar sin cuenta en el juego.
   - P3 → RF-5, RF-6, RF-7: "Editar sesión" abre el formulario en la página, con "Guardar
     cambios" y "Descartar"; al guardar se cierra y aparece "Cambios guardados.".
@@ -1155,12 +1455,15 @@ tras mostrar el detalle su estado vacío (RF-15) (corrección, C4).
     exige pruebas automáticas en la interfaz.
   - D21 (K2) → RNF-6, Criterios: el ajuste de cupos al nuevo mínimo y la clasificación de
     respuestas por código son reglas puras del dominio.
-  - D22 (C5) → RF-21: el cierre del formulario o la ventana porque el usuario de la sesión
+  - D22 (hallazgo C5 de la segunda revisión) → RF-21: el cierre del formulario o la ventana porque el usuario de la sesión
     deja de ser anfitrión prevalece y lleva el mensaje a la zona de acciones, donde sigue
     hasta que se inicie otra acción.
-  - D23 → RF-11: los botones bloqueados, incluido el que está en curso, siguen recibiendo
-    el foco, como "Sin cupos", para que la regla general del foco (RNF-2, casos 3, 5 y 7)
-    se pueda cumplir.
+  - D23 → RF-11: los botones bloqueados siguen recibiendo el foco, como "Sin cupos", para
+    que la regla general del foco (RNF-2, casos 3, 5 y 7) se pueda cumplir. **Acotada por
+    Q17** (cuarta revisión): ya no incluye el botón en curso, que la spec 007, RF-20,
+    deshabilita; vale para los botones bloqueados que no están en curso ("Editar sesión",
+    "Cancelar sesión", "Descartar", "Volver" y el botón de cerrar de la ventana, y el de
+    la acción durante la nueva lectura de RF-21).
 - Correcciones directas de la segunda revisión: A6 (RF-6, punto 2: "hora de inicio actual
   de la sesión de juego"); A7 (Definiciones: se quitó "Nombre corto del juego", que no se
   usaba, y "Horario de la agenda" queda definido una sola vez); A8 (spec 008, RF-2: los
@@ -1180,7 +1483,9 @@ tras mostrar el detalle su estado vacío (RF-15) (corrección, C4).
   ratificadas por el usuario el 2026-10-18 al aprobar el contenido de la spec:
   - R15 (D23 en la agenda) → RF-23, Criterios (Agenda): mientras la cancelación está en
     curso, "Sí, cancelar sesión" sigue pudiendo recibir el foco y lo conserva, bloqueado
-    y no deshabilitado, en el detalle y en la agenda.
+    y no deshabilitado, en el detalle y en la agenda. **Sin efecto por Q17** (cuarta
+    revisión): "Sí, cancelar sesión" en curso queda deshabilitado, como fija la spec 007,
+    RF-20, y el foco pasa al título de la ventana (RF-23; Q25).
   - R16 → RF-15, Casos límite, Criterios (Estados): si una acción responde cuando el
     usuario ya salió del detalle o lo volvió a abrir, su resultado se aplica a los datos
     y, si tuvo éxito, a la agenda, sin redirigir, mover el foco ni mostrar mensajes; el
@@ -1190,12 +1495,164 @@ tras mostrar el detalle su estado vacío (RF-15) (corrección, C4).
   - R18 → RF-6 (punto 5), Casos límite: "guardar sin tocarlo" solo exige que el cliente
     envíe el título sin quitarle espacios; el valor guardado lo decide la spec 006 (R13
     se mantiene).
+- Cuarta revisión QA (2026-10-18), al cumplirse la condición previa: contraste con las
+  specs 003, 006, 007 y 008 aprobadas. Resultado: CAMBIOS NECESARIOS (5 bloqueantes y 10
+  menores). Decisiones de la usuaria, con sus respuestas literales:
+  - Q16 ("Seguir a la 007") → RF-16, Fuera de alcance, Criterios (recorrido, paso 2, y
+    modo simulado): el aviso global «Datos de demostración» de la barra y el pie se
+    muestra en el detalle siempre, con el servidor real y en modo simulado (spec 007,
+    RF-11 y R19; spec 008, RF-27). Corrige D19, que decía que con el servidor real no se
+    mostraba.
+  - Q17 ("Seguir a la 007") → RF-9 (nota sobre "Sin cupos"), RF-11, RF-23, RNF-2 (regla
+    general y casos 1, 3, 5 y 14), Casos límite, Criterios (Agenda, Estados, Bloqueos y
+    formulario): el botón de una acción en curso queda deshabilitado y muestra
+    "Enviando…", en el detalle y en la ventana de cancelar de la agenda, como fija la spec
+    007, RF-20, que las vistas nuevas heredan (spec 007, R5 y R9). Sustituye la respuesta
+    anterior, "Bloqueado + «Enviando…»", porque la usuaria no permite cambiar la spec 007
+    ("no se debe cambiar nada de la 007"); la spec 007 queda como estaba. Mientras el
+    botón está deshabilitado el navegador puede sacarle el foco; al terminar la acción, el
+    foco vuelve a ese botón si sigue existiendo o va al destino de la regla general, y en
+    la ventana de cancelar el foco pasa al título de la ventana durante la espera (Q25). Los
+    botones bloqueados que no están en curso ("Sin cupos", P1, y los que RF-11 bloquea
+    mientras otra acción está en curso o dura la nueva lectura) siguen bloqueados sin
+    deshabilitarse, como ya decidía esta spec, porque la spec 007, RF-20, solo habla del
+    botón que inició la escritura. "Reintentar" (RF-13) no es una escritura y no cambia.
+    D23 queda acotada y R15 queda sin efecto.
+  - Q18 ("Edición y creación") → Contexto, Usuarios, Definiciones (regla del título),
+    RF-6, RF-22, RF-24 (nuevo), RNF-6, Casos límite, Fuera de alcance, Criterios (regla
+    del título): una sola regla de dominio para el título, con el recorte, los caracteres
+    prohibidos y el largo en caracteres Unicode de la spec 006 (DP6-33), usada por el
+    formulario de edición y por el de creación de la agenda. Se amplía el alcance de esta
+    spec al formulario de creación, solo en su título, en lugar de reabrir la spec 007,
+    que no recogió lo que le pedía la spec 006 ("Impacto en otras specs"); se quita de
+    Fuera de alcance la exclusión de las validaciones y textos del formulario de
+    creación. El texto es el que la spec 006 fija para todo título inválido, también con
+    un carácter prohibido: "El título debe tener entre 3 y 60 caracteres.". Corrige D14
+    en el título (ahora también puede fallar por un carácter prohibido pegado).
+  - Q19 ("Todos los campos") → RF-6, RF-7, RF-16, Casos límite, Criterios (modo
+    simulado): el formulario sigue enviando los seis campos, también al guardar sin
+    cambios, para que el resultado sea el del formulario; la justificación deja de ser
+    "el servidor reemplaza todos" (la edición de la spec 006 es parcial, RF-7). El backend
+    simulado imita la edición parcial de la spec 006, RF-7 y RF-26.
+  - Q20 ("Como la 008") → Definiciones, RF-16, Casos límite, Criterios (modo simulado):
+    en modo simulado el identificador de sesión de juego se reconoce y se compara sin
+    distinguir mayúsculas: `SESSION-3` abre `session-3`, como la spec 008, P49.
+  - Q21 ("Sin «cupo libre»") → RF-3, RNF-6, Casos límite, Criterios (sesión `full`
+    durante la cascada): si el estado es `full`, no se muestra ningún "cupo libre",
+    aunque haya menos participantes visibles que cupos; el contador sigue siendo
+    "<visibles>/<totales> jugadores" y se ve "Cupos llenos".
+  - Q22 ("Cupos actuales si full") → RF-6 (punto 4), RF-22 (punto 3), RNF-6, Casos
+    límite, Criterios (sesión `full` durante la cascada): si el estado es `full`, la
+    lista de cupos y su comprobación empiezan en los cupos actuales, porque con `full` los
+    participantes guardados igualan a los cupos (spec 006, RF-8 y RF-25); si es `open` y
+    el servidor aún guarda un participante eliminado, el posible 400 de la spec 006,
+    RF-8, queda como limitación declarada transitoria.
+  - Q23 ("Sí, igual") → Contexto, RF-6 (punto 5), RF-24, Casos límite, Fuera de alcance,
+    Criterios (regla del título): las notas del formulario de creación también admiten
+    160 caracteres Unicode (un emoji cuenta 1), como la edición y el servidor.
+  - Q24 (coherencia del criterio de la spec 007 que comprueba el botón deshabilitado):
+    **sin efecto**. La spec 007 no se cambia (Q17): su RF-20 dice "deshabilita el botón"
+    y su criterio de "botón deshabilitado" es coherente con él.
+  - Q25 ("Título de la ventana (Recomendado)") → RF-11, RF-23, RNF-2 (regla general,
+    caso 14 y lista de elementos no interactivos), Casos límite, Criterios (Agenda):
+    mientras "Sí, cancelar sesión" está deshabilitado con "Enviando…" (spec 007, RF-20),
+    el foco pasa al título de la ventana, "¿Cancelar esta sesión?", en el detalle y en la
+    agenda. El título no es interactivo: recibe el foco solo por esta regla, no entra en
+    el recorrido con Tab, el lector de pantalla lee su texto al recibirlo y el foco se ve
+    sobre él, como el título del panel y "Esta sesión no existe". Al terminar la
+    cancelación, el foco sigue RNF-2: vuelve a "Sí, cancelar sesión" si la ventana sigue
+    abierta tras un error; tras un 204 va al título del panel (en el detalle, al de la
+    agenda tras la redirección, RF-8); y con un 404 en el detalle, a "Esta sesión no
+    existe" (RF-12). Descartadas: "Volver" bloqueado y el contenedor de la ventana.
+- Deducciones de la cuarta revisión, sin ambigüedad a partir de las specs aprobadas o del
+  código:
+  - D24 (hallazgo 3) → RF-10, RF-16: la spec 006 sí fija de forma literal los mensajes de
+    sus errores (RF-6, RF-8, RF-10, RF-12, RF-14, RF-17 y RF-19); el detalle los muestra
+    tal como llegan y el modo simulado los reproduce (spec 007, RF-10). Corrige D10, que
+    decía que no eran literales.
+  - D25 (hallazgo 9) → Definiciones, RF-6 (punto 2): la spec 008 fija qué horas forman el
+    horario de la agenda, no su orden; el orden de la lista de horas de la edición es el
+    del formulario de creación de hoy (12:00 a 23:00, 00:00, 01:00, el mismo que la grilla
+    de la agenda), así que la hora añadida de P5 y Q2 va tras las 01:00, al final. Se
+    quitó "en ese orden" atribuido a la spec 008.
+  - D26 (hallazgo 10) → RF-6 (punto 5), Casos límite: con el servidor de la spec 006 el
+    título llega siempre recortado y de 3 a 60 caracteres (RF-5, RF-7, RNF-2); el caso de
+    R13 (título guardado con espacios en los extremos y más de 60) solo puede venir de
+    datos que no pasaron esas reglas, como los guardados por el backend simulado antes de
+    adoptar la spec 006, y se mantiene como regla defensiva.
+  - D27 (hallazgo 12, parte deducible) → RF-9, Casos límite: "llena" se mide por el estado
+    `full` que entrega el servidor, no por los participantes visibles, porque durante la
+    cascada el servidor cuenta los guardados (spec 006, RF-12, RF-24; DP6-38).
+  - D28 → RF-6 (punto 5), RF-22 (punto 2): las notas de la edición se cuentan también en
+    caracteres Unicode tras recortar, porque RF-22 aplica las reglas de la spec 006, RF-6,
+    y la spec 006 define así el largo de todo texto.
+  - D29 → RF-24, Casos límite, Criterios: con una sola regla del título (Q18), el título
+    vacío del formulario de creación muestra el texto de la spec 006 (RF-6 y RF-26), "El
+    título debe tener entre 3 y 60 caracteres.", en lugar del texto propio que muestra
+    hoy.
+- Correcciones directas de la cuarta revisión, con la serie propia CR4-n (antes C5 a C9,
+  renombradas en el repaso posterior porque C3, C4 y C5 ya eran códigos de la segunda
+  revisión; CR5-5): CR4-1 (antes C5; hallazgo 13; Contexto: la frase
+  "propuesta sin confirmar" estaba en la referencia, sección 7, no en `MEMORY.md`); CR4-2
+  (antes C6; hallazgo 7; Estado, Contexto y Dudas abiertas: la condición previa está
+  cumplida y se quitó la cita a P1 y D4 de la spec 007, que ya cayeron); CR4-3 (antes C7;
+  hallazgo 14; Contexto: la edición parcial de la spec 006 prevalece sobre el reemplazo
+  completo de la referencia); CR4-4 (antes C8; hallazgo 6; RF-16: salir sin estar
+  inscrito es el punto 8 de la spec 007, RF-10, no el 10); CR4-5 (antes C9; hallazgo 8;
+  Casos límite: el texto es "No estás inscrito en esta sesión.", literal de la spec 006,
+  RF-17).
+- Repaso QA posterior a la cuarta revisión (2026-10-18), antes de aprobar la spec:
+  CAMBIOS NECESARIOS (1 bloqueante y 7 hallazgos más). Decisiones de la usuaria, con sus
+  respuestas literales:
+  - Q26 ("Recorre la ventana (Recomendado)") → RF-11, RF-23, RNF-2 (regla general y caso
+    14), Casos límite, Criterios (Agenda): mientras "Sí, cancelar sesión" está en curso,
+    el foco pasa al título de la ventana (Q25), y Tab y Mayús+Tab siguen recorriendo los
+    controles de la ventana: "Volver" y el botón de cerrar, bloqueados sin deshabilitar y
+    anunciados como no disponibles, sin salir de la ventana (la retención normal de
+    RF-23). Precisa Q25: el foco va al título al empezar la espera, pero no queda fijado
+    en él.
+  - Q27 ("Basta RF-24 (Recomendado)") → RF-24, Casos límite, Criterios (regla del
+    título): si una propuesta desde coincidencias o desde la ficha rellena el título como
+    "Sesión con <nombre visible>" (spec 007, RF-29) y el nombre lleva un tabulador o un
+    salto de línea interno (la spec 003 no los prohíbe), al enviar el formulario se
+    muestra "El título debe tener entre 3 y 60 caracteres." y el jugador lo corrige. No
+    se cambia cómo se rellena el título ni la spec 007.
+- Deducción del repaso posterior, sin ambigüedad:
+  - D30 (hallazgo 6) → Definiciones (botón deshabilitado y botón bloqueado), RF-9, RF-11,
+    RF-23, RNF-2, Casos límite, Criterios (paso 7): esta spec usaba "deshabilitado" en
+    dos sentidos. Ahora "deshabilitado" es solo el botón en curso de la spec 007, RF-20
+    (puede perder el foco), y "bloqueado" o "no disponible", el que conserva el foco,
+    como "Sin cupos". La spec 007 no fija el mecanismo (en su RF-29 "Proponer" está
+    "deshabilitado" y recibe el foco), así que el plan elige el mecanismo, siempre que se
+    cumplan "Enviando…", que no se pueda enviar dos veces y la regla de foco. P1 y la spec
+    008, RNF-2, se siguen cumpliendo: "Sin cupos" se ve como no disponible, recibe el foco
+    y anuncia su motivo.
+- Correcciones directas del repaso posterior: CR5-1 (hallazgo 1, bloqueante;
+  Definiciones, Casos límite y Criterios: U+0085 no se recorta y es un carácter
+  prohibido, así que invalida el título también en los extremos, como dice la spec 006;
+  el tabulador y U+2028 en los extremos sí se recortan); CR5-2 (hallazgo 2; Contexto:
+  la cuarta revisión incluye Q25); CR5-3 (hallazgo 3; RF-11, RNF-2 y Casos límite:
+  remisión a la excepción de RF-15 y R16, en la que la respuesta no mueve el foco porque
+  el usuario ya no está en el detalle); CR5-4 (hallazgo 4; criterio "Bloqueos y
+  formulario": el formulario de creación conserva solo su comportamiento de foco, y su
+  regla del título y su conteo Unicode sí cambian); CR5-5 (hallazgo 8; Contexto,
+  RF-16, Casos límite, Decisiones y Dudas abiertas: las correcciones de la cuarta
+  revisión pasan a la serie CR4-n y D22 aclara que su C5 es de la segunda revisión).
 
 ## Dudas abiertas
-- Condición previa (dependencia externa, no la resuelve el usuario de esta spec): esta spec
-  no se aprueba hasta que se aprueben las specs 007 y 008, que a su vez esperan a las specs
-  001 a 006, y su validación espera a que estén implementadas las specs 006, 007 y 008 en
-  lo que usa (Contexto).
-- Resueltas: P1–P13, Q1–Q15, D1–D23 y R1–R18 (Decisiones de clarificación); R1–R14
-  ratificadas por el usuario tras la tercera revisión QA, y R15–R18 ratificadas por el
-  usuario el 2026-10-18 al aprobar el contenido de la spec.
+- Validación (dependencia externa, no la resuelve la usuaria): la validación de esta spec
+  espera a que estén implementadas las specs 006, 007 y 008 en lo que usa (Contexto). La
+  condición previa de aprobación está cumplida (CR4-2).
+- Desajuste señalado, sin cambiar la spec 007: su RF-10, punto 8, escribe "no estás
+  inscrito en esta sesión" en minúscula y sin punto; el literal de la spec 006, RF-17, es
+  "No estás inscrito en esta sesión.", que es el que esta spec usa (CR4-5). Corregirlo en la
+  spec 007 corresponde a un cambio de esa spec.
+- Resueltas: P1–P13, Q1–Q27 (Q24 sin efecto), D1–D30, R1–R18, C3 y C4 (correcciones de
+  la segunda revisión), CR4-1 a CR4-5 y CR5-1 a CR5-5 (Decisiones de clarificación);
+  R1–R14 ratificadas por el usuario tras la tercera revisión QA, R15–R18 ratificadas por
+  el usuario el 2026-10-18 al aprobar el contenido de la spec (R15 queda sin efecto y D23
+  acotada por Q17), Q16–Q23 y Q25 decididas por la usuaria en la cuarta revisión QA (Q17
+  sustituye su respuesta anterior: "Seguir a la 007"; Q25: "Título de la ventana
+  (Recomendado)"), y Q26 ("Recorre la ventana (Recomendado)") y Q27 ("Basta RF-24
+  (Recomendado)") decididas por la usuaria en el repaso posterior. Q24 queda sin efecto,
+  porque la spec 007 no se cambia.
