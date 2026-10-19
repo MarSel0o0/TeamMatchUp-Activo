@@ -1,5 +1,6 @@
 # Plan 004 — Cuentas de juego y rango simulado
-Estado: **aprobado (2026-10-19)**. Plan consolidado y corregido para alinearlo con la spec
+Estado: **aprobado (2026-10-19)**; **cambio DP6-37 (DP-43): aprobado
+(2026-10-19)**. Plan consolidado y corregido para alinearlo con la spec
 vigente (`spec.md`, aprobada el 2026-10-18, commit `685e4af`), tras la validación de reviewer
 (CAMBIOS NECESARIOS). El usuario lo aprobó el 2026-10-19 ("apruebo todo con tus
 recomendaciones") con estas decisiones:
@@ -20,7 +21,15 @@ usuario confirmó el 2026-10-19 que repitió la suite sin conexión a Internet c
 reescrito (RNF-1, RNF-9): 1567/1567 tests, 220 suites, 0 fallos, 0 cancelados, ~100 s; no
 queda nada pendiente. Este cierre es solo de estado: no cambia ninguna decisión del plan.
 
-Spec: `specs/004-cuentas-de-juego/spec.md` (aprobada el 2026-10-18; sin cambios).
+**Cambio DP6-37 (2026-10-19, aprobado, plan y tareas).** La spec nombra
+el paso del cuerpo como excepción única a «401 primero» (DP-43, aprobado por el usuario el
+2026-10-19, con P1 y P2: se documenta lo actual). Para el plan solo añade una nota en 6.1, una
+fila de trazabilidad (sección 12) y la tarea de pruebas **T26** (pruebas del paso del cuerpo en
+las tres operaciones de lectura). No hay archivos, funciones, decisiones técnicas ni código de
+producción nuevos.
+
+Spec: `specs/004-cuentas-de-juego/spec.md` (aprobada el 2026-10-18; el cambio DP6-37 / DP-43,
+aprobado el 2026-10-19, solo nombra el paso del cuerpo y no cambia ningún RF ni regla).
 **Precondición:** specs 001, 002 y 003 implementadas. Referencia aplicada:
 `specs/_referencia/001-crear-backend-original.md` (secciones 2, 4.2 —RT-07 a RT-12—, 5.1,
 5.4, 8 y 11, y su RF-15), salvo lo que la spec anula en "Qué prevalece sobre la referencia".
@@ -499,6 +508,15 @@ La edición es `PUT` (el plan anterior mencionaba `PATCH` en una de sus mitades;
   (decisión de T9 aceptada por el usuario; RF-13 ya lo exige).
 - Los 400, 413 y 415 de interpretación del cuerpo ocurren antes (en `express.json`, spec
   001), también antes del 401 y en las operaciones que no leen el cuerpo (RF-29).
+- **Nota DP-43 (cambio DP6-37, aprobado, 2026-10-19).** Ese paso es el parser
+  global `express.json({ limit: 102_400, strict: true })` de `app.ts`, montado antes de todos
+  los routers y por tanto antes de `withUser`: es la única excepción a «401 primero» y vale
+  igual para las siete operaciones, también las GET (listar, obtener y resumen). `strict: true`
+  da 400 "JSON mal formado" a un JSON escalar (P1); `[]` lo pasa y las reglas de vincular y
+  editar lo tratan como sin campos (RF-6, RF-40, DP-23; P2). La spec 006 monta antes su propio
+  `express.json({ limit: 102_400, strict: false })` solo en `/api/sessions`; la diferencia es
+  intencionada y no se toca. No hay arquitectura nueva: ningún middleware, archivo ni función
+  más; lo único que añade el cambio es la prueba de T26.
 
 ### 6.2 Listar [RF-2, RF-14, DP-38]
 ```
@@ -924,6 +942,7 @@ manual de `requests/accounts.rest`.
 | RF-12, RF-13 | ruta del resumen y su guardia | `gameSummary.test.ts` | T11, T21 |
 | RF-14 | cascada C1 → C2 → C3; listar y obtener sin cuentas sin dueño | `userDeletionCascade.test.ts`; `accounts.test.ts` | T10, T20 |
 | RF-29 | guardias de P-15 + orden en controladores | `accounts.test.ts` "orden de errores"; `gameSummary.test.ts` | T21 |
+| DP-43 (cambio DP6-37) | parser global `express.json({ limit: 102_400, strict: true })` de `app.ts`, antes de `withUser` (6.1); sin código nuevo | `accounts.test.ts` "cuerpo antes que sesión (RF-29)": escrituras (T21) y las tres lecturas (T26) | T21, T26 |
 | RF-33 (retirado), DP-16 revocada | sin `User.accounts` | `accounts.test.ts` (usuario sin cambios); modelo | T18, T19 |
 | RF-34 | `services/rankProvider.ts` | revisión: sin `fetch`, `http` ni variables nuevas; pruebas offline | T25 |
 | RF-35, RF-36, RF-42, RF-43 | `rankSimulator.ts` | `rankSimulator.test.ts` (incluidas las medidas de RF-42 y la lectura literal) | T13, T14, T15 |

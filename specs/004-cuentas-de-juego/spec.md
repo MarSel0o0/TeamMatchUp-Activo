@@ -1,5 +1,11 @@
 # Spec 004 — Cuentas de juego y rango simulado
-Estado: implementada (2026-10-19)
+Estado: implementada (2026-10-19); cambio DP6-37 aprobado (2026-10-19); queda por marcar la
+casilla de pruebas del paso del cuerpo en las operaciones de lectura (ver "Criterios de finalización")
+Cambio DP6-37 (2026-10-19, aprobado por el usuario el 2026-10-19): la spec 006 (RF-20, DP6-37)
+fijó que el orden de errores es global al servidor, con un único paso del cuerpo antes de la
+sesión. Esta spec ya tenía ese paso (RF-29, primer punto); el cambio solo lo nombra como
+excepción única en RF-1, RF-29, RF-44, dos casos límite y DP-43, sin cambiar lo que el paso
+rechaza (preguntas P1 y P2 del cambio, en "Decisiones del usuario").
 Validada por el reviewer RF por RF tras el rework (T10–T25); 1567 tests en verde.
 Pruebas sin conexión a Internet (RNF-1, RNF-9): el usuario confirmó el 2026-10-19 que ejecutó
 `npm test` con la red desconectada y con el código ya reescrito (T10–T25): 1567 tests, 220
@@ -79,6 +85,16 @@ que alimenta el perfil. También agrega la lectura simulada del rango.
   normalización de esta spec.
 
 ### Decisiones del usuario
+- **2026-10-19 — Paso del cuerpo antes de la sesión: se documenta lo que ya hace el servidor
+  (cambio DP6-37, DP-43; preguntas P1 y P2 de ese cambio, distintas de las P1 y P2 del
+  2026-10-18).** El usuario aprobó el cambio con estas dos respuestas, sin cambiar ningún
+  comportamiento. P1: la interpretación del cuerpo es estricta; un cuerpo JSON que es un texto, un número, `true`, `false` o `null` responde 400
+  "JSON mal formado" en todas las operaciones de esta spec, también en las que no leen el
+  cuerpo, y siempre antes de la sesión. P2: un cuerpo que es un arreglo JSON (`[]`) pasa esa
+  interpretación y se trata como un cuerpo sin campos, como ya dicen RF-6, RF-40 y DP-23. La
+  spec 006 interpreta el cuerpo de forma distinta en sus rutas de sesiones (no estricta, para
+  distinguir un JSON escalar de "sin cuerpo"); la diferencia es intencionada y no se iguala en
+  ningún sentido.
 - **2026-10-18 — Eliminación del usuario que falla a medias: sin cuentas huérfanas (P2).**
   Opción (a): nunca quedan cuentas cuyo dueño no exista. Si la eliminación del usuario
   responde 500, o el usuario sigue existiendo (con todas, algunas o ninguna de sus cuentas)
@@ -385,7 +401,8 @@ indica cada RF, en minúscula y sin punto final (DP-6). Los 401 son los de la sp
 (RNF-3).
 
 - RF-1: EL SISTEMA exige sesión válida (spec 002, RF-24) en todas las operaciones de esta
-  spec.
+  spec. Antes de la revisión de la sesión va únicamente el paso del cuerpo de RF-29, la única
+  excepción a «401 primero» (DP-43).
 - RF-2: CUANDO un usuario lista cuentas, EL SISTEMA responde 200 con una lista directa de
   las cuentas que cumplen los filtros opcionales `user` (identificador de usuario con
   formato válido o referencia propia, ya decodificado; selecciona las cuentas de ese
@@ -496,10 +513,13 @@ indica cada RF, en minúscula y sin punto final (DP-6). Los 401 son los de la sp
   última lectura siempre queda guardada (DP-7, DP-31).
 - RF-29: EL SISTEMA revisa cada operación en este orden y responde solo el primer fallo
   (DP-10):
-  - Siempre primero: interpretación del cuerpo de la spec 001 (400 "JSON mal formado",
-    también con un cuerpo JSON que es un texto, un número, `true`, `false` o `null`; 413;
-    415), en todas las operaciones, aunque no lean el cuerpo; después la sesión (401 de la
-    spec 002, RF-24, incluido "token inválido" para un usuario que ya no existe, RF-44).
+  - Siempre primero, el paso del cuerpo: interpretación del cuerpo de la spec 001 (400
+    "JSON mal formado", también con un cuerpo JSON que es un texto, un número, `true`,
+    `false` o `null`; 413; 415), en todas las operaciones, aunque no lean el cuerpo. Es el
+    único paso que va antes de la sesión y la única excepción a «401 primero»: el orden de
+    errores es global al servidor y la spec 006 (RF-20, DP6-37) adopta la misma excepción
+    (DP-43). Después la sesión (401 de la spec 002, RF-24, incluido "token inválido" para un
+    usuario que ya no existe, RF-44).
   - Obtener, editar, desvincular, resincronizar: decodificación y formato del
     identificador de la cuenta (400 "id con formato inválido") → existencia (404 "cuenta
     no encontrada") → propiedad (403, RF-11; no aplica a obtener) → datos de la edición
@@ -588,8 +608,8 @@ indica cada RF, en minúscula y sin punto final (DP-6). Los 401 son los de la sp
   menos su antigüedad, que es de al menos un minuto (DP-31).
 - RF-44: SI la sesión trae una credencial válida (firma, vigencia y comprobante) de un
   usuario que ya no existe, ENTONCES EL SISTEMA responde 401 con "token inválido" en
-  cualquier operación de esta spec y no crea ni cambia nada (spec 002, RF-22; spec 003,
-  RF-22; DP-37).
+  cualquier operación de esta spec (salvo que antes aplique el paso del cuerpo de RF-29) y
+  no crea ni cambia nada (spec 002, RF-22; spec 003, RF-22; DP-37).
 - RF-45: SI una operación de esta spec falla con un error inesperado (500 de la spec 001),
   ENTONCES EL SISTEMA deja la cuenta exactamente como estaba antes de la operación,
   incluidos su número de lectura, su historial y sus partidas (DP-33).
@@ -689,8 +709,9 @@ fuentes) y RNF-6 (verificación con Steam).
 - Identificador de la cuenta en mayúsculas: designa la misma cuenta; la respuesta trae `id`
   en minúsculas (RNF-3).
 - Sin sesión, cualquier operación responde el 401 de la spec 002, aunque el identificador o
-  el cuerpo sean inválidos; JSON mal formado, cuerpo de más de 102 400 bytes o codificación
-  no soportada responden 400, 413 o 415 antes que la sesión (RF-29).
+  los datos del cuerpo sean inválidos; el paso del cuerpo (RF-29) va antes: JSON mal
+  formado, cuerpo de más de 102 400 bytes o codificación no soportada responden 400, 413 o
+  415 antes que la sesión, también con la credencial de un usuario eliminado (DP-43).
 - Vincular o editar con un cuerpo JSON que es `"x"`, `5`, `true` o `null`: 400 "JSON mal
   formado" (spec 001). Con `[]`: vincular responde "juego no válido" (RF-6); editar, 200
   sin cambios (RF-40).
@@ -814,7 +835,8 @@ fuentes) y RNF-6 (verificación con Steam).
 - En ningún momento posterior a la respuesta de una eliminación del usuario (204 o 500)
   el listado sin filtro muestra una cuenta cuyo dueño no existe (RF-14).
 - Una petición con una credencial todavía válida de un usuario ya eliminado: 401 "token
-  inválido" en cualquier operación de esta spec (RF-44).
+  inválido" en cualquier operación de esta spec, salvo que antes aplique el paso del cuerpo
+  de RF-29 (RF-44, DP-43).
 - Una vinculación, edición, resincronización o desvinculación en curso cuando se elimina el
   usuario: RF-47; nunca queda una cuenta del usuario eliminado.
 
@@ -885,6 +907,14 @@ fuentes) y RNF-6 (verificación con Steam).
 - [x] Hay una prueba por cada salto del orden de RF-29, de RF-2 y de RF-13, incluidos el
       400 "JSON mal formado" antes del 401, filtros repetidos, vacíos y con `ME`, `me`,
       `m%65` y `%zz`, parámetros desconocidos ignorados y el orden del listado.
+- [ ] Hay una prueba del paso del cuerpo de RF-29 (DP-43) en las tres operaciones de
+      lectura, que no leen el cuerpo (listar, obtener una cuenta y resumen por juego): con
+      JSON mal formado responde 400 "JSON mal formado" y no 401; con un cuerpo de más de
+      102 400 bytes, 413; con una codificación no soportada, 415; y con un cuerpo JSON `"x"`,
+      `5`, `true`, `false` o `null`, 400 "JSON mal formado"; cada caso sin sesión, con sesión
+      y con la credencial de un usuario eliminado, y sin cambiar nada de lo guardado. Las
+      operaciones de escritura (vincular, editar, desvincular y resincronizar) ya tienen esa
+      prueba. (Añadida el 2026-10-19 con el cambio DP6-37; se marca al terminar su tarea.)
 - [x] Hay una prueba por cada caso de RF-39 (dos resincronizaciones, edición y
       resincronización, dos ediciones, desvinculación con edición, desvinculación con
       resincronización y dos desvinculaciones). Cada prueba fuerza el solapamiento de forma
@@ -1089,6 +1119,7 @@ lo indican; el resto son deducciones del planner que el usuario aprobó con la s
 | DP-40 | 2026-10-18, nueva, aprobada con la spec | Los conjuntos de 100 identificadores de RF-41 los fija la spec (no el plan), y RF-42 exige que el rango cambie de verdad con dos medidas sobre esos conjuntos. | Dejar el conjunto al plan: la proporción se cumpliría por construcción. No medir el cambio: un generador constante cumpliría RF-42. |
 | DP-41 | 2026-10-18, nueva, aprobada con la spec | RF-39 cubre también edición con resincronización, dos ediciones y dos desvinculaciones, con resultado igual al serial. | Cubrir solo dos resincronizaciones y desvinculación: una edición simultánea a una resincronización podría perder la región o la lectura. |
 | DP-42 | **Decisión del usuario (2026-10-18; nueva, P2)** | La eliminación del usuario nunca deja cuentas cuyo dueño no exista: el usuario es lo último que se borra, y tras un 500 o el usuario sigue existiendo (con todas, algunas o ninguna de sus cuentas, y puede repetir la eliminación) o ya no queda ninguna cuenta suya (RF-14). Sin transacciones. | Todo o nada (P2 b): exige transacciones (MongoDB en replica set) o restaurar las cuentas ya borradas. Sin garantía (P2 c): cuentas sin dueño visibles en el listado que nadie puede editar ni desvincular. |
+| DP-43 | Usuario (2026-10-19, DP6-37); nueva, aprobada por el usuario el 2026-10-19 (se documenta lo actual, sin cambio de código; ver "Decisiones del usuario") | El orden de errores es global al servidor: el paso del cuerpo de RF-29 (primer punto: 400 "JSON mal formado", 413 y 415, en todas las operaciones, aunque no lean el cuerpo) va antes de la sesión y es la única excepción a «401 primero», igual que en la spec 006 (RF-20, DP6-37). Este cambio solo lo nombra como excepción única en RF-1, RF-29, RF-44 y los casos límite; no cambia lo que el paso rechaza. | Pasar la sesión antes que el cuerpo («401 primero» sin excepción): contradice lo que ya hace el servidor y dejaría dos órdenes de errores distintos en el mismo servidor, uno en esta spec y otro en la 006. Igualar con la 006 el tratamiento del JSON escalar o de `[]` (en cualquier sentido): cambiaría el servidor sin que nadie lo pida; el usuario eligió documentar lo actual y mantener la diferencia. |
 
 Retiradas en esta versión: DP-1 (cola Solo/Dúo), DP-3 (CS2 sin partidas), DP-4 (campos de
 partida ausentes), DP-13 (claves opcionales), DP-14 (vuelta de Steam), DP-20 (fallos de

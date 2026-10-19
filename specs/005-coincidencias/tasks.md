@@ -1,6 +1,7 @@
 # Tareas 005 — Coincidencias en el servidor
 Estado: **hechas (2026-10-19); validadas por reviewer** (T1–T10; APROBADO; 1567 tests en
-verde). Aprobadas el 2026-10-19. T1 a T8 se aprobaron el 2026-10-17 (con precondición: las
+verde); **T11 (cambio DP6-37): aprobado (2026-10-19)**. T1–T10 aprobadas el
+2026-10-19. T1 a T8 se aprobaron el 2026-10-17 (con precondición: las
 specs 001 a 004 implementadas y el plan de la 003 confirmando el modelo `User`; cumplida, T1 a
 T8 están hechas); T9 y T10, de los cambios A y B, se aprobaron el 2026-10-19 y están hechas.
 Spec: `spec.md` (aprobada el 2026-10-17; cambios A y B aprobados el 2026-10-19). Plan:
@@ -12,6 +13,11 @@ lectura de la disponibilidad y la de la cuenta) se acepta como riesgo; T9 no lo 
 reordena `loadMatchInputs`.
 **Cambio B (2026-10-19): aprobado.** Textos de error en minúscula inicial y sin punto final
 (DP5-17, DP-6 de la spec 004); se añade **T10** (una sola tarea, B4).
+**Cambio C (2026-10-19): T11 aprobada (2026-10-19).** La spec lo aprobó el
+2026-10-19 (DP5-18, por DP6-37 de la spec 006): se documenta el paso del cuerpo antes del 401,
+que el servidor ya hace. Se añade **T11**, una tarea de pruebas sin cambios de código de
+producción; es independiente de T1–T10 (hechas) y de la T26 de la spec 004 (archivos de prueba
+distintos).
 
 **Orden de ejecución global (con las tareas de la spec 004; seguido y cumplido, todas hechas):**
 T9 de esta spec → tareas de la 004 (T11 a T25, en el orden de su `tasks.md`; la T24 de la 004
@@ -206,4 +212,76 @@ algo, parar y reportarlo.
     importa `MATCH_ERRORS`; y se pueden volver a marcar en la spec las casillas reabiertas
     que dependan de los textos (prueba por RF con el texto exacto y "Comprobación de tipos y
     pruebas del servidor en verde"), junto con las que cierre T9.
+  - Verificación: `cd backend && npm test && npm run typecheck`.
+
+- [ ] **T11. Pruebas del paso del cuerpo en `GET /api/matches` (criterio B14).** RF-16 (paso del cuerpo), RF-1, RF-13, RF-18, DP5-18 *(cambio C, DP6-37; aprobado, 2026-10-19)*
+  - Aprobada la spec el 2026-10-19; **aprobada esta tarea (2026-10-19)**. Depende de: — (T9
+    y T10 hechas). **Sin cambios de código de producción.** Si una prueba nueva falla, se
+    reporta como bug (caso, credencial y respuesta obtenida) y **no se corrige en esta tarea**.
+  - Leer: `spec.md` (RF-1, RF-13, RF-16, caso límite de "Consulta con un cuerpo que la spec 001
+    rechaza", decisión del 2026-10-19 sobre P1 y P2, criterio nuevo de "Criterios de
+    finalización"); `plan.md` secciones 5 y 8; `backend/src/app.ts` (parser global, línea
+    ~40); `backend/tests/controllers/matches.test.ts` (describe "sesión", ayudantes locales
+    `get`, `createAccount`, `setAvailability`, `assertStatusError`); `backend/tests/controllers/helpers.ts`;
+    como modelo, el bloque «cuerpo antes que sesión (RF-29)» de
+    `backend/tests/controllers/accounts.test.ts` (sus `jsonBodyOfBytes`, `bodyCases` y `raw`
+    son locales de ese archivo: se reescriben aquí, no se importan ni se mueven).
+  - Antes de empezar (supuestos reales, comprobados el 2026-10-19; si alguno no se cumple,
+    parar y reportar):
+    - Ruta: `GET /api/matches?game=lol`. `app.ts` monta `express.json({ limit: 102_400,
+      strict: true })` antes de `/api/matches` y de `withUser`. `/api/sessions` (spec 006) tiene
+      otro parser no estricto: no se toca ni se prueba aquí.
+    - En `matches.test.ts` ya existen: `const app = await authApp()`, `ANA`, `BETO`,
+      `MATCHES`, `get(user, query)` (agente con `X-CSRF-Token`), `createAccount(userId, data)`,
+      `setAvailability(userId, blocks)`, `assertStatusError(response, status, message)`,
+      `signUp`, `withSession`, `supertest`, `User`, `GameAccount`, `SESSION_MESSAGES`
+      (`notLoggedIn`, `invalidToken`); `beforeEach` vacía `User` y `GameAccount`; `afterEach`
+      hace `mock.restoreAll()`. No se añade nada a `helpers.ts`.
+    - La credencial de un usuario eliminado se obtiene como en la prueba existente de RF-13:
+      `signUp` y después `User.deleteOne({ _id: id })`; la sesión (`agent` y `csrf`) sigue
+      mandando la cookie. Para no perder a Ana (cuya cuenta usa la prueba de "sesión
+      válida"), el usuario eliminado es un segundo `signUp(app, BETO)` borrado antes de la
+      petición.
+    - `supertest` envía el cuerpo en un GET con `.send(texto)` y `Content-Type:
+      application/json` (pone `Content-Length`). Si no lo envía (en todos los casos se vería 200
+      o 401 en lugar del error del cuerpo), parar y reportar.
+  - Tests primero (nacen en verde: regresión de lo que ya hace el servidor; ver "Hecho
+    cuando"). Un describe nuevo «cuerpo antes que sesión (RF-16)» en `matches.test.ts`, junto
+    al describe "sesión", con `jsonBodyOfBytes(bytes)` (arma `{"a":"xxx…"}` de exactamente
+    `bytes` bytes y lo comprueba con `Buffer.byteLength`) y `raw(request, body, encoding?)`
+    locales:
+    1. **Casos de cuerpo roto**, un `test` por caso, con `GET /api/matches?game=lol`: `{"a":`
+       → 400 `JSON mal formado`; cuerpo de 102 401 bytes → 413 `cuerpo demasiado grande`;
+       `Content-Encoding: desconocida` con `{"a":1}` → 415 `codificación no soportada`; y los
+       cuerpos JSON `"x"`, `5`, `true`, `false` y `null` → 400 `JSON mal formado` (escalar).
+       En cada `test`, tres peticiones con el mismo resultado, cada una con
+       `assertStatusError` y el literal del texto: (a) **sin credencial** (error del cuerpo, no
+       401 `sesión no iniciada`); (b) **con sesión válida** de Ana (`get(ana, "?game=lol")`;
+       el error del cuerpo, no 200); (c) **con la credencial de un usuario eliminado** (error
+       del cuerpo, no 401 `token inválido`).
+    2. **El cuerpo va antes que los filtros**: cuerpo `{"a":` con sesión válida y
+       `?game=nada` → 400 `JSON mal formado` (no `juego no válido`).
+    3. **Límite exacto**: cuerpo de exactamente 102 400 bytes, sin credencial → 401 `sesión no
+       iniciada` (no 413).
+    4. **Consulta normal con un cuerpo admitido**: Ana y Beto con cuenta de `lol`
+       (`createAccount`) y la misma disponibilidad (`setAvailability`, p. ej. `["0-20",
+       "0-21"]`); la respuesta de `get(ana, "?game=lol")` sin cuerpo es 200 con un candidato
+       (`user.username` `Beto`); con cuerpo `{}` y con cuerpo `[]` (JSON, `Content-Type:
+       application/json`) la respuesta es 200 e idéntica (`deepStrictEqual`) a la de sin cuerpo.
+       Con cuerpo `{}`: sin credencial → 401 `sesión no iniciada` y con la credencial de un
+       usuario eliminado → 401 `token inválido` (el paso del cuerpo pasó y manda la sesión,
+       RF-1 y RF-13).
+    Los textos de error se escriben como literales, no se importan de `MATCH_ERRORS` ni de
+    ninguna constante del servidor, salvo `SESSION_MESSAGES` para los 401 de sesión, como las
+    pruebas existentes del archivo.
+  - Archivos: solo `backend/tests/controllers/matches.test.ts`. No cambian `backend/src/`,
+    `helpers.ts`, `accounts.test.ts` ni `requests/matches.rest`.
+  - Hecho cuando: las pruebas nuevas en verde junto con las existentes; demostrado, con un
+    cambio temporal en `backend/src/app.ts` revertido y sin commit, que vigilan algo:
+    (a) `strict: true` → `strict: false` hace fallar los casos de JSON escalar; (b) mover
+    `app.use(express.json(...))` después de `app.use("/api/matches", ...)` hace fallar los casos
+    de cuerpo roto, 413 y 415 sin credencial y con la de un usuario eliminado; se anota en el
+    reporte; `git diff backend/src` vacío al terminar; y se puede marcar en la spec la casilla
+    «Hay una prueba del paso del cuerpo (RF-16, DP5-18…)» de "Criterios de finalización" (solo
+    cuando todo lo anterior pase; mientras tanto queda sin marcar).
   - Verificación: `cd backend && npm test && npm run typecheck`.

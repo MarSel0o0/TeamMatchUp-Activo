@@ -1,5 +1,9 @@
 # Spec 005 — Coincidencias en el servidor
-Estado: implementada (2026-10-19); cambios A (RF-13) y B (textos, DP5-17) aprobados e implementados; validada por el reviewer RF por RF (T1–T10); 1567 tests en verde
+Estado: implementada (2026-10-19); cambios A (RF-13) y B (textos, DP5-17) aprobados e implementados; validada por el reviewer RF por RF (T1–T10); 1567 tests en verde; cambio DP6-37 (cambio C) aprobado (2026-10-19); queda por marcar la casilla de la prueba del paso del cuerpo (T11)
+- Cambio C (paso del cuerpo antes del 401, DP5-18, por DP6-37 de la spec 006): aprobado por el
+  usuario (2026-10-19). El orden de errores es global al servidor; RF-16 pasa a nombrar el
+  paso del cuerpo que ya hace el servidor antes de la sesión. No cambia ningún otro orden ni
+  el código: solo documenta lo actual (ver "Decisiones del usuario", 2026-10-19).
 - Cambio A (RF-13, por RF-44 de la spec 004): aprobado e implementado (2026-10-19, T9).
 - Cambio B (textos de error, DP-6 de la 004; DP5-17): aprobado e implementado (2026-10-19,
   T10).
@@ -54,8 +58,8 @@ reconocidas".
   `specs/_referencia/001-crear-backend-original.md` y pasan al `plan.md` de esta spec.
 - Las decisiones marcadas "(DP5-n)" las propuso el planificador (tabla al final). DP5-1 a
   DP5-15 las aprobó el usuario el 2026-10-17 ("Apruebo todo"); DP5-16 (cambio A), el
-  2026-10-19; DP5-17 (cambio B), también el 2026-10-19. Las "DP-n" sin prefijo son las de la
-  spec 004, ya aprobadas.
+  2026-10-19; DP5-17 (cambio B) y DP5-18 (cambio C), también el 2026-10-19. Las "DP-n" sin
+  prefijo son las de la spec 004, ya aprobadas.
 - Dependencia explícita con la spec 007: igual que en la spec 004, la convención de
   etiquetar los datos inventados (`AGENTS.md`, "Convenciones"; `PRODUCT.md`, principio 5)
   solo se cumple con el servidor real cuando la spec 007 muestre la etiqueta de datos
@@ -64,6 +68,16 @@ reconocidas".
   servidor real (ver "Criterios de finalización").
 
 ### Decisiones del usuario
+- **2026-10-19 — Paso del cuerpo antes de la sesión: se documenta lo que ya hace el servidor
+  (cambio C, DP5-18, por DP6-37; preguntas P1 y P2 de ese cambio).** El usuario aprobó el
+  cambio con estas dos respuestas, sin cambiar ningún comportamiento ni igualar nada con la
+  spec 006, igual que en la spec 004 (DP-43). P1: la interpretación del cuerpo es estricta;
+  un cuerpo JSON que es un texto, un número, `true`, `false` o `null` responde 400 "JSON mal
+  formado" en todas las operaciones, también en las que no leen el cuerpo (esta consulta no
+  lo lee), y siempre antes de la sesión. P2: un cuerpo que es un arreglo JSON (`[]`) pasa esa
+  interpretación y la consulta lo ignora, como cualquier cuerpo admitido. La spec 006
+  interpreta el cuerpo de forma distinta en sus rutas de sesiones (no estricta); la diferencia
+  es intencionada.
 - **2026-10-17 — Impacto de la spec 004 aprobado** ("Apruebo"): R6 con rango, distancia
   con el rango normalizado de DP-26, verificada fijada por el simulador, marca de datos
   simulados, cuenta sin partidas y RF-10 retirado.
@@ -242,7 +256,8 @@ jugador (spec 007, RF-9).
 - RF-1: EL SISTEMA exige sesión válida para consultar coincidencias: sin credencial, 401
   "sesión no iniciada"; credencial alterada o sin comprobante anti-CSRF válido, 401 "token
   inválido"; credencial expirada, 401 "sesión expirada" (spec 002, RF-10 a RF-12). Una
-  sesión cuyo usuario ya no existe se rige por RF-13.
+  sesión cuyo usuario ya no existe se rige por RF-13. Antes de estos 401 va únicamente el
+  paso del cuerpo de RF-16, la única excepción a «401 primero» (DP5-18).
 - RF-2: CUANDO un usuario consulta las coincidencias de un juego con filtros válidos y tiene
   cuenta en ese juego, EL SISTEMA responde 200 con la lista de candidatos que cumplen todos
   los filtros, ordenada por puntaje de mayor a menor; a igual puntaje, por distancia de
@@ -284,8 +299,8 @@ jugador (spec 007, RF-9).
   (DP5-17 fija la minúscula inicial y la falta de punto final; el rótulo entre « » es el de
   la interfaz y conserva su forma.)
 - RF-13: SI la sesión es válida pero su usuario ya no existe (fue eliminado), ENTONCES EL
-  SISTEMA responde 401 con "token inválido" en cualquier operación de esta spec y no crea ni
-  cambia nada, como en las demás operaciones con sesión (spec 004, RF-44 y DP-37; spec 002,
+  SISTEMA responde 401 con "token inválido" en cualquier operación de esta spec (salvo que
+  antes aplique el paso del cuerpo de RF-16) y no crea ni cambia nada, como en las demás operaciones con sesión (spec 004, RF-44 y DP-37; spec 002,
   RF-22). Es el mismo texto que el de la credencial alterada de RF-1; no hay ninguna
   comprobación de sesión adicional. Vale también si el usuario se elimina después de superar
   la revisión de la sesión y antes de que la consulta lea sus datos (borrado intercalado,
@@ -299,7 +314,9 @@ jugador (spec 007, RF-9).
   "filtro «Buscar jugador» no válido" (DP5-12; DP5-17; rótulo por decisión del usuario del
   2026-10-17).
 - RF-16: EL SISTEMA resuelve la consulta en este orden y responde solo el primer error
-  (DP5-1): sesión (401, RF-1 y RF-13) → juego (RF-5) → distancia máxima (RF-12) → mínimo de
+  (DP5-1): paso del cuerpo (interpretación del cuerpo de la spec 001, como en la spec 004,
+  RF-29: 400 "JSON mal formado", 413 o 415, aunque la consulta no lea el cuerpo; es la única
+  excepción a «401 primero», DP5-18) → sesión (401, RF-1 y RF-13) → juego (RF-5) → distancia máxima (RF-12) → mínimo de
   horas (RF-12) → solo verificadas (RF-14) → búsqueda (RF-15) → cuenta del usuario de la
   sesión en el juego (404, RF-6).
 - RF-17: SI una cuenta del juego consultado pertenece a un usuario que ya no existe
@@ -369,6 +386,12 @@ decisión "R6 con rango y partidas simuladas" del 2026-10-17).
 - Dos candidatos con el mismo puntaje: va primero el de menor distancia; con la misma
   distancia, el de más bloques en común; si también empatan, el de nombre de usuario menor
   como texto (RF-2).
+- Consulta con un cuerpo que la spec 001 rechaza (JSON mal formado, incluido un JSON que es
+  solo un texto, un número, `true`, `false` o `null`; cuerpo de más de 102 400 bytes o
+  codificación no soportada), aunque la consulta no lo use: 400 "JSON mal formado", 413 o 415
+  antes que el 401, con o sin credencial y también con la de un usuario eliminado (RF-16,
+  DP5-18). Sin cuerpo, o con uno que esa spec admite (`{}` o `[]`, por ejemplo): la consulta
+  sigue con normalidad y el cuerpo se ignora.
 - Juego inválido y distancia máxima `abc`: 400 "juego no válido" (RF-16).
 - Distancia máxima y mínimo de horas inválidos a la vez: 400 de la distancia máxima (RF-16).
 - Usuario sin cuenta en el juego y mínimo de horas `169`: 400 del mínimo de horas, no 404
@@ -434,6 +457,13 @@ decisión "R6 con rango y partidas simuladas" del 2026-10-17).
       por el cambio A, cuando esperaba "sesión no iniciada"; vuelta a marcar el 2026-10-19 al
       terminar T9.)
 - [x] Hay una prueba de RF-17 (cuenta de un usuario inexistente omitida, 200).
+- [ ] Hay una prueba del paso del cuerpo (RF-16, DP5-18; cambio C, aprobado el 2026-10-19;
+      se marca al terminar su tarea): una consulta de coincidencias con JSON mal formado
+      responde 400 "JSON mal formado" y no 401, sin credencial y con la de un usuario
+      eliminado; con un cuerpo JSON `"x"`, `5`, `true`, `false` o `null`, 400 "JSON mal
+      formado"; con un cuerpo de más de 102 400 bytes, 413; con una codificación no soportada,
+      415; y con una credencial válida y un cuerpo admitido (por ejemplo, sin cuerpo o `{}`),
+      la consulta sigue con normalidad.
 - [x] Comprobación de tipos y pruebas del servidor en verde. (Reabierta el 2026-10-19 por el
       cambio A, que también cubre el cambio B de textos; vuelta a marcar el 2026-10-19: el
       reviewer comprobó `npm run typecheck` y `npm test` en verde, 1567 tests.)
@@ -509,16 +539,18 @@ No se editan desde aquí; cada cambio se hace en su spec cuando el usuario lo ap
   - Su "Primer bloque en común" (día más temprano y, a igual día, hora más temprana) es
     coherente con el orden de "Bloques en común" de esta spec (DP5-9).
 
-## Decisiones propuestas (DP5-1 a DP5-17 aprobadas por el usuario)
+## Decisiones propuestas (DP5-1 a DP5-18 aprobadas por el usuario)
 Propuestas por el planificador tras la revisión de QA del 2026-10-17, siguiendo las reglas
 de la spec 004 aprobada. Numeración propia (DP5-n) para no confundirlas con las DP-n de la
 spec 004. **DP5-1 a DP5-15 las aprobó el usuario el 2026-10-17** ("Apruebo todo"), DP5-2 con
 los rótulos actuales de la interfaz ("Rótulos actuales (Recomendado)"). **DP5-16 la aprobó el
 usuario el 2026-10-19** ("Opción A"). **DP5-17 (cambio B) la aprobó el usuario el
 2026-10-19** ("apruebo todo con tus recomendaciones"; respuestas B1 a B5 en "Decisiones del
-usuario"). Los textos de las filas DP5-2, DP5-3, DP5-5, DP5-6 y DP5-12 están en la forma de
+usuario"). **DP5-18 (cambio C) la aprobó el usuario el 2026-10-19** (DP6-37; preguntas P1 y
+P2 de ese cambio en "Decisiones del usuario"). Los textos de las filas DP5-2, DP5-3, DP5-5, DP5-6 y DP5-12 están en la forma de
 DP5-17; la decisión original de cada fila (qué decir y con qué rótulo) no cambia. **DP5-16 y DP5-17
-están implementadas (T9 y T10, 2026-10-19).**
+están implementadas (T9 y T10, 2026-10-19).** DP5-18 solo documenta lo que ya hace el
+servidor; lo único pendiente es su prueba (T11, casilla de "Criterios de finalización").
 
 | DP | Hallazgo | Decisión propuesta | Alternativa descartada |
 | --- | --- | --- | --- |
@@ -539,6 +571,7 @@ están implementadas (T9 y T10, 2026-10-19).**
 | DP5-15 | La marca mira solo la cuenta del candidato (11). | Se mantiene la decisión del usuario (basta la marca de la cuenta del candidato) y se aclara su alcance: en este hito toda cuenta es simulada (spec 004, RF-34), incluida la del usuario de la sesión, así que la regla nunca deja sin etiqueta una distancia calculada con un rango simulado. Una spec que agregue una fuente real debe revisar esta regla. | Agregar una marca propia a la distancia y al puntaje: contradice la decisión del usuario del 2026-10-17 ("ningún campo nuevo"). |
 | DP5-16 | **Aprobada por el usuario (2026-10-19, "Opción A"); implementada (T9).** Cambio A. Credencial de un usuario eliminado: la 004 vigente dice "token inválido" y esta spec decía "sesión no iniciada". | RF-13 responde 401 "token inválido", como la spec 004 (RF-44, DP-37) y las specs 002 y 003; ninguna comprobación de sesión adicional. Vale también si el borrado ocurre entre la revisión de la sesión y la lectura de los datos (confirmado por el usuario el 2026-10-19). | 401 "sesión no iniciada" (versión del 2026-10-17 de la 004 y de esta spec): contradice la 004 vigente y a las specs 002 y 003. Cambiar la 004 para que coincida con esta spec: contrario a la decisión del usuario. En la carrera de borrado, responder 404 (RF-6) o 500: el 404 diría que falta la cuenta de un usuario que ya no existe y rompería la regla de que RF-13 gana a RF-6. |
 | DP5-17 | **Aprobada por el usuario (2026-10-19, "apruebo todo con tus recomendaciones"; B1 a B5); implementada (T10).** Cambio B, independiente del A. Los textos propios de esta spec (RF-5, RF-6, RF-12, RF-14, RF-15) llevan mayúscula inicial y punto final; la spec 004 (DP-6 y su "Impacto en otras specs") exige minúscula inicial y sin punto final, y el usuario pidió alinearlos ("Alinealo y hazlo en un cambio aparte"). | Todos los textos de error propios de esta spec pasan a minúscula inicial y sin punto final, conservando el resto de cada frase: "juego no válido" (igual a la 004), "no tienes una cuenta vinculada en este juego", "filtro «Diferencia máxima de rango» no válido: usa un número entero de 0 a 100", "filtro «Horas en común por semana» no válido: usa un número entero de 0 a 168", "filtro «Solo cuentas con rango verificado» no válido: usa true o false" y "filtro «Buscar jugador» no válido". Las comillas « » (y los rótulos de la interfaz entre ellas, con su mayúscula) y los valores literales `true` y `false` conservan su forma, como las siglas, los nombres propios y las notaciones literales en la 004. Los 401 de RF-1 y RF-13 ya la cumplen. | Dejar los textos propios con mayúscula y punto final: contradice DP-6 y deja mensajes con dos estilos entre la 004 y la 005 en la misma interfaz. Poner también en minúscula el rótulo entre « » ("«diferencia máxima de rango»"): ya no sería el rótulo que ve el jugador (DP5-2) y obligaría a cambiar la interfaz (spec 007, RF-32). Quitar las comillas « »: pierde la forma aprobada el 2026-10-17 sin que DP-6 lo pida. |
+| DP5-18 | **Usuario (2026-10-19, DP6-37); aprobada por el usuario el 2026-10-19 (se documenta lo actual, sin cambio de código); su prueba está pendiente (T11).** Cambio C. La spec 006 fijó que el orden de errores es global al servidor, con un único paso del cuerpo antes de la sesión; RF-16 de esta spec empezaba por la sesión y no nombraba ese paso, que el servidor ya hace. | RF-16 antepone a DP5-1 el paso del cuerpo (interpretación del cuerpo de la spec 001, como la spec 004, RF-29: 400 "JSON mal formado", 413, 415, aunque la consulta no lea el cuerpo). Es la única excepción a «401 primero», igual que en la spec 006 (RF-20, DP6-37). Solo documenta lo que ya hace el servidor; no cambia el resto del orden de DP5-1. | Dejar RF-16 sin el paso del cuerpo: un cuerpo roto daría 400 antes que 401 sin que la spec lo diga, y habría dos órdenes de errores distintos en el mismo servidor. Pasar la sesión antes que el cuerpo: contradice la spec 004 (RF-29) y la 006 (RF-20) y exigiría cambiar el servidor. Igualar con la 006 el tratamiento del JSON escalar o de `[]` (en cualquier sentido): cambiaría el servidor sin que nadie lo pida; el usuario eligió documentar lo actual y mantener la diferencia. |
 
 Puntos de la revisión resueltos sin DP (corrección directa del texto): 9 (RF-3 incluye el
 juego), 10 (RF-1 remite a los 401 de la spec 002), 12 y 13 ("Impacto en otras specs"), 18

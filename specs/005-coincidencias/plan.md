@@ -1,5 +1,6 @@
 # Plan 005 — Coincidencias en el servidor
-Estado: aprobado (2026-10-17; cambios A y B aprobados el 2026-10-19), con precondición: las
+Estado: aprobado (2026-10-17; cambios A y B aprobados el 2026-10-19); **cambio C (DP6-37,
+DP5-18): aprobado (2026-10-19)**, con precondición: las
 specs 001 a 004 debían estar implementadas (el 2026-10-17 `backend/` aún no existía) y el plan
 de la 003 debía confirmar el modelo `User` que asume la sección 0 antes de empezar T1. (Las
 precondiciones se cumplieron: `backend/` existe, las specs 001 a 004 están implementadas y la
@@ -17,9 +18,14 @@ minúscula inicial y sin punto final, DP-6 de la spec 004): afecta a las seccion
 (P5-13), 8 (estrategia de aserciones por literal), 10 (RNF-3 y trazabilidad) y 11; no cambia
 ningún otro comportamiento. Se implementa en la T10 de las tareas, después de la T11 de la
 spec 004 (RF-5 debe coincidir con `juego no válido` de la 004).
+**Cambio C (2026-10-19): aprobado (plan y tareas).** La spec lo aprobó el
+2026-10-19 (DP5-18, por DP6-37 de la spec 006; con P1 y P2: se documenta lo actual). Para el
+plan solo añade el paso del cuerpo al orden de errores de la sección 5, un punto en la sección
+8 y una fila en la sección 10; la prueba es la tarea **T11**. No hay archivos, funciones ni
+decisiones técnicas nuevas ni cambia código de producción.
 Spec: `specs/005-coincidencias/spec.md` (aprobada el 2026-10-17, con DP5-1 a DP5-15; cambio A
 aprobado el 2026-10-19, DP5-16; cambio B aprobado el 2026-10-19, DP5-17, con las respuestas B1
-a B5 y A1 de la spec).
+a B5 y A1 de la spec; cambio C aprobado el 2026-10-19, DP5-18).
 
 **Precondición (cumplida):** las specs 001, 002, 003 y 004 debían estar aprobadas e
 implementadas antes de empezar T1; `backend/` no existía el 2026-10-17 (sección 0, histórica)
@@ -320,7 +326,13 @@ valor por defecto de `missingUserError`, opción que la 004 retiró en su T24; h
 comportamiento). No hace falta ningún cambio en `middleware.ts` ni un
 segundo middleware: `matches.ts` solo deja de importar `createWithExistingUser`.
 
-Orden resultante (RF-16): `withUser` (sin credencial / alterada / sin CSRF / expirada /
+Orden resultante (RF-16): **paso del cuerpo** (cambio C, DP5-18; aprobado el 2026-10-19 en el
+plan: el parser global `express.json({ limit: 102_400, strict: true })` de `app.ts`, montado
+antes de `/api/matches` y por tanto antes de `withUser`, responde 400 "JSON mal formado"
+—también con un JSON escalar—, 413 o 415 aunque la consulta no lea el cuerpo; `[]` lo pasa y
+se ignora; no hay middleware ni código nuevo, y la diferencia con el parser no estricto de
+`/api/sessions` de la spec 006 es intencionada) → `withUser` (sin credencial / alterada / sin
+CSRF / expirada /
 usuario eliminado, todo en el mismo middleware y en ese orden de la spec 002, RF-24) →
 juego → diferencia máxima → horas → verificadas → búsqueda → usuario todavía existe
 (`noSession`, 401 "token inválido") → cuenta propia (404). La sesión es lo único que lee
@@ -431,6 +443,14 @@ Ubisoft, Valve ni FACEIT (RNF-3).
   400 de juego (`LOL`, ` lol `, vacío, repetido, ausente), distancia, horas, verificadas y
   búsqueda repetida y la del 404 de RF-6; no se añaden pruebas de más. Los 401 (RF-1 y RF-13)
   no cambian.
+- **Cambio C, paso del cuerpo (T11; DP5-18; aprobado, 2026-10-19)**: en `matches.test.ts`,
+  un describe propio para `GET /api/matches?game=lol` con un cuerpo: JSON mal formado → 400
+  "JSON mal formado" (no 401), 413, 415 y JSON escalar → 400, cada uno sin credencial, con
+  sesión válida y con la credencial de un usuario eliminado; 102 400 bytes exactos → 401 sin
+  credencial (no 413); y la consulta normal con un cuerpo admitido (sin cuerpo, `{}`, `[]`)
+  igual a la consulta sin cuerpo. Son pruebas de regresión que nacen en verde: se rompe a
+  propósito el parser (cambio temporal, revertido) para demostrar que fallan. Si una falla,
+  es un bug que se reporta, no se corrige en la tarea.
 - **Servicio contra la base** (`matchInputs.test.ts`): usuario sin cuenta → `noAccount`;
   usuario borrado → `noSession` (sin cambios: el servicio no conoce el texto del 401); la propia cuenta no está entre los candidatos; cuenta con
   `user = nonExistingId()` omitida; dueños sin `email` ni `passwordHash` en
@@ -475,6 +495,7 @@ Ubisoft, Valve ni FACEIT (RNF-3).
 | RF-14 | `onlyVerified` en `parseMatchQuery`; `MATCH_ERRORS.onlyVerified` (cambio B) | `matchQuery.test.ts`; `matches.test.ts`, con el literal (T10) |
 | RF-15 | `search` repetido; `MATCH_ERRORS.search` (cambio B) | `matchQuery.test.ts`; `matches.test.ts`, con el literal (T10) |
 | RF-16 | orden de `parseMatchQuery` + controlador | `matchQuery.test.ts` (un caso por salto); `matches.test.ts` "sin cuenta + horas 169 → 400"; "juego inválido + distancia abc → juego" |
+| RF-16 (paso del cuerpo), DP5-18 (cambio C) | parser global `express.json({ limit: 102_400, strict: true })` de `app.ts`, antes de `withUser`; sin código nuevo | `matches.test.ts` "cuerpo antes que sesión (RF-16)": 400 / 413 / 415 / escalar, con y sin credencial y con usuario eliminado; consulta normal con cuerpo admitido (T11) |
 | RF-17 | `assembleCandidates` | `matching.test.ts`; `matchInputs.test.ts`; `matches.test.ts` "cuenta sin dueño omitida, 200" |
 | RF-18 | `parseMatchQuery` solo lee cinco claves | `matchQuery.test.ts`; `matches.test.ts` (`page=2`, `user=<id>`) |
 | RNF-1 | `domain/matchQuery.ts`, `availability.ts`, `matching.ts` puros | unitarias sin base ni reloj; T8 revisa que `domain/` no importa `express`, `mongoose` ni lee `Date` |

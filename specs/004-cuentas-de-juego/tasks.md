@@ -1,10 +1,16 @@
 # Tareas 004 — Cuentas de juego y rango simulado
 Estado: **hechas (2026-10-19); validadas por reviewer** (T1–T25; APROBADO tras 2 vueltas;
-1567 tests en verde). Aprobadas el 2026-10-19 ("apruebo todo con tus recomendaciones"). La
+1567 tests en verde); **T26 (cambio DP6-37): aprobado (2026-10-19)**.
+T1–T25 aprobadas el 2026-10-19 ("apruebo todo con tus recomendaciones"). La
 repetición de la suite sin conexión a Internet (T25) la hizo el usuario, que la confirmó el
 2026-10-19 (1567/1567 tests, 220 suites, 0 fallos, 0 cancelados, ~100 s, con el código ya
-reescrito): no queda ninguna tarea pendiente. Spec: `spec.md` (aprobada el 2026-10-18, sin
-cambios de requisitos). Plan: `plan.md` (aprobado el 2026-10-19).
+reescrito): no queda ninguna tarea pendiente de T1–T25. Spec: `spec.md` (aprobada el
+2026-10-18, sin cambios de requisitos; el cambio DP6-37 / DP-43, aprobado el 2026-10-19, solo
+nombra el paso del cuerpo). Plan: `plan.md` (aprobado el 2026-10-19).
+**Cambio DP6-37 (2026-10-19): T26 aprobada (2026-10-19).** Una tarea de pruebas
+nueva, sin cambios de código de producción, que cierra la casilla nueva de "Criterios de
+finalización" de la spec (paso del cuerpo en las tres operaciones de lectura). Es independiente
+de T1–T25 (todas hechas) y de la T11 de la spec 005.
 Decisiones del usuario del 2026-10-19 sobre este documento:
 - **C1:** la T24 (retirar `createWithExistingUser` y `missingUserError`) quedaba **bloqueada
   hasta que la T9 de la spec 005 estuviera hecha** (Q3 resuelta); se cumplió y la T24 está
@@ -653,3 +659,67 @@ estuviera hecha (C1), y así fue; T25 no dependía de ella.
     `.env.example` sin dependencias ni variables nuevas); el usuario repite la suite completa
     sin conexión a Internet; cada fila de la trazabilidad (plan, 12) tiene su prueba en
     verde; y todas las casillas de "Criterios de finalización" de la spec se pueden marcar.
+
+- [ ] **T26. Pruebas del paso del cuerpo en las operaciones de lectura.** RF-29 (paso del cuerpo), RF-1, RF-2, RF-3, RF-12, RF-44, DP-43 *(cambio DP6-37; aprobado, 2026-10-19)*
+  - Reabre: T21 (solo pruebas; el bloque «cuerpo antes que sesión (RF-29)» de
+    `accounts.test.ts` cubre hoy POST, PUT, DELETE y sync). Depende de: — (T16 y T21 hechas).
+    **Sin cambios de código de producción.** Excepción a la regla de T11 a T25: si una prueba
+    nueva falla, se reporta como bug (caso, operación y respuesta obtenida) y **no se corrige
+    en esta tarea**.
+  - Leer: `spec.md` (RF-1, RF-29 primer punto, RF-44, DP-43, casos límite de "Identificadores,
+    filtros y orden de revisión", casilla nueva de "Criterios de finalización");
+    `plan.md` 6.1 (nota DP-43) y 11.1; `backend/src/app.ts` (parser global, línea ~40);
+    `backend/tests/controllers/accounts.test.ts`, bloque «cuerpo antes que sesión (RF-29)»
+    (~l.547-650); `backend/tests/controllers/helpers.ts`.
+  - Antes de empezar (supuestos reales, comprobados el 2026-10-19; si alguno no se cumple,
+    parar y reportar):
+    - `app.ts` monta `express.json({ limit: 102_400, strict: true })` antes de los routers, así
+      que `/api/accounts` y `/api/users` quedan detrás del paso del cuerpo. (`/api/sessions`
+      tiene otro parser no estricto: no se toca ni se prueba aquí.)
+    - Rutas de lectura: `GET /api/accounts`, `GET /api/accounts/:id` y
+      `GET /api/users/:id/games/:gameId` (se usa `/api/users/me/games/lol`: con el paso del
+      cuerpo roto el segmento no se llega a evaluar).
+    - En el bloque existente son locales o ya importados: `BODY_LIMIT`, `jsonBodyOfBytes`,
+      `type Method = "post" | "put" | "delete"`, `operations` (con `name`, `method` y
+      `path(accountId)`), `bodyCases` (ocho casos: `{"a":` → 400; 102 401 bytes → 413;
+      `Content-Encoding: desconocida` → 415; `"x"`, `5`, `true`, `false` y `null` → 400
+      "JSON mal formado"), `raw(request, body, encoding)`; además `fixClock`, `ANA`, `BETO`,
+      `LINKS`, `signUp`, `linkOk`, `withSession`, `assertStatusError`, `rawAccountsInDb` y
+      `User` (la credencial de un usuario eliminado se obtiene con un segundo `signUp(app,
+      BETO)` y `User.deleteOne({ _id: other.id })`, como hoy). No se añade ningún ayudante a
+      `helpers.ts`.
+    - `supertest` envía el cuerpo en un GET con `.send(texto)` (pone `Content-Length`). Si no
+      lo envía (se vería un 200 o un 401 en lugar del error del cuerpo en todos los casos),
+      parar y reportar.
+    - Para estos GET, `bodyCases` y la prueba de "cuerpo válido sin sesión → 401" valen tal
+      cual (el cuerpo `LINKS.lol` se ignora en un GET).
+  - Tests primero (nacen en verde: regresión de lo que ya hace el servidor; ver "Hecho
+    cuando" para demostrar que vigilan algo):
+    1. Ampliar `Method` con `"get"` y añadir a `operations` las tres lecturas
+       (`GET /api/accounts` con `path: () => "/api/accounts"`; `GET /api/accounts/:id` con
+       ``path: (id) => `/api/accounts/${id}` ``; `GET /api/users/:id/games/:gameId` con
+       `path: () => "/api/users/me/games/lol"`). Los bucles existentes generan para cada una:
+       los 8 casos de `bodyCases` (cada uno sin sesión, con sesión y con la credencial de un
+       usuario eliminado, con el error del cuerpo y nunca el 401, y con `rawAccountsInDb()`
+       igual antes y después) y "sin sesión y con cuerpo válido → 401 «sesión no iniciada»":
+       27 pruebas nuevas (3 operaciones × 9). No se duplica código del bloque.
+    2. **Opcional** (solo si el archivo no tiene ya una prueba equivalente de RF-6 y RF-40; si
+       la tiene, no se duplica y se anota en el reporte): fijar `[]` según P2, con
+       `link(ana, [])` y `edit(ana, id, [])`: vincular con `[]` y sesión → 400 `juego no
+       válido`, sin cuenta creada (`rawAccountsInDb()` vacío); vincular con `[]` sin sesión
+       (`raw(supertest(app).post("/api/accounts"), "[]", undefined)`) → 401 `sesión no
+       iniciada`; editar con `[]` la cuenta propia (`linkOk` antes) → 200 con la cuenta sin
+       cambios y `rawAccountsInDb()` igual. Texto literal de los errores, no importado de
+       `ACCOUNT_ERRORS` (P-23).
+  - Archivos: solo `backend/tests/controllers/accounts.test.ts` (bloque «cuerpo antes que
+    sesión (RF-29)»). No cambian `backend/src/`, `helpers.ts`, `gameSummary.test.ts` ni
+    `requests/accounts.rest`.
+  - Hecho cuando: las 27 pruebas nuevas (y la opcional, si se hace) en verde junto con las
+    existentes; demostrado, con un cambio temporal en `backend/src/app.ts` revertido y sin
+    commit, que vigilan algo (plan, R9): (a) `strict: true` → `strict: false` hace fallar los
+    casos de JSON escalar; (b) mover `app.use(express.json(...))` después de
+    `app.use("/api/accounts", ...)` y de `app.use("/api/users", ...)` hace fallar los
+    casos de cuerpo roto, 413 y 415 sin sesión; se anota en el reporte;
+    `git diff backend/src` vacío al terminar; y se puede marcar en la spec la casilla nueva de
+    "Criterios de finalización" (paso del cuerpo en las tres operaciones de lectura).
+  - Verificación: `cd backend && npm test && npm run typecheck && npm run lint`.
