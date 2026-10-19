@@ -5,16 +5,19 @@
 import { isGameId } from "./games.ts";
 import type { GameId } from "./games.ts";
 
-/** Textos exactos (DP5-2, DP5-3). Las comillas « » son U+00AB y U+00BB. */
+/**
+ * Textos exactos (DP5-2, DP5-3, DP5-17): minúscula inicial y sin punto final, como DP-6 de la
+ * spec 004; los rótulos entre « » conservan su mayúscula. Las comillas « » son U+00AB y U+00BB.
+ */
 export const MATCH_ERRORS = {
-  game: "Juego no válido.",
+  game: "juego no válido",
   maxRankDistance:
-    "Filtro «Diferencia máxima de rango» no válido: usa un número entero de 0 a 100.",
+    "filtro «Diferencia máxima de rango» no válido: usa un número entero de 0 a 100",
   minSharedHours:
-    "Filtro «Horas en común por semana» no válido: usa un número entero de 0 a 168.",
-  onlyVerified: "Filtro «Solo cuentas con rango verificado» no válido: usa true o false.",
-  search: "Filtro «Buscar jugador» no válido.",
-  noAccount: "No tienes una cuenta vinculada en este juego.",
+    "filtro «Horas en común por semana» no válido: usa un número entero de 0 a 168",
+  onlyVerified: "filtro «Solo cuentas con rango verificado» no válido: usa true o false",
+  search: "filtro «Buscar jugador» no válido",
+  noAccount: "no tienes una cuenta vinculada en este juego",
 } as const;
 
 const MAX_RANK_DISTANCE_LIMIT = 100;

@@ -14,7 +14,6 @@ import { User } from "../../src/models/user.ts";
 import { GameAccount } from "../../src/models/gameAccount.ts";
 import { connectDatabase } from "../../src/server.ts";
 import { SESSION_MESSAGES } from "../../src/services/sessionToken.ts";
-import { MATCH_ERRORS } from "../../src/domain/matchQuery.ts";
 import { GAME_IDS } from "../../src/domain/games.ts";
 import type { GameId } from "../../src/domain/games.ts";
 import { ladder, normalizeStep } from "../../src/domain/rankScale.ts";
@@ -191,7 +190,7 @@ describe("sesión", () => {
 });
 
 describe("errores", () => {
-  test("juego ausente, vacío, desconocido, en mayúsculas, con espacios o repetido → 400 \"Juego no válido.\" (RF-5)", async () => {
+  test("juego ausente, vacío, desconocido, en mayúsculas, con espacios o repetido → 400 \"juego no válido\" (RF-5)", async () => {
     const ana = await signUp(app, ANA);
     const queries = [
       "",
@@ -204,7 +203,7 @@ describe("errores", () => {
       "?game=__proto__",
     ];
     for (const query of queries) {
-      assertStatusError(await get(ana, query), 400, MATCH_ERRORS.game);
+      assertStatusError(await get(ana, query), 400, "juego no válido");
     }
   });
 
@@ -213,7 +212,7 @@ describe("errores", () => {
     const values = ["abc", "", "-1", "101", "1.5", "+5", "1e1", "0x10", "%205%20", "5&maxRankDistance=6"];
     for (const value of values) {
       const response = await get(ana, `?game=lol&maxRankDistance=${value}`);
-      assertStatusError(response, 400, MATCH_ERRORS.maxRankDistance);
+      assertStatusError(response, 400, "filtro «Diferencia máxima de rango» no válido: usa un número entero de 0 a 100");
     }
   });
 
@@ -221,7 +220,7 @@ describe("errores", () => {
     const ana = await signUp(app, ANA);
     for (const value of ["abc", "", "-1", "169", "2.5", "0x10"]) {
       const response = await get(ana, `?game=lol&minSharedHours=${value}`);
-      assertStatusError(response, 400, MATCH_ERRORS.minSharedHours);
+      assertStatusError(response, 400, "filtro «Horas en común por semana» no válido: usa un número entero de 0 a 168");
     }
   });
 
@@ -229,43 +228,43 @@ describe("errores", () => {
     const ana = await signUp(app, ANA);
     for (const value of ["TRUE", "1", "abc", "", "true&onlyVerified=false"]) {
       const response = await get(ana, `?game=lol&onlyVerified=${value}`);
-      assertStatusError(response, 400, MATCH_ERRORS.onlyVerified);
+      assertStatusError(response, 400, "filtro «Solo cuentas con rango verificado» no válido: usa true o false");
     }
   });
 
   test("búsqueda repetida → 400 con su texto (RF-15)", async () => {
     const ana = await signUp(app, ANA);
     for (const query of ["search=a&search=b", "search=&search="]) {
-      assertStatusError(await get(ana, `?game=lol&${query}`), 400, MATCH_ERRORS.search);
+      assertStatusError(await get(ana, `?game=lol&${query}`), 400, "filtro «Buscar jugador» no válido");
     }
   });
 
   test("orden de RF-16: juego antes que diferencia máxima", async () => {
     const ana = await signUp(app, ANA);
-    assertStatusError(await get(ana, "?game=nada&maxRankDistance=abc"), 400, MATCH_ERRORS.game);
+    assertStatusError(await get(ana, "?game=nada&maxRankDistance=abc"), 400, "juego no válido");
   });
 
   test("orden de RF-16: diferencia máxima antes que horas", async () => {
     const ana = await signUp(app, ANA);
     const response = await get(ana, "?game=lol&maxRankDistance=abc&minSharedHours=169");
-    assertStatusError(response, 400, MATCH_ERRORS.maxRankDistance);
+    assertStatusError(response, 400, "filtro «Diferencia máxima de rango» no válido: usa un número entero de 0 a 100");
   });
 
   test("orden de RF-16: horas antes que solo verificadas", async () => {
     const ana = await signUp(app, ANA);
     const response = await get(ana, "?game=lol&minSharedHours=169&onlyVerified=abc");
-    assertStatusError(response, 400, MATCH_ERRORS.minSharedHours);
+    assertStatusError(response, 400, "filtro «Horas en común por semana» no válido: usa un número entero de 0 a 168");
   });
 
   test("orden de RF-16: solo verificadas antes que búsqueda", async () => {
     const ana = await signUp(app, ANA);
     const response = await get(ana, "?game=lol&onlyVerified=abc&search=a&search=b");
-    assertStatusError(response, 400, MATCH_ERRORS.onlyVerified);
+    assertStatusError(response, 400, "filtro «Solo cuentas con rango verificado» no válido: usa true o false");
   });
 
   test("orden de RF-16: sin cuenta y con horas 169 → 400 de horas, no 404", async () => {
     const ana = await signUp(app, ANA);
-    assertStatusError(await get(ana, "?game=lol&minSharedHours=169"), 400, MATCH_ERRORS.minSharedHours);
+    assertStatusError(await get(ana, "?game=lol&minSharedHours=169"), 400, "filtro «Horas en común por semana» no válido: usa un número entero de 0 a 168");
   });
 
   test("sin cuenta vinculada en el juego → 404 con su texto (RF-6)", async () => {
@@ -274,8 +273,8 @@ describe("errores", () => {
     await createAccount(beto.id, { gameId: "lol" });
     await createAccount(ana.id, { gameId: "r6" });
 
-    assertStatusError(await get(ana, "?game=lol"), 404, MATCH_ERRORS.noAccount);
-    assertStatusError(await get(ana, "?game=cs2"), 404, "No tienes una cuenta vinculada en este juego.");
+    assertStatusError(await get(ana, "?game=lol"), 404, "no tienes una cuenta vinculada en este juego");
+    assertStatusError(await get(ana, "?game=cs2"), 404, "no tienes una cuenta vinculada en este juego");
   });
 
   test("ningún error contiene nombres de fuentes reales (RNF-3)", async () => {

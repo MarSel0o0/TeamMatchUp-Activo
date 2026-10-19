@@ -53,16 +53,16 @@ X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
 
 ### Errores de ejemplo
 
-### 4. Distancia máxima no válida: 400 "Filtro «Diferencia máxima de rango» no válido: usa un número entero de 0 a 100." (RF-12)
+### 4. Distancia máxima no válida: 400 "filtro «Diferencia máxima de rango» no válido: usa un número entero de 0 a 100" (RF-12)
 GET {{baseUrl}}/api/matches?game=lol&maxRankDistance=abc
 X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
 
-### 5. Juego sin cuenta vinculada: 404 "No tienes una cuenta vinculada en este juego." (RF-6)
+### 5. Juego sin cuenta vinculada: 404 "no tienes una cuenta vinculada en este juego" (RF-6)
 # Cambia `r6` por un juego que la cuenta de ejemplo no tenga vinculado.
 GET {{baseUrl}}/api/matches?game=r6
 X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
 
-### 6. Juego no válido: 400 "Juego no válido." (RF-5)
+### 6. Juego mal escrito (LOL): 400 "juego no válido" (RF-5)
 GET {{baseUrl}}/api/matches?game=LOL
 X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
 

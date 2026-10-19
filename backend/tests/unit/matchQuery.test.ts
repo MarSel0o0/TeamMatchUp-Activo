@@ -11,13 +11,13 @@ import type { MatchCriteria, QueryResult } from "../../src/domain/matchQuery.ts"
 // Spec 005, RF-5, RF-11, RF-12, RF-14, RF-15, RF-16 (filtros), RF-18, RNF-1; plan,
 // secciones 2, 3.1, 6 y 8. Sin base de datos ni reloj.
 
-const GAME_ERROR = "Juego no válido.";
+const GAME_ERROR = "juego no válido";
 const DISTANCE_ERROR =
-  "Filtro «Diferencia máxima de rango» no válido: usa un número entero de 0 a 100.";
-const HOURS_ERROR = "Filtro «Horas en común por semana» no válido: usa un número entero de 0 a 168.";
-const VERIFIED_ERROR = "Filtro «Solo cuentas con rango verificado» no válido: usa true o false.";
-const SEARCH_ERROR = "Filtro «Buscar jugador» no válido.";
-const NO_ACCOUNT_ERROR = "No tienes una cuenta vinculada en este juego.";
+  "filtro «Diferencia máxima de rango» no válido: usa un número entero de 0 a 100";
+const HOURS_ERROR = "filtro «Horas en común por semana» no válido: usa un número entero de 0 a 168";
+const VERIFIED_ERROR = "filtro «Solo cuentas con rango verificado» no válido: usa true o false";
+const SEARCH_ERROR = "filtro «Buscar jugador» no válido";
+const NO_ACCOUNT_ERROR = "no tienes una cuenta vinculada en este juego";
 
 type Query = Record<string, unknown>;
 
@@ -206,7 +206,7 @@ describe("parseMatchQuery: juego (RF-5)", () => {
     ["malformed (número)", { game: 1 }],
   ];
   for (const [label, query] of invalidGames) {
-    test(`${label}: 400 "Juego no válido."`, () => {
+    test(`${label}: 400 "juego no válido"`, () => {
       assert.deepStrictEqual(parseMatchQuery(query), failure(GAME_ERROR));
     });
   }
