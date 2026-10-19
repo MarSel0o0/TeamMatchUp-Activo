@@ -17,28 +17,33 @@ histórica (`3027c53`, `c98b84d`); el usuario decidió rehacer el código y el r
 sobre las T1–T9 históricas) está hecho. La 1ª validación dio CAMBIOS NECESARIOS por 2
 bloqueantes solo de pruebas (B1: ejemplos de validación de RF-6/DP-19; B2: literales de
 normalización de DP-26/RF-48), corregidos solo en tests; la 2ª dio APROBADO. `spec.md` pasa
-a «implementada» (la marca planner). Sin commit todavía del rework (están en el árbol de
-trabajo). No se dividió la spec.
+a «implementada» (la marca planner). Rework commiteado en `9b5cc87` (sin push; incluye la
+migración mínima de `matches.ts`, cambio A de la 005). No se dividió la spec. El usuario
+confirmó (2026-10-19) que su aprobación del 2026-10-18 cubría DP-19, DP-34, DP-35 y DP-38 a
+DP-41.
 
 Spec 005 (`005-coincidencias`): implementada (T1–T10) y validada (reviewer: APROBADO,
 2026-10-19). T1–T8 están en el commit `31fdda2` (sin push). Los cambios de requisito A
 (DP5-16, T9: 401 «token inválido» con la credencial de un usuario eliminado, también en la
 carrera `noSession`; RF-13) y B (DP5-17, T10: textos propios en minúscula inicial y sin
-punto final) están implementados y validados, sin commit todavía. `spec.md` «implementada».
+punto final) están implementados y validados. Commits locales (sin push): `9b5cc87` «feat:
+rework de la spec 004 (cascada ordenada, token inválido, sin User.accounts)» (incluye el
+cambio A) y `88af4cd` «fix: textos de coincidencias en minúscula y sin punto final (spec
+005)» (cambio B). `spec.md` «implementada».
 
-Suite del backend: 1567 tests en verde, typecheck y lint en verde.
+Suite del backend: 1567/1567 en verde, typecheck y lint en verde en ambos commits. El usuario
+repitió `npm test` sin conexión a Internet (RNF-1/RNF-9: 1567/1567, 0 fallos, 220 suites,
+~100 s; 2026-10-19). El test se llama `backend/tests/unit/withUser.test.ts` (renombrado).
+Árbol limpio tras los commits; después solo hay cambios de documentación en `specs/**` y
+`MEMORY.md`, sin commitear (se commitean cuando el usuario lo pida).
 
-Spec 006 con plan y tareas aprobados, sin empezar. La 007 no se toca (ver su fila abajo).
+Spec 006 (agenda): SIGUIENTE, pero su plan y tareas aprobados (2026-10-18) están
+DESACTUALIZADOS respecto a lo implementado en la 004. Es un cambio de requisitos sobre una
+spec existente (ver «Próximo paso» y «Deuda conocida»). Spec 007: sigue SIN implementar; el
+usuario autorizó (2026-10-19) alinear sus textos simulados (ver su fila).
 
-Hecho en el cierre: el usuario repitió `npm test` sin conexión a Internet tras el rework
-(RNF-1/RNF-9: 1567/1567 en verde, 0 fallos, 220 suites, ~100 s; 2026-10-19) y autorizó el
-renombrado: el test pasó a `backend/tests/unit/withUser.test.ts`.
-
-Pendiente antes de la 006: los commits (en curso: el coordinador los hará separando el
-rework de la 004 y los cambios de la 005; ver «Próximo paso»).
-
-Orden global de implementación: 005 T9 → 004 T11…T25 → 005 T10 (todas hechas y validadas)
-→ siguiente: spec 006 (`/sdd-implement 006 T1`).
+Orden global de implementación: 005 T9 → 004 T11…T25 → 005 T10 (hechas, validadas y
+commiteadas) → siguiente: cambio de requisitos de la 006 y después su T1.
 
 ## Estado del código
 
@@ -122,10 +127,10 @@ Orden global de implementación: 005 T9 → 004 T11…T25 → 005 T10 (todas hec
 | `001-crear-backend` | Implementada y validada | spec, plan y tasks aprobados; T1–T10 hechas. Cambios aprobados durante la implementación: mongoose 8.19.1 → 8.24.5 (vulnerabilidad alta) y regla RFC para `HOST` (la última etiqueta no puede ser solo numérica). |
 | `002-autenticacion` | Implementada y validada | 28 RF y 7 RNF cumplidos; decisiones P1–P9 abajo. |
 | `003-usuarios-y-disponibilidad` | Implementada y validada | spec, plan y tasks aprobados; T1–T10 hechas; `spec.md` en «implementada». `requests/users.rest` probado a mano contra el servidor: todos los códigos coinciden. `AGENTS.md` actualizado. |
-| `004-cuentas-de-juego` | Implementada y validada (reviewer APROBADO tras 2 vueltas, 2026-10-19) | Rework terminado: T1–T9 históricas (con T3b y T8b) y T10–T25 hechas; 1567 tests, typecheck y lint en verde. 1ª vuelta: CAMBIOS NECESARIOS por 2 bloqueantes solo de pruebas (B1 ejemplos de RF-6/DP-19, B2 literales de DP-26/RF-48), corregidos en tests; 2ª: APROBADO. T13 (lectura literal fija del simulador) es una excepción deliberada a P-13. Riesgo R3 vigente. `spec.md` pasa a «implementada» (la marca planner). Hecho en el cierre: prueba sin red tras el rework (1567/1567, usuario, 2026-10-19) y renombrado a `withUser.test.ts`. Pendiente de la 007: etiqueta visible de datos simulados (RF-37). Rework sin commit (en el árbol de trabajo); el commit anterior es `c98b84d`; sin push. |
-| `005-coincidencias` | Implementada y validada (reviewer APROBADO, 2026-10-19) | T1–T10 hechas (T1–T8 en el commit `31fdda2`, sin push). Cambio A (T9): 401 «token inválido» con la credencial de un usuario eliminado, incluida la carrera `noSession`. Cambio B (T10): textos propios en minúscula inicial y sin punto final (DP5-17). 1567 tests, typecheck y lint en verde; cambios A y B sin commit. `spec.md` «implementada». Riesgo A1 vigente. Pendiente además la casilla de la spec 007: etiqueta de datos simulados con el servidor real. |
-| `006-agenda` | Spec, plan y tareas aprobados (2026-10-18) | Sin empezar. |
-| `007-integrar-frontend` | Spec aprobada (2026-10-18); plan y tareas en borrador | No define ningún script `seed` (la entrada anterior de esta memoria era errónea; el backend no tiene ese script). Debe incorporar la etiqueta de datos simulados de RF-37 de la 004. Por decisión de la usuaria, «no se debe cambiar nada de la 007». PENDIENTE de la 007 (no se toca ahora): alinear los textos que imita su modo simulado (RF-10) con los de la 005 («juego no válido», «no tienes una cuenta vinculada en este juego» y los de los filtros de distancia, horas, verificadas y búsqueda) y con los de la 004 (hoy chocan con DP-6), más el 401 «token inválido». |
+| `004-cuentas-de-juego` | Implementada y validada (reviewer APROBADO tras 2 vueltas, 2026-10-19) | Rework terminado: T1–T9 históricas (con T3b y T8b) y T10–T25 hechas; 1567 tests, typecheck y lint en verde. 1ª vuelta: CAMBIOS NECESARIOS por 2 bloqueantes solo de pruebas (B1 ejemplos de RF-6/DP-19, B2 literales de DP-26/RF-48), corregidos en tests; 2ª: APROBADO. T13 (lectura literal fija del simulador) es una excepción deliberada a P-13. Riesgo R3 vigente. `spec.md` pasa a «implementada» (la marca planner). Hecho en el cierre: prueba sin red tras el rework (1567/1567, usuario, 2026-10-19) y renombrado a `withUser.test.ts`. Pendiente de la 007: etiqueta visible de datos simulados (RF-37; la 007 ya la cubre: RF-11, RF-22, R19). Rework commiteado en `9b5cc87` (sin push). El usuario confirmó (2026-10-19) que su aprobación del 2026-10-18 cubría DP-19, DP-34, DP-35 y DP-38 a DP-41. |
+| `005-coincidencias` | Implementada y validada (reviewer APROBADO, 2026-10-19) | T1–T10 hechas (T1–T8 en el commit `31fdda2`, sin push). Cambio A (T9): 401 «token inválido» con la credencial de un usuario eliminado, incluida la carrera `noSession`. Cambio B (T10): textos propios en minúscula inicial y sin punto final (DP5-17). 1567 tests, typecheck y lint en verde; cambio A en `9b5cc87` y cambio B en `88af4cd` (sin push). `spec.md` «implementada». Riesgo A1 vigente. Pendiente además la casilla de la spec 007: etiqueta de datos simulados con el servidor real. |
+| `006-agenda` | Spec, plan y tareas aprobados (2026-10-18), DESACTUALIZADOS frente a la 004 implementada | Sin empezar. Requiere antes un cambio de requisitos (planner actualiza `spec.md`, diff al usuario, aprobación, luego `plan.md` y `tasks.md`). Cinco hallazgos en «Deuda conocida». Si implementer parara en T5/T9 por esto, es lo esperado. |
+| `007-integrar-frontend` | Spec aprobada (2026-10-18); plan y tareas en borrador; SIN implementar | No define ningún script `seed`. El usuario autorizó (2026-10-19) alinear sus textos simulados a las 004/005 (minúscula, sin punto final; 401 «token inválido» también con usuario eliminado; textos `MATCH_ERRORS`; «correo o contraseña incorrectos»). La etiqueta de «datos simulados» ya la cubre (RF-11, RF-22, R19). Decisión aprobada: excepción al RF-16, el modo simulado reproduce el literal del servidor «rango verificado» y la interfaz nunca lo muestra. Discrepancia vigente: rótulo del filtro de verificadas (005: «Solo cuentas con rango verificado»; 007: «Solo cuentas verificadas»). |
 | `008-ficha-de-jugador` | Spec, plan y tareas aprobados (2026-10-18) | Precondición: plan de la 007 aprobado y sus T1–T26 hechas. Los enlaces de RF-2 son su T9. |
 | `009-detalle-de-sesion` | Spec, plan y tareas aprobados (2026-10-18) | 18 tareas (T0–T17), sin dividir la spec por decisión de la usuaria. T0 exige plan de la 007 aprobado, T1–T26 de la 007 hechas y la tarea de enlaces de la 008 hecha: hoy no se cumple. La validación de reviewer espera a que estén implementadas la 006, la 007 y la 008. No cambia el backend. |
 | `010-despliegue` | Borrador | Servirá la interfaz desde el servidor (rutas fuera de `/api`). |
@@ -145,8 +150,7 @@ Orden global de implementación: 005 T9 → 004 T11…T25 → 005 T10 (todas hec
   - Resuelto: con permiso del usuario, `tests/unit/withExistingUser.test.ts` se renombró a
     `tests/unit/withUser.test.ts` (solo prueba `createWithUser`).
   - Pendiente de la spec 007: etiqueta visible de datos simulados (RF-37 de la interfaz).
-  - Sin commit: todo el rework de la 004 y los cambios A y B de la 005 están en el árbol de
-    trabajo.
+  - Commits `9b5cc87` y `88af4cd` hechos en local, sin push.
   - `npm test` tarda ~100–200 s (1567 tests; antes, 83–121 s); sin investigar si alguna
     prueba concreta es lenta.
   - Opcionales de reviewer sin hacer (no bloquean):
@@ -161,6 +165,24 @@ Orden global de implementación: 005 T9 → 004 T11…T25 → 005 T10 (todas hec
       inalcanzable.
   - Riesgo aceptado R3: 404 en vez de 201 si el usuario desaparece entre crear la cuenta y
     comprobar que existe.
+
+- Spec 006 (2026-10-19), hallazgos de planner a resolver ANTES de implementarla:
+  1. Trata `withExistingUser` como pieza existente; la 004 la retiró (solo queda
+     `createWithUser`). Aparece en `plan.md` (secciones 0, 5, 11 fila RF-18, 12) y en
+     `tasks.md` (cabecera y «Antes de empezar» de T5).
+  2. 401 del usuario eliminado: la 006 espera «sesión no iniciada» (spec RF-18, plan secc. 7
+     y barrido de secc. 9, pruebas de T5/T9/T10); la 004 RF-44 y la 005 RF-13 dan 401 «token
+     inválido».
+  3. Orden de la cascada: el plan (secc. 0) y T9 «Antes de empezar» exigen `User.deleteOne` y
+     luego `GameAccount.deleteMany` y mandan parar si es otro; el código real es C1 cuentas →
+     C2 usuario → C3 barrido final (la 006 amplía esa cascada).
+  4. Helpers de tests: cita `test_helper.ts` y `usersInDb`; el backend real usa
+     `backend/tests/controllers/helpers.ts`.
+  5. Estilo de textos: la 006 declara mayúscula inicial y punto final en sus textos propios
+     (p. ej. «No estás inscrito en esta sesión.»), contra DP-6 de la 004 (minúscula, sin
+     punto final); la 005 ya se alineó. DECISIÓN DEL USUARIO PENDIENTE: ¿la 006 se alinea
+     con DP-6? Preguntárselo al empezar. La 007 punto 8 usa «no estás inscrito en esta
+     sesión» en minúscula, y su plan y tareas la versión con mayúscula.
 
 - Spec 009 (2026-10-18):
   - El dominio nuevo del frontend se prueba con scripts de Node sin versionar en el
@@ -221,7 +243,10 @@ Orden global de implementación: 005 T9 → 004 T11…T25 → 005 T10 (todas hec
   - Riesgos aceptados vigentes: R3 de la 004 (404 en vez de 201 si el usuario desaparece
     entre crear la cuenta y comprobar que existe) y A1 de la 005 (segundo intervalo de
     carrera: 404 por la cascada).
-  - Orden: la siguiente spec es la 006; la 007 no se toca hasta entonces.
+  - Orden: la siguiente spec es la 006 (tras su cambio de requisitos); la 007 sigue sin
+    implementar.
+  - Commits locales sin push: `9b5cc87` (rework de la 004 y cambio A de la 005) y `88af4cd`
+    (cambio B de la 005).
 
 - Cierre de aprobaciones (2026-10-19; el usuario: «apruebo todo con tus recomendaciones»):
   - Opción A (spec 005, Cambio A, DP5-16): `GET /api/matches` responde 401 «token
@@ -238,7 +263,8 @@ Orden global de implementación: 005 T9 → 004 T11…T25 → 005 T10 (todas hec
   - Los textos de la 004 aceptados antes (decisiones de T9 de la 004, abajo) siguen en pie
     salvo que el rework los cambie (p. ej. «Juego no válido.» pasa a `juego no válido`
     por DP-6).
-  - Spec 007: no se toca; textos pendientes anotados en su fila de «Estado de las specs».
+  - Spec 007: el usuario autorizó después (2026-10-19) alinear sus textos simulados; ver su
+    fila de «Estado de las specs».
 
 - Spec 004 (2026-10-19):
   - Cierre del rework (T25): `requests/accounts.rest` actualizado a los textos y códigos
@@ -362,18 +388,19 @@ Orden global de implementación: 005 T9 → 004 T11…T25 → 005 T10 (todas hec
 
 ## Próximo paso
 
-Orden acordado, antes de la 006:
+Hecho: rework de la 004 y cambios A y B de la 005 commiteados (`9b5cc87`, `88af4cd`; sin
+push), prueba sin red 1567/1567, renombrado a `withUser.test.ts`.
 
-1. Hecho: prueba sin red tras el rework, 1567/1567 en verde (usuario, 2026-10-19).
-2. Hecho: `withExistingUser.test.ts` renombrado a `backend/tests/unit/withUser.test.ts`.
-3. En curso: los commits los hará el coordinador separando el rework de la 004 y los
-   cambios A y B de la 005 (hoy todo está en el árbol de trabajo; los últimos commits son
-   `31fdda2` y `61f7c38`).
+Siguiente: arrancar el flujo del cambio de requisitos de la 006 (`/sdd-change`):
+1. planner actualiza `specs/006-agenda/spec.md` según los cinco hallazgos de «Deuda
+   conocida» (antes, preguntar al usuario si la 006 se alinea con DP-6 de la 004).
+2. Se enseña el diff al usuario; con su aprobación, planner actualiza `plan.md` y `tasks.md`.
+3. Después se implementa: `/sdd-implement 006 T1`, y así hasta la T10 o la última
+   (la 006 amplía la cascada C1 → C2 → C3 de la 004).
 
-Después: spec 006 (`/sdd-implement 006 T1`; amplía la cascada de la 004). En paralelo,
-aprobar el plan y las tareas de la 007 e implementarla (T1–T26); la 007 incluye alinear los
-textos que imita su modo simulado (los de la 004 en minúscula y los de la 005) y el 401
-«token inválido», y la etiqueta visible de datos simulados (RF-37 de la 004). Después, la
+En paralelo o después, aprobar el plan y las tareas de la 007 e implementarla (T1–T26); la
+007 incluye alinear los textos que imita su modo simulado (los de la 004 en minúscula y los
+de la 005) y el 401 «token inválido», y la etiqueta visible de datos simulados. Después, la
 tarea de enlaces de la 008 (T9) y el resto de la 008; después, la 009 desde su T0
 (`/sdd-implement 009-detalle-de-sesion T0`). Adaptar el frontend queda para la spec 007,
 después de las 004 a 006, por decisión del usuario.

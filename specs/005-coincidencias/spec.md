@@ -8,7 +8,9 @@ la red desconectada (1567/1567 tests, 220 suites, 0 fallos, 0 cancelados, unos 1
 spec no tiene casilla propia para ello; la cubre la de la spec 004 (RNF-1 y RNF-9), ya
 marcada.
 Pendiente fuera del código: la etiqueta de datos simulados con el servidor real es de la spec
-007 (su casilla de "Criterios de finalización" sigue sin marcar a propósito).
+007 (su casilla de "Criterios de finalización" sigue sin marcar a propósito, porque la 007 no
+está implementada). Alineada en la spec 007 el 2026-10-19 (RF-11, RF-22 y R19; también la
+alineación de sus textos de error con DP5-17, RF-10 punto 12); falta implementarla.
 
 Cambio A del 2026-10-19 (aprobado por el usuario el 2026-10-19): la spec 004 vigente
 (reescrita el 2026-10-18; RF-44 y DP-37) responde 401 "token inválido", no "sesión no

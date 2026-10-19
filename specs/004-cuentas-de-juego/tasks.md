@@ -249,8 +249,10 @@ estuviera hecha (C1), y así fue; T25 no dependía de ella.
     - `backend/tests/controllers/app.test.ts`: `supertest(await listenOnLoopback(createApp(testConfig())))`
       y `after(closeTestServers)`, sin `mongoose.disconnect()` porque no conecta a la base
       (aceptado por el usuario).
-    - `backend/tests/unit/withExistingUser.test.ts`: `appWith` devuelve el servidor de
-      `listenOnLoopback`, las llamadas usan `await` y `after(closeTestServers)`.
+    - `backend/tests/unit/withUser.test.ts` (nombre actual; se llamaba
+      `withExistingUser.test.ts` cuando se hizo T8b y se renombró el 2026-10-19, ver T24):
+      `appWith` devuelve el servidor de `listenOnLoopback`, las llamadas usan `await` y
+      `after(closeTestServers)`.
   - Excepción explícita (solo para esta tarea): T8b **sí** modifica tests existentes, pero
     únicamente en cómo se crea y se cierra el servidor (helpers, setup, teardown y tipos) y,
     en `startup.test.ts`, la preparación del puerto de la prueba "sin HOST". No se toca
@@ -465,8 +467,8 @@ estuviera hecha (C1), y así fue; T25 no dependía de ella.
     `backend/src/utils/middleware.ts` (`createUserRoutesGuard({ withUser })`: la ruta `games`
     usa `withUser` y conserva la decodificación de los dos segmentos en el orden de RF-13).
     **No** se retiran `createWithExistingUser` ni `missingUserError` (los usa
-    `controllers/matches.ts` de la 005 y `withExistingUser.test.ts`; ver T24 y Q3), y no se
-    toca la 005.
+    `controllers/matches.ts` de la 005 y `withUser.test.ts`, entonces llamado
+    `withExistingUser.test.ts`; ver T24 y Q3), y no se toca la 005.
   - Hecho cuando: pruebas en verde, el resto de la suite (002, 003, 005) en verde sin
     modificarla, y el resumen con id inválido y juego sin decodificar sigue respondiendo
     primero `id con formato inválido`.
@@ -622,12 +624,14 @@ estuviera hecha (C1), y así fue; T25 no dependía de ella.
     el plan y las tareas de la 005 ya están aprobados desde el 2026-10-19). Antes de empezar,
     el implementer comprueba que `matches.ts` ya no importa `createWithExistingUser`; si lo
     importa, la tarea no empieza.
-  - Tests primero: `backend/tests/unit/withExistingUser.test.ts` se reduce a las pruebas de
-    `createWithUser` con "token inválido" por defecto (se eliminan las de `missingUserError` y
+  - Tests primero: `backend/tests/unit/withUser.test.ts` (llamado `withExistingUser.test.ts`
+    hasta el cierre de la 004; ver "Archivos") se reduce a las pruebas de `createWithUser`
+    con "token inválido" por defecto (se eliminan las de `missingUserError` y
     `createWithExistingUser`); el resto de la suite, incluida la 005, en verde.
   - Archivos: `backend/src/utils/middleware.ts` (quitar `createWithExistingUser` y la opción
-    `missingUserError`); `backend/tests/unit/withExistingUser.test.ts` (renombrar si se
-    quiere, p. ej. `withUser.test.ts`, solo si el usuario lo acepta).
+    `missingUserError`); `backend/tests/unit/withUser.test.ts` (antes
+    `withExistingUser.test.ts`; renombrado el 2026-10-19, al cierre, con permiso expreso del
+    usuario; la tarea lo dejaba como opcional).
   - Hecho cuando: ningún archivo de `src/` ni de `tests/` menciona `createWithExistingUser` ni
     `missingUserError`, y la verificación completa en verde.
 

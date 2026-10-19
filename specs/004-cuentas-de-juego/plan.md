@@ -162,7 +162,7 @@ backend/
     │   ├── accountState.test.ts              (modifica T14)
     │   ├── gameAccountModel.test.ts          (existe)
     │   ├── userTarget.test.ts                (existe)
-    │   ├── withExistingUser.test.ts          (existe; T24 lo redujo a las pruebas de `createWithUser`; su renombrado a `withUser.test.ts` queda a decisión del usuario)
+    │   ├── withUser.test.ts                  (existe; antes `withExistingUser.test.ts`: T24 lo redujo a las pruebas de `createWithUser` y se renombró a `withUser.test.ts` el 2026-10-19, con permiso del usuario)
     │   ├── domainIsolation.test.ts           (existe, T3b)
     │   └── loopbackServer.test.ts            (existe, T8b)
     └── controllers/
@@ -956,9 +956,11 @@ piezas de la 004. Para que el cambio coordinado no se olvide:
    usuario eliminado responde hoy 401 "sesión no iniciada". La 004 pasa a "token inválido"
    (RF-44). La 005 debe actualizar su spec (RF-13 y su caso límite), su plan, sus tareas y sus
    pruebas, y su código debe pasar a `createWithUser`. Solo entonces T24 retira
-   `createWithExistingUser` y `missingUserError` y reduce `tests/unit/withExistingUser.test.ts`
-   a las pruebas de `createWithUser`. **Hecho (2026-10-19):** T9 de la 005 y después T24 de
-   esta spec; el archivo de prueba conserva su nombre (renombrarlo es decisión del usuario).
+   `createWithExistingUser` y `missingUserError` y reduce `tests/unit/withUser.test.ts` (nombre
+   actual; entonces `withExistingUser.test.ts`) a las pruebas de `createWithUser`. **Hecho
+   (2026-10-19):** T9 de la 005 y después T24 de esta spec; el archivo de prueba conservó su
+   nombre `withExistingUser.test.ts` hasta el cierre, cuando el usuario autorizó renombrarlo a
+   `withUser.test.ts` (hecho el 2026-10-19).
 2. **Rama `noSession` de `loadMatchInputs`** (usuario eliminado entre la sesión y la
    lectura): hoy responde 401 "sesión no iniciada". La 005 debe decidir su texto (coherente
    con DP-37: "token inválido" o 404 de usuario).
@@ -991,8 +993,8 @@ piezas de la 004. Para que el cambio coordinado no se olvide:
   spec vigente (DP-37). **Q2 (cerrada):** "Mantener clock.ts"; sigue.
 - **Q3 (resuelta, C1, 2026-10-19). ¿Cuándo se retira `createWithExistingUser`?** La 004
   deja de usarlo en T16, pero `controllers/matches.ts` (005) lo usaba. Respuesta: T24
-  (retirada de `createWithExistingUser`, `missingUserError` y `withExistingUser.test.ts`)
-  queda **bloqueada hasta que la T9 de la spec 005 esté hecha**. La 005 ya tiene su spec, plan
+  (retirada de `createWithExistingUser` y `missingUserError`, y reducción de
+  `withUser.test.ts`, entonces `withExistingUser.test.ts`) queda **bloqueada hasta que la T9 de la spec 005 esté hecha**. La 005 ya tiene su spec, plan
   y tareas aprobados para migrar a `createWithUser` y "token inválido" (su T9); la 004 no
   cambia código de la 005. **Hecho (2026-10-19):** T9 de la 005 y después T24.
 - **Q4 (resuelta, C2, 2026-10-19). Lectura literal fija (T13).** Respuesta: aprobada como

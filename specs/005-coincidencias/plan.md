@@ -516,6 +516,6 @@ Ubisoft, Valve ni FACEIT (RNF-3).
   adopte (decisión del usuario del 2026-10-17).
 - Los mensajes citan rótulos de la interfaz: si la 007 cambia un rótulo sin cambiar antes
   esta spec, los mensajes quedan desalineados ("Impacto en otras specs" de la spec).
-- Spec 007 (B5): su RF-10 y su modo simulado reproducen los textos anteriores de esta spec;
-  quedan pendientes de alinear con DP5-17 cuando se pueda tocar esa spec. Esta spec no la
-  modifica.
+- Spec 007 (B5): su RF-10 y su modo simulado reproducían los textos anteriores de esta spec.
+  Alineada en la spec 007 el 2026-10-19 (RF-10 puntos 12 y 13, con los textos de DP5-17);
+  falta implementarla. Esta spec no la modifica.

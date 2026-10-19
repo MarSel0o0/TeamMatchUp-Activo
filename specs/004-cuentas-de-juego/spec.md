@@ -7,7 +7,8 @@ suites, 0 fallos, 0 cancelados, unos 100 s. Su casilla de "Criterios de finaliza
 marcada.
 Pendiente fuera del código: la etiqueta de datos simulados (RF-37) en la interfaz con el
 servidor real es de la spec 007 ("Dependencias externas"; esta spec no tiene casilla propia
-para ella).
+para ella). Alineada en la spec 007 el 2026-10-19 (RF-11, RF-22 y R19, con el texto «Datos de
+demostración»); falta implementarla.
 Historial: revisión del 2026-10-18 tras la revisión QA (hallazgos 1 a 25) y las decisiones
 del usuario del 2026-10-18; retiró la aprobación del 2026-10-17 y el usuario la aprobó de
 nuevo el 2026-10-18. Incluye las respuestas del usuario a P1 (hallazgo 25, 2026-10-18: se
