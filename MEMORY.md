@@ -4,19 +4,18 @@ Registro dinámico. Se actualiza al cerrar cada fase SDD.
 
 ## Última actualización
 
-2026-10-18
+2026-10-19
 
 ## Fase actual
 
 Specs 001 (`001-crear-backend`), 002 (`002-autenticacion`) y 003
 (`003-usuarios-y-disponibilidad`) implementadas y validadas (reviewer: APROBADO).
-Spec 004 (`004-cuentas-de-juego`) implementada (T1–T10, con T3b y T8b) en la rama
-`marselo`, **sin validación de reviewer** por decisión del usuario ("saltate la revision
-con reviewer"). Specs 005 y 006 con spec, plan y tareas aprobados, sin empezar. Spec 007
-aprobada, con plan y tareas en borrador. Spec 008 con spec, plan y tareas aprobados. Spec
-009 (`009-detalle-de-sesion`) con spec, plan y tareas aprobados el 2026-10-18 (fase de
-tareas cerrada; su implementación espera a la 007 y a la 008). Spec 010 en borrador.
-Siguiente fase SDD: implementación de la spec 005 y aprobación del plan de la 007.
+Spec 004 (`004-cuentas-de-juego`) implementada (T1–T10, con T3b y T8b), en commit (sin
+push; lo hace el usuario), con la prueba sin Internet hecha; validación de reviewer en curso
+(2026-10-19). Spec 005 (`005-coincidencias`) implementada (T1–T8) y validada (reviewer:
+APROBADO, 2026-10-19), en commit (`feat: coincidencias (spec 005)`, sin push). Spec 006 con
+plan y tareas aprobados, sin empezar. Siguiente fase SDD: terminar la validación de la 004 e
+implementar la spec 006 (`/sdd-implement 006 T1`).
 
 ## Estado del código
 
@@ -58,9 +57,20 @@ Siguiente fase SDD: implementación de la spec 005 y aprobación del plan de la 
     borra sus cuentas. Prueba manual en `requests/accounts.rest` (recorrido comprobado con
     curl contra un servidor de desarrollo en una base temporal, ya borrada). Sin
     dependencias ni variables de entorno nuevas.
-  - Recursos de coincidencias y agenda: specs 005 y 006.
-  - 1162 tests con node:test + supertest (en serie, contra la base de prueba; ~85–120 s);
-    typecheck y lint (ESLint) en verde; `npm audit` sin vulnerabilidades. Los tests de
+  - Coincidencias de la spec 005: `GET /api/matches?game=&maxRankDistance=&minSharedHours=&onlyVerified=&search=`
+    (sesión y `X-CSRF-Token`; 401 «sesión no iniciada» si el usuario ya no existe).
+    Reglas puras sin Express, Mongoose ni reloj en `src/domain/` (`matchQuery.ts`,
+    `availability.ts`, `matching.ts`): lectura estricta de filtros, bloques en común
+    ordenados, distancia sobre el rango normalizado de la 004 y puntaje en enteros exactos.
+    Lectura de datos en `src/services/matchInputs.ts` y ruta en `src/controllers/matches.ts`.
+    El candidato lleva el usuario sin correo, `gameId`, la cuenta con `simulated: true`,
+    `rankDistance`, `sharedBlocks` y `score`. Prueba manual en `requests/matches.rest`
+    (recorrido comprobado con curl contra un servidor de desarrollo en una base temporal, ya
+    borrada). Sin dependencias ni variables de entorno nuevas.
+  - Agenda: spec 006.
+  - 1427 tests con node:test + supertest (en serie, contra la base de prueba; ~85–120 s);
+    typecheck y lint (ESLint) en verde; `npm audit` sin vulnerabilidades (revisado al cerrar
+    la 004). Duración de `npm test` al cerrar la 005: ~110–175 s. Los tests de
     controlador montan el servidor en `127.0.0.1` (`listenOnLoopback`, T8b).
 
 ## Estado de las specs
@@ -70,34 +80,20 @@ Siguiente fase SDD: implementación de la spec 005 y aprobación del plan de la 
 | `001-crear-backend` | Implementada y validada | spec, plan y tasks aprobados; T1–T10 hechas. Cambios aprobados durante la implementación: mongoose 8.19.1 → 8.24.5 (vulnerabilidad alta) y regla RFC para `HOST` (la última etiqueta no puede ser solo numérica). |
 | `002-autenticacion` | Implementada y validada | 28 RF y 7 RNF cumplidos; decisiones P1–P9 abajo. |
 | `003-usuarios-y-disponibilidad` | Implementada y validada | spec, plan y tasks aprobados; T1–T10 hechas; `spec.md` en «implementada». `requests/users.rest` probado a mano contra el servidor: todos los códigos coinciden. `AGENTS.md` actualizado. |
-| `004-cuentas-de-juego` | Implementada, sin validar | Rama `marselo`, sin commit. T1–T10, T3b y T8b hechas. Sin reviewer por decisión del usuario. `spec.md` sigue en «aprobada» (no se pasó a «implementada» sin validación). Falta la prueba sin Internet (ver Deuda). |
-| `005-coincidencias` | Spec, plan y tareas aprobados | Sin empezar. |
+| `004-cuentas-de-juego` | Implementada; validación de reviewer en curso (2026-10-19) | En commit (`c98b84d` y posteriores), sin push. T1–T10, T3b y T8b hechas. Prueba sin Internet hecha por el usuario (suite completa, 1427 tests en verde). `spec.md` sigue en «aprobada» hasta que reviewer valide. |
+| `005-coincidencias` | Implementada y validada | Reviewer APROBADO (2026-10-19); T1–T8; `spec.md` en «implementada». En commit (`feat: coincidencias (spec 005)`), sin push. Pendiente solo la casilla de la spec 007: etiqueta de datos simulados con el servidor real. |
 | `006-agenda` | Spec, plan y tareas aprobados (2026-10-18) | Sin empezar. |
 | `007-integrar-frontend` | Spec aprobada (2026-10-18); plan y tareas en borrador | No define ningún script `seed` (la entrada anterior de esta memoria era errónea; el backend no tiene ese script). Debe incorporar la etiqueta de datos simulados de RF-37 de la 004. Por decisión de la usuaria, «no se debe cambiar nada de la 007». |
 | `008-ficha-de-jugador` | Spec, plan y tareas aprobados (2026-10-18) | Precondición: plan de la 007 aprobado y sus T1–T26 hechas. Los enlaces de RF-2 son su T9. |
-| `009-detalle-de-sesion` | Spec, plan y tareas aprobados (2026-10-18) | 18 tareas (T0–T17), sin dividir la spec por decisión de la usuaria. T0 exige plan de la 007 aprobado, T1–T26 de la 007 hechas y la tarea de enlaces de la 008 hecha: hoy no se cumple. La validación de reviewer espera a que estén implementadas la 006, la 007 y la 008. No cambia el backend. Sin commit. |
+| `009-detalle-de-sesion` | Spec, plan y tareas aprobados (2026-10-18) | 18 tareas (T0–T17), sin dividir la spec por decisión de la usuaria. T0 exige plan de la 007 aprobado, T1–T26 de la 007 hechas y la tarea de enlaces de la 008 hecha: hoy no se cumple. La validación de reviewer espera a que estén implementadas la 006, la 007 y la 008. No cambia el backend. |
 | `010-despliegue` | Borrador | Servirá la interfaz desde el servidor (rutas fuera de `/api`). |
 
 ## Deuda conocida
 
-- Spec 004 (2026-10-18):
-  - `.gitattributes` en la raíz sin commit: evita que git convierta a CRLF el fixture
-    `tests/fixtures/tzdata-2025b/zone.tab` en Windows (si se convierte, falla la prueba de
-    zonas horarias). Decidir si se sube.
+- Spec 004 (2026-10-19):
   - En Windows, `npm test` necesita `npm test --script-shell=bash` (el script usa sintaxis
     POSIX).
-  - Decisiones de T9 sin confirmar por el usuario: (1) con un id inválido y el juego sin
-    decodificar, el resumen responde primero "id con formato inválido"; (2) `LOL` en
-    mayúsculas responde 400 "Juego no válido."; (3) `src/utils/middleware.ts` importa
-    `ACCOUNT_ERRORS` de `src/domain/accountRules.ts`; (4) hay una prueba determinista extra
-    de la cascada al borrar usuario.
-  - Pendiente del usuario: ejecutar `npm test` con la red desconectada (criterio RNF-1/RNF-9
-    de la 004). No se hizo para no tocar la red de la máquina; la búsqueda de `fetch(`,
-    `http.request`, `process.env`, `Math.random` y URL externas en el código no da
-    resultados.
-  - Sin validación RF por RF de reviewer (decisión del usuario).
-  - Quedó una copia de `.env` en el scratchpad de una sesión anterior (proto/backend):
-    borrarla.
+  - Validación de reviewer en curso (2026-10-19); su resultado se anotará al terminar.
   - `npm test` tardó 121 s al cerrar T10 (antes, 83–85 s). Antes hubo dos peticiones muy
     lentas (144 s y 178 s) que no se repitieron; sin investigar.
 
@@ -130,7 +126,28 @@ Siguiente fase SDD: implementación de la spec 005 y aprobación del plan de la 
 - La base de desarrollo `teammatchup` no existía al validar: la verificación de «las
   pruebas no tocan la base de desarrollo» fue débil (reviewer lo confirmó revisando el código).
 
+- Spec 005 (2026-10-19):
+  - Hecha: el usuario corrió la suite completa sin conexión a Internet y pasaron los 1427
+    tests (cubre la comprobación de red de la 005). Además, búsqueda estática en el código de
+    la 005 sin `fetch(`, `http.request`, URL externas, `process.env`, `Math.random` ni `Date`
+    en `domain/`.
+  - Criterio de la spec que depende de la 007: etiqueta de datos simulados con el servidor
+    real en la distancia y el puntaje (casilla sin marcar a propósito).
+  - Distancias y puntajes de LoL y R6 difieren entre el servidor y el modo simulado del
+    navegador hasta que la 007 adopte DP-26 (decisión del usuario).
+
 ## Decisiones recientes
+
+- Spec 004 (2026-10-19):
+  - Prueba sin Internet (RNF-1/RNF-9): la hizo el usuario y todas las pruebas pasan.
+  - `.gitattributes` en la raíz queda en el repositorio: evita que git convierta a CRLF el
+    fixture `tests/fixtures/tzdata-2025b/zone.tab` en Windows (si se convierte, falla la
+    prueba de zonas horarias).
+  - Decisiones de T9 aceptadas por el usuario: (1) con un id inválido y el juego sin
+    decodificar, el resumen responde primero «id con formato inválido»; (2) `LOL` en
+    mayúsculas responde 400 «Juego no válido.»; (3) `src/utils/middleware.ts` importa
+    `ACCOUNT_ERRORS` de `src/domain/accountRules.ts`; (4) hay una prueba determinista extra
+    de la cascada al borrar usuario.
 
 - Spec 009 (clarificación, plan y tareas; 2026-10-18):
   - Reviewer la revisó contra 003, 006, 007 y 008 aprobadas (15 hallazgos). Planner los
@@ -228,21 +245,20 @@ Siguiente fase SDD: implementación de la spec 005 y aprobación del plan de la 
 - La reversión de `specs/007-integrar-frontend/spec.md` está completa: a 2026-10-18
   `git status` y `git diff --stat` no lo muestran modificado (no hace falta
   `git checkout`).
-- Por subir de la spec 009: `spec.md` (modificado), `plan.md` y `tasks.md` (nuevos) y este
-  `MEMORY.md`. Los `.DS_Store` (raíz y `frontend/`) no deberían subirse.
+- Los `.DS_Store` (raíz y `frontend/`) no deberían subirse.
 
 ## Próximo paso
 
-Implementar la spec 005 (`005-coincidencias`) desde su T1 (`/sdd-implement 005 T1`); después
-la 006. En paralelo, aprobar el plan y las tareas de la 007 e implementarla (T1–T26);
-después, la tarea de enlaces de la 008 (T9) y el resto de la 008; después, la 009 desde
-su T0 (`/sdd-implement 009-detalle-de-sesion T0`). Antes conviene que el usuario confirme las decisiones de T9 de la 004, decida sobre
-`.gitattributes` y haga la prueba sin Internet. Adaptar el frontend queda para la spec 007,
-después de las 004 a 006, por decisión del usuario. Requisito local para ejecutar los tests
+Terminar la validación de reviewer de la spec 004 (en curso). Implementar la spec 006
+(`/sdd-implement 006 T1`). En paralelo, aprobar el plan y las tareas de la 007 e
+implementarla (T1–T26); después, la tarea de enlaces de la 008 (T9) y el resto de la 008;
+después, la 009 desde su T0 (`/sdd-implement 009-detalle-de-sesion T0`). Adaptar el
+frontend queda para la spec 007, después de las 004 a 006, por decisión del usuario.
+Requisito local para ejecutar los tests
 del backend: `backend/.env` (copiado de `.env.example`, con `JWT_SECRET`) y MongoDB en
 `mongodb://127.0.0.1:27017`.
 
-## Notas de la spec 004 (2026-10-18)
+## Notas de la spec 004 (2026-10-19)
 
 - Cambios al plan aprobados durante la implementación (ver `specs/004-cuentas-de-juego/plan.md`):
   plan alineado con el backend real de 001–003 (`helpers.ts`, `createApp`, `createWithUser`;
@@ -258,4 +274,3 @@ del backend: `backend/.env` (copiado de `.env.example`, con `JWT_SECRET`) y Mong
   lecturas de la demostración.
 - La normalización de rango del backend (DP-26) difiere de `frontend/src/domain/games.ts`
   hasta que la spec 007 la adopte.
-- Nada de la spec 004 está en un commit todavía.
