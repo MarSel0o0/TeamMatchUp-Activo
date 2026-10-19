@@ -1,10 +1,19 @@
 # Plan 007 — Conectar la interfaz al servidor real
 Estado: borrador (2026-10-18), pendiente de aprobación del usuario.
 Spec: `specs/007-integrar-frontend/spec.md` (aprobada el 2026-10-18, con las decisiones R19 y R20).
+Alineación del 2026-10-19 con la spec (RF-10, puntos 4, 5, 10, 12 y 13): textos de las specs 004
+y 005 en minúscula y sin punto final y 401 «token inválido» para el usuario eliminado; solo
+cambian la sección 3.9 de este plan y las tareas T6, T16, T17 y T23.
+Ajustes menores del 2026-10-19 (aprobación expresa del usuario; R21 y R22 de la spec): el
+literal «rango verificado» del error del filtro de verificadas en el modo simulado es una
+excepción aprobada al RF-16 (secciones 3.9 y 3.10, decisión de la sección 6, T17 y T23); el
+texto del 401 del login pasa a «correo o contraseña incorrectos» (secciones 3.3, 3.9 y 9, T6 y
+T11); y se actualizan los estados de la precondición y del riesgo R-5. No cambia ningún otro
+comportamiento.
 
 **Precondición para la validación final (T29):** las specs 004, 005 y 006 deben estar
-implementadas en `backend/` (a 2026-10-18 `backend/src/app.ts` solo monta `/api/users`,
-`/api/auth` y `/api/accounts`; faltan `/api/matches` y `/api/sessions`, y la 004 va por T8b).
+implementadas en `backend/`. Estado al 2026-10-19: la 004 y la 005 están implementadas (existen
+`/api/accounts` y `/api/matches`); hoy falta solo `/api/sessions` (spec 006).
 T1 a T28 se pueden hacer antes: se comprueban contra el modo simulado, `typecheck`, `lint` y
 `build`. Si al empezar una tarea algo que este plan toma del backend no existe, el
 implementer **para y lo reporta**; esta spec no cambia el servidor.
@@ -221,8 +230,8 @@ abortAllRequests(): epoch++ ; enVuelo.forEach(c => c.abort()) ; enVuelo.clear()
   texto, y 4xx/5xx con cuerpo vacío. El 401 sale siempre por su código.
 - 401 del login: `request('/auth/login', { protectedCall: false })` lanza `ApiError` con
   estado 401; si el cuerpo no trae mensaje legible, el mensaje es el de la spec 002, RF-9
-  ("Correo o contraseña incorrectos."), porque un 401 nunca es "sin mensaje" (decisión del
-  plan, ver sección 9).
+  ("correo o contraseña incorrectos", minúscula y sin punto final, R22), porque un 401 nunca
+  es "sin mensaje" (decisión del plan, ver sección 9).
 - Operaciones con `protectedCall: false` (no disparan RF-7): login, registro (`POST
   /api/users`), cierre de sesión y consulta de sesión. Todas las demás son protegidas.
 - `credentials: 'same-origin'`: la cookie viaja solo al mismo origen (desarrollo con proxy y
@@ -371,8 +380,8 @@ onUnauthorized(epoch):                            // RF-7 (viene del transporte)
   ```
   autorizar(csrfEnviado): si session === null → 401 'sesión no iniciada'
                           si csrfEnviado ausente o ≠ session.csrf → 401 'token inválido'
-                          si el usuario ya no existe → 401 'sesión no iniciada'
-  login: valida credenciales (400 si faltan/inválidas, 401 'Correo o contraseña incorrectos.')
+                          si el usuario ya no existe → 401 'token inválido'   // spec 004 RF-44, spec 005 RF-13
+  login: valida credenciales (400 si faltan/inválidas, 401 'correo o contraseña incorrectos')
          session = { userId, csrf: nuevo }; la respuesta lleva el comprobante (equivale a la cabecera)
   logout: session = null (siempre 200); me: autorizar → 200 usuario propio
   ```
@@ -380,13 +389,18 @@ onUnauthorized(epoch):                            // RF-7 (viene del transporte)
   la consulta de sesión del modo actual decide (RF-19).
 - Semántica del servidor (RF-10), con los textos de cada spec: duplicado de correo o de
   usuario 400 (002); registrar no abre sesión (002); identificador inválido 400 con el
-  mensaje de la 004; segunda cuenta en el juego 400 "Ya tienes una cuenta vinculada en este
-  juego."; cuenta ajena 403 y cuenta inexistente 404 "Cuenta no encontrada."; ninguna
-  respuesta 409 en cuentas (R6 se vincula y resincroniza como los demás); candidatos sin
-  correo; salir de una sesión sin estar inscrito 409 "No estás inscrito en esta sesión.";
-  perfil con las validaciones de la 003 (nombre vacío o de solo espacios, de más de 40,
-  biografía de más de 200, zona no IANA y color sin `#RRGGBB` → 400 sin guardar); 401 con
-  "sesión no iniciada".
+  mensaje de la 004; segunda cuenta en el juego 400 "ya tienes una cuenta vinculada en este
+  juego"; cuenta ajena 403 "no tienes permiso para esta operación" y cuenta inexistente 404
+  "cuenta no encontrada"; ninguna respuesta 409 en cuentas (R6 se vincula y resincroniza
+  como los demás); candidatos sin correo; errores de coincidencias con los textos de la 005
+  (spec, RF-10 punto 12; en el código del backend, `MATCH_ERRORS` de
+  `backend/src/domain/matchQuery.ts`; el del filtro de verificadas conserva «rango
+  verificado», excepción al RF-16 aprobada por el usuario el 2026-10-19, R21: la interfaz
+  nunca lo muestra); salir de una sesión sin estar inscrito 409 "No estás
+  inscrito en esta sesión."; perfil con las validaciones de la 003 (nombre vacío o de solo
+  espacios, de más de 40, biografía de más de 200, zona no IANA y color sin `#RRGGBB` → 400
+  sin guardar); 401 "sesión no iniciada" sin credencial y "token inválido" con comprobante
+  ausente o distinto o con un usuario eliminado.
 - Proveedor simulado (RF-21, `simulatedProvider.ts`): `isVerifiedHandle` = suma de los
   `charCodeAt` del identificador canónico par (regla de la 004, sección 4.4; da los mismos
   resultados para los ejemplos `jugador1#las`, `jugador2`, `76561190000000001`…); escalón
@@ -414,7 +428,10 @@ onUnauthorized(epoch):                            // RF-7 (viene del transporte)
 - Se elimina `source` de `GameDefinition`. Las etiquetas "Riot ID", "Ubisoft ID" y
   "SteamID64" siguen (`handleLabel`).
 - "Verificada" siempre referida a la cuenta ("Verificada" / "Sin verificar"); el filtro se
-  rotula "Solo cuentas verificadas". Ningún texto dice "rango verificado" ni "verificado".
+  rotula "Solo cuentas verificadas". Ningún texto de la interfaz dice "rango verificado" ni
+  "verificado". Única excepción, aprobada por el usuario el 2026-10-19 (R21): el literal del
+  servidor «rango verificado» del error del filtro de verificadas, que reproduce el backend
+  simulado y que la interfaz nunca muestra.
 - "Resincronizar" (antes "Volver a leer el rango") y el texto "Al resincronizar, tu rango
   puede cambiar un escalón y pueden llegar partidas nuevas." junto al botón de toda cuenta
   propia. Textos de relectura en Configuración, entrada y pantalla de acceso:
@@ -628,6 +645,7 @@ typecheck + lint + build):
 | Un `Failure` con `title`/`autoFocusRetry`/`role="alert"` | Un componente nuevo de pantalla de error | RNF-4 pide reutilizar componentes existentes |
 | Sin pruebas versionadas en el frontend; scripts desechables con Node | Añadir runner o `tests/` al frontend | La spec lo deja fuera de alcance y la constitución exige solo build, typecheck y lint |
 | `credentials: 'same-origin'` | `include` (como hoy) | La spec deja el origen distinto fuera de alcance; `same-origin` no envía la cookie a terceros |
+| El backend simulado reproduce el literal del servidor «rango verificado» en el error del filtro de verificadas (excepción al RF-16, aprobada por el usuario el 2026-10-19, R21) | Cambiarlo a «cuentas verificadas» en el modo simulado | Hay que responder como el servidor (RF-10); el texto solo sale de una llamada directa y la interfaz nunca lo muestra; la discrepancia con el rótulo queda declarada para un cambio de la spec 005 (R14) |
 
 ## 7. Riesgos
 - **R-1. Carrera `PublicOnlyRoute` / ruta de origen.** Mitigada con `login(creds,
@@ -639,8 +657,9 @@ typecheck + lint + build):
   requisito se cumple desde que la pestaña vuelve a ser visible, que es lo que mide la spec.
 - **R-4. Carrera al borrar el comprobante "solo si es el mío".** Comparar y borrar no es
   atómico entre pestañas; el efecto es un 401 posterior, caso aceptado por la spec.
-- **R-5. Backend 004 a 006 sin terminar.** La validación final (T29) depende de ellos y de
-  `/api/matches` y `/api/sessions`. T1 a T28 avanzan en modo simulado. Si el servidor
+- **R-5. Backend de la 006 sin terminar.** La 004 y la 005 están implementadas (2026-10-19).
+  La validación final (T29) depende de la 006 y de `/api/sessions`. T1 a T28 avanzan en modo
+  simulado. Si el servidor
   difiere de las specs (rutas, textos), se para y se reporta; esta spec no lo corrige.
 - **R-6. Motivos de bloqueo de "Proponer" con datos que la coincidencia no trae.** Los
   motivos "No has marcado tus horas" y "Este jugador no ha marcado horas" necesitan saber si
@@ -691,7 +710,7 @@ Ninguna bloquea T1 a T13. Las decisiones del plan que dependen del usuario:
 4. **Sesión simulada (RF-19).** El modo simulado guarda un único registro `{ userId, csrf }`
    dentro de su base (hace de servidor y de cookie); la interfaz solo guarda el
    comprobante. ¿Se acepta esa lectura de RF-19?
-5. **Texto de reserva del 401 en login** ("Correo o contraseña incorrectos.") cuando el
-   servidor no trae mensaje legible (R-8).
+5. **Texto de reserva del 401 en login** ("correo o contraseña incorrectos", minúscula y sin
+   punto final, R22) cuando el servidor no trae mensaje legible (R-8).
 6. **Ubicación del registro de validación.** El plan asume `specs/007-integrar-frontend/
    validation.md` y las capturas en `specs/007-integrar-frontend/validation/`, versionadas.

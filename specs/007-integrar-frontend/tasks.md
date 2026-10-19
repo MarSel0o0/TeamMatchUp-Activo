@@ -3,6 +3,12 @@ Estado: borrador (2026-10-18), pendiente de aprobación del usuario. Todas las t
 pendientes.
 Spec: `specs/007-integrar-frontend/spec.md` (aprobada el 2026-10-18). Plan:
 `specs/007-integrar-frontend/plan.md` (borrador).
+Alineación del 2026-10-19 con la spec (RF-10, puntos 4, 5, 10, 12 y 13): solo cambian los
+textos y el 401 «token inválido» en T6, T16, T17 y T23; no se añaden ni se quitan tareas.
+Ajustes menores del 2026-10-19 (aprobación expresa del usuario; R21 y R22 de la spec): T6 y T11
+usan «correo o contraseña incorrectos» (minúscula, sin punto final); T17 y T23 recogen la
+excepción aprobada al RF-16 (el literal «rango verificado» del servidor en el error del filtro
+de verificadas, que el modo simulado reproduce y la interfaz nunca muestra). Sin otros cambios.
 
 **Más de 10 tareas por decisión del usuario (R20, 2026-10-18).** La spec se mantiene entera;
 esa decisión prevalece sobre la regla de la skill `sdd` de proponer dividir. Las tareas se
@@ -119,11 +125,11 @@ presentación, Proponer sesión), con una tarea previa (línea base) y un cierre
     (quitar `STORAGE_KEYS.token`).
   - Hacer: las operaciones del mock devuelven respuesta cruda y pasan por `execute`; registro
     de sesión único `{ userId, csrf }` en la base simulada (plan 3.9); login → 400 por
-    campos inválidos, 401 "Correo o contraseña incorrectos.", comprobante nuevo; registro →
+    campos inválidos, 401 "correo o contraseña incorrectos", comprobante nuevo; registro →
     400 (no 409) por correo o usuario duplicado, sin abrir sesión; logout borra el registro
     de sesión; `me` y toda operación protegida: 401 "sesión no iniciada" sin sesión, 401
-    "token inválido" con comprobante ausente o distinto. Los mensajes de duplicado son los
-    de la spec 002 (nombran el campo).
+    "token inválido" con comprobante ausente o distinto o con el usuario ya eliminado (spec
+    004, RF-44). Los mensajes de duplicado son los de la spec 002 (nombran el campo).
   - Hecho cuando: en modo simulado, tras iniciar sesión, ningún almacenamiento contiene
     otro valor de sesión que `tmu.csrf`; borrar `tmu.csrf` y guardar algo devuelve 401
     (la acción se completa en T7); recargar con sesión vigente sigue dentro; `grep` no
@@ -205,7 +211,7 @@ presentación, Proponer sesión), con una tarea previa (línea base) y un cierre
   - Hecho cuando: tras borrar la cookie y guardar, login muestra "Tu sesión expiró. Vuelve a
     entrar." y, al entrar, vuelve a Configuración; el correo del registro fallido llega
     precargado con "Tu cuenta se creó; inicia sesión"; con credenciales incorrectas se ve
-    "Correo o contraseña incorrectos." sin llevar a login otra vez; con 40 s de latencia el
+    "correo o contraseña incorrectos" sin llevar a login otra vez; con 40 s de latencia el
     botón dice "Enviando…" y a los 30 s muestra "No se pudo conectar con el servidor.
     Inténtalo de nuevo."; el árbol de accesibilidad muestra los avisos como `alert`;
     `typecheck`, `lint` y `build` en verde.
@@ -292,10 +298,10 @@ presentación, Proponer sesión), con una tarea previa (línea base) y un cierre
 - [ ] **T16. Backend simulado: cuentas, perfil y disponibilidad.** RF-10 (puntos 3, 4, 5, 6 y 9), RF-21
   - Archivos: `frontend/src/services/mock/mockApi.ts`.
   - Hacer: vincular con 400 y el mensaje de la 004 (RF-6) por identificador inválido (no
-    422), 400 "Ya tienes una cuenta vinculada en este juego." (no 409), cuenta con
+    422), 400 "ya tienes una cuenta vinculada en este juego" (no 409), cuenta con
     `simulated: true`, rango, historial, partidas y verificada del proveedor; desvincular y
-    resincronizar con 403 (cuenta ajena, texto de la 004, RF-11) y 404 "Cuenta no
-    encontrada."; resincronizar mueve el rango como mucho un escalón y añade una partida
+    resincronizar con 403 (cuenta ajena, "no tienes permiso para esta operación", 004,
+    RF-11) y 404 "cuenta no encontrada"; resincronizar mueve el rango como mucho un escalón y añade una partida
     nueva; R6 como los demás juegos; actualizar perfil guarda el color de avatar y devuelve
     400 sin guardar con nombre vacío o de solo espacios, de más de 40, biografía de más de
     200, zona no IANA y color sin `#RRGGBB`; guardar disponibilidad valida el formato de
@@ -310,7 +316,9 @@ presentación, Proponer sesión), con una tarea previa (línea base) y un cierre
   - Archivos: `frontend/src/services/mock/mockApi.ts`.
   - Hacer: coincidencias con `buildMatches` de `domain/matching.ts` (distancia, puntaje,
     filtros de distancia, horas, solo verificadas y búsqueda, en los tres juegos) y
-    candidatos sin correo (`PublicUser`); sesiones con los estados `open`/`full`, 409
+    candidatos sin correo (`PublicUser`); errores de coincidencias con los textos de la 005
+    (spec 007, RF-10 punto 12) en el orden de su RF-16 (el del filtro de verificadas conserva
+    «rango verificado», excepción al RF-16 aprobada por el usuario el 2026-10-19, R21); sesiones con los estados `open`/`full`, 409
     "Ya estás inscrito en esta sesión.", 409 "Esta sesión ya no admite jugadores.", 409
     "Eres quien organiza: cancela la sesión en lugar de salir.", 409 "No estás inscrito en
     esta sesión." al salir sin estar inscrito (no 200), 403 y 404 como la 006; cancelar
@@ -319,8 +327,10 @@ presentación, Proponer sesión), con una tarea previa (línea base) y un cierre
   - Hecho cuando: con la cuenta demo y otra cuenta con cuentas en los tres juegos, cada una
     ve a la otra en los tres juegos con "Δ <n> pts"; con la distancia máxima en 0 solo
     aparece con el mismo rango normalizado; "Solo cuentas verificadas" filtra en los tres
-    juegos; ningún candidato lleva el correo (inspeccionar la respuesta); `typecheck`,
-    `lint` y `build` en verde.
+    juegos; ningún candidato lleva el correo (inspeccionar la respuesta); los textos de
+    error de coincidencias del modo simulado coinciden carácter a carácter con
+    `MATCH_ERRORS` de `backend/src/domain/matchQuery.ts` (revisión de código, anotada en el
+    registro); `typecheck`, `lint` y `build` en verde.
 
 - [ ] **T18. Datos precargados ficticios.** RF-27, RF-21, RF-11
   - Archivos: `frontend/src/services/mock/seed.ts`, `frontend/src/services/mock/mockApi.ts`
@@ -413,7 +423,10 @@ presentación, Proponer sesión), con una tarea previa (línea base) y un cierre
   - Hacer: buscar en `frontend/src` y corregir lo que aparezca:
     - fuentes: `Riot|Ubisoft|Valve|Steam|FACEIT|Leetify|tracker` (solo se permiten
       "Riot ID", "Ubisoft ID" y "SteamID64");
-    - verificación en masculino: `verificado|verificados|rango verificado`;
+    - verificación en masculino: `verificado|verificados|rango verificado` (salvo el literal
+      del mensaje de la 005 del filtro de verificadas en el backend simulado, RF-10 punto 12,
+      R14 y R21: excepción al RF-16 aprobada por el usuario el 2026-10-19; la interfaz nunca
+      lo muestra);
     - relectura automática: `periódic|automátic|cuando cambia|volvemos a leer|Releemos|Volver a leer`
       (los textos de la página de entrada y de la pantalla de acceso pasan a `El rango se
       vuelve a leer al pulsar "Resincronizar".`);

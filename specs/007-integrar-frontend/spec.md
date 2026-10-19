@@ -1,5 +1,21 @@
 # Spec 007 — Conectar la interfaz al servidor real
 Estado: aprobada (2026-10-18)
+Alineación posterior a la implementación de las specs 004 y 005 (2026-10-19, aprobada por el
+usuario; commits `9b5cc87` y `88af4cd`): solo cambia RF-10 (puntos 4, 5 y 10, y puntos nuevos
+12 y 13), para que los textos que imita el modo simulado coincidan con los de las specs 004
+(DP-6) y 005 (DP5-17), en minúscula inicial y sin punto final, y para que la credencial de un
+usuario eliminado dé 401 «token inválido» (spec 004, RF-44; spec 005, RF-13). La Etiqueta de
+datos simulados que el criterio de finalización pendiente de la spec 005 y el RF-37 de la 004
+delegan en esta spec ya está en RF-11, RF-22 y en los criterios «Coincidencias» y «Etiqueta de
+datos simulados» (R19), con el servidor real y en modo simulado: no se añade ningún RF. El
+resto de la spec no cambia.
+Ajustes menores del 2026-10-19, con aprobación expresa del usuario (decisiones R21 y R22):
+(1) el literal del servidor «rango verificado» del error del filtro de verificadas lo
+reproduce el modo simulado y la interfaz nunca lo muestra: excepción al RF-16 aprobada por el
+usuario (RF-10 punto 12, RF-16 y R14); (2) el texto del 401 del inicio de sesión pasa a
+«correo o contraseña incorrectos» (minúscula, sin punto final), como en la spec 002, RF-9 y en
+el backend (caso límite de las credenciales incorrectas); (3) el estado de «Depende de» se
+actualiza (004 y 005 implementadas el 2026-10-19). No cambia ningún otro requisito.
 
 ## Contexto y objetivo
 Las vistas del Hito 1 funcionan contra un backend simulado en el navegador. El cliente HTTP
@@ -26,8 +42,8 @@ etiquetan como tales (spec 004, RNF-2). El backend simulado del navegador queda 
 herramienta de desarrollo de la interfaz, con sus datos de demostración precargados
 etiquetados como tales.
 
-- Depende de: specs 001 a 006. Estado al 2026-10-18: 001 a 003 implementadas y validadas;
-  004 y 005 aprobadas (2026-10-17); 006 aprobada (2026-10-18). La condición previa que esta
+- Depende de: specs 001 a 006. Estado al 2026-10-19: 001 a 003 implementadas y validadas;
+  004 y 005 implementadas (2026-10-19); 006 aprobada (2026-10-18). La condición previa que esta
   spec fijaba (aprobar las 001 a 006 antes de aprobar y planificar la 007) se cumple. Esta
   spec se revisó el 2026-10-18 contra las versiones vigentes de la 004 y la 005; quedó
   alineada con ellas y retiró lo que citaba requisitos que ya no existen. Si cualquiera de
@@ -210,10 +226,10 @@ muestra rango", que dejaron de existir con la spec 004 vigente.)
   2. Registrar no inicia sesión por sí solo (spec 002, caso límite).
   3. Identificador de cuenta que no cumple el patrón del juego: 400 con el mensaje de la
      spec 004, RF-6 (no 422).
-  4. Segunda cuenta en el mismo juego: 400 con "Ya tienes una cuenta vinculada en este
-     juego." (spec 004, RF-5), no 409.
-  5. Desvincular o resincronizar una cuenta ajena: 403 con el mensaje de la spec 004,
-     RF-11; una inexistente, 404 "Cuenta no encontrada.".
+  4. Segunda cuenta en el mismo juego: 400 con "ya tienes una cuenta vinculada en este
+     juego" (spec 004, RF-5), no 409.
+  5. Desvincular o resincronizar una cuenta ajena: 403 con "no tienes permiso para esta
+     operación" (spec 004, RF-11); una inexistente, 404 "cuenta no encontrada".
   6. Ninguna operación de la spec 004 responde 409 (spec 004, casos límite): R6 se vincula
      y se resincroniza como los demás juegos.
   7. Ningún candidato de coincidencias trae correo (spec 005, RF-3 y RNF-2).
@@ -224,9 +240,29 @@ muestra rango", que dejaron de existir con la spec 004 vigente.)
      o color sin la forma `#RRGGBB` responden 400 sin guardar nada (spec 003, RF-7, RF-8,
      RF-15 y RF-16).
   10. El 401 sin sesión usa "sesión no iniciada" (spec 002, RF-10) y provoca RF-7 igual que
-      con el servidor real.
+      con el servidor real. Con el comprobante ausente o distinto, y con la credencial de un
+      usuario que ya no existe, el 401 usa "token inválido" (spec 002, RF-11 y RF-22; spec
+      004, RF-44; spec 005, RF-13), nunca "sesión no iniciada".
   11. Rango, historial, partidas, marca de verificada y marca de datos simulados: los fija
       RF-21.
+  12. Coincidencias (spec 005): los errores con sus textos exactos. Juego ausente, vacío,
+      repetido o que no es `lol`, `r6` ni `cs2`: 400 "juego no válido" (RF-5). Usuario de
+      la sesión sin cuenta en el juego: 404 "no tienes una cuenta vinculada en este juego"
+      (RF-6). Distancia máxima no válida: 400 "filtro «Diferencia máxima de rango» no
+      válido: usa un número entero de 0 a 100" (RF-12). Mínimo de horas no válido: 400
+      "filtro «Horas en común por semana» no válido: usa un número entero de 0 a 168"
+      (RF-12). Solo verificadas no válido: 400 "filtro «Solo cuentas con rango verificado»
+      no válido: usa true o false" (RF-14). Búsqueda repetida: 400 "filtro «Buscar
+      jugador» no válido" (RF-15). La interfaz solo envía filtros válidos, así que estos
+      textos solo salen de una llamada directa al backend simulado. El del filtro de
+      verificadas conserva «rango verificado» porque es el del servidor (R14). Decisión
+      APROBADA por el usuario el 2026-10-19 (R21): es una excepción al RF-16; el modo
+      simulado reproduce ese literal del servidor y la interfaz nunca lo muestra, de modo que
+      no cuenta como texto visible a efectos de RF-16.
+  13. Forma de los textos de error de las specs 004 y 005 que reproduce el modo simulado:
+      minúscula inicial y sin punto final (spec 004, DP-6; spec 005, DP5-17). Conservan su
+      forma las siglas y formatos «Riot ID», «Ubisoft ID» y «SteamID64», los rótulos de la
+      interfaz entre « » (con su mayúscula inicial) y los valores `true` y `false`.
   La lista no exige que la interfaz pueda provocar todos los casos. Desde la interfaz se
   pueden provocar o ver los puntos 1, 4 (si se fuerza), 9 (solo nombre visible vacío, con
   espacios o de más de 40), 10 (borrando el comprobante) y 11; los demás se comprueban
@@ -313,7 +349,10 @@ muestra rango", que dejaron de existir con la spec 004 vigente.)
   referida a la cuenta ("verificada" / "sin verificar"), y la presenta como dato simulado
   (RF-11); no presenta ningún rango como "verificado" en ninguna vista, incluidas Inicio y
   la página de entrada; ningún texto de la interfaz usa la forma masculina "verificado"; el
-  filtro de coincidencias se rotula "Solo cuentas verificadas" (ver RF-32 y R14).
+  filtro de coincidencias se rotula "Solo cuentas verificadas" (ver RF-32 y R14). Única
+  excepción, aprobada por el usuario el 2026-10-19 (R21): el literal «rango verificado» del
+  error del filtro de verificadas que reproduce el modo simulado (RF-10 punto 12), porque es
+  el del servidor y la interfaz nunca lo muestra.
 - RF-18: EL SISTEMA ofrece "Resincronizar" en toda cuenta propia de LoL, R6 o CS2, con el
   texto "Al resincronizar, tu rango puede cambiar un escalón y pueden llegar partidas
   nuevas." junto al botón, y no ofrece ninguna acción para verificar una cuenta, cambiar su
@@ -484,8 +523,9 @@ muestra rango", que dejaron de existir con la spec 004 vigente.)
 - Registro sin respuesta a los 30 segundos o con la respuesta perdida: se muestra el Texto
   de error sin mensaje; el usuario puede existir, y reintentar el mismo registro da 400
   por duplicado (RF-20, RF-9); el jugador puede entrar desde login con esas credenciales.
-- Credenciales incorrectas en login: se muestra "Correo o contraseña incorrectos." (spec
-  002, RF-9) y no se aplica RF-7.
+- Credenciales incorrectas en login: se muestra "correo o contraseña incorrectos" (spec 002,
+  RF-9; minúscula inicial y sin punto final, como llega del servidor, RF-9) y no se aplica
+  RF-7.
 - Cerrar sesión con el servidor caído: se limpia la sesión del cliente y se va a login
   (RF-6); la cookie queda en el navegador hasta expirar, pero sin comprobante no sirve
   (spec 002, RF-11). Las demás pestañas también van a login (RF-24).
@@ -774,7 +814,7 @@ conforme a la constitución. **El usuario puede revisarlas y cambiarlas**:
 - R14: el rótulo de la interfaz del filtro de verificadas es "Solo cuentas verificadas"
   (RF-16). El mensaje del servidor de la spec 005 (RF-14) lo llama "Solo cuentas con rango
   verificado", pero solo se ve por llamadas directas a la API; la discrepancia queda para
-  un cambio de la spec 005.
+  un cambio de la spec 005 (sigue declarada; ver R21).
 - R15: la comprobación es un recorrido manual reproducible, sin cuentas reales ni claves;
   RNF-6 se verifica con una tabla de casos anotada en el registro de validación.
 - R16: se quitaron de la spec los detalles de implementación (atributos de cookie, librería
@@ -795,6 +835,16 @@ Decisiones del usuario del 2026-10-18 (cierre de la clarificación):
 - R20 (decisión del usuario): la spec 007 se mantiene entera, sin dividirse. Su plan tendrá
   más de 10 tareas por decisión del usuario, que prevalece sobre la regla de la skill sdd
   de proponer dividir; las tareas se agrupan por los tres bloques de "Organización".
+
+Decisiones del usuario del 2026-10-19 (ajustes menores tras implementar las specs 004 y 005):
+- R21 (decisión del usuario, APROBADA el 2026-10-19): excepción al RF-16. El modo simulado
+  reproduce el literal del servidor «rango verificado» en el error del filtro de verificadas
+  (spec 005, RF-14; RF-10 punto 12) y la interfaz nunca lo muestra. El rótulo del filtro en la
+  interfaz sigue siendo "Solo cuentas verificadas" (R14) y la discrepancia con el rótulo de la
+  005 sigue declarada.
+- R22 (decisión del usuario, 2026-10-19): el texto del 401 del inicio de sesión en la
+  interfaz y en el modo simulado es «correo o contraseña incorrectos» (minúscula inicial, sin
+  punto final), el de la spec 002, RF-9 y el del backend.
 
 Ninguna de las decisiones R1 a R18 depende del texto de la etiqueta. R9 (textos literales
 nuevos) no incluye la etiqueta porque ya existía como aviso global; R13 y R14 no se ven
