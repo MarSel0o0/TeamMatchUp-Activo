@@ -26,6 +26,15 @@ export const queryKeys = {
   /** Prefijo de todas las listas de sesiones del usuario. */
   allSessions: (userId: QueryUserId) => ['u', userId, 'sessions'] as const,
   /**
+   * Detalle de una sesión (spec 009, plan 4.1): `visit` es nueva en cada montaje de la página,
+   * así que abrir o recargar pide de nuevo y no hereda datos de otra visita ni de la agenda.
+   * `rawId` es el de la dirección, sin validar.
+   */
+  sessionDetail: (userId: QueryUserId, visit: number, rawId: string) =>
+    ['u', userId, 'session-detail', visit, rawId] as const,
+  /** Prefijo de la agenda: `['u', userId, 'sessions', filtro]` cuelga de él (spec 009, 4.4). */
+  sessionLists: (userId: QueryUserId) => ['u', userId, 'sessions'] as const,
+  /**
    * Ficha de jugador (spec 008, RF-26, plan 3.6): todo bajo
    * `['u', sessionUserId, 'player', visit, …]`. `visit` es nueva en cada montaje de la
    * ficha, así que abrir o recargar pide todo de nuevo y nunca enseña datos de otra visita.

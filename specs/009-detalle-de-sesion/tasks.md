@@ -50,7 +50,7 @@ de la usuaria: «Mantener 18 tareas (Recomendado)» (ver «Decisiones registrada
 
 ## Condición previa
 
-- [ ] **T0. Comprobar la condición previa de la 009 (no implementa nada).** D-28, R-1
+- [x] **T0. Comprobar la condición previa de la 009 (no implementa nada).** D-28, R-1
   - Objetivo: confirmar que la 009 puede empezar. Esta tarea **no crea ni modifica ningún
     archivo**; solo lee y reporta.
   - Archivos: ninguno (solo lectura de `specs/007-integrar-frontend/plan.md`,
@@ -80,10 +80,19 @@ de la usuaria: «Mantener 18 tareas (Recomendado)» (ver «Decisiones registrada
     marca la tarea ni empieza T1. Si el plan 007 aprobado cambió alguna pieza del paso 4, se
     revisa el plan 009 antes de seguir (R-1).
   - Verificación: lectura de los archivos citados; no se ejecuta ningún comando de escritura.
+  - Resultado (2026-10-20): condiciones 1 a 4 cumplidas. Plan 007: «aprobado (2026-10-19) …
+    implementado (T1–T31)»; 007 T1–T26 `[x]`; 008 T9 `[x]`; piezas del paso 4 presentes
+    (`execute`, `ApiError.hasMessage`, `SessionClearedError`/`isSessionCleared`, textos de
+    `copy.ts`, `Failure` con `title`, `MutationNotice`, `queryClient` sin reintentos con
+    `staleTime: 0` y sin refresco, claves `['u', userId, …]`, `useSessionUserId`,
+    `isProtectedPath`, `ProtectedRoute` con `state.from = pathname`, `SessionStatus`,
+    `DemoTag` en `AppLayout`, `mockApi.ts` sobre `execute`, `playerPath`). Paso 5: `domain/`
+    no tiene copia de las reglas de sesión de la 006; `mockApi.ts` define `SESSION_ERRORS`
+    con los textos de la 006 (sin los de edición) y no hay reglas de sesión en `domain/`.
 
 ## Bloque 1 — Reglas puras del dominio (Node primero)
 
-- [ ] **T1. Regla del título y edición parcial (`sessionRules.ts`).** RF-16, RF-22, RF-24, RNF-6
+- [x] **T1. Regla del título y edición parcial (`sessionRules.ts`).** RF-16, RF-22, RF-24, RNF-6
   - Objetivo: copiar la interfaz de reglas de la 006 y añadir la única regla del título.
   - Archivos: `frontend/src/domain/sessionRules.ts` (nuevo; si la 007 ya creó una copia de
     las reglas de la 006, se amplía esa y no se duplica);
@@ -105,7 +114,7 @@ de la usuaria: «Mantener 18 tareas (Recomendado)» (ver «Decisiones registrada
     estándar en verde.
   - Verificación: `node <script>` (rojo y verde); `cd frontend && npm run typecheck && npm run lint && npm run build`.
 
-- [ ] **T2. Límite de escritura en puntos de código (`limitToCodePoints`).** RF-6 (punto 5), RF-24, RNF-6
+- [x] **T2. Límite de escritura en puntos de código (`limitToCodePoints`).** RF-6 (punto 5), RF-24, RNF-6
   - Objetivo: la función pura que hace de `maxLength` contando puntos de código, sin partir
     grafemas (plan 4.7).
   - Archivos: `frontend/src/domain/sessionRules.ts` (mod.: `TextSelection`, `TextEdit`,
@@ -122,7 +131,7 @@ de la usuaria: «Mantener 18 tareas (Recomendado)» (ver «Decisiones registrada
     verificación estándar en verde.
   - Verificación: `node <script>`; `cd frontend && npm run typecheck && npm run lint && npm run build`.
 
-- [ ] **T3. Reglas del detalle y del formulario de edición (`sessionDetail.ts`, primera parte).** RF-3, RF-5, RF-6, RF-9, RF-21, RF-22, RNF-6
+- [x] **T3. Reglas del detalle y del formulario de edición (`sessionDetail.ts`, primera parte).** RF-3, RF-5, RF-6, RF-9, RF-21, RF-22, RNF-6
   - Objetivo: rol, acciones ofrecidas, rango horario, cupos, valores del formulario y
     comprobaciones del cliente como funciones puras.
   - Archivos: `frontend/src/domain/sessionDetail.ts` (nuevo: `DetailRole`, `detailRole`,
@@ -143,7 +152,7 @@ de la usuaria: «Mantener 18 tareas (Recomendado)» (ver «Decisiones registrada
     `validation.md`; verificación estándar en verde.
   - Verificación: `node <script>`; `cd frontend && npm run typecheck && npm run lint && npm run build`.
 
-- [ ] **T4. Clasificación de respuestas y listas de la agenda (`classifyResponse`, `sessionList.ts`).** RF-10, RF-12, RF-13, RF-14, RF-15, RF-20, RF-21, RNF-6
+- [x] **T4. Clasificación de respuestas y listas de la agenda (`classifyResponse`, `sessionList.ts`).** RF-10, RF-12, RF-13, RF-14, RF-15, RF-20, RF-21, RNF-6
   - Objetivo: decidir qué hace la vista con cada respuesta, y cómo se actualiza una lista de
     la agenda, con funciones puras.
   - Archivos: `frontend/src/domain/sessionDetail.ts` (mod.: `RequestKind`, `ResponseInfo`,
@@ -165,7 +174,7 @@ de la usuaria: «Mantener 18 tareas (Recomendado)» (ver «Decisiones registrada
 
 ## Bloque 2 — Datos: contrato, backend simulado, rutas y caché
 
-- [ ] **T5. Contrato, cliente HTTP y backend simulado de obtener y editar.** RF-16, RF-20
+- [x] **T5. Contrato, cliente HTTP y backend simulado de obtener y editar.** RF-16, RF-20
   - Objetivo: `sessions.get` y `sessions.update` en el contrato único, en el cliente HTTP y en
     el backend simulado, con los textos de la 006.
   - Archivos: `frontend/src/services/apiContract.ts` (mod.: `sessions.get`,
@@ -194,7 +203,7 @@ de la usuaria: «Mantener 18 tareas (Recomendado)» (ver «Decisiones registrada
   - Verificación: `node <script-a>`, `node <script-b>`;
     `cd frontend && npm run typecheck && npm run lint && npm run build`.
 
-- [ ] **T6. Ruta, claves de consulta, caché de la agenda y hooks del detalle.** RF-1, RF-7, RF-9, RF-15, RF-17, RF-21
+- [x] **T6. Ruta, claves de consulta, caché de la agenda y hooks del detalle.** RF-1, RF-7, RF-9, RF-15, RF-17, RF-21
   - Objetivo: las piezas de datos que usa la página, sin interfaz todavía.
   - Archivos: `frontend/src/app/routes.ts` (mod.: `ROUTES.sessionDetail`, `sessionPath`,
     `isProtectedPath` reconoce `/agenda/`); `frontend/src/app/providers/queryKeys.ts` (mod.:
@@ -220,7 +229,7 @@ de la usuaria: «Mantener 18 tareas (Recomendado)» (ver «Decisiones registrada
 
 ## Bloque 3 — Componentes compartidos
 
-- [ ] **T7. Límite de escritura en los campos y título del formulario de creación.** RF-6 (punto 5), RF-24
+- [x] **T7. Límite de escritura en los campos y título del formulario de creación.** RF-6 (punto 5), RF-24
   - Objetivo: unir `limitToCodePoints` con el DOM y aplicarlo a «Anotar una sesión».
   - Archivos: `frontend/src/shared/hooks/useCodePointLimit.ts` (nuevo);
     `frontend/src/shared/components/TextField.tsx` (mod.: `forwardRef` al `input`, prop
@@ -248,7 +257,7 @@ de la usuaria: «Mantener 18 tareas (Recomendado)» (ver «Decisiones registrada
   - Verificación: `cd frontend && npm run typecheck && npm run lint && npm run build`;
     recorrido en modo simulado.
 
-- [ ] **T8. Ventana, estados y foco visible compartidos; ventana de confirmación de cancelar.** RF-12, RF-13, RF-19, RF-23, RNF-1, RNF-2
+- [x] **T8. Ventana, estados y foco visible compartidos; ventana de confirmación de cancelar.** RF-12, RF-13, RF-19, RF-23, RNF-1, RNF-2
   - Objetivo: las opciones nuevas de `Slip` y `States`, el estilo de foco por programa y de
     botón bloqueado, y la `CancelSessionDialog` única.
   - Archivos: `frontend/src/shared/components/Slip.tsx` (mod.: `initialFocusRef`,
@@ -276,7 +285,7 @@ de la usuaria: «Mantener 18 tareas (Recomendado)» (ver «Decisiones registrada
   - Verificación: `cd frontend && npm run typecheck && npm run lint && npm run build`;
     «Anotar una sesión» en modo simulado.
 
-- [ ] **T9. Regla del foco (`focusRule.ts`).** RNF-2, RF-11, RF-19, RF-21, RF-23
+- [x] **T9. Regla del foco (`focusRule.ts`).** RNF-2, RF-11, RF-19, RF-21, RF-23
   - Objetivo: la regla general del foco de RNF-2 como tabla pura.
   - Archivos: `frontend/src/features/sessions/detail/focusRule.ts` (nuevo, sin React:
     `resolveFocus(event, context): FocusTarget`); `specs/009-detalle-de-sesion/validation.md`.
@@ -291,7 +300,7 @@ de la usuaria: «Mantener 18 tareas (Recomendado)» (ver «Decisiones registrada
 
 ## Bloque 4 — Página de detalle
 
-- [ ] **T10. Página de detalle de solo lectura: carga, estado vacío, error y datos.** RF-1, RF-3, RF-4, RF-11, RF-12, RF-13, RF-15, RF-16, RF-17, RF-18, RF-20, RNF-1, RNF-2, RNF-3, RNF-5
+- [x] **T10. Página de detalle de solo lectura: carga, estado vacío, error y datos.** RF-1, RF-3, RF-4, RF-11, RF-12, RF-13, RF-15, RF-16, RF-17, RF-18, RF-20, RNF-1, RNF-2, RNF-3, RNF-5
   - Objetivo: abrir `/agenda/:sessionId` y ver la sesión de juego, el estado vacío o el error,
     con el foco de RNF-2, punto c.
   - Archivos: `frontend/src/features/sessions/pages/SessionDetailPage.tsx` (nuevo:
@@ -333,7 +342,7 @@ de la usuaria: «Mantener 18 tareas (Recomendado)» (ver «Decisiones registrada
   - Verificación: `cd frontend && npm run typecheck && npm run lint && npm run build`;
     `npm run preview` para la petición única; recorrido en modo simulado.
 
-- [ ] **T11. Zona de acciones: sumarse y salir, mensajes y nueva lectura.** RF-9, RF-10, RF-11, RF-12, RF-14, RF-15, RF-20, RF-21, RNF-2
+- [x] **T11. Zona de acciones: sumarse y salir, mensajes y nueva lectura.** RF-9, RF-10, RF-11, RF-12, RF-14, RF-15, RF-20, RF-21, RNF-2
   - Objetivo: «Unirme», «Salir» y «Sin cupos» con la máquina de estados de 4.2 (`run` y
     `reread`) y el foco de RNF-2.
   - Archivos: `frontend/src/features/sessions/components/SessionActionsZone.tsx` (nuevo:
@@ -365,7 +374,7 @@ de la usuaria: «Mantener 18 tareas (Recomendado)» (ver «Decisiones registrada
   - Verificación: `cd frontend && npm run typecheck && npm run lint && npm run build`;
     recorrido en modo simulado.
 
-- [ ] **T12. Edición en el detalle: formulario, guardar y descartar.** RF-5, RF-6, RF-7, RF-10, RF-11, RF-12, RF-14, RF-21, RF-22, RNF-2
+- [x] **T12. Edición en el detalle: formulario, guardar y descartar.** RF-5, RF-6, RF-7, RF-10, RF-11, RF-12, RF-14, RF-21, RF-22, RNF-2
   - Objetivo: «Editar sesión» y el formulario en la página, con las comprobaciones del
     cliente, el rebase de cupos y la regla defensiva de rol.
   - Archivos: `frontend/src/features/sessions/components/SessionEditForm.tsx` (nuevo:
@@ -410,7 +419,7 @@ de la usuaria: «Mantener 18 tareas (Recomendado)» (ver «Decisiones registrada
 
 ## Bloque 5 — Agenda y cancelar
 
-- [ ] **T13. Agenda: «Ver detalle», rango compartido, 360 px y cancelar con confirmación.** RF-2, RF-3, RF-8, RF-15, RF-19, RF-23, RNF-1, RNF-2, RNF-5
+- [x] **T13. Agenda: «Ver detalle», rango compartido, 360 px y cancelar con confirmación.** RF-2, RF-3, RF-8, RF-15, RF-19, RF-23, RNF-1, RNF-2, RNF-5
   - Objetivo: los cambios de la agenda que pide la spec, y nada más (R2, R7, R-9).
   - Archivos: `frontend/src/features/sessions/components/SessionSlip.tsx` (mod.: `Link`
     «Ver detalle» a `sessionPath` con `aria-label="Ver detalle de <título>"`, rango con
@@ -446,7 +455,7 @@ de la usuaria: «Mantener 18 tareas (Recomendado)» (ver «Decisiones registrada
   - Verificación: `cd frontend && npm run typecheck && npm run lint && npm run build`;
     recorrido en modo simulado.
 
-- [ ] **T14. Cancelar desde el detalle y redirección con reemplazo.** RF-5, RF-8, RF-10, RF-11, RF-12, RF-14, RF-21, RF-23, RNF-2
+- [x] **T14. Cancelar desde el detalle y redirección con reemplazo.** RF-5, RF-8, RF-10, RF-11, RF-12, RF-14, RF-21, RF-23, RNF-2
   - Objetivo: «Cancelar sesión» del anfitrión en el detalle con la misma ventana, y la vuelta
     a la agenda sustituyendo la entrada del historial.
   - Archivos: `frontend/src/features/sessions/components/SessionActionsZone.tsx` (mod.:
@@ -477,7 +486,7 @@ de la usuaria: «Mantener 18 tareas (Recomendado)» (ver «Decisiones registrada
 
 ## Cierre y validación
 
-- [ ] **T15. Revisiones de código.** RF-14, RF-16, RF-21, RF-22, RF-24, RNF-1, RNF-3, RNF-6
+- [x] **T15. Revisiones de código.** RF-14, RF-16, RF-21, RF-22, RF-24, RNF-1, RNF-3, RNF-6
   - Objetivo: las revisiones del plan, sección 7, punto 4, anotadas en el registro.
   - Archivos: solo `specs/009-detalle-de-sesion/validation.md`.
   - Decisiones: D-15, D-24, D-26, D-27.
@@ -497,7 +506,7 @@ de la usuaria: «Mantener 18 tareas (Recomendado)» (ver «Decisiones registrada
     queda ningún hallazgo abierto (si lo hay, se anota como defecto y se para).
   - Verificación: `cd frontend && npm run typecheck && npm run lint && npm run build`.
 
-- [ ] **T16. Recorrido manual de los Criterios de finalización.** RF-1 a RF-24, RNF-1 a RNF-6
+- [x] **T16. Recorrido manual de los Criterios de finalización.** RF-1 a RF-24, RNF-1 a RNF-6
   - Precondición: implementadas la 006 (servidor con obtener y editar por id), la 007 (al
     menos RF-7, RF-10 y RF-24) y la 008 (al menos RF-9, RF-15 y RF-20); MongoDB local y
     `backend/.env`. Si no se cumple, se hace solo la parte en modo simulado, se anota y la
@@ -532,7 +541,7 @@ de la usuaria: «Mantener 18 tareas (Recomendado)» (ver «Decisiones registrada
     corrige dentro de esta tarea).
   - Verificación: `cd frontend && npm run typecheck && npm run lint && npm run build`.
 
-- [ ] **T17. Entrega a la validación del reviewer.** (sin RF nuevos; Criterios de finalización)
+- [x] **T17. Entrega a la validación del reviewer.** (sin RF nuevos; Criterios de finalización)
   - Objetivo: recordar que la validación del reviewer **espera** a que estén implementadas la
     006, la 007 y la 008 en lo que esta spec usa (spec, Contexto, A9; plan, sección 0 y 7,
     punto 6).

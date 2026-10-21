@@ -29,6 +29,15 @@ export interface CreateSessionPayload {
   slots: number;
 }
 
+/** Los seis campos que edita la sesión (spec 009, D-16). */
+export type SessionEditFields = Pick<
+  CreateSessionPayload,
+  'title' | 'notes' | 'day' | 'startHour' | 'durationHours' | 'slots'
+>;
+
+/** Edición parcial de la 006 (RF-7): el formulario envía siempre los seis campos. */
+export type SessionEditPayload = Partial<SessionEditFields>;
+
 export interface UpdateProfilePayload {
   displayName?: string;
   bio?: string;
@@ -92,6 +101,10 @@ export interface ApiContract {
   sessions: {
     list(gameId: GameId | 'all'): Promise<PlaySession[]>;
     create(payload: CreateSessionPayload): Promise<PlaySession>;
+    /** `GET /api/sessions/:id`. */
+    get(sessionId: string): Promise<PlaySession>;
+    /** `PUT /api/sessions/:id`: edición parcial; solo quien organiza. */
+    update(sessionId: string, payload: SessionEditPayload): Promise<PlaySession>;
     join(sessionId: string): Promise<PlaySession>;
     leave(sessionId: string): Promise<PlaySession>;
     cancel(sessionId: string): Promise<void>;

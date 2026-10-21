@@ -1,5 +1,5 @@
 import { FileWarning, Inbox, RotateCw } from 'lucide-react';
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode, type Ref } from 'react';
 import { Icon } from './Icon';
 
 /** Esqueleto con la forma del contenido mientras llega. */
@@ -26,17 +26,35 @@ interface BlankProps {
   title: string;
   description?: string;
   action?: ReactNode;
+  /** Destino de foco para el título (`tabIndex={-1}`); sin él el título no se enfoca. */
+  headingRef?: Ref<HTMLHeadingElement>;
+  /** Con `headingRef`, el nivel del encabezado del título (por defecto `h1`). */
+  headingLevel?: 'h1' | 'h2' | 'h3';
 }
 
 /** Estado vacío que enseña qué hacer, no que anuncia que no hay nada. */
-export function Blank({ icon = Inbox, title, description, action }: BlankProps) {
+export function Blank({
+  icon = Inbox,
+  title,
+  description,
+  action,
+  headingRef,
+  headingLevel = 'h1',
+}: BlankProps) {
+  const Heading = headingLevel;
   return (
     <div className="blank">
       <span className="blank__mark">
         <Icon as={icon} size={26} />
       </span>
       <div className="stack-sm">
-        <strong className="sheet-title">{title}</strong>
+        {headingRef ? (
+          <Heading ref={headingRef as never} className="sheet-title" tabIndex={-1}>
+            {title}
+          </Heading>
+        ) : (
+          <strong className="sheet-title">{title}</strong>
+        )}
         {description ? <span className="note note--faint">{description}</span> : null}
       </div>
       {action}
@@ -53,6 +71,10 @@ interface FailureProps {
   autoFocusRetry?: boolean;
   /** `alert` hace que un lector de pantalla lo anuncie al aparecer (RNF-7). */
   role?: 'alert';
+  /** Destino de foco: el mensaje pasa a ser el encabezado `h1` (`tabIndex={-1}`) (spec 009, RF-13). */
+  headingRef?: Ref<HTMLHeadingElement>;
+  /** «Reintentar» con una lectura en curso: se ve bloqueado (`aria-disabled`) y no hace nada. */
+  retryBusy?: boolean;
 }
 
 export function Failure({
@@ -61,6 +83,8 @@ export function Failure({
   title = 'No se pudieron cargar los datos',
   autoFocusRetry = false,
   role,
+  headingRef,
+  retryBusy = false,
 }: FailureProps) {
   const message = error instanceof Error ? error.message : 'Ocurrió un error inesperado.';
   const retryRef = useRef<HTMLButtonElement>(null);
@@ -75,12 +99,26 @@ export function Failure({
         <Icon as={FileWarning} size={26} />
       </span>
       <div className="stack-sm">
-        <strong className="sheet-title">{title}</strong>
-        <span className="note note--faint">{message}</span>
+        {headingRef ? (
+          <h1 ref={headingRef} className="sheet-title" tabIndex={-1}>
+            {message}
+          </h1>
+        ) : (
+          <>
+            <strong className="sheet-title">{title}</strong>
+            <span className="note note--faint">{message}</span>
+          </>
+        )}
       </div>
       {onRetry ? (
-        <button ref={retryRef} type="button" className="btn btn--sm" onClick={onRetry}>
-          <Icon as={RotateCw} size={13} />
+        <button
+          ref={retryRef}
+          type="button"
+          className="btn btn--sm"
+          onClick={retryBusy ? undefined : onRetry}
+          aria-disabled={retryBusy ? true : undefined}
+        >
+          {retryBusy ? <span className="btn__spin" /> : <Icon as={RotateCw} size={13} />}
           Reintentar
         </button>
       ) : null}

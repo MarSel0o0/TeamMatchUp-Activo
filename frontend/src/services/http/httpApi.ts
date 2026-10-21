@@ -15,6 +15,7 @@ import type {
   CreateSessionPayload,
   GameProfileSummary,
   LinkAccountPayload,
+  SessionEditPayload,
   UpdateProfilePayload,
 } from '../apiContract';
 import { saveCsrf } from './csrfStorage';
@@ -123,6 +124,15 @@ export const httpApi: ApiContract = {
 
     create: (payload: CreateSessionPayload) =>
       request<PlaySession>('/sessions', { method: 'POST', body: payload }),
+
+    get: (sessionId: string) =>
+      request<PlaySession>(`/sessions/${encodeURIComponent(sessionId)}`),
+
+    update: (sessionId: string, payload: SessionEditPayload) =>
+      request<PlaySession>(`/sessions/${encodeURIComponent(sessionId)}`, {
+        method: 'PUT',
+        body: payload,
+      }),
 
     join: (sessionId: string) =>
       request<PlaySession>(`/sessions/${encodeURIComponent(sessionId)}/join`, { method: 'POST' }),

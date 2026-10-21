@@ -110,3 +110,39 @@ export const WIN_RATE_SUFFIX = 'ganadas';
 
 /** Distancia de rango en la ficha y en la fila de coincidencias: "Δ <n> pts" (RF-6). */
 export const rankDistanceText = (n: number) => `Δ ${n} pts`;
+
+/** Cancelar una sesión (spec 009, RF-23). */
+export const CANCEL_SESSION_LABEL = 'Cancelar sesión';
+export const CANCEL_DIALOG_TITLE = '¿Cancelar esta sesión?';
+export const CANCEL_DIALOG_BODY =
+  'Se borrará para todos los participantes y no se puede deshacer.';
+export const CANCEL_DIALOG_CONFIRM = 'Sí, cancelar sesión';
+export const CANCEL_DIALOG_BACK = 'Volver';
+
+/** Detalle de una sesión (spec 009, RF-3, RF-12). */
+export const SESSION_DETAIL_TITLE = 'Detalle de sesión';
+export const SESSION_GONE_TITLE = 'Esta sesión no existe';
+export const SESSION_GONE_TEXT = 'Puede que se haya cancelado.';
+export const GO_TO_SCHEDULE_LABEL = 'Ir a la agenda';
+export const SESSION_YOU_HOST_TEXT = 'La organizas';
+export const SESSION_YOU_IN_TEXT = 'Estás dentro';
+export const SESSION_HOST_TAG = 'organiza';
+export const SESSION_OPEN_SLOT_TEXT = 'cupo libre';
+export const SESSION_FULL_TEXT = 'Cupos llenos';
+export const sessionOccupancyText = (taken: number, total: number): string =>
+  `${taken}/${total} jugadores`;
+
+/** Acciones sobre una sesión (spec 009, RF-9, RF-10). */
+export const JOIN_SESSION_LABEL = 'Unirme';
+export const LEAVE_SESSION_LABEL = 'Salir';
+export const NO_SLOTS_LABEL = 'Sin cupos';
+
+/** Edición de una sesión (spec 009, RF-5, RF-6, RF-7). */
+export const EDIT_SESSION_LABEL = 'Editar sesión';
+export const SAVE_CHANGES_LABEL = 'Guardar cambios';
+export const DISCARD_LABEL = 'Descartar';
+export const SAVED_NOTICE_TEXT = 'Cambios guardados.';
+
+/** Enlace de cada tarjeta de la agenda al detalle (spec 009, RF-2). */
+export const VIEW_DETAIL_LABEL = 'Ver detalle';
+export const viewDetailLabel = (title: string): string => `Ver detalle de ${title}`;

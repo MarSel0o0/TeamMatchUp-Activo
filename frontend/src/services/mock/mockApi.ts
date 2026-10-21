@@ -1,6 +1,16 @@
 import { env, STORAGE_KEYS } from '@/config/env';
 import { parseBlock } from '@/domain/availability';
 import { GAMES } from '@/domain/games';
+import {
+  NOTES_MAX_LENGTH,
+  SESSION_ERRORS,
+  codePointLength,
+  isPlainObject,
+  isValidSessionTitle,
+  trimText,
+  validateSessionEdit,
+} from '@/domain/sessionRules';
+import { compareSessions } from '@/domain/sessionList';
 import { buildMatches, type CandidateInput, type MatchCriteria } from '@/domain/matching';
 import type {
   Credentials,
@@ -21,6 +31,7 @@ import { BAD_CREDENTIALS_TEXT, NO_MESSAGE_TEXT } from '@/shared/utils/copy';
 import type {
   ApiContract,
   CreateSessionPayload,
+  SessionEditPayload,
   GameProfileSummary,
   LinkAccountPayload,
   UpdateProfilePayload,
@@ -28,6 +39,7 @@ import type {
 import { readCsrf, saveCsrf } from '../http/csrfStorage';
 import { ApiError, CSRF_HEADER } from '../http/httpClient';
 import { execute, type HeaderReader, type RawResponse } from '../http/transport';
+import { resolveMockSessionId } from './mockSessionTarget';
 import { resolveMockUserTarget } from './mockUserTarget';
 import { createSeedDatabase, matchJson, snapshotJson, type MockDatabase } from './seed';
 import { canonicalHandle, readAccountState } from './simulatedProvider';
@@ -496,7 +508,6 @@ function validateLink(
 /* -------------------------------------------------------------------------- */
 
 /** Forma de los identificadores de sesión del simulado (`session-…`); el servidor exige un ObjectId. */
-const SESSION_ID_SHAPE = /^session-[0-9A-Za-z-]+$/;
 
 /** Entero dentro de [min, max] o `null` (`readJsonInteger` de la spec 006; `-0` pasa a 0). */
 function readInteger(value: unknown, min: number, max: number): number | null {
@@ -554,38 +565,6 @@ function toPublicUser(user: User): PublicUser {
   };
 }
 
-// Conjunto de recorte de la spec 006 (DP6-27), carácter a carácter: tabulador, U+000B, U+000C,
-// espacio, U+00A0, U+FEFF, categoría Zs, LF, CR, U+2028 y U+2029. U+0085 y U+200B no están.
-const TRIM_FIXED: ReadonlySet<string> = new Set([
-  '\u0009',
-  '\u000B',
-  '\u000C',
-  '\u0020',
-  '\u00A0',
-  '\uFEFF',
-  '\u000A',
-  '\u000D',
-  '\u2028',
-  '\u2029',
-]);
-const SPACE_SEPARATOR = /^\p{Zs}$/u;
-// DP6-31: categoría Cc más U+2028 y U+2029.
-const FORBIDDEN_TITLE_CHAR = /[\p{Cc}\u2028\u2029]/u;
-
-const isTrimChar = (char: string): boolean => TRIM_FIXED.has(char) || SPACE_SEPARATOR.test(char);
-
-/** Recorta los dos extremos con el conjunto de DP6-27; el interior no se toca. */
-function trimText(text: string): string {
-  let start = 0;
-  let end = text.length;
-  while (start < end && isTrimChar(text.charAt(start))) start += 1;
-  while (end > start && isTrimChar(text.charAt(end - 1))) end -= 1;
-  return text.slice(start, end);
-}
-
-/** Largo en puntos de código: un emoji cuenta 1. */
-const codePointLength = (text: string): number => [...text].length;
-
 interface CreateInput {
   gameId: GameId;
   title: string;
@@ -616,22 +595,18 @@ function validateCreateSession(
   if (!isKnownGame(gameId)) return { ok: false, error: MESSAGES.sessionGame };
   if (!linkedGames.has(gameId)) return { ok: false, error: MESSAGES.sessionNoAccount };
 
+  // Una sola regla del título (spec 009, D-15): la misma que usa la interfaz y la edición.
   const rawTitle = own('title');
-  const title = typeof rawTitle === 'string' ? trimText(rawTitle) : null;
-  if (
-    title === null ||
-    FORBIDDEN_TITLE_CHAR.test(title) ||
-    codePointLength(title) < 3 ||
-    codePointLength(title) > 60
-  ) {
+  if (typeof rawTitle !== 'string' || !isValidSessionTitle(rawTitle)) {
     return { ok: false, error: MESSAGES.sessionTitle };
   }
+  const title = trimText(rawTitle);
 
   let notes = '';
   if (Object.hasOwn(fields, 'notes')) {
     const rawNotes = fields['notes'];
     notes = typeof rawNotes === 'string' ? trimText(rawNotes) : '';
-    if (typeof rawNotes !== 'string' || codePointLength(notes) > 160) {
+    if (typeof rawNotes !== 'string' || codePointLength(notes) > NOTES_MAX_LENGTH) {
       return { ok: false, error: MESSAGES.sessionNotes };
     }
   }
@@ -670,19 +645,16 @@ function sessionView(session: PlaySession): PlaySession | null {
   return { ...session, host: userRef(host), participants };
 }
 
-/** Orden del listado (spec 006, RF-2): día, hora de inicio, creación (la más antigua primero) e id. */
-function compareSessions(a: PlaySession, b: PlaySession): number {
-  return (
-    a.day - b.day ||
-    a.startHour - b.startHour ||
-    Date.parse(a.createdAt) - Date.parse(b.createdAt) ||
-    compareCodePoints(a.id, b.id)
-  );
+/** `session-<n>` con el mayor número usado + 1 (el formato que acepta `resolveMockSessionId`). */
+function nextSessionId(): string {
+  const used = database.sessions.map((session) => Number(session.id.slice('session-'.length)));
+  return `session-${Math.max(0, ...used.filter(Number.isFinite)) + 1}`;
 }
 
 /** Sesión por id con el orden de la spec 006 (RF-20): formato (400) y existencia, también del anfitrión (404). */
-function findSession(sessionId: string): { session: PlaySession } | { denied: Reply } {
-  if (!SESSION_ID_SHAPE.test(sessionId)) return { denied: fail(400, MESSAGES.invalidId) };
+function findSession(rawId: string): { session: PlaySession } | { denied: Reply } {
+  const sessionId = resolveMockSessionId(rawId);
+  if (sessionId === null) return { denied: fail(400, MESSAGES.invalidId) };
   const session = database.sessions.find((candidate) => candidate.id === sessionId);
   if (session === undefined || sessionView(session) === null) {
     return { denied: fail(404, MESSAGES.sessionNotFound) };
@@ -1031,7 +1003,7 @@ export const mockApi: ApiContract = {
         if (!checked.ok) return fail(400, checked.error);
 
         const session: PlaySession = {
-          id: `session-${newCsrf()}`,
+          id: nextSessionId(),
           ...checked.value,
           hostId: user.id,
           host: userRef(user),
@@ -1043,6 +1015,40 @@ export const mockApi: ApiContract = {
         persist();
         return reply(201, sessionView(session));
       }),
+
+    get: (sessionId: string) =>
+      protectedOperation<PlaySession>(() => {
+        // Spec 006, RF-3: formato -> existencia -> 200 con la vista.
+        const found = findSession(sessionId);
+        if ('denied' in found) return found.denied;
+        return reply(200, sessionView(found.session));
+      }),
+
+    update: async (sessionId: string, payload: SessionEditPayload) => {
+      // Spec 006, RF-7, RF-8, RF-20, RF-26 y RF-28: el cuerpo se revisa antes que la sesión.
+      const handle = asUser((user) => {
+        const found = findSession(sessionId);
+        if ('denied' in found) return found.denied;
+        const { session } = found;
+        if (session.hostId !== user.id) return fail(403, SESSION_ERRORS.notHostEdit);
+        const checked = validateSessionEdit(payload);
+        if (!checked.ok) return fail(400, checked.error);
+        const next = { ...session, ...checked.value };
+        if (next.slots < session.participants.length) {
+          return fail(400, SESSION_ERRORS.slotsBelowParticipants);
+        }
+        Object.assign(session, checked.value, {
+          status: statusFor(session.participants.length, next.slots),
+        });
+        persist();
+        return reply(200, sessionView(session));
+      });
+      const { body } = await serve<PlaySession>(
+        (csrfSent) => (isPlainObject(payload) ? handle(csrfSent) : fail(400, SESSION_ERRORS.badJson)),
+        true,
+      );
+      return body;
+    },
 
     join: (sessionId: string) =>
       protectedOperation<PlaySession>((user) => {

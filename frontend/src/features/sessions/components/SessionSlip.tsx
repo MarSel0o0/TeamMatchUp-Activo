@@ -1,13 +1,14 @@
 import { Ban, LogOut, UserPlus } from 'lucide-react';
+import type { Ref } from 'react';
 import { Link } from 'react-router-dom';
-import { playerPath } from '@/app/routes';
-import { formatHour, WEEK_DAYS } from '@/domain/availability';
+import { playerPath, sessionPath } from '@/app/routes';
+import { formatSessionRange } from '@/domain/sessionDetail';
 import type { PlaySession } from '@/domain/types';
 import { GameMark } from '@/shared/components/GameMark';
 import { Icon } from '@/shared/components/Icon';
 import { Monogram } from '@/shared/components/Monogram';
 import { Stamp } from '@/shared/components/Stamp';
-import { SENDING_TEXT } from '@/shared/utils/copy';
+import { SENDING_TEXT, VIEW_DETAIL_LABEL, viewDetailLabel } from '@/shared/utils/copy';
 import './sessionSlip.css';
 
 /** Escritura de la agenda sobre una sesión. */
@@ -23,6 +24,8 @@ interface SessionSlipProps {
   busy?: boolean;
   /** Escritura en curso sobre esta sesión: su botón dice "Enviando…" (RF-20). */
   pendingAction?: SessionAction | null;
+  /** Referencia de «Cancelar sesión», para devolverle el foco al cerrar la ventana (RNF-2). */
+  cancelButtonRef?: Ref<HTMLButtonElement>;
 }
 
 /**
@@ -39,6 +42,7 @@ export function SessionSlip({
   onCancel,
   busy = false,
   pendingAction = null,
+  cancelButtonRef,
 }: SessionSlipProps) {
   const isHost = session.hostId === currentUserId;
   const isSigned = session.participants.some((participant) => participant.id === currentUserId);
@@ -49,10 +53,7 @@ export function SessionSlip({
       <header className="session__head">
         <div className="grow">
           <h3 className="sheet-title">{session.title}</h3>
-          <p className="note num">
-            {WEEK_DAYS[session.day].label} · {formatHour(session.startHour)}–
-            {formatHour((session.startHour + session.durationHours) % 24)}
-          </p>
+          <p className="note num">{formatSessionRange(session)}</p>
         </div>
         <GameMark gameId={session.gameId} />
       </header>
@@ -86,6 +87,13 @@ export function SessionSlip({
       </ul>
 
       <footer className="session__foot">
+        <Link
+          to={sessionPath(session.id)}
+          className="btn btn--quiet btn--sm"
+          aria-label={viewDetailLabel(session.title)}
+        >
+          {VIEW_DETAIL_LABEL}
+        </Link>
         {isSigned ? (
           <Stamp tone="pen" pressKey={`${session.id}-${session.participants.length}`} announce>
             {isHost ? 'La organizas' : 'Estás dentro'}
@@ -102,6 +110,7 @@ export function SessionSlip({
 
         {isHost ? (
           <button
+            ref={cancelButtonRef}
             type="button"
             className="btn btn--danger btn--sm"
             onClick={() => onCancel(session.id)}

@@ -3,11 +3,18 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { GRID_HOURS, WEEK_DAYS, formatHour } from '@/domain/availability';
 import { GAME_LIST } from '@/domain/games';
 import { PROPOSAL_DEFAULTS } from '@/domain/proposal';
+import {
+  NOTES_MAX_LENGTH,
+  SESSION_ERRORS,
+  TITLE_MAX_LENGTH,
+  isValidSessionTitle,
+} from '@/domain/sessionRules';
 import type { GameId, WeekDay } from '@/domain/types';
 import { Slip } from '@/shared/components/Slip';
 import { Icon } from '@/shared/components/Icon';
 import { MutationNotice } from '@/shared/components/MutationNotice';
 import { TextField } from '@/shared/components/TextField';
+import { useCodePointLimit } from '@/shared/hooks/useCodePointLimit';
 import { SENDING_TEXT } from '@/shared/utils/copy';
 import { useCreateSession } from '../hooks';
 import './sessionDraftSlip.css';
@@ -51,6 +58,11 @@ export function SessionDraftSlip({
   const [durationHours, setDurationHours] = useState(draft.durationHours ?? DEFAULT_DURATION_HOURS);
   const [slots, setSlots] = useState<number>(PROPOSAL_DEFAULTS.slots);
   const [error, setError] = useState<string | null>(null);
+  const notesLimit = useCodePointLimit<HTMLTextAreaElement>({
+    value: notes,
+    onValueChange: setNotes,
+    max: NOTES_MAX_LENGTH,
+  });
   // Un solo envío por doble clic, aunque el estado de la escritura aún no se haya pintado (RF-20).
   const sending = useRef(false);
 
@@ -73,8 +85,8 @@ export function SessionDraftSlip({
     if (sending.current) return;
     setError(null);
 
-    if (!title.trim()) {
-      setError('Ponle un título a la sesión para que otros sepan de qué se trata.');
+    if (!isValidSessionTitle(title)) {
+      setError(SESSION_ERRORS.title);
       return;
     }
 
@@ -138,8 +150,8 @@ export function SessionDraftSlip({
           label="Título"
           placeholder="Ej.: Ranked flex, buscamos dos"
           value={title}
-          onChange={(event) => setTitle(event.target.value)}
-          maxLength={60}
+          onValueChange={setTitle}
+          maxCodePoints={TITLE_MAX_LENGTH}
         />
           </li>
 
@@ -251,10 +263,9 @@ export function SessionDraftSlip({
           <textarea
             id="session-notes"
             className="textarea"
-            maxLength={160}
             placeholder="Requisitos, tono de la sesión, canal de voz…"
             value={notes}
-            onChange={(event) => setNotes(event.target.value)}
+            {...notesLimit}
           />
         </div>
           </li>

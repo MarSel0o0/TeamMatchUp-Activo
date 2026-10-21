@@ -1,11 +1,21 @@
 import { CalendarPlus, Link2, NotebookPen } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/app/routes';
 import { GRID_HOURS } from '@/domain/availability';
 import { GAME_LIST, isGameId } from '@/domain/games';
 import { PROPOSAL_DEFAULTS, type Proposal } from '@/domain/proposal';
 import type { GameId, WeekDay } from '@/domain/types';
+import { classifyResponse } from '@/domain/sessionDetail';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/features/auth/useAuth';
 import { useAccounts, useAvailability } from '@/features/profile/hooks';
 import { Icon } from '@/shared/components/Icon';
@@ -13,10 +23,14 @@ import { MutationNotice } from '@/shared/components/MutationNotice';
 import { Blank, Failure, SheetSkeleton } from '@/shared/components/States';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { Magnetic } from '@/shared/motion/Magnetic';
+import { ApiError, isSessionCleared } from '@/services/api';
+import { NO_MESSAGE_TEXT } from '@/shared/utils/copy';
 import { pluralize } from '@/shared/utils/format';
+import { CancelSessionDialog } from '../components/CancelSessionDialog';
 import { SessionDraftSlip, type SessionDraft } from '../components/SessionDraftSlip';
 import { SessionSlip, type SessionAction } from '../components/SessionSlip';
 import { WeekCalendar } from '../components/WeekCalendar';
+import { markAgendaStale } from '../agendaCache';
 import { useCancelSession, useJoinSession, useLeaveSession, useSessions } from '../hooks';
 import './schedulePage.css';
 
@@ -52,6 +66,7 @@ export default function SchedulePage() {
   const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const accountsQuery = useAccounts();
   const availabilityQuery = useAvailability();
 
@@ -67,6 +82,49 @@ export default function SchedulePage() {
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [draft, setDraft] = useState<SessionDraft | null>(null);
+
+  // Cancelar con confirmación (spec 009, RF-19, RF-23; plan 4.2 y 4.4): una sola ventana para todas las tarjetas.
+  const [confirmFor, setConfirmFor] = useState<string | null>(null);
+  const [dialogMessage, setDialogMessage] = useState<string | null>(null);
+  const panelTitleRef = useRef<HTMLHeadingElement>(null);
+  const dialogTitleRef = useRef<HTMLHeadingElement>(null);
+  const dialogConfirmRef = useRef<HTMLButtonElement>(null);
+  const cancelButtons = useRef(new Map<string, HTMLButtonElement>());
+  const [focusRequest, setFocusRequest] = useState<{
+    target: 'panelTitle' | 'cancelButton' | 'dialogTitle' | 'dialogConfirm';
+    sessionId?: string;
+  } | null>(null);
+  const cancelRef = useCallback(
+    (sessionId: string) => (element: HTMLButtonElement | null) => {
+      if (element) cancelButtons.current.set(sessionId, element);
+      else cancelButtons.current.delete(sessionId);
+    },
+    [],
+  );
+
+  useLayoutEffect(() => {
+    if (focusRequest === null) return;
+    const element =
+      focusRequest.target === 'panelTitle'
+        ? panelTitleRef.current
+        : focusRequest.target === 'dialogTitle'
+          ? dialogTitleRef.current
+          : focusRequest.target === 'dialogConfirm'
+            ? dialogConfirmRef.current
+            : (cancelButtons.current.get(focusRequest.sessionId ?? '') ?? null);
+    element?.focus();
+  }, [focusRequest]);
+
+  // Llegada con `state.focus === 'panelTitle'` (cancelar desde el detalle, RF-8): el foco va al
+  // título del panel una sola vez y la marca se borra sin tocar `proposal` (007, RF-30).
+  const consumedFocus = useRef(false);
+  useEffect(() => {
+    const state = location.state as { focus?: unknown } | null;
+    if (consumedFocus.current || state?.focus !== 'panelTitle') return;
+    consumedFocus.current = true;
+    setFocusRequest({ target: 'panelTitle' });
+    navigate(location.pathname, { replace: true, state: { ...state, focus: undefined } });
+  }, [location.pathname, location.state, navigate]);
 
   // Si la sesión abierta desaparece (se canceló, o cambió el filtro) se limpia.
   useEffect(() => {
@@ -131,16 +189,64 @@ export default function SchedulePage() {
   // Una sola escritura de la agenda a la vez, aunque el estado de la escritura aún no se haya
   // pintado: un doble clic envía una sola petición (RF-20).
   const sending = useRef(false);
-  const runAction = (action: SessionAction, sessionId: string) => {
+  const runAction = (action: 'join' | 'leave', sessionId: string) => {
     if (sending.current) return;
     sending.current = true;
     // El aviso de un intento anterior deja de ser cierto al empezar otro.
     joinSession.reset();
     leaveSession.reset();
-    cancelSession.reset();
-    const mutation =
-      action === 'join' ? joinSession : action === 'leave' ? leaveSession : cancelSession;
+    const mutation = action === 'join' ? joinSession : leaveSession;
     mutation.mutate(sessionId, { onSettled: () => (sending.current = false) });
+  };
+
+  const sessionVisible = (sessionId: string) =>
+    selected ? selected.id === sessionId : mine.some((session) => session.id === sessionId);
+
+  const openCancelDialog = (sessionId: string) => {
+    if (sending.current) return;
+    cancelSession.reset();
+    setDialogMessage(null);
+    setConfirmFor(sessionId);
+  };
+
+  // Cierra sin enviar: el foco vuelve a «Cancelar sesión» de esa tarjeta si sigue ahí, y si no
+  // al título del panel (RNF-2, puntos a y d; caso 6).
+  const closeCancelDialog = () => {
+    if (cancelSession.isPending || confirmFor === null) return;
+    const sessionId = confirmFor;
+    setConfirmFor(null);
+    setDialogMessage(null);
+    cancelSession.reset();
+    setFocusRequest(
+      sessionVisible(sessionId)
+        ? { target: 'cancelButton', sessionId }
+        : { target: 'panelTitle' },
+    );
+  };
+
+  const confirmCancel = async () => {
+    if (sending.current || confirmFor === null) return;
+    const sessionId = confirmFor;
+    sending.current = true;
+    setDialogMessage(null);
+    setFocusRequest({ target: 'dialogTitle' }); // Q25: el botón queda deshabilitado
+    try {
+      await cancelSession.mutateAsync(sessionId);
+      // 204: el `onSuccess` ya quitó la tarjeta; la ventana se cierra sola.
+      setConfirmFor(null);
+      setFocusRequest({ target: 'panelTitle' });
+    } catch (error) {
+      if (isSessionCleared(error)) return;
+      const hasMessage = error instanceof ApiError && error.hasMessage;
+      const info = { ok: false as const, status: error instanceof ApiError ? error.status : 0, hasMessage };
+      const outcome = classifyResponse('action', info);
+      setDialogMessage(hasMessage ? error.message : NO_MESSAGE_TEXT);
+      // La agenda vuelve a pedir sus sesiones tras un 404 o un rechazo con mensaje (RF-19).
+      if (outcome === 'empty' || outcome === 'messageAndReread') markAgendaStale(queryClient, user?.id ?? null);
+      setFocusRequest({ target: 'dialogConfirm' });
+    } finally {
+      sending.current = false;
+    }
   };
 
   const pendingAction = (sessionId: string): SessionAction | null => {
@@ -149,7 +255,7 @@ export default function SchedulePage() {
     if (cancelSession.isPending && cancelSession.variables === sessionId) return 'cancel';
     return null;
   };
-  const actionError = joinSession.error ?? leaveSession.error ?? cancelSession.error;
+  const actionError = joinSession.error ?? leaveSession.error;
 
   if (!user) return null;
 
@@ -259,7 +365,7 @@ export default function SchedulePage() {
         <aside className="agenda__side">
           <div className="sheet">
             <div className="sheet__head">
-              <h2 className="sheet-title grow">
+              <h2 ref={panelTitleRef} className="sheet-title grow" tabIndex={-1}>
                 {selected ? 'Sesión abierta' : 'Mis sesiones'}
               </h2>
               {selected ? (
@@ -283,9 +389,10 @@ export default function SchedulePage() {
                   currentUserId={user.id}
                   onJoin={(id) => runAction('join', id)}
                   onLeave={(id) => runAction('leave', id)}
-                  onCancel={(id) => runAction('cancel', id)}
+                  onCancel={openCancelDialog}
                   busy={busy}
                   pendingAction={pendingAction(selected.id)}
+                  cancelButtonRef={cancelRef(selected.id)}
                 />
               ) : mine.length === 0 ? (
                 <Blank
@@ -301,9 +408,10 @@ export default function SchedulePage() {
                     currentUserId={user.id}
                     onJoin={(id) => runAction('join', id)}
                     onLeave={(id) => runAction('leave', id)}
-                    onCancel={(id) => runAction('cancel', id)}
+                    onCancel={openCancelDialog}
                     busy={busy}
                     pendingAction={pendingAction(session.id)}
+                    cancelButtonRef={cancelRef(session.id)}
                   />
                 ))
               )}
@@ -311,6 +419,16 @@ export default function SchedulePage() {
           </div>
         </aside>
       </div>
+
+      <CancelSessionDialog
+        open={confirmFor !== null}
+        onClose={closeCancelDialog}
+        onConfirm={() => void confirmCancel()}
+        pending={cancelSession.isPending}
+        message={dialogMessage}
+        titleRef={dialogTitleRef}
+        confirmRef={dialogConfirmRef}
+      />
 
       {draft ? (
         <SessionDraftSlip

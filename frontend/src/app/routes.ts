@@ -12,6 +12,7 @@ export const ROUTES = {
   settings: '/configuracion',
   matches: '/coincidencias',
   schedule: '/agenda',
+  sessionDetail: '/agenda/:sessionId',
   player: '/jugadores/:userId',
 } as const;
 
@@ -29,6 +30,14 @@ export function playerPath(userId: string, gameId?: GameId): string {
   return gameId ? `${base}?${PLAYER_TAB_PARAM}=${gameId}` : base;
 }
 
+/** Prefijo del detalle de una sesión (spec 009, RF-1). */
+const SESSION_PATH_PREFIX = '/agenda/';
+
+/** Dirección del detalle de una sesión; el identificador se codifica (spec 009, RF-2). */
+export function sessionPath(sessionId: string): string {
+  return `${SESSION_PATH_PREFIX}${encodeURIComponent(sessionId)}`;
+}
+
 /** Rutas que exigen sesión; las specs 008 y 009 añaden las suyas (plan 3.5). */
 const PROTECTED_PATHS: readonly string[] = [
   ROUTES.home,
@@ -40,11 +49,16 @@ const PROTECTED_PATHS: readonly string[] = [
 
 /**
  * `true` si `pathname` (sin parámetros de consulta) es una ruta protegida (RF-7, RF-24, RF-25);
- * la ficha de jugador, por su prefijo `/jugadores/` (spec 008, RF-1).
+ * la ficha de jugador, por su prefijo `/jugadores/` (spec 008, RF-1), y el detalle de una
+ * sesión, por `/agenda/` (spec 009, RF-1).
  */
 export function isProtectedPath(pathname: string): boolean {
   const normalized = pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname;
-  return PROTECTED_PATHS.includes(normalized) || normalized.startsWith(PLAYER_PATH_PREFIX);
+  return (
+    PROTECTED_PATHS.includes(normalized) ||
+    normalized.startsWith(PLAYER_PATH_PREFIX) ||
+    normalized.startsWith(SESSION_PATH_PREFIX)
+  );
 }
 
 /** Índice del expediente: las secciones de la navegación principal. */

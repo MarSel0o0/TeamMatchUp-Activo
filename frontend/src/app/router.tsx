@@ -18,6 +18,7 @@ const ProfilePage = lazy(() => import('@/features/profile/pages/ProfilePage'));
 const SettingsPage = lazy(() => import('@/features/profile/pages/SettingsPage'));
 const MatchesPage = lazy(() => import('@/features/matches/pages/MatchesPage'));
 const SchedulePage = lazy(() => import('@/features/sessions/pages/SchedulePage'));
+const SessionDetailPage = lazy(() => import('@/features/sessions/pages/SessionDetailPage'));
 const PlayerPage = lazy(() => import('@/features/players/pages/PlayerPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 const LandingPage = lazy(() => import('./pages/LandingPage'));
@@ -48,6 +49,8 @@ export function AppRouter() {
             <Route path={ROUTES.settings} element={<SettingsPage />} />
             <Route path={ROUTES.matches} element={<MatchesPage />} />
             <Route path={ROUTES.schedule} element={<SchedulePage />} />
+            {/* Detalle de una sesión (spec 009, RF-1): protegido y diferido como las demás. */}
+            <Route path={ROUTES.sessionDetail} element={<SessionDetailPage />} />
             {/* Ficha de otro jugador (spec 008, RF-1): protegida y diferida como las demás. */}
             <Route path={ROUTES.player} element={<PlayerPage />} />
           </Route>
