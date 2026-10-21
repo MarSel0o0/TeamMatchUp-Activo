@@ -1,5 +1,24 @@
 # Spec 008 — Vista nueva: ficha de jugador
-Estado: aprobada (2026-10-18)
+Estado: aprobada (2026-10-18); **cambio A (revisión de coherencia contra el código, P50 y
+P51) aprobado (2026-10-20, por el usuario: "Apruebo el cambio A")**. **Cambio B (2026-10-20,
+excepción de contraste de los controles deshabilitados en RNF-5, P65) aprobado (2026-10-20, por
+el usuario: "Apruebo el cambio B").**
+Implementación (2026-10-20): T1 a T10 hechas. El registro de validación está hecho con dos
+defectos abiertos de contraste (D10-1 en el tema claro y D10-2 en el oscuro, RNF-5; vienen de
+componentes de la spec 007 que la ficha reutiliza y se resuelven en un cambio aparte para toda
+la aplicación, P60) y con el recorrido con NVDA pendiente del usuario (RNF-2). Queda pendiente
+la corrección de los textos de interfaz de la ficha que no están en la fuente única de textos
+(D10-3, P66; solo del plan y de las tareas, sin cambio visible; su alcance quedó fijado por el
+usuario el 2026-10-20 y la tarea está lista para empezar). Esta spec **no pasa a
+"implementada"** mientras D10-1 y D10-2 sigan abiertos.
+Cambio A (2026-10-20): la revisión de coherencia del reviewer contra el código vigente (007
+implementada, T1–T31; 004, 005 y 006 implementadas el 2026-10-19, con DP6-37, DP6-40 y los
+cambios A y B de la 005) dio CAMBIOS NECESARIOS. En esta spec solo cambian los textos de error
+del servidor que cita (P50: minúscula inicial y sin punto final, spec 004, DP-6), el estado
+de las dependencias (P51) y RF-6, que fija el texto de la lista de tramos vacía, "Sin horas
+en común esta semana." (P59; decisión del usuario (2026-10-20): opción a); ningún otro
+requisito cambia de comportamiento. El resto del cambio A afecta solo al plan y a las
+tareas. No quedan dudas abiertas del cambio A.
 
 ## Contexto y objetivo
 El enunciado del Hito 2 exige dos vistas completas nuevas que funcionen de punta a punta
@@ -39,7 +58,11 @@ servidor real (RF-27).
   001 a 003 implementadas; 004 y 005 aprobadas (2026-10-17); 006 y 007 aprobadas
   (2026-10-18). Esta spec se revisó el 2026-10-18 contra esas versiones aprobadas (revisión
   QA y segunda revisión QA) y quedó alineada con ellas; si cualquiera cambia algo que esta
-  spec cita, se revisa esta spec antes de seguir.
+  spec cita, se revisa esta spec antes de seguir. **Estado al 2026-10-20** (P51): 001 a 007
+  implementadas (004, 005 y 006 el 2026-10-19, con los cambios DP6-37, DP6-40 y A y B de la
+  005; 007 con T1 a T31, incluido su recorrido manual). Esta spec se revisó el 2026-10-20
+  contra ese código (cambio A); los cambios DP6-37, A y B de la 005 y DP6-40 no le afectan, y
+  DP6-33 sigue cubierta por RF-7 (P46).
 - Esta spec no cambia el servidor: usa solo operaciones ya definidas en las specs 003 y 004.
   Si el plan encuentra que hace falta un cambio en el servidor, primero se cambia la spec
   dueña de esa operación, y ese cambio lleva sus pruebas primero (constitución, principio 4).
@@ -190,7 +213,9 @@ servidor real (RF-27).
   la vista de coincidencias, que cubre las 24 horas del día, y la grilla de horas de solo
   lectura con los bloques en común destacados (referencia, sección 7, V1), que dibuja solo
   las horas de la grilla actual (de las 12:00 a las 01:00); un bloque en común fuera de esas
-  horas aparece solo en la lista. Muestra también el total de horas en común y, si hay
+  horas aparece solo en la lista. SI no hay ningún bloque en común, ENTONCES la lista de
+  tramos muestra "Sin horas en común esta semana.", el mismo texto que la vista de
+  coincidencias (decisión del usuario (2026-10-20): opción a, P59). Muestra también el total de horas en común y, si hay
   juego elegido, la distancia de rango en ese juego, en cualquiera de los tres juegos, con
   el mismo formato que la vista de coincidencias ("Δ <n> pts", con n entero de 0 a 100) y
   con la Etiqueta de datos simulados (RF-27), salvo lo que fijan RF-13 y RF-17 de esta
@@ -256,10 +281,10 @@ servidor real (RF-27).
   P49); la referencia propia
   resuelta al usuario de la sesión, solo con el texto exacto `me`, mientras que `Me`, `ME`
   o `" me"` se revisan como identificador y dan 400 (spec 003, Definiciones y RF-6; la
-  ficha propia ya se reconoce en el cliente antes de pedir el usuario, RF-15, P43); 404 "El jugador no tiene una cuenta
-  vinculada en este juego." al pedir el resumen de un juego en el que el usuario no tiene
-  cuenta y 404 "Usuario no encontrado." al pedir el de un usuario que no existe (spec 004,
-  RF-13); y 200 con lista vacía al listar las cuentas de un usuario que no existe (spec
+  ficha propia ya se reconoce en el cliente antes de pedir el usuario, RF-15, P43); 404 "el jugador no tiene una cuenta
+  vinculada en este juego" al pedir el resumen de un juego en el que el usuario no tiene
+  cuenta y 404 "usuario no encontrado" al pedir el de un usuario que no existe (spec 004,
+  RF-13; textos con minúscula inicial y sin punto final, spec 004, DP-6; P50); y 200 con lista vacía al listar las cuentas de un usuario que no existe (spec
   004, RF-2 y DP-10). Esta lista amplía, solo para las operaciones de esta spec, la de la
   spec 007, RF-10; sus datos semilla siguen la spec 007, RF-21 (rango, historial y
   partidas en los tres juegos, marca de datos simulados y cuentas verificadas y no
@@ -446,6 +471,13 @@ servidor real (RF-27).
   horas no cabe, se desplaza dentro de su propio recuadro. Todo texto de la ficha tiene un
   contraste de al menos 4,5:1 (3:1 en texto grande) en el tema claro y en el oscuro
   (`PRODUCT.md`, accesibilidad: "piso de contraste"). Confirmado por el usuario (D10).
+  Excepción: el texto de un componente de interfaz inactivo (deshabilitado), como "Proponer
+  sesión" mientras muestra un motivo de bloqueo (RF-12) o un texto de RF-23, está exento de
+  ese mínimo, igual que en WCAG 2.x, criterio 1.4.3 ("Contraste (mínimo)"), que exime a los
+  componentes de interfaz inactivos. El texto que explica por qué está deshabilitado (el
+  motivo de RF-12 o el texto de RF-23, que se ve junto al botón) no es un componente inactivo
+  y sí debe cumplir el mínimo (decisión del usuario (2026-10-20): "Excepción (WCAG)", P65;
+  cambio B, aprobado (2026-10-20, por el usuario: "Apruebo el cambio B")).
 - RNF-6: El primer bloque proponible, la duración propuesta, los bloques y tramos en común y
   la distancia de rango son reglas puras del dominio, sin reloj ni interfaz (constitución,
   principio 3); los bloques en común y la distancia reutilizan el criterio de la spec 005 y
@@ -466,8 +498,13 @@ servidor real (RF-27).
   visibles, sin distancia, y "Proponer sesión" con "Este jugador no ha vinculado ningún
   juego" (RF-10, RF-12 motivo 1), aunque además falte disponibilidad (decisión del
   usuario, P16).
-- El usuario de la sesión no ha marcado horas: cero horas en común y el motivo "No has
-  marcado tus horas" (RF-12, motivo 3), no "No tienen horas en común".
+- El usuario de la sesión no ha marcado horas: cero horas en común, la lista de tramos con
+  "Sin horas en común esta semana." (RF-6, P59) y el motivo "No has marcado tus horas"
+  (RF-12, motivo 3), no "No tienen horas en común".
+- Sin bloques en común por cualquier motivo (ninguno de los dos marcó horas, o las marcadas
+  no coinciden): el total es 0, la lista de tramos muestra "Sin horas en común esta
+  semana." y la grilla no destaca ningún bloque; "Proponer sesión" muestra el motivo que
+  corresponda según RF-12 (RF-6; decisión del usuario (2026-10-20), P59).
 - Bloques en común solo entre las 02:00 y las 11:00: aparecen en la lista de tramos, no en
   la grilla, y "Proponer sesión" muestra "Sus horas en común quedan fuera del horario de la
   agenda (12:00 a 01:00)" (RF-6, RF-12 motivo 6).
@@ -508,8 +545,8 @@ servidor real (RF-27).
 - Jugador eliminado mientras otro tenía abierta su ficha o una agenda con él como
   participante (spec 003, RF-11; spec 006, RF-16): la siguiente carga de su usuario responde
   404 y se muestra "Este jugador no existe" (RF-9). Si lo primero que se pide es el resumen
-  de un juego (por ejemplo, al elegir una pestaña no vista), responde 404 "Usuario no
-  encontrado." (spec 004, RF-13): la ficha vuelve a pedir el usuario, que responde 404, y
+  de un juego (por ejemplo, al elegir una pestaña no vista), responde 404 "usuario no
+  encontrado" (spec 004, RF-13 y DP-6; P50): la ficha vuelve a pedir el usuario, que responde 404, y
   muestra "Este jugador no existe", aunque la lista de sus cuentas responda 200 vacía (spec
   004, RF-2 y DP-10), en lugar de "Este jugador no ha vinculado ningún juego" (RF-19;
   decisión del usuario, P32). Si lo que falla primero es otra petición, su sección sigue
@@ -732,7 +769,8 @@ servidor real (RF-27).
       muestra el error con "Reintentar" y "Proponer sesión" muestra "No se pudieron cargar
       los datos para proponer una sesión."; al desbloquearla y pulsar "Reintentar", se ve la
       distancia (RF-8, RF-18, RF-23; P19 y P44); la ficha de C muestra "Este jugador
-      no ha vinculado ningún juego" en lugar de las pestañas, las horas en común (0), la
+      no ha vinculado ningún juego" en lugar de las pestañas, las horas en común (0, con
+      "Sin horas en común esta semana." en la lista de tramos; RF-6, P59), la
       nota de zonas horarias, aunque `America/Sao_Paulo` y `America/Argentina/Buenos_Aires`
       tengan el mismo desfase, ninguna distancia de rango y "Proponer sesión" deshabilitado
       con "Este jugador no ha vinculado ningún juego" (RF-10, RF-12, RF-22; P15 y P44); un
@@ -849,8 +887,8 @@ servidor real (RF-27).
       peticiones al servidor (RF-11, RF-16, RF-27). RF-19 no se puede provocar en modo
       simulado, porque desde la interfaz solo se desvinculan o eliminan cuentas propias: se
       comprueba revisando que el backend simulado responde 404 al resumen de un juego sin
-      cuenta y 404 "Usuario no encontrado." al de un usuario inexistente, y 200 con lista
-      vacía a sus cuentas (RF-11), y el resultado queda en el registro.
+      cuenta y 404 "usuario no encontrado" al de un usuario inexistente, y 200 con lista
+      vacía a sus cuentas (RF-11; P50), y el resultado queda en el registro.
 - [ ] Una revisión de las reglas puras del dominio, con los datos del recorrido y con los
       casos límite de 00:00 y 12:00 el mismo día, del tramo de más de 4 horas, del tramo
       de 10:00 a 14:00 (12:00 y 2 horas) y del martes 23:00 con el miércoles 00:00 (dos
@@ -873,7 +911,9 @@ servidor real (RF-27).
       sobre la ficha no da ningún fallo de contraste, y los textos que solo aparecen en
       otros estados (motivos de bloqueo, textos de RF-23, errores, estados vacíos y nota de
       zonas horarias) se miden con el selector de color de las herramientas de Chrome, sin
-      ninguno por debajo de 4,5:1 (3:1 en texto grande) (RNF-5; P26).
+      ninguno por debajo de 4,5:1 (3:1 en texto grande) (RNF-5; P26). El texto del propio
+      botón "Proponer sesión" deshabilitado no cuenta para este mínimo (excepción de RNF-5,
+      P65); el motivo o el texto de RF-23 que se ve junto a él sí.
 
 ## Decisiones de clarificación
 - Revisión QA (CAMBIOS NECESARIOS, 6 graves) incorporada en lo que ya estaba decidido, con
@@ -1231,11 +1271,68 @@ servidor real (RF-27).
   segundos para toda petición, su RF-20) y R19 (texto «Datos de demostración»). Quedaron
   en RF-4, RF-7, RF-16, RF-21, RF-24, RF-27, RNF-6, Casos límite y Fuera de alcance. Ya no
   se citan sus P9, P13, P14, P17, D3 ni D11.
+- **Cambio A — revisión de coherencia contra el código (2026-10-20), aprobado (2026-10-20,
+  por el usuario: "Apruebo el cambio A").** El reviewer revisó la 008 contra el código vigente antes de la T1 y dio
+  CAMBIOS NECESARIOS (hallazgos B-1, I-1, I-2 y M-1 a M-8). En esta spec entran
+  correcciones objetivas (P50, P51) y una decisión del usuario del 2026-10-20 (P59, texto de
+  la lista de tramos vacía); las demás son del plan y de las tareas (plan, secciones 11 y
+  12).
+  - P50 (hallazgo B-1): los textos de error del servidor que cita la spec son los de la
+    spec 004, DP-6 (2026-10-18), con minúscula inicial y sin punto final: 404 "usuario no
+    encontrado" y 404 "el jugador no tiene una cuenta vinculada en este juego" (en lugar de
+    "Usuario no encontrado." y "El jugador no tiene una cuenta vinculada en este juego.").
+    No cambia ningún texto propio de la ficha: el 404 del usuario y el del resumen con el
+    usuario inexistente llevan a "Este jugador no existe" (RF-9, RF-19), y si se llega a
+    mostrar el mensaje del servidor (RF-18) es el que envía el servidor, sin traducirlo.
+    Quedó en RF-11, Casos límite (jugador eliminado) y Criterios de finalización (modo
+    simulado).
+  - P51 (hallazgo M-8): el estado de las dependencias se actualiza al 2026-10-20 (001 a 007
+    implementadas) sin reescribir la historia. Quedó en Contexto (condición previa).
+  - P59 (hallazgo M-5; plan, Pregunta 7) — decisión del usuario (2026-10-20): opción a.
+    Cuando no hay bloques en común, la lista de tramos muestra "Sin horas en común esta
+    semana.", el mismo texto que la fila de la vista de coincidencias, coherente con RF-6
+    ("como en la vista de coincidencias"). Se descartan "Sin horas en común" (b), que no
+    coincide con coincidencias, y no mostrar ningún texto (c). Quedó en RF-6, Casos límite
+    (usuario de la sesión sin horas y nuevo caso sin bloques en común) y Criterios de
+    finalización (Estados, ficha de C). Cierra la duda abierta del cambio A.
+  - Las demás preguntas del cambio A (plan, Preguntas 4, 5, 6, 8, 9 y 10) son del plan y de
+    las tareas y no cambian esta spec; el usuario las respondió el 2026-10-20 (opción a en
+    todas). La Pregunta 9 (P61, surgida al aplicar P59) solo hace que la vista de
+    coincidencias tome "Sin horas en común esta semana." de la misma fuente única de textos
+    que la ficha, sin ningún cambio visible en coincidencias; refuerza que el texto de RF-6
+    sea "el mismo texto que la vista de coincidencias". La Pregunta 10 (P62, surgida al
+    aplicar P61) hace lo mismo con "Sin datos" (RF-17): el perfil, la vista de coincidencias
+    y la ficha lo toman de esa misma fuente única, sin ningún cambio visible en el perfil ni
+    en coincidencias. La Pregunta 8 mantiene RNF-5 tal como está: si la medida de contraste de la
+    validación falla, la casilla de RNF-5 queda con un defecto abierto y esta spec no pasa a
+    "implementada" hasta resolverlo.
+- **Cambio B — excepción de contraste de los controles deshabilitados (2026-10-20),
+  aprobado (2026-10-20, por el usuario: "Apruebo el cambio B").** Origen: el registro de validación de la
+  T10 (posible cambio de spec C10-1). "Proponer sesión" deshabilitado se dibuja atenuado y su
+  texto queda en 1,74:1 en el tema oscuro y 2,61:1 en el claro; el motivo que se ve junto al
+  botón cumple de sobra (7,36:1 o más). RNF-5 decía "todo texto de la ficha", sin excepción.
+  - P65 — decisión del usuario (2026-10-20): "Excepción (WCAG)". El texto de un componente de
+    interfaz inactivo (deshabilitado) está exento del mínimo de contraste, como en WCAG 2.x,
+    criterio 1.4.3; el texto que explica el motivo sí debe cumplirlo. Se descarta tratarlo
+    como un defecto más (habría que cambiar el aspecto del botón deshabilitado, que es un
+    estilo compartido con el resto de la aplicación). Quedó en RNF-5 y en Criterios de
+    finalización (360 px y contraste). Ningún RF cambia de comportamiento.
+  - Los defectos D10-1 y D10-2 no cambian con este cambio: siguen abiertos (P60) y esta spec
+    no pasa a "implementada" mientras tanto. D10-3 (textos de interfaz de la ficha fuera de la
+    fuente única de textos, P66) es del plan y de las tareas y no cambia esta spec.
 
 ## Dudas abiertas
 La dependencia externa (aprobación de la spec 007, que esperaba a las specs 001 a 006)
 quedó cumplida el 2026-10-18 (Contexto, condición previa). P41 (diferencia 0) quedó
 resuelta por el usuario (Decisiones de clarificación). El identificador de otro jugador
 en mayúsculas en modo simulado quedó resuelto por P49.
+
+La duda del cambio A (2026-10-20) sobre el texto de la lista de tramos vacía quedó resuelta
+por el usuario el 2026-10-20 (P59, opción a: "Sin horas en común esta semana."; RF-6).
+
+El cambio B (P65, excepción de contraste de los controles deshabilitados en RNF-5) quedó
+aprobado por el usuario el 2026-10-20 ("Apruebo el cambio B"). Las Preguntas 11 a 13 del plan
+(alcance de la corrección de D10-3) son del plan y de las tareas, no de esta spec, y el usuario
+las respondió el 2026-10-20.
 
 Dudas abiertas: ninguna.

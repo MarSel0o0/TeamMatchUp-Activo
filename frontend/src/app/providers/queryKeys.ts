@@ -25,6 +25,28 @@ export const queryKeys = {
     ['u', userId, 'sessions', gameId] as const,
   /** Prefijo de todas las listas de sesiones del usuario. */
   allSessions: (userId: QueryUserId) => ['u', userId, 'sessions'] as const,
+  /**
+   * Ficha de jugador (spec 008, RF-26, plan 3.6): todo bajo
+   * `['u', sessionUserId, 'player', visit, …]`. `visit` es nueva en cada montaje de la
+   * ficha, así que abrir o recargar pide todo de nuevo y nunca enseña datos de otra visita.
+   * Los datos del otro jugador van tras `'them', id` y los propios tras `'own'`: el
+   * identificador crudo de la ruta nunca puede coincidir con una clave propia (p. ej.
+   * `/jugadores/own`).
+   */
+  player: {
+    user: (userId: QueryUserId, visit: number, id: string) =>
+      ['u', userId, 'player', visit, 'them', id, 'user'] as const,
+    accounts: (userId: QueryUserId, visit: number, id: string) =>
+      ['u', userId, 'player', visit, 'them', id, 'accounts'] as const,
+    availability: (userId: QueryUserId, visit: number, id: string) =>
+      ['u', userId, 'player', visit, 'them', id, 'availability'] as const,
+    summary: (userId: QueryUserId, visit: number, id: string, gameId: GameId) =>
+      ['u', userId, 'player', visit, 'them', id, 'summary', gameId] as const,
+    ownAccounts: (userId: QueryUserId, visit: number) =>
+      ['u', userId, 'player', visit, 'own', 'accounts'] as const,
+    ownAvailability: (userId: QueryUserId, visit: number) =>
+      ['u', userId, 'player', visit, 'own', 'availability'] as const,
+  },
 } as const;
 
 /**

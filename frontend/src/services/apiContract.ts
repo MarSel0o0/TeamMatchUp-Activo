@@ -6,6 +6,7 @@ import type {
   MatchFilters,
   MatchRecord,
   PlaySession,
+  PublicUser,
   RegisterPayload,
   TimeBlock,
   User,
@@ -72,6 +73,18 @@ export interface ApiContract {
     getAvailabilityOf(userId: string): Promise<TimeBlock[]>;
     saveAvailability(blocks: TimeBlock[]): Promise<TimeBlock[]>;
     getGameSummary(gameId: GameId): Promise<GameProfileSummary>;
+  };
+  /**
+   * Lecturas de otro jugador (spec 008, plan 4.5). `userId` admite `me`; los datos de otro
+   * jugador llegan sin correo (el propio, con él).
+   */
+  users: {
+    /** `GET /api/users/:id`. */
+    get(userId: string): Promise<PublicUser>;
+    /** `GET /api/accounts?user=:id`; usuario inexistente → `[]`. */
+    listAccounts(userId: string): Promise<GameAccount[]>;
+    /** `GET /api/users/:id/games/:gameId`. */
+    getGameSummary(userId: string, gameId: GameId): Promise<GameProfileSummary>;
   };
   matches: {
     list(filters: MatchFilters): Promise<MatchCandidate[]>;

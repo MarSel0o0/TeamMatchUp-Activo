@@ -4,7 +4,7 @@ import type { GameAccount, RankSnapshot } from '@/domain/types';
 import { DemoTag } from '@/shared/components/DemoTag';
 import { Icon } from '@/shared/components/Icon';
 import { Stamp } from '@/shared/components/Stamp';
-import { RESYNC_LABEL, RESYNC_NOTE, SENDING_TEXT } from '@/shared/utils/copy';
+import { NO_DATA_TEXT, RESYNC_LABEL, RESYNC_NOTE, SENDING_TEXT } from '@/shared/utils/copy';
 import { timeAgo } from '@/shared/utils/format';
 import './accountRow.css';
 
@@ -18,6 +18,8 @@ interface AccountRowProps {
   unlinking?: boolean;
   /** Hay otra escritura de cuentas en curso: los botones quedan deshabilitados. */
   locked?: boolean;
+  /** Antepone al identificador su etiqueta de formato ("Riot ID", "Ubisoft ID", "SteamID64"; spec 008, RF-4). */
+  showHandleLabel?: boolean;
 }
 
 /** Asiento de una cuenta vinculada: identificador, rango sellado, etiqueta de datos simulados y última lectura (RF-11, RF-18, RF-31). */
@@ -28,6 +30,7 @@ export function AccountRow({
   syncing = false,
   unlinking = false,
   locked = false,
+  showHandleLabel = false,
 }: AccountRowProps) {
   const game = getGame(account.gameId);
   const busy = syncing || unlinking || locked;
@@ -42,7 +45,10 @@ export function AccountRow({
           <h3 className="sheet-title" style={{ color: game.accent }}>
             {game.name}
           </h3>
-          <p className="note note--faint">{account.handle}</p>
+          <p className="note note--faint">
+            {showHandleLabel ? `${game.handleLabel} · ` : null}
+            {account.handle}
+          </p>
         </div>
         <div className="account__mark">
           <Stamp
@@ -59,7 +65,7 @@ export function AccountRow({
         <div>
           <dt className="label">Rango vigente</dt>
           <dd className="num" style={{ color: game.accent }}>
-            {rank ? formatRank(account.gameId, rank) : 'Sin datos'}
+            {rank ? formatRank(account.gameId, rank) : NO_DATA_TEXT}
           </dd>
           {account.simulated && rank ? (
             <dd>

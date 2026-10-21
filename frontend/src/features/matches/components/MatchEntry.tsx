@@ -1,6 +1,8 @@
 import { CalendarPlus, ChevronDown } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { forwardRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { playerPath } from '@/app/routes';
 import { formatRange, groupBlocks } from '@/domain/availability';
 import { formatRank, getGame } from '@/domain/games';
 import { scoreLabel } from '@/domain/matching';
@@ -14,7 +16,13 @@ import { Monogram } from '@/shared/components/Monogram';
 import { Stamp } from '@/shared/components/Stamp';
 import { CountUp } from '@/shared/motion/CountUp';
 import { EASE_OUT, EASE_FLUID } from '@/shared/motion/presets';
-import { PROPOSAL_BLOCK_REASONS } from '@/shared/utils/copy';
+import {
+  HOUR_UNIT,
+  NO_DATA_TEXT,
+  NO_SHARED_HOURS_TEXT,
+  PROPOSAL_BLOCK_REASONS,
+  rankDistanceText,
+} from '@/shared/utils/copy';
 import { pluralize, timeAgo } from '@/shared/utils/format';
 import './matchEntry.css';
 
@@ -78,7 +86,9 @@ export const MatchEntry = forwardRef<HTMLElement, MatchEntryProps>(function Matc
         <Monogram name={candidate.user.displayName} color={candidate.user.avatarColor} />
 
         <div className="entry__who">
-          <strong>{candidate.user.displayName}</strong>
+          <strong>
+            <Link to={playerPath(candidate.user.id, candidate.gameId)}>{candidate.user.displayName}</Link>
+          </strong>
           <span className="note note--faint">
             @{candidate.user.username}
             {candidate.user.bio ? ` · ${candidate.user.bio}` : ''}
@@ -92,18 +102,18 @@ export const MatchEntry = forwardRef<HTMLElement, MatchEntryProps>(function Matc
               <span className="entry__rank" style={{ color: game.accent }}>
                 {formatRank(candidate.gameId, rank)}
               </span>
-              <span className="note note--faint num">Δ {candidate.rankDistance} pts</span>
+              <span className="note note--faint num">{rankDistanceText(candidate.rankDistance)}</span>
               {simulated ? <DemoTag className="entry__demo" /> : null}
             </>
           ) : (
-            <span className="note note--faint">Sin datos</span>
+            <span className="note note--faint">{NO_DATA_TEXT}</span>
           )}
         </div>
 
         <div className="entry__col">
           <span className="label entry__inline-label">En común</span>
           <span className="num entry__hours">
-            {pluralize(candidate.sharedBlocks.length, 'hora', 'horas')}
+            {pluralize(candidate.sharedBlocks.length, HOUR_UNIT.one, HOUR_UNIT.other)}
           </span>
           <span className="note note--faint">
             {ranges.length ? formatRange(ranges[0]) : 'sin traslape'}
@@ -117,7 +127,7 @@ export const MatchEntry = forwardRef<HTMLElement, MatchEntryProps>(function Matc
             simulated={simulated}
           />
         ) : (
-          <span className="note note--faint">Sin datos</span>
+          <span className="note note--faint">{NO_DATA_TEXT}</span>
         )}
 
         <div className="entry__actions">
@@ -185,7 +195,7 @@ export const MatchEntry = forwardRef<HTMLElement, MatchEntryProps>(function Matc
                   ))}
                 </ul>
               ) : (
-                <p className="note note--faint">Sin horas en común esta semana.</p>
+                <p className="note note--faint">{NO_SHARED_HOURS_TEXT}</p>
               )}
 
               <HoursSheet value={viewerBlocks} compareWith={candidate.sharedBlocks} readOnly compact />

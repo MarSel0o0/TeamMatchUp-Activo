@@ -4,6 +4,7 @@ import type {
   GameId,
   MatchCandidate,
   PlaySession,
+  PublicUser,
   RegisterPayload,
   TimeBlock,
   User,
@@ -87,6 +88,18 @@ export const httpApi: ApiContract = {
 
     getGameSummary: (gameId: GameId) =>
       request<GameProfileSummary>(`/users/me/games/${encodeURIComponent(gameId)}`),
+  },
+
+  users: {
+    get: (userId: string) => request<PublicUser>(`/users/${encodeURIComponent(userId)}`),
+
+    // `user` va por la opción `query`, que lo codifica con `URLSearchParams`.
+    listAccounts: (userId: string) => request<GameAccount[]>('/accounts', { query: { user: userId } }),
+
+    getGameSummary: (userId: string, gameId: GameId) =>
+      request<GameProfileSummary>(
+        `/users/${encodeURIComponent(userId)}/games/${encodeURIComponent(gameId)}`,
+      ),
   },
 
   matches: {

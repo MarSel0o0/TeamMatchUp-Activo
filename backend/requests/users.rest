@@ -104,3 +104,31 @@ Content-Type: application/json
 X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
 
 {}
+
+### Nombre visible con tabulador (spec 008, RF-7; P34, P40, P45, P46)
+# Prepara la comprobación manual del título "Sesión con <nombre>" con un tabulador interior:
+# D es un jugador propio de la validación de la 008 (datos de ejemplo, no reales), distinto de
+# la cuenta de los pasos 1 a 13. Regístralo antes con el paso 1 de `auth.rest` cambiando el
+# correo, el nombre de usuario y la contraseña por los de abajo. El inicio de sesión de D
+# sustituye la cookie `token` de la cuenta anterior.
+@emailD = jugador.d.ejemplo@example.com
+@passwordD = contrasena-de-ejemplo-d
+
+### 14. Inicio de sesión de D y nombre visible con un tabulador interior: 200 con el nombre tal cual, con el tabulador (spec 003, RF-7)
+# @name loginD
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{emailD}}",
+  "password": "{{passwordD}}"
+}
+
+### 14 (continuación). Actualizar el perfil de D: `\t` es un tabulador dentro de la cadena JSON
+PATCH {{baseUrl}}/api/users/me
+Content-Type: application/json
+X-CSRF-Token: {{loginD.response.headers.X-CSRF-Token}}
+
+{
+  "displayName": "Jugador\tD"
+}

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
 import { GRID_HOURS, WEEK_DAYS, formatHour, toBlock } from '@/domain/availability';
 import type { TimeBlock, WeekDay } from '@/domain/types';
+import { SHARED_HOURS_TITLE } from '@/shared/utils/copy';
 import './hoursSheet.css';
 
 interface HoursSheetProps {
@@ -133,7 +134,7 @@ export function HoursSheet({
         </span>
         {compareWith ? (
           <span className="hours__key-item">
-            <i className="hours__swatch" data-shared /> Horas en común
+            <i className="hours__swatch" data-shared />{` ${SHARED_HOURS_TITLE}`}
           </span>
         ) : null}
         {!readOnly ? (

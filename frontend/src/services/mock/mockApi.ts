@@ -28,6 +28,7 @@ import type {
 import { readCsrf, saveCsrf } from '../http/csrfStorage';
 import { ApiError, CSRF_HEADER } from '../http/httpClient';
 import { execute, type HeaderReader, type RawResponse } from '../http/transport';
+import { resolveMockUserTarget } from './mockUserTarget';
 import { createSeedDatabase, matchJson, snapshotJson, type MockDatabase } from './seed';
 import { canonicalHandle, readAccountState } from './simulatedProvider';
 
@@ -359,6 +360,22 @@ function winRateOf(matches: readonly MatchRecord[]): number {
   return Math.round((wins * 100) / matches.length);
 }
 
+/**
+ * Resumen por juego de una cuenta (spec 004, RF-12 y RF-37): las 8 primeras partidas en el
+ * orden guardado, su tasa de victorias y la tendencia respecto de la primera lectura. Lo usan
+ * el resumen propio y el de otro jugador (spec 008, plan 4.5).
+ */
+function gameSummaryOf(account: GameAccount): GameProfileSummary {
+  const recentMatches = (database.matchHistory[account.id] ?? []).slice(0, RECENT_MATCHES);
+  const first = account.rankHistory[0];
+  return {
+    account,
+    recentMatches,
+    winRate: winRateOf(recentMatches),
+    trend: first === undefined ? 0 : account.currentRank.normalized - first.normalized,
+  };
+}
+
 const isKnownGame = (value: unknown): value is GameId =>
   typeof value === 'string' && Object.hasOwn(GAMES, value);
 
@@ -478,8 +495,7 @@ function validateLink(
 /* Coincidencias (spec 005) y sesiones (spec 006)                              */
 /* -------------------------------------------------------------------------- */
 
-/** Forma de los identificadores del simulado (`user-…`, `session-…`); el servidor exige un ObjectId. */
-const USER_ID_SHAPE = /^user-[0-9A-Za-z-]+$/;
+/** Forma de los identificadores de sesión del simulado (`session-…`); el servidor exige un ObjectId. */
 const SESSION_ID_SHAPE = /^session-[0-9A-Za-z-]+$/;
 
 /** Entero dentro de [min, max] o `null` (`readJsonInteger` de la spec 006; `-0` pasa a 0). */
@@ -879,13 +895,14 @@ export const mockApi: ApiContract = {
     getAvailabilityOf: (userId: string) =>
       protectedOperation<TimeBlock[]>((user) => {
         // Spec 003, RF-12 y RF-20: `me` (la propia), formato (400) y existencia (404); cualquiera
-        // puede leer la de otro jugador. El formato es el del simulado (`user-…`).
-        const targetId = userId === 'me' ? user.id : userId;
-        if (!USER_ID_SHAPE.test(targetId)) return fail(400, MESSAGES.invalidId);
-        if (!database.users.some((candidate) => candidate.id === targetId)) {
+        // puede leer la de otro jugador. Formato del simulado: `user-<dígitos>` sin distinguir
+        // mayúsculas (spec 008, RF-11; `resolveMockUserTarget`).
+        const target = resolveMockUserTarget(userId, user.id);
+        if (!target.ok) return fail(400, MESSAGES.invalidId);
+        if (!database.users.some((candidate) => candidate.id === target.id)) {
           return fail(404, MESSAGES.userNotFound);
         }
-        return reply(200, database.availability[targetId] ?? []);
+        return reply(200, database.availability[target.id] ?? []);
       }),
 
     saveAvailability: (blocks: TimeBlock[]) =>
@@ -906,16 +923,48 @@ export const mockApi: ApiContract = {
           (candidate) => candidate.userId === user.id && candidate.gameId === gameId,
         );
         if (!account) return fail(404, MESSAGES.noAccountForGame);
+        return reply(200, gameSummaryOf(account));
+      }),
+  },
 
-        // Las 8 primeras partidas en el orden guardado; tendencia respecto de la primera lectura.
-        const recentMatches = (database.matchHistory[account.id] ?? []).slice(0, RECENT_MATCHES);
-        const first = account.rankHistory[0];
-        return reply(200, {
-          account,
-          recentMatches,
-          winRate: winRateOf(recentMatches),
-          trend: first === undefined ? 0 : account.currentRank.normalized - first.normalized,
-        });
+  // Spec 008 (RF-11, plan 4.5): lecturas de otro jugador con los códigos, textos y orden del
+  // servidor. `resolveMockUserTarget` hace de `resolveUserTarget` con la forma `user-<dígitos>`.
+  users: {
+    get: (userId: string) =>
+      protectedOperation<PublicUser>((user) => {
+        // Spec 003, RF-20: formato (400) y existencia (404); el correo solo si es el propio.
+        const target = resolveMockUserTarget(userId, user.id);
+        if (!target.ok) return fail(400, MESSAGES.invalidId);
+        const found = database.users.find((candidate) => candidate.id === target.id);
+        if (found === undefined) return fail(404, MESSAGES.userNotFound);
+        return reply(200, target.own ? found : toPublicUser(found));
+      }),
+
+    listAccounts: (userId: string) =>
+      protectedOperation<GameAccount[]>((user) => {
+        // Spec 004, RF-2: filtro `user` (400 si no vale); usuario inexistente → `[]`; orden de creación.
+        const target = resolveMockUserTarget(userId, user.id);
+        if (!target.ok) return fail(400, MESSAGES.invalidId);
+        return reply(
+          200,
+          database.accounts.filter((account) => account.userId === target.id),
+        );
+      }),
+
+    getGameSummary: (userId: string, gameId: GameId) =>
+      protectedOperation<GameProfileSummary>((user) => {
+        // Spec 004, RF-13 y RF-29: id (400) → juego (400) → usuario (404) → cuenta (404).
+        const target = resolveMockUserTarget(userId, user.id);
+        if (!target.ok) return fail(400, MESSAGES.invalidId);
+        if (!isKnownGame(gameId)) return fail(400, MESSAGES.invalidGame);
+        if (!database.users.some((candidate) => candidate.id === target.id)) {
+          return fail(404, MESSAGES.userNotFound);
+        }
+        const account = database.accounts.find(
+          (candidate) => candidate.userId === target.id && candidate.gameId === gameId,
+        );
+        if (!account) return fail(404, MESSAGES.noAccountForGame);
+        return reply(200, gameSummaryOf(account));
       }),
   },
 

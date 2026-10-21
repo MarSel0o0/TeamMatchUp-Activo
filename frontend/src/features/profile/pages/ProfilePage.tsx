@@ -3,21 +3,17 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ROUTES } from '@/app/routes';
 import { formatRange, groupBlocks } from '@/domain/availability';
-import { formatRank } from '@/domain/games';
-import type { GameId, RankSnapshot } from '@/domain/types';
+import type { GameId } from '@/domain/types';
 import { useAuth } from '@/features/auth/useAuth';
-import { DemoTag } from '@/shared/components/DemoTag';
 import { GameTabs } from '@/shared/components/GameTabs';
 import { Icon } from '@/shared/components/Icon';
 import { Monogram } from '@/shared/components/Monogram';
-import { MutationNotice } from '@/shared/components/MutationNotice';
-import { RankScale } from '@/shared/components/RankScale';
 import { Blank, Failure, SheetSkeleton } from '@/shared/components/States';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { CountUp } from '@/shared/motion/CountUp';
-import { pluralize, timeAgo } from '@/shared/utils/format';
-import { AccountRow } from '../components/AccountRow';
-import { MatchLedger } from '../components/MatchLedger';
+import { JOINED_TEXT } from '@/shared/utils/copy';
+import { timeAgo } from '@/shared/utils/format';
+import { GameSummaryPanel } from '../components/GameSummaryPanel';
 import { useAccounts, useAvailability, useGameSummary, useSyncAccount } from '../hooks';
 import './profilePage.css';
 
@@ -56,11 +52,6 @@ export default function ProfilePage() {
   const summaryQuery = useGameSummary(activeGame);
   const availability = availabilityQuery.data ?? [];
   const summary = summaryQuery.data;
-  // Defensivo (RF-14): el servidor no entrega cuentas sin rango ni sin tasa de victorias, pero si
-  // llegara una no se muestra ni se calcula ningún valor derivado: aparece "Sin datos".
-  const currentRank: RankSnapshot | null | undefined = summary?.account.currentRank;
-  const firstRank: RankSnapshot | undefined = summary?.account.rankHistory[0];
-  const winRate: number | null | undefined = summary?.winRate;
 
   if (!user) return null;
 
@@ -72,7 +63,7 @@ export default function ProfilePage() {
           <div className="grow">
             <h1 className="doc-title">{user.displayName}</h1>
             <p className="note">
-              @{user.username} · {user.timezone} · se inscribió {timeAgo(user.createdAt)}
+              @{user.username} · {user.timezone}{` · ${JOINED_TEXT} `}{timeAgo(user.createdAt)}
             </p>
             {user.bio ? <p className="ficha__bio">{user.bio}</p> : null}
           </div>
@@ -150,71 +141,12 @@ export default function ProfilePage() {
             ) : summaryQuery.isError ? (
               <Failure error={summaryQuery.error} onRetry={() => summaryQuery.refetch()} />
             ) : summary ? (
-              <div className="ficha__game">
-                <div>
-                  <MutationNotice error={syncAccount.error} padded />
-                  <AccountRow
-                    account={summary.account}
-                    onSync={handleSync}
-                    syncing={syncAccount.isPending}
-                  />
-
-                  <div className="ficha__scale">
-                    <div className="line-between">
-                      <span className="label">Posición en la escala del juego</span>
-                      <span>
-                        <span className="note note--faint">
-                          {pluralize(
-                            summary.account.rankHistory.length,
-                            'lectura registrada',
-                            'lecturas registradas',
-                          )}
-                        </span>
-                        {summary.account.simulated ? (
-                          <>
-                            {' · '}
-                            <DemoTag />
-                          </>
-                        ) : null}
-                      </span>
-                    </div>
-                    {currentRank ? (
-                      <>
-                        <RankScale
-                          gameId={summary.account.gameId}
-                          history={summary.account.rankHistory}
-                          current={currentRank}
-                        />
-                        <p className="note note--faint">
-                          Primera lectura:{' '}
-                          {firstRank ? formatRank(summary.account.gameId, firstRank) : 'Sin datos'}
-                        </p>
-                      </>
-                    ) : (
-                      <p className="note note--faint">Sin datos</p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="ficha__matches">
-                  <div className="line-between">
-                    <h3 className="sheet-title">Últimas partidas</h3>
-                    <span className="ficha__winrate">
-                      {typeof winRate === 'number' && Number.isFinite(winRate) ? (
-                        <>
-                          <CountUp value={winRate} suffix="%" /> ganadas
-                        </>
-                      ) : (
-                        'Sin datos'
-                      )}
-                    </span>
-                  </div>
-                  <MatchLedger
-                    matches={summary.recentMatches}
-                    simulated={summary.account.simulated}
-                  />
-                </div>
-              </div>
+              <GameSummaryPanel
+                summary={summary}
+                onSync={handleSync}
+                syncing={syncAccount.isPending}
+                syncError={syncAccount.error}
+              />
             ) : null}
           </>
         )}

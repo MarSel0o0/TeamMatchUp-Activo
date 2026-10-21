@@ -69,6 +69,23 @@ Orden global de implementación: 005 T9 → 004 T11…T25 → 005 T10 (hechas, v
 commiteadas) → 006 (cambio de requisitos y T1–T10), todo hecho y validado → 007 (T1–T31, hecha) → siguiente: validarla con `reviewer` y
 hacer la 008.
 
+## Spec 008 — ficha de jugador (estado 2026-10-20)
+- Estado: T1–T11 hechas y en verde (typecheck, lint, build; comprobaciones con Node y con
+  Chrome headless). NO "implementada": faltan la validación del reviewer RF por RF (Fase 5),
+  NVDA (RNF-2, manual; pasos en validation.md 4.8; en Mac se podría usar VoiceOver) y D10-1/D10-2.
+- Decisiones: cambio A (P50–P62) y cambio B (P65: excepción WCAG de RNF-5 para controles
+  deshabilitados; P66: textos de interfaz en copy.ts) aprobados. Ajustes P63 (6 consultas,
+  claves 'them'/'own'), P64 (usePlayerTab solo actúa dentro de /jugadores, por el
+  AnimatePresence de AppLayout) y P67 (portada CrossingVisual en T11). Preguntas 1–13
+  respondidas. P5: las dos vistas nuevas del Hito 2 son la ficha (008) y el detalle de sesión (009).
+- Abiertos fuera de la 008 (cambio aparte para toda la app, P60): D10-1 (contraste, tema claro)
+  y D10-2 (tema oscuro) en componentes de la 007 (AccountRow, RankScale, tabla de partidas).
+- Hallazgos previos: `npm run typecheck` no comprueba tipos (tsconfig "files": []), usar
+  `npm run build`; /perfil, /coincidencias y la portada desbordan a 360 px.
+- Siguiente paso: el reviewer valida specs/008-ficha-de-jugador/spec.md RF por RF con
+  validation.md; después, el cierre. Los scripts (gancho de Node, CDP) están en validation.md.
+- Base de validación `teammatchup_val008` en MongoDB local (se puede borrar).
+
 ## Estado del código
 
 - Frontend (spec 007, hecha): habla con el servidor real por defecto (`VITE_API_URL=/api`); el

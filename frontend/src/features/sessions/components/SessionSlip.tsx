@@ -1,4 +1,6 @@
 import { Ban, LogOut, UserPlus } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { playerPath } from '@/app/routes';
 import { formatHour, WEEK_DAYS } from '@/domain/availability';
 import type { PlaySession } from '@/domain/types';
 import { GameMark } from '@/shared/components/GameMark';
@@ -67,7 +69,9 @@ export function SessionSlip({
         {session.participants.map((participant, index) => (
           <li key={participant.id} style={{ animationDelay: `${index * 50}ms` }}>
             <Monogram name={participant.displayName} color={participant.avatarColor} size="sm" />
-            <span className="session__name">{participant.displayName}</span>
+            <span className="session__name">
+              <Link to={playerPath(participant.id, session.gameId)}>{participant.displayName}</Link>
+            </span>
             {participant.id === session.hostId ? (
               <span className="session__host">organiza</span>
             ) : null}

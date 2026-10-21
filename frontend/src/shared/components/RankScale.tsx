@@ -1,6 +1,6 @@
 import { motion } from 'motion/react';
 import { getGame } from '@/domain/games';
-import { rankGainSinceFirst } from '@/domain/rankProgress';
+import { formatRankGain, rankGainSinceFirst } from '@/domain/rankProgress';
 import { ladder, normalizeStep } from '@/domain/rankScale';
 import type { GameId, RankSnapshot } from '@/domain/types';
 import { EASE_OUT } from '@/shared/motion/presets';
@@ -97,14 +97,10 @@ export function RankScale({ gameId, history, current }: RankScaleProps) {
 
       <div className="rank-scale__ends">
         <span className="label">{game.tiers[0]}</span>
-        {delta === null ? (
-          <span className="rank-scale__delta num">Sin datos</span>
-        ) : (
-          <span className="rank-scale__delta num" data-up={delta >= 0 || undefined}>
-            {delta >= 0 ? '▲ +' : '▼ −'}
-            {Math.abs(delta)} pts desde la primera lectura
-          </span>
-        )}
+        {/* Texto único de perfil y ficha (spec 008, RF-4, RF-17; P41, P62). */}
+        <span className="rank-scale__delta num" data-up={(delta !== null && delta >= 0) || undefined}>
+          {formatRankGain(delta)}
+        </span>
         <span className="label">{game.tiers[game.tiers.length - 1]}</span>
       </div>
     </div>
