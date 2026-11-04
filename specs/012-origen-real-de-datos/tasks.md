@@ -18,7 +18,7 @@ y lint del frontend en las tareas del frontend), sin `.only`.
   - Hecho cuando: el texto del principio 5 está en la constitución y las cinco specs tienen
     su nota; `git diff` solo toca documentos.
 
-- [ ] **T2. Dominio: orígenes, espera mínima y mensajes.** RF-5, RF-7, RF-14, RF-16, RF-18,
+- [x] **T2. Dominio: orígenes, espera mínima y mensajes.** RF-5, RF-7, RF-14, RF-16, RF-18,
   RNF-4 (plan, secciones 1 y 2).
   - `domain/sources.ts`: `SourceId`, `Origin`, `BlockOrigins`, `SOURCE_NAMES`,
     `SOURCE_BLOCKS`, `blockOrigins()`.

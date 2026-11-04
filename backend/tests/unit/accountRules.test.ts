@@ -92,6 +92,11 @@ describe("ACCOUNT_ERRORS (plan, sección 7.2; spec, DP-6)", () => {
       "invalidId",
       "invalidRegion",
       "noAccountForGame",
+      "sourceAccountGone",
+      "sourceUnavailable",
+      "syncCooldown",
+      "verifiedElsewhere",
+      "verifiedNotEditable",
     ]);
   });
 
@@ -107,6 +112,74 @@ describe("ACCOUNT_ERRORS (plan, sección 7.2; spec, DP-6)", () => {
       ACCOUNT_ERRORS.noAccountForGame,
     ].join(" ");
     assert.doesNotMatch(texts, /valve|faceit|riot games|ubisoft connect|tracker/i);
+  });
+});
+
+describe("textos de la spec 012 (RF-10, RF-12, RF-14, RF-16, RF-19, RF-21, RNF-4)", () => {
+  // Literales de la spec, no importados del código.
+  test("verificada por otro usuario (RF-10, RF-12)", () => {
+    assert.equal(ACCOUNT_ERRORS.verifiedElsewhere, "esta cuenta ya está verificada por otro usuario");
+  });
+
+  test("cuenta verificada no editable (RF-14)", () => {
+    assert.equal(
+      ACCOUNT_ERRORS.verifiedNotEditable,
+      "una cuenta verificada no se puede editar: desvincúlala y vuelve a verificarla",
+    );
+  });
+
+  test("espera mínima: singular con 1 y plural con el resto (RF-16)", () => {
+    assert.equal(ACCOUNT_ERRORS.syncCooldown(1), "espera 1 minuto antes de volver a resincronizar");
+    assert.equal(ACCOUNT_ERRORS.syncCooldown(2), "espera 2 minutos antes de volver a resincronizar");
+    assert.equal(ACCOUNT_ERRORS.syncCooldown(5), "espera 5 minutos antes de volver a resincronizar");
+  });
+
+  test("fuente no disponible y cuenta que ya no existe en la fuente (RF-19, RF-21)", () => {
+    assert.equal(ACCOUNT_ERRORS.sourceUnavailable("Steam"), "Steam no está disponible por ahora, intenta más tarde");
+    assert.equal(
+      ACCOUNT_ERRORS.sourceUnavailable("Riot Games"),
+      "Riot Games no está disponible por ahora, intenta más tarde",
+    );
+    assert.equal(ACCOUNT_ERRORS.sourceAccountGone("Steam"), "la cuenta ya no existe en Steam");
+    assert.equal(ACCOUNT_ERRORS.sourceAccountGone("Riot Games"), "la cuenta ya no existe en Riot Games");
+  });
+
+  test("minúscula inicial y sin punto final (RNF-4)", () => {
+    const texts = [
+      ACCOUNT_ERRORS.verifiedElsewhere,
+      ACCOUNT_ERRORS.verifiedNotEditable,
+      ACCOUNT_ERRORS.syncCooldown(3),
+      ACCOUNT_ERRORS.sourceAccountGone("Steam"),
+    ];
+    for (const text of texts) {
+      assert.match(text, /^[a-zñáéíóú]/, text);
+      assert.doesNotMatch(text, /\.$/, text);
+    }
+    assert.doesNotMatch(ACCOUNT_ERRORS.sourceUnavailable("Steam"), /\.$/);
+  });
+});
+
+describe("validateAccountEdit con cuenta verificada (RF-14)", () => {
+  const verified = { gameId: "cs2" as const, handle: "76561190000000001", verification: { source: "steam" } };
+
+  test("rechaza cualquier edición, también la que no cambia nada", () => {
+    for (const body of [{ region: "Europe" }, { handle: "76561190000000001" }, {}, undefined, null, [], "x"]) {
+      assert.deepEqual(validateAccountEdit(verified, body), fail(ACCOUNT_ERRORS.verifiedNotEditable), String(body));
+    }
+  });
+
+  test("tiene prioridad sobre los errores de región e identificador", () => {
+    assert.deepEqual(
+      validateAccountEdit(verified, { region: "nope", handle: "otro" }),
+      fail(ACCOUNT_ERRORS.verifiedNotEditable),
+    );
+  });
+
+  test("una cuenta sin verificación se edita como antes", () => {
+    const manual = { gameId: "cs2" as const, handle: "76561190000000001" };
+    assert.deepEqual(validateAccountEdit(manual, { region: " europe " }), { ok: true, value: { region: "Europe" } });
+    assert.deepEqual(validateAccountEdit({ ...manual, verification: undefined }, {}), { ok: true, value: {} });
+    assert.deepEqual(validateAccountEdit({ ...manual, verification: null }, {}), { ok: true, value: {} });
   });
 });
 
