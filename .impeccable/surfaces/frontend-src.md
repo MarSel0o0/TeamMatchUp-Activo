@@ -22,37 +22,29 @@ tales; sin inventar cifras, usuarios ni respaldos.
 
 ## Direction contract
 
-THESIS: la aplicación es la hoja de inscripción de una LAN — cada hora es una línea
-donde alguien escribe su nombre y los demás se anotan debajo. Rechaza el arreglo por
-defecto del rubro: la parrilla de tarjetas iguales de icono + título + texto, y su
-opuesto predecible, el dashboard oscuro con acento neón y bordes brillantes.
+THESIS: la aplicación es el lobby antes de la partida: una sala nocturna donde tres
+condiciones (juego, rango, horario) se cruzan y solo el traslape se enciende. Rechaza
+la parrilla de tarjetas iguales de icono + título + texto y el dashboard oscuro con
+neón en todos los bordes: el brillo se reserva para el traslape y la acción.
 
-OWN-WORLD: papel de formulario continuo en stock oscuro, con bandas alternas de fila;
-reglado hairline que estructura cada superficie en vez de tarjetas; margen de
-perforación (sprockets) impreso como elemento estructural real al costado de las
-rejas; numeración de filas; sellos de goma rotados para los estados verificados; una
-sola familia tipográfica (Archivo, autohospedada) con numerales tabulares en todo
-dato; tinta clara sobre papel oscuro, un tinte de sello saturado y tres tintas de
-juego usadas solo donde el juego es la información.
+OWN-WORLD: grafito profundo con grano fijo y luz ambiental tenue; paneles con bisel
+doble y borde que se ilumina bajo el cursor; navegación en isla flotante de vidrio;
+un único acento volt (#cdf24b) para lo que el jugador hace y para el traslape; Geist
+para el texto y Geist Mono para todo dato; tres tintas de juego usadas solo donde el
+juego es la información. Regla de forma: paneles 22px, internos 12px, interactivos
+en píldora.
 
-STORY: el visitante entiende que otros ya escribieron sus horas; cree que hay gente
-real de su nivel en bloques que le calzan, porque el rango viene sellado desde la
-fuente y no declarado; y firma una línea — publica una sesión o se anota en la de
-otro.
+STORY: el visitante ve tres círculos que se encuentran y entiende que el producto es
+la zona en común; cree que hay gente de su nivel porque el rango se lee desde la
+fuente; y termina publicando una sesión o sumándose a la de otro.
 
-FIRST VIEWPORT: la agenda abre con la hoja completa ocupando el ancho: siete columnas
-de día, las horas como filas numeradas contra el margen de perforación, y las
-sesiones ya escritas dentro de sus bloques con la tinta de su juego. Sobre la hoja,
-una cabecera de formulario con el nombre del documento y los filtros como casillas;
-la acción primaria, anotar una sesión, vive en la esquina superior derecha de la hoja
-y también en cada línea vacía al pasar por encima.
+MOTION: todo movimiento tiene motivo (jerarquía, secuencia, respuesta o cambio de
+estado). Transiciones de página con fundido y blur; revelados al entrar en pantalla
+con IntersectionObserver; píldora activa con layoutId; filas que se reacomodan al
+filtrar; contadores y anillos de afinidad que se llenan; resorte en botones
+principales. Solo transform y opacity; `prefers-reduced-motion` respetado vía
+MotionConfig y CSS.
 
-FORM: hoja de inscripción de LAN party; candidato 6 de mi lista ordenada por
-resonancia; seed key 41f83abf. El dado corrió degradado (sin challengers ni tableros
-de calidad) porque la política de red del entorno bloquea el servicio de roll.
-Traducción de material declarada: el mundo es papel, pero la escena de uso es
-nocturna, así que el stock se imprime oscuro en vez del crema que el artefacto
-tendría de día.
-
-FINISH: unreviewed and undocumented is unfinished; this build ends with the finish
-review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
+FIRST VIEWPORT: la agenda abre con la semana completa, las horas propias iluminadas
+y las sesiones ya publicadas con la tinta de su juego. La acción primaria, anotar una
+sesión, vive arriba a la derecha y también en cada bloque vacío al pasar por encima.
