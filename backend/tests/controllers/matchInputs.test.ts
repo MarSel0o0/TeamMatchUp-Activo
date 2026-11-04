@@ -36,12 +36,13 @@ const ACCOUNT_KEYS = [
   "handle",
   "id",
   "lastSyncedAt",
+  "origins",
   "rankHistory",
   "region",
-  "simulated",
   "userId",
   "verified",
 ];
+const VERIFIED_EXTRA_KEYS = ["verifiedAt", "verifiedWith"];
 
 interface NewUser {
   name: string;
@@ -98,7 +99,9 @@ async function createAccount(data: NewAccount) {
     ],
     readingNumber: 3,
     lastSyncedAt: recordedAt,
-    verified: data.verified ?? false,
+    ...(data.verified === true
+      ? { verification: { source: "riot", externalId: `ext-${String(data.user)}`, verifiedAt: recordedAt } }
+      : {}),
   });
 }
 
@@ -288,7 +291,7 @@ describe("matchInputs: candidatos", () => {
     assert.strictEqual(blocksByUser.size, 2);
   });
 
-  test("las cuentas llevan simulated: true y no llevan matches ni readingNumber (RF-3)", async () => {
+  test("las cuentas llevan origins (sin simulated) y no llevan matches ni readingNumber (RF-3, spec 012 RF-5)", async () => {
     const ana = await createUser({ name: "Ana" });
     await createAccount({ user: ana._id });
     const beto = await createUser({ name: "Beto" });
@@ -301,8 +304,9 @@ describe("matchInputs: candidatos", () => {
     const accounts = [result.viewer.account, ...result.candidates.map((candidate) => candidate.account)];
     assert.strictEqual(accounts.length, 2);
     for (const account of accounts) {
-      assert.strictEqual(account.simulated, true);
-      assert.deepStrictEqual(Object.keys(account).sort(), ACCOUNT_KEYS);
+      assert.ok(!("simulated" in account));
+      const keys = account.verified ? [...ACCOUNT_KEYS, ...VERIFIED_EXTRA_KEYS].sort() : ACCOUNT_KEYS;
+      assert.deepStrictEqual(Object.keys(account).sort(), keys);
       assert.ok(!("matches" in account));
       assert.ok(!("readingNumber" in account));
     }

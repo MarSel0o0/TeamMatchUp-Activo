@@ -5,7 +5,9 @@
 //   bloque atribuido a una fuente que no lo entrega (RF-7).
 
 /** Fuentes reales conocidas: Steam (spec 013) y Riot Games (spec 014). */
-export type SourceId = "steam" | "riot";
+export const SOURCE_IDS = ["steam", "riot"] as const;
+
+export type SourceId = (typeof SOURCE_IDS)[number];
 
 /** `simulated` o la fuente real de la que vino el dato. */
 export type Origin = "simulated" | SourceId;

@@ -253,7 +253,7 @@ function expectedJson(id: string, userId: string, region: string, state: Account
     rankHistory: state.rankHistory.map(storedSnapshot),
     lastSyncedAt: state.lastSyncedAt,
     verified: false,
-    simulated: true,
+    origins: { identity: "simulated", rank: "simulated", matches: "simulated", profile: "simulated" },
   });
 }
 
@@ -278,7 +278,7 @@ function expectedStored(id: string, userId: string, region: string, state: Accou
     })),
     readingNumber: state.readingNumber,
     lastSyncedAt: state.lastSyncedAt,
-    verified: false,
+    handleKey: LOL.handle.trim().toLowerCase(),
   };
 }
 

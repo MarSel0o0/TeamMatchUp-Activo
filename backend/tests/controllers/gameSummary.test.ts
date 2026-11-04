@@ -163,7 +163,9 @@ function assertSummaryShape(body: unknown): void {
   assert.deepStrictEqual(Object.keys(body).sort(), SUMMARY_KEYS);
   const account: unknown = Reflect.get(body, "account");
   assert.ok(typeof account === "object" && account !== null);
-  assert.strictEqual(Reflect.get(account, "simulated"), true);
+  assert.strictEqual("simulated" in account, false); // spec 012, RF-5
+  assert.strictEqual(Reflect.get(account, "verified"), false);
+  assert.deepStrictEqual(Reflect.get(account, "origins"), { identity: "simulated", rank: "simulated", matches: "simulated", profile: "simulated" });
   assert.strictEqual("matches" in account, false);
   assert.strictEqual("readingNumber" in account, false);
   const matches: unknown = Reflect.get(body, "recentMatches");

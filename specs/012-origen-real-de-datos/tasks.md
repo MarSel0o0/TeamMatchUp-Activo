@@ -43,7 +43,7 @@ y lint del frontend en las tareas del frontend), sin `.only`.
   - Hecho cuando: ninguna lectura simulada produce `verified`; con el filtro activo y solo
     cuentas simuladas, las coincidencias salen vacías; la suite completa del backend en verde.
 
-- [ ] **T4. Modelo: `verification`, `handleKey`, `profile` y serialización.** RF-1, RF-2,
+- [x] **T4. Modelo: `verification`, `handleKey`, `profile` y serialización.** RF-1, RF-2,
   RF-3, RF-5, RF-10, RF-22, RNF-3 (plan, P12-1 a P12-4, P12-6).
   - `GameAccount`: sale `verified` guardado; entran `verification?` (`source`, `externalId`,
     `verifiedAt`), `handleKey` (con índice), `profile?` (todo opcional) y el índice único

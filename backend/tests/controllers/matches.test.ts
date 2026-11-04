@@ -60,6 +60,13 @@ after(async () => {
   await mongoose.disconnect();
 });
 
+// Spec 012, RF-6: una cuenta verificada se atribuye a su fuente en `verifiedWith` y en
+// `origins`; es lo único que puede nombrarla (RNF-3 de la spec 005 sigue valiendo para todo lo
+// demás: errores y textos).
+function withoutAttribution(body: unknown): string {
+  return JSON.stringify(body).replace(/"(verifiedWith|identity|rank|matches|profile)":"(riot|steam)"/g, "");
+}
+
 function assertStatusError(response: Response, status: number, message: string): void {
   assert.strictEqual(response.status, status);
   assert.match(response.headers["content-type"] ?? "", /application\/json/);
@@ -103,7 +110,9 @@ async function createAccount(userId: string, data: AccountData = {}) {
     ],
     readingNumber: 3,
     lastSyncedAt: recordedAt,
-    verified: data.verified ?? false,
+    ...(data.verified === true
+      ? { verification: { source: "riot", externalId: `ext-${userId}`, verifiedAt: recordedAt } }
+      : {}),
   });
 }
 
@@ -480,16 +489,19 @@ describe("respuesta", () => {
       "handle",
       "id",
       "lastSyncedAt",
+      "origins",
       "rankHistory",
       "region",
-      "simulated",
       "userId",
       "verified",
+      "verifiedAt",
+      "verifiedWith",
     ]);
     assert.deepStrictEqual(account, JSON.parse(JSON.stringify(betoAccount)));
-    assert.strictEqual(Reflect.get(account, "simulated"), true);
+    assert.strictEqual("simulated" in account, false); // spec 012, RF-5
     assert.strictEqual(Reflect.get(account, "userId"), beto.id);
     assert.strictEqual(Reflect.get(account, "verified"), true);
+    assert.strictEqual(Reflect.get(account, "verifiedWith"), "riot");
 
     assert.strictEqual(Reflect.get(candidate, "gameId"), "lol");
     assert.strictEqual(Reflect.get(candidate, "rankDistance"), 4);
@@ -507,9 +519,10 @@ describe("respuesta", () => {
 
     assert.strictEqual(response.status, 200);
     const text = JSON.stringify(response.body);
-    for (const forbidden of ["email", "passwordHash", "usernameKey", "matches", "readingNumber", "availability", "__v", "_id"]) {
+    for (const forbidden of ["email", "passwordHash", "usernameKey", "readingNumber", "availability", "__v", "_id"]) {
       assert.ok(!text.includes(`"${forbidden}"`), `no debe contener ${forbidden}`);
     }
+    assert.ok(!text.includes('"matches":['), "no debe contener las partidas"); // `origins.matches` sí sale
     assert.ok(!text.includes(BETO.email));
     assert.doesNotMatch(text, /riot|ubisoft|valve|faceit/i);
   });
@@ -630,7 +643,9 @@ async function createRankedAccount(userId: string, gameId: GameId, spec: Account
     matches: [],
     readingNumber: 0,
     lastSyncedAt: new Date(FIXED_NOW),
-    verified: spec.verified ?? false,
+    ...(spec.verified === true
+      ? { verification: { source: "riot", externalId: `ext-${gameId}-${userId}`, verifiedAt: new Date(FIXED_NOW) } }
+      : {}),
   });
 }
 
@@ -854,7 +869,7 @@ describe("filtros y orden", () => {
     }
 
     // Si ninguna cuenta está verificada, el filtro da lista vacía con 200.
-    await GameAccount.updateMany({}, { $set: { verified: false } });
+    await GameAccount.updateMany({}, { $unset: { verification: "" } });
     for (const game of GAME_IDS) {
       const response = await get(ana, `?game=${game}&onlyVerified=true`);
       assert.strictEqual(response.status, 200);
@@ -1027,9 +1042,9 @@ describe("filtros y orden", () => {
     ];
     for (const query of queries) {
       const response = await get(ana, query);
-      assert.doesNotMatch(JSON.stringify(response.body), /riot|ubisoft|valve|faceit/i, query);
+      assert.doesNotMatch(withoutAttribution(response.body), /riot|ubisoft|valve|faceit/i, query);
     }
     const noSession = await supertest(app).get(`${MATCHES}?game=lol`);
-    assert.doesNotMatch(JSON.stringify(noSession.body), /riot|ubisoft|valve|faceit/i);
+    assert.doesNotMatch(withoutAttribution(noSession.body), /riot|ubisoft|valve|faceit/i);
   });
 });
