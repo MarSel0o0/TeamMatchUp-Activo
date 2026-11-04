@@ -78,7 +78,7 @@ y lint del frontend en las tareas del frontend), sin `.only`.
     intactos; 404 `gone` con la cuenta todavía verificada; la cuenta sin verificar se
     resincroniza dos veces seguidas sin 429; ningún `GET` llama a la fuente (RF-17).
 
-- [ ] **T7. `verifyAccount` y el 409 del vínculo manual.** RF-1, RF-8, RF-10 a RF-13 (plan,
+- [x] **T7. `verifyAccount` y el 409 del vínculo manual.** RF-1, RF-8, RF-10 a RF-13 (plan,
   secciones 3.2 y 3.3; riesgo R1).
   - `services/verifyAccount.ts` según 3.2.
   - `linkAccount`: 409 `verifiedElsewhere` si el `gameId` + `handleKey` está verificado por

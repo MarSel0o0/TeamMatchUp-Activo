@@ -5,6 +5,9 @@
 // - Sin `$lookup`: `find` + `sort` simples del controlador y una sola consulta de dueños,
 //   así el orden por `_id` ascendente de la lista no cambia.
 import type { Types } from "mongoose";
+import type { GameId } from "../domain/games.ts";
+import { canonicalHandle } from "../domain/rankSimulator.ts";
+import { GameAccount } from "../models/gameAccount.ts";
 import { User } from "../models/user.ts";
 
 interface WithOwner {
@@ -23,4 +26,18 @@ export async function withExistingOwners<T extends WithOwner>(accounts: readonly
 /** `true` si el dueño de la cuenta existe. */
 export async function ownerExists(account: WithOwner): Promise<boolean> {
   return (await User.exists({ _id: account.user })) !== null;
+}
+
+/**
+ * `true` si otro usuario tiene verificada una cuenta de ese juego con ese identificador, sin
+ * distinguir mayúsculas ni espacios en los extremos (spec 012, RF-12).
+ */
+export async function isVerifiedByOtherUser(userId: string, gameId: GameId, handle: string): Promise<boolean> {
+  const found = await GameAccount.exists({
+    gameId,
+    handleKey: canonicalHandle(handle),
+    user: { $ne: userId },
+    verification: { $exists: true },
+  });
+  return found !== null;
 }

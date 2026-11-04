@@ -29,13 +29,11 @@ import { SOURCE_NAMES } from "../domain/sources.ts";
 import { syncCooldown } from "../domain/syncCooldown.ts";
 import { applyRealSync } from "../domain/verification.ts";
 import type { RealData } from "../domain/verification.ts";
-import type { AccountState } from "../domain/accountState.ts";
 import { canonicalHandle } from "../domain/rankSimulator.ts";
-import type { Snapshot } from "../domain/rankSimulator.ts";
 import { GameAccount } from "../models/gameAccount.ts";
-import type { GameAccountDocument, RankSnapshotFields } from "../models/gameAccount.ts";
-import { ownerExists, withExistingOwners } from "../services/accountReads.ts";
-import { linkAccount, toMatchRecord, updateOwnedAccount } from "../services/accountWrites.ts";
+import type { GameAccountDocument } from "../models/gameAccount.ts";
+import { isVerifiedByOtherUser, ownerExists, withExistingOwners } from "../services/accountReads.ts";
+import { linkAccount, toAccountState, toMatchRecord, updateOwnedAccount } from "../services/accountWrites.ts";
 import { simulatedRankProvider } from "../services/rankProvider.ts";
 import { SOURCE_TIMEOUT_MS, readWithTimeout } from "../services/realSources.ts";
 import type { SourceRegistry } from "../services/realSources.ts";
@@ -43,33 +41,6 @@ import { decodeSegment } from "../services/userTarget.ts";
 import { clock } from "../utils/clock.ts";
 import { MESSAGES } from "../utils/errors.ts";
 import { createWithUser } from "../utils/middleware.ts";
-
-// Fotografía guardada → fotografía del dominio (sin `division` si no la tiene).
-function toSnapshot(stored: RankSnapshotFields): Snapshot {
-  const { tier, division, points, normalized, recordedAt } = stored;
-  return division === undefined
-    ? { tier, points, normalized, recordedAt }
-    : { tier, division, points, normalized, recordedAt };
-}
-
-// Estado puro de una cuenta guardada ("estado(account)" del plan, sección 6); `matchId` → `id`.
-function toAccountState(account: GameAccountDocument): AccountState {
-  return {
-    currentRank: toSnapshot(account.currentRank),
-    rankHistory: account.rankHistory.map(toSnapshot),
-    matches: account.matches.map(({ matchId, gameId, playedAt, result, summary, durationMinutes, rankDelta }) => ({
-      id: matchId,
-      gameId,
-      playedAt,
-      result,
-      summary,
-      durationMinutes,
-      rankDelta,
-    })),
-    readingNumber: account.readingNumber,
-    lastSyncedAt: account.lastSyncedAt,
-  };
-}
 
 // Aplica una lectura real a la cuenta en memoria (spec 012, RF-9, RF-15). Rango, historial y
 // partidas por `applyRealSync`; el identificador visible y el perfil, tal como los entrega la
@@ -155,6 +126,11 @@ export function createAccountsRouter({
       return;
     }
     const data = payload.value;
+    // Spec 012, RF-12: un identificador que otro usuario ya verificó no se puede vincular.
+    if (await isVerifiedByOtherUser(sessionUserId, data.gameId, data.handle)) {
+      response.status(409).json({ error: ACCOUNT_ERRORS.verifiedElsewhere });
+      return;
+    }
     if ((await GameAccount.exists({ user: sessionUserId, gameId: data.gameId })) !== null) {
       response.status(400).json({ error: ACCOUNT_ERRORS.duplicate });
       return;
