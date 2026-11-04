@@ -1,12 +1,12 @@
 # Tareas 012 — Origen real de los datos y cuentas verificadas
-Estado: borrador (2026-11-04), pendiente de aprobación
+Estado: aprobado (2026-11-04)
 
 Spec: `spec.md` (aprobada el 2026-11-04). Plan: `plan.md` (aprobado el 2026-11-04).
 Regla de cada tarea (constitución, principio 4): pruebas primero en rojo, después el código,
 y la tarea se cierra solo con tests, typecheck y lint del backend en verde (y build, typecheck
 y lint del frontend en las tareas del frontend), sin `.only`.
 
-- [ ] **T1. Documentos: constitución, `AGENTS.md` y notas de impacto.** RF-7; "Impacto en
+- [x] **T1. Documentos: constitución, `AGENTS.md` y notas de impacto.** RF-7; "Impacto en
   otras specs y documentos" de la spec.
   - Agregar al principio 5 de `docs/constitution.md` el texto aprobado en la spec.
   - `AGENTS.md`: "rango simulado" → "rango simulado o real"; servicios `realSources.ts` y

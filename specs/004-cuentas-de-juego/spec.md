@@ -21,6 +21,8 @@ nuevo el 2026-10-18. Incluye las respuestas del usuario a P1 (hallazgo 25, 2026-
 retira la lista de cuentas del usuario) y a P2 (2026-10-18: la eliminación del usuario nunca
 deja cuentas huérfanas). No quedan dudas abiertas.
 
+Cambio por la spec 012 (2026-11-04, aprobado): se revocan RF-41 y la «proporción fija de cuentas verificadas»: una cuenta solo está verificada si su dueño la verificó con la fuente real (spec 012, RF-1, RF-2). La decisión «Todo simulado, sin fuentes» del 2026-10-17 queda revocada para LoL y CS2 (specs 013 y 014); R6 sigue simulado. «Fuera de alcance» deja de excluir Steam OpenID y la verificación de propiedad. La marca fija `simulated` pasa a ser el origen por bloque (spec 012, RF-5). Editar y resincronizar suman los RF-14 y RF-16 de la 012.
+
 ## Contexto y objetivo
 El rango es la segunda mitad del cruce (`PRODUCT.md`, principio 1). En este hito el rango,
 el historial y las partidas de las cuentas de League of Legends, Rainbow Six Siege y
