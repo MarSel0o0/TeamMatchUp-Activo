@@ -25,8 +25,6 @@ export interface GameDefinition {
   divisions: string[];
   /** Nombre de los puntos internos del juego. */
   pointsLabel: string;
-  /** Fuente desde la que se obtiene el rango (informativo en la UI). */
-  source: string;
 }
 
 export const GAMES: Record<GameId, GameDefinition> = {
@@ -53,7 +51,6 @@ export const GAMES: Record<GameId, GameDefinition> = {
     ],
     divisions: ['IV', 'III', 'II', 'I'],
     pointsLabel: 'LP',
-    source: 'Riot Games API',
   },
   r6: {
     id: 'r6',
@@ -76,7 +73,6 @@ export const GAMES: Record<GameId, GameDefinition> = {
     ],
     divisions: ['V', 'IV', 'III', 'II', 'I'],
     pointsLabel: 'MMR',
-    source: 'r6.tracker.network',
   },
   cs2: {
     id: 'cs2',
@@ -98,7 +94,6 @@ export const GAMES: Record<GameId, GameDefinition> = {
     ],
     divisions: [],
     pointsLabel: 'CS Rating',
-    source: 'Steam Web API',
   },
 };
 
@@ -115,36 +110,9 @@ export function isGameId(value: string): value is GameId {
   return value in GAMES;
 }
 
-/**
- * Traduce un tier/división concreto a la escala normalizada 0-100 compartida
- * por todos los juegos. Es el criterio que permite comparar, por ejemplo, un
- * Platinum de LoL con un Gold de R6 aunque las escalas tengan largos distintos.
- */
-export function normalizeRank(
-  gameId: GameId,
-  tier: string,
-  division?: string,
-): number {
-  const game = getGame(gameId);
-  const tierIndex = game.tiers.indexOf(tier);
-  if (tierIndex < 0) return 0;
-
-  const steps = game.divisions.length || 1;
-  const divisionIndex = division ? Math.max(0, game.divisions.indexOf(division)) : 0;
-
-  const totalSteps = game.tiers.length * steps;
-  const position = tierIndex * steps + divisionIndex;
-  return Math.round((position / (totalSteps - 1)) * 100);
-}
-
 /** Texto corto de un rango, ej. `Platinum II · 47 LP`. */
 export function formatRank(gameId: GameId, rank: RankSnapshot): string {
   const game = getGame(gameId);
   const base = rank.division ? `${rank.tier} ${rank.division}` : rank.tier;
   return rank.points === undefined ? base : `${base} · ${rank.points} ${game.pointsLabel}`;
-}
-
-/** Distancia de rango entre dos cuentas, en la escala normalizada. */
-export function rankDistance(a: RankSnapshot, b: RankSnapshot): number {
-  return Math.abs(a.normalized - b.normalized);
 }

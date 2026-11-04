@@ -1,0 +1,103 @@
+/*
+ * Ficha de otro jugador (spec 008, plan 4.2 y 4.7). Solo variables de tokens.css y clases
+ * existentes (`sheet`, `ficha__*`); sin colores escritos a mano (RNF-1).
+ */
+
+/* RNF-5: nombres, usuarios, zonas, biografías e identificadores de hasta 40 caracteres sin
+   espacios no empujan la página a lo ancho a 360 px. */
+.player-head .doc-title,
+.player-head .note,
+.player-head .ficha__bio,
+.player-panel .account,
+.player-panel .account * {
+  overflow-wrap: anywhere;
+}
+
+.player-head .ficha__head > * {
+  min-width: 0;
+}
+
+/* El panel recibe el foco por teclado (patrón de pestañas, RNF-2): el anillo de siempre, por
+   dentro, para que el recorte de la hoja no lo oculte. */
+.player-panel:focus-visible {
+  outline: 2px solid var(--volt);
+  outline-offset: -2px;
+}
+
+/* RNF-5: el riel del marcador de `RankScale` se mueve con `transform` y su caja sobresale a la
+   derecha de la regla (hasta el N % de su ancho); sin recortarla, a 360 px empuja la página a lo
+   ancho. `clip` no crea un recuadro con desplazamiento y deja ver el marcador, que queda dentro
+   del relleno del bloque. Solo en la ficha: el perfil queda como está (T10). */
+.player-panel {
+  min-width: 0;
+  overflow-x: clip;
+}
+
+.player-panel .ficha__game > * {
+  min-width: 0;
+}
+
+/* "Proponer sesión" deshabilitado sin `disabled` (recibe el foco; RNF-2): mismo aspecto que
+   `.btn:disabled`. */
+.player-propose {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  flex-wrap: wrap;
+}
+
+.player-propose .btn[aria-disabled='true'] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.player-propose .note {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Bloque de cruce (T7; plan 4.2 (3) y 4.7). Los subtítulos son `label`; el total y la distancia
+   en tinta plena; el texto de RF-13, los tramos y la nota de RF-22 parten líneas largas. */
+.player-cross > * {
+  min-width: 0;
+}
+
+.player-hours__total,
+.player-distance__value {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--s2);
+  color: var(--ink-2);
+}
+
+.player-hours__total strong,
+.player-distance__value strong {
+  font-size: var(--t-lead);
+  color: var(--ink);
+}
+
+.player-hours .notice,
+.player-hours .note,
+.player-distance .note,
+.player-hours .ficha__ranges li {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+/* RNF-5: la grilla tiene su propio desplazamiento horizontal; la página no se desplaza. Con un
+   ancho mínimo, en pantallas estrechas la grilla se desplaza dentro del recuadro en lugar de
+   comprimirse: comprimida, la columna de horas (36 px a menos de 640 px) no cabe "12:00" y el
+   recuadro, que recorta lo que sobresale, cortaba su primera cifra. Aun así "12:00" es algo más
+   ancho que esa columna y sobresale unos píxeles a la izquierda (también en Configuración, donde
+   no se recorta): el relleno izquierdo del recuadro lo deja a la vista. */
+.player-grid {
+  max-width: 100%;
+  overflow-x: auto;
+  padding-left: var(--s2);
+}
+
+.player-grid .hours {
+  min-width: 20rem;
+}

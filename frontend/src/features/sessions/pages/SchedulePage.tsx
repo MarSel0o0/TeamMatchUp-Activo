@@ -1,28 +1,63 @@
 import { CalendarPlus, Link2, NotebookPen } from 'lucide-react';
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/app/routes';
-import { parseBlock } from '@/domain/availability';
-import { GAME_LIST } from '@/domain/games';
+import { GRID_HOURS } from '@/domain/availability';
+import { GAME_LIST, isGameId } from '@/domain/games';
+import { PROPOSAL_DEFAULTS, type Proposal } from '@/domain/proposal';
 import type { GameId, WeekDay } from '@/domain/types';
+import { classifyResponse } from '@/domain/sessionDetail';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/features/auth/useAuth';
 import { useAccounts, useAvailability } from '@/features/profile/hooks';
 import { Icon } from '@/shared/components/Icon';
+import { MutationNotice } from '@/shared/components/MutationNotice';
 import { Blank, Failure, SheetSkeleton } from '@/shared/components/States';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { Magnetic } from '@/shared/motion/Magnetic';
+import { ApiError, isSessionCleared } from '@/services/api';
+import { NO_MESSAGE_TEXT } from '@/shared/utils/copy';
 import { pluralize } from '@/shared/utils/format';
+import { CancelSessionDialog } from '../components/CancelSessionDialog';
 import { SessionDraftSlip, type SessionDraft } from '../components/SessionDraftSlip';
-import { SessionSlip } from '../components/SessionSlip';
+import { SessionSlip, type SessionAction } from '../components/SessionSlip';
 import { WeekCalendar } from '../components/WeekCalendar';
+import { markAgendaStale } from '../agendaCache';
 import { useCancelSession, useJoinSession, useLeaveSession, useSessions } from '../hooks';
 import './schedulePage.css';
 
-/** Contexto que envía la vista de coincidencias al proponer una sesión. */
-interface ScheduleLocationState {
-  gameId?: GameId;
-  withUser?: string;
-  suggestedBlock?: string | null;
+/**
+ * Propuesta que trae el estado de la navegación al llegar desde «Proponer» (RF-29, RF-30), o
+ * `null` si no hay o no tiene la forma esperada. El estado del historial es un dato de fuera:
+ * se valida antes de abrir nada.
+ */
+function readProposal(state: unknown): Proposal | null {
+  if (typeof state !== 'object' || state === null || !('proposal' in state)) return null;
+  const raw = state.proposal;
+  if (typeof raw !== 'object' || raw === null) return null;
+  const { gameId, day, startHour, durationHours, title } = raw as Record<string, unknown>;
+  if (typeof gameId !== 'string' || !isGameId(gameId)) return null;
+  if (typeof day !== 'number' || !Number.isInteger(day) || day < 0 || day > 6) return null;
+  if (typeof startHour !== 'number' || !GRID_HOURS.includes(startHour)) return null;
+  if (typeof durationHours !== 'number' || !Number.isInteger(durationHours)) return null;
+  if (durationHours < 1 || durationHours > 4) return null;
+  if (typeof title !== 'string') return null;
+  return {
+    gameId,
+    day: day as WeekDay,
+    startHour,
+    durationHours,
+    title,
+    ...PROPOSAL_DEFAULTS,
+  };
 }
 
 export default function SchedulePage() {
@@ -30,6 +65,8 @@ export default function SchedulePage() {
 
   const { user } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const accountsQuery = useAccounts();
   const availabilityQuery = useAvailability();
 
@@ -46,6 +83,49 @@ export default function SchedulePage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [draft, setDraft] = useState<SessionDraft | null>(null);
 
+  // Cancelar con confirmación (spec 009, RF-19, RF-23; plan 4.2 y 4.4): una sola ventana para todas las tarjetas.
+  const [confirmFor, setConfirmFor] = useState<string | null>(null);
+  const [dialogMessage, setDialogMessage] = useState<string | null>(null);
+  const panelTitleRef = useRef<HTMLHeadingElement>(null);
+  const dialogTitleRef = useRef<HTMLHeadingElement>(null);
+  const dialogConfirmRef = useRef<HTMLButtonElement>(null);
+  const cancelButtons = useRef(new Map<string, HTMLButtonElement>());
+  const [focusRequest, setFocusRequest] = useState<{
+    target: 'panelTitle' | 'cancelButton' | 'dialogTitle' | 'dialogConfirm';
+    sessionId?: string;
+  } | null>(null);
+  const cancelRef = useCallback(
+    (sessionId: string) => (element: HTMLButtonElement | null) => {
+      if (element) cancelButtons.current.set(sessionId, element);
+      else cancelButtons.current.delete(sessionId);
+    },
+    [],
+  );
+
+  useLayoutEffect(() => {
+    if (focusRequest === null) return;
+    const element =
+      focusRequest.target === 'panelTitle'
+        ? panelTitleRef.current
+        : focusRequest.target === 'dialogTitle'
+          ? dialogTitleRef.current
+          : focusRequest.target === 'dialogConfirm'
+            ? dialogConfirmRef.current
+            : (cancelButtons.current.get(focusRequest.sessionId ?? '') ?? null);
+    element?.focus();
+  }, [focusRequest]);
+
+  // Llegada con `state.focus === 'panelTitle'` (cancelar desde el detalle, RF-8): el foco va al
+  // título del panel una sola vez y la marca se borra sin tocar `proposal` (007, RF-30).
+  const consumedFocus = useRef(false);
+  useEffect(() => {
+    const state = location.state as { focus?: unknown } | null;
+    if (consumedFocus.current || state?.focus !== 'panelTitle') return;
+    consumedFocus.current = true;
+    setFocusRequest({ target: 'panelTitle' });
+    navigate(location.pathname, { replace: true, state: { ...state, focus: undefined } });
+  }, [location.pathname, location.state, navigate]);
+
   // Si la sesión abierta desaparece (se canceló, o cambió el filtro) se limpia.
   useEffect(() => {
     if (selectedId && !sessions.some((session) => session.id === selectedId)) {
@@ -53,21 +133,42 @@ export default function SchedulePage() {
     }
   }, [sessions, selectedId]);
 
-  // Llegada desde «Proponer sesión»: abre la papeleta con el juego y el mejor
-  // bloque en común ya elegidos.
+  // Llegada desde «Proponer» (RF-30). La propuesta se lee una sola vez y espera a las cuentas
+  // del usuario de la sesión: el formulario nunca se abre con la lista de juegos vacía.
+  const [proposal, setProposal] = useState<Proposal | null>(null);
   useEffect(() => {
-    const state = location.state as ScheduleLocationState | null;
-    if (!state?.gameId) return;
+    const arrived = readProposal(location.state);
+    if (arrived) setProposal(arrived);
+  }, [location.key, location.state]);
 
-    const block = state.suggestedBlock ? parseBlock(state.suggestedBlock) : null;
-    setDraft({
-      gameId: state.gameId,
-      day: (block?.day ?? 0) as WeekDay,
-      startHour: block?.hour ?? 20,
-      title: state.withUser ? `Sesión con ${state.withUser}` : '',
-    });
-    window.history.replaceState({}, '');
-  }, [location.state]);
+  const { pathname } = location;
+  useEffect(() => {
+    if (!proposal) return;
+    // Con la sesión ya limpiada (401, RF-7) la propuesta se pierde sin tocar la navegación:
+    // el aviso de sesión caducada lleva al acceso.
+    if (!user) {
+      setProposal(null);
+      return;
+    }
+    if (accountsQuery.isPending || accountsQuery.isFetching) return;
+    // Con la carga fallida el error se muestra arriba (RF-9) y la propuesta se descarta,
+    // también si luego se reintenta; sin cuenta en el juego propuesto, la agenda queda
+    // como si se hubiera abierto directamente.
+    if (
+      accountsQuery.isSuccess &&
+      accountsQuery.data.some((account) => account.gameId === proposal.gameId)
+    ) {
+      setDraft({
+        gameId: proposal.gameId,
+        day: proposal.day,
+        startHour: proposal.startHour,
+        durationHours: proposal.durationHours,
+        title: proposal.title,
+      });
+    }
+    setProposal(null);
+    navigate(pathname, { replace: true, state: null });
+  }, [proposal, user, accountsQuery, navigate, pathname]);
 
   const selected = sessions.find((session) => session.id === selectedId) ?? null;
   const mine = sessions.filter((session) =>
@@ -84,6 +185,77 @@ export default function SchedulePage() {
   };
 
   const busy = joinSession.isPending || leaveSession.isPending || cancelSession.isPending;
+
+  // Una sola escritura de la agenda a la vez, aunque el estado de la escritura aún no se haya
+  // pintado: un doble clic envía una sola petición (RF-20).
+  const sending = useRef(false);
+  const runAction = (action: 'join' | 'leave', sessionId: string) => {
+    if (sending.current) return;
+    sending.current = true;
+    // El aviso de un intento anterior deja de ser cierto al empezar otro.
+    joinSession.reset();
+    leaveSession.reset();
+    const mutation = action === 'join' ? joinSession : leaveSession;
+    mutation.mutate(sessionId, { onSettled: () => (sending.current = false) });
+  };
+
+  const sessionVisible = (sessionId: string) =>
+    selected ? selected.id === sessionId : mine.some((session) => session.id === sessionId);
+
+  const openCancelDialog = (sessionId: string) => {
+    if (sending.current) return;
+    cancelSession.reset();
+    setDialogMessage(null);
+    setConfirmFor(sessionId);
+  };
+
+  // Cierra sin enviar: el foco vuelve a «Cancelar sesión» de esa tarjeta si sigue ahí, y si no
+  // al título del panel (RNF-2, puntos a y d; caso 6).
+  const closeCancelDialog = () => {
+    if (cancelSession.isPending || confirmFor === null) return;
+    const sessionId = confirmFor;
+    setConfirmFor(null);
+    setDialogMessage(null);
+    cancelSession.reset();
+    setFocusRequest(
+      sessionVisible(sessionId)
+        ? { target: 'cancelButton', sessionId }
+        : { target: 'panelTitle' },
+    );
+  };
+
+  const confirmCancel = async () => {
+    if (sending.current || confirmFor === null) return;
+    const sessionId = confirmFor;
+    sending.current = true;
+    setDialogMessage(null);
+    setFocusRequest({ target: 'dialogTitle' }); // Q25: el botón queda deshabilitado
+    try {
+      await cancelSession.mutateAsync(sessionId);
+      // 204: el `onSuccess` ya quitó la tarjeta; la ventana se cierra sola.
+      setConfirmFor(null);
+      setFocusRequest({ target: 'panelTitle' });
+    } catch (error) {
+      if (isSessionCleared(error)) return;
+      const hasMessage = error instanceof ApiError && error.hasMessage;
+      const info = { ok: false as const, status: error instanceof ApiError ? error.status : 0, hasMessage };
+      const outcome = classifyResponse('action', info);
+      setDialogMessage(hasMessage ? error.message : NO_MESSAGE_TEXT);
+      // La agenda vuelve a pedir sus sesiones tras un 404 o un rechazo con mensaje (RF-19).
+      if (outcome === 'empty' || outcome === 'messageAndReread') markAgendaStale(queryClient, user?.id ?? null);
+      setFocusRequest({ target: 'dialogConfirm' });
+    } finally {
+      sending.current = false;
+    }
+  };
+
+  const pendingAction = (sessionId: string): SessionAction | null => {
+    if (joinSession.isPending && joinSession.variables === sessionId) return 'join';
+    if (leaveSession.isPending && leaveSession.variables === sessionId) return 'leave';
+    if (cancelSession.isPending && cancelSession.variables === sessionId) return 'cancel';
+    return null;
+  };
+  const actionError = joinSession.error ?? leaveSession.error;
 
   if (!user) return null;
 
@@ -112,7 +284,13 @@ export default function SchedulePage() {
         </Magnetic>
       </header>
 
-      {myGames.length === 0 ? (
+      {accountsQuery.isError ? (
+        <Failure
+          error={accountsQuery.error}
+          onRetry={() => accountsQuery.refetch()}
+          role="alert"
+        />
+      ) : accountsQuery.isSuccess && myGames.length === 0 ? (
         <p className="notice notice--pen">
           <Icon as={Link2} size={15} />
           Necesitas al menos un juego vinculado para anotar sesiones.{' '}
@@ -187,7 +365,7 @@ export default function SchedulePage() {
         <aside className="agenda__side">
           <div className="sheet">
             <div className="sheet__head">
-              <h2 className="sheet-title grow">
+              <h2 ref={panelTitleRef} className="sheet-title grow" tabIndex={-1}>
                 {selected ? 'Sesión abierta' : 'Mis sesiones'}
               </h2>
               {selected ? (
@@ -204,14 +382,17 @@ export default function SchedulePage() {
             </div>
 
             <div className="sheet__body stack">
+              <MutationNotice error={actionError} />
               {selected ? (
                 <SessionSlip
                   session={selected}
                   currentUserId={user.id}
-                  onJoin={(id) => joinSession.mutate(id)}
-                  onLeave={(id) => leaveSession.mutate(id)}
-                  onCancel={(id) => cancelSession.mutate(id)}
+                  onJoin={(id) => runAction('join', id)}
+                  onLeave={(id) => runAction('leave', id)}
+                  onCancel={openCancelDialog}
                   busy={busy}
+                  pendingAction={pendingAction(selected.id)}
+                  cancelButtonRef={cancelRef(selected.id)}
                 />
               ) : mine.length === 0 ? (
                 <Blank
@@ -225,10 +406,12 @@ export default function SchedulePage() {
                     key={session.id}
                     session={session}
                     currentUserId={user.id}
-                    onJoin={(id) => joinSession.mutate(id)}
-                    onLeave={(id) => leaveSession.mutate(id)}
-                    onCancel={(id) => cancelSession.mutate(id)}
+                    onJoin={(id) => runAction('join', id)}
+                    onLeave={(id) => runAction('leave', id)}
+                    onCancel={openCancelDialog}
                     busy={busy}
+                    pendingAction={pendingAction(session.id)}
+                    cancelButtonRef={cancelRef(session.id)}
                   />
                 ))
               )}
@@ -236,6 +419,16 @@ export default function SchedulePage() {
           </div>
         </aside>
       </div>
+
+      <CancelSessionDialog
+        open={confirmFor !== null}
+        onClose={closeCancelDialog}
+        onConfirm={() => void confirmCancel()}
+        pending={cancelSession.isPending}
+        message={dialogMessage}
+        titleRef={dialogTitleRef}
+        confirmRef={dialogConfirmRef}
+      />
 
       {draft ? (
         <SessionDraftSlip

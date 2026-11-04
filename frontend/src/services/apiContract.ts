@@ -1,5 +1,4 @@
 import type {
-  AuthSession,
   Credentials,
   GameAccount,
   GameId,
@@ -7,6 +6,7 @@ import type {
   MatchFilters,
   MatchRecord,
   PlaySession,
+  PublicUser,
   RegisterPayload,
   TimeBlock,
   User,
@@ -29,10 +29,20 @@ export interface CreateSessionPayload {
   slots: number;
 }
 
+/** Los seis campos que edita la sesión (spec 009, D-16). */
+export type SessionEditFields = Pick<
+  CreateSessionPayload,
+  'title' | 'notes' | 'day' | 'startHour' | 'durationHours' | 'slots'
+>;
+
+/** Edición parcial de la 006 (RF-7): el formulario envía siempre los seis campos. */
+export type SessionEditPayload = Partial<SessionEditFields>;
+
 export interface UpdateProfilePayload {
   displayName?: string;
   bio?: string;
   timezone?: string;
+  avatarColor?: string;
 }
 
 /** Resumen que alimenta la vista de perfil para un juego concreto. */
@@ -52,9 +62,11 @@ export interface GameProfileSummary {
  */
 export interface ApiContract {
   auth: {
-    login(credentials: Credentials): Promise<AuthSession>;
-    register(payload: RegisterPayload): Promise<AuthSession>;
-    /** Restaura la sesión a partir del token guardado; `null` si no es válida. */
+    /** Inicia sesión y guarda el comprobante anti-CSRF; devuelve al usuario. */
+    login(credentials: Credentials): Promise<User>;
+    /** Crea la cuenta; no abre sesión (spec 002). */
+    register(payload: RegisterPayload): Promise<User>;
+    /** Consulta la sesión vigente; `null` solo si el servidor responde 401. */
     me(): Promise<User | null>;
     logout(): Promise<void>;
   };
@@ -66,8 +78,22 @@ export interface ApiContract {
     /** Fuerza una relectura del rango desde la fuente externa del juego. */
     syncAccount(accountId: string): Promise<GameAccount>;
     getAvailability(): Promise<TimeBlock[]>;
+    /** Horas marcadas por otro jugador; las usa "Proponer" (plan 3.11, R-6). */
+    getAvailabilityOf(userId: string): Promise<TimeBlock[]>;
     saveAvailability(blocks: TimeBlock[]): Promise<TimeBlock[]>;
     getGameSummary(gameId: GameId): Promise<GameProfileSummary>;
+  };
+  /**
+   * Lecturas de otro jugador (spec 008, plan 4.5). `userId` admite `me`; los datos de otro
+   * jugador llegan sin correo (el propio, con él).
+   */
+  users: {
+    /** `GET /api/users/:id`. */
+    get(userId: string): Promise<PublicUser>;
+    /** `GET /api/accounts?user=:id`; usuario inexistente → `[]`. */
+    listAccounts(userId: string): Promise<GameAccount[]>;
+    /** `GET /api/users/:id/games/:gameId`. */
+    getGameSummary(userId: string, gameId: GameId): Promise<GameProfileSummary>;
   };
   matches: {
     list(filters: MatchFilters): Promise<MatchCandidate[]>;
@@ -75,6 +101,10 @@ export interface ApiContract {
   sessions: {
     list(gameId: GameId | 'all'): Promise<PlaySession[]>;
     create(payload: CreateSessionPayload): Promise<PlaySession>;
+    /** `GET /api/sessions/:id`. */
+    get(sessionId: string): Promise<PlaySession>;
+    /** `PUT /api/sessions/:id`: edición parcial; solo quien organiza. */
+    update(sessionId: string, payload: SessionEditPayload): Promise<PlaySession>;
     join(sessionId: string): Promise<PlaySession>;
     leave(sessionId: string): Promise<PlaySession>;
     cancel(sessionId: string): Promise<void>;

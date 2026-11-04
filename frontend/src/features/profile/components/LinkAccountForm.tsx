@@ -1,9 +1,11 @@
 import { AlertCircle, Link2 } from 'lucide-react';
-import { useMemo, useState, type FormEvent } from 'react';
+import { useMemo, useRef, useState, type FormEvent } from 'react';
 import { GAME_LIST, getGame } from '@/domain/games';
 import type { GameId } from '@/domain/types';
 import { Icon } from '@/shared/components/Icon';
+import { MutationNotice } from '@/shared/components/MutationNotice';
 import { TextField } from '@/shared/components/TextField';
+import { SENDING_TEXT } from '@/shared/utils/copy';
 import { useLinkAccount } from '../hooks';
 
 interface LinkAccountFormProps {
@@ -14,7 +16,7 @@ interface LinkAccountFormProps {
 
 /**
  * Alta de una cuenta de juego. Solo se piden identificador y región: el rango lo
- * lee la plataforma desde la fuente del juego, que es lo que lo hace verificable.
+ * lee la plataforma y no se declara a mano (RF-15, sin nombrar fuentes).
  */
 export function LinkAccountForm({ linkedGames, onLinked }: LinkAccountFormProps) {
   const available = useMemo(
@@ -26,6 +28,8 @@ export function LinkAccountForm({ linkedGames, onLinked }: LinkAccountFormProps)
   const [handle, setHandle] = useState('');
   const [region, setRegion] = useState(available[0]?.regions[0] ?? '');
   const [error, setError] = useState<string | null>(null);
+  // Un solo envío por doble clic, aunque el estado de la escritura aún no se haya pintado (RF-20).
+  const sending = useRef(false);
 
   const linkAccount = useLinkAccount();
   const game = getGame(gameId);
@@ -42,10 +46,12 @@ export function LinkAccountForm({ linkedGames, onLinked }: LinkAccountFormProps)
     setGameId(nextGameId);
     setRegion(getGame(nextGameId).regions[0]);
     setError(null);
+    linkAccount.reset();
   };
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
+    if (sending.current) return;
     setError(null);
 
     if (!game.handlePattern.test(handle.trim())) {
@@ -53,14 +59,15 @@ export function LinkAccountForm({ linkedGames, onLinked }: LinkAccountFormProps)
       return;
     }
 
+    sending.current = true;
     try {
       await linkAccount.mutateAsync({ gameId, handle: handle.trim(), region });
       setHandle('');
       onLinked?.();
-    } catch (mutationError) {
-      setError(
-        mutationError instanceof Error ? mutationError.message : 'No se pudo vincular la cuenta.',
-      );
+    } catch {
+      // El error se muestra con `MutationNotice` desde el estado de la escritura (RF-9).
+    } finally {
+      sending.current = false;
     }
   };
 
@@ -72,6 +79,7 @@ export function LinkAccountForm({ linkedGames, onLinked }: LinkAccountFormProps)
           {error}
         </p>
       ) : null}
+      <MutationNotice error={linkAccount.error} />
 
       <div className="field">
         <label className="label" htmlFor="link-game">
@@ -96,7 +104,6 @@ export function LinkAccountForm({ linkedGames, onLinked }: LinkAccountFormProps)
         placeholder={game.handlePlaceholder}
         value={handle}
         onChange={(event) => setHandle(event.target.value)}
-        hint={`Leeremos tu rango desde ${game.source}.`}
       />
 
       <div className="field">
@@ -119,7 +126,7 @@ export function LinkAccountForm({ linkedGames, onLinked }: LinkAccountFormProps)
 
       <button type="submit" className="btn btn--pen" disabled={linkAccount.isPending}>
         {linkAccount.isPending ? <span className="btn__spin" /> : <Icon as={Link2} size={14} />}
-        {linkAccount.isPending ? 'Vinculando…' : 'Vincular cuenta'}
+        {linkAccount.isPending ? SENDING_TEXT : 'Vincular cuenta'}
       </button>
     </form>
   );

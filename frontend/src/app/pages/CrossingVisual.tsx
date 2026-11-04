@@ -7,6 +7,7 @@ import {
 } from 'motion/react';
 import type { PointerEvent } from 'react';
 import { EASE_OUT } from '@/shared/motion/presets';
+import { SHARED_HOURS_TITLE } from '@/shared/utils/copy';
 
 /**
  * El cruce, dibujado.
@@ -20,7 +21,7 @@ const R = 108;
 const CIRCLES = [
   { id: 'juego', label: 'Mismo juego', cx: 156, cy: 160, from: { cx: 70, cy: 110 } },
   { id: 'rango', label: 'Rango similar', cx: 244, cy: 160, from: { cx: 330, cy: 110 } },
-  { id: 'horario', label: 'Horas en común', cx: 200, cy: 236, from: { cx: 200, cy: 330 } },
+  { id: 'horario', label: SHARED_HOURS_TITLE, cx: 200, cy: 236, from: { cx: 200, cy: 330 } },
 ] as const;
 
 export function CrossingVisual() {

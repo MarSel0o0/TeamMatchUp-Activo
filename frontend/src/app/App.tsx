@@ -3,6 +3,7 @@ import { PointerSpotlight } from '@/shared/motion/PointerSpotlight';
 import { ErrorBoundary } from './ErrorBoundary';
 import { AppProviders } from './providers/AppProviders';
 import { AppRouter } from './router';
+import { SessionGate } from './SessionGate';
 
 export function App() {
   return (
@@ -12,7 +13,9 @@ export function App() {
       <MotionConfig reducedMotion="user">
         <AppProviders>
           <PointerSpotlight />
-          <AppRouter />
+          <SessionGate>
+            <AppRouter />
+          </SessionGate>
         </AppProviders>
       </MotionConfig>
     </ErrorBoundary>

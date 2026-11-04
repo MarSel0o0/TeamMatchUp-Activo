@@ -1,0 +1,47 @@
+/* Detalle de una sesión (spec 009, plan 5.1, 5.2 y 5.7). Solo variables de tokens.css. */
+
+.session-detail__head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s3);
+  margin-bottom: var(--s4);
+  min-width: 0;
+}
+
+.session-detail__heading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  min-width: 0;
+}
+
+.session-detail__title,
+.session-detail__heading .note,
+.session__notes,
+.session__name {
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.session-detail__sheet {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+  padding: var(--s5);
+  min-width: 0;
+}
+
+.session-detail__counts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s3);
+}
+
+.session-detail__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s3);
+  margin-top: var(--s4);
+}

@@ -1,20 +1,22 @@
+import { isMockEnabled } from './mockFlag';
+
 /**
  * Lectura centralizada de la configuración de entorno.
  *
- * `apiUrl` vacío significa "todavía no hay servidor Express": la aplicación
- * usa entonces el backend simulado en memoria. Al definir `VITE_API_URL` la
- * misma app pasa a hablar HTTP sin cambiar ni un componente.
+ * Por defecto la interfaz habla con el servidor real (`apiUrl`, `/api` si no se
+ * define `VITE_API_URL`). El backend simulado en memoria solo se activa con
+ * `VITE_USE_MOCK_API=true` (RF-1). Los valores se evalúan una vez al arrancar o
+ * construir la aplicación y no cambian en caliente.
  */
 export const env = {
-  apiUrl: (import.meta.env.VITE_API_URL ?? '').trim(),
+  apiUrl: (import.meta.env.VITE_API_URL ?? '').trim() || '/api',
   mockLatency: Number(import.meta.env.VITE_MOCK_LATENCY ?? 350),
-  get useMockApi(): boolean {
-    return this.apiUrl === '';
-  },
+  useMockApi: isMockEnabled(import.meta.env.VITE_USE_MOCK_API),
 } as const;
 
 export const STORAGE_KEYS = {
-  token: 'tmu.token',
-  mockDb: 'tmu.mock-db.v2',
+  csrf: 'tmu.csrf',
+  sessionSignal: 'tmu.session-signal',
+  mockDb: 'tmu.mock-db.v3',
   theme: 'tmu.theme',
 } as const;

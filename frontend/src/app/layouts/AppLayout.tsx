@@ -1,15 +1,16 @@
 import { LogOut } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Suspense, useEffect, useState } from 'react';
-import { NavLink, useLocation, useNavigate, useOutlet } from 'react-router-dom';
-import { env } from '@/config/env';
+import { Suspense, useEffect, useRef, useState } from 'react';
+import { NavLink, useLocation, useOutlet } from 'react-router-dom';
 import { useAuth } from '@/features/auth/useAuth';
 import { BrandMark } from '@/shared/components/BrandMark';
+import { DemoTag } from '@/shared/components/DemoTag';
 import { Icon } from '@/shared/components/Icon';
 import { Monogram } from '@/shared/components/Monogram';
 import { Working } from '@/shared/components/States';
 import { ThemeToggle } from '@/shared/components/ThemeToggle';
 import { EASE_FLUID, EASE_OUT, SPRING, pageTransition } from '@/shared/motion/presets';
+import { LOADING_TEXT, SENDING_TEXT } from '@/shared/utils/copy';
 import { NAV_ITEMS, ROUTES } from '../routes';
 import './appLayout.css';
 
@@ -22,10 +23,11 @@ import './appLayout.css';
  */
 export function AppLayout() {
   const { user, logout } = useAuth();
-  const navigate = useNavigate();
   const location = useLocation();
   const outlet = useOutlet();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+  const loggingOutRef = useRef(false);
 
   useEffect(() => {
     setMenuOpen(false);
@@ -44,9 +46,19 @@ export function AppLayout() {
     };
   }, [menuOpen]);
 
+  // El proveedor limpia la sesión y lleva a login con `replace` (RF-6).
+  // Mientras espera la respuesta (hasta 30 s) el botón queda deshabilitado: un doble clic
+  // envía una sola petición (RF-20).
   const handleLogout = async () => {
-    await logout();
-    navigate(ROUTES.login, { replace: true });
+    if (loggingOutRef.current) return;
+    loggingOutRef.current = true;
+    setLoggingOut(true);
+    try {
+      await logout();
+    } finally {
+      loggingOutRef.current = false;
+      setLoggingOut(false);
+    }
   };
 
   return (
@@ -91,14 +103,7 @@ export function AppLayout() {
 
           <div className="dock__end">
             <ThemeToggle />
-            {env.useMockApi ? (
-              <span
-                className="dock__demo"
-                title="Nada de lo que ves proviene de Riot, Ubisoft o Steam todavía. Define VITE_API_URL para conectar el servidor."
-              >
-                Demo
-              </span>
-            ) : null}
+            <DemoTag className="dock__demo" />
 
             {user ? (
               <div className="dock__user">
@@ -108,9 +113,10 @@ export function AppLayout() {
                   type="button"
                   className="dock__icon-btn"
                   onClick={handleLogout}
-                  title="Cerrar sesión"
+                  disabled={loggingOut}
+                  title={loggingOut ? SENDING_TEXT : 'Cerrar sesión'}
                 >
-                  <Icon as={LogOut} size={15} label="Cerrar sesión" />
+                  <Icon as={LogOut} size={15} label={loggingOut ? SENDING_TEXT : 'Cerrar sesión'} />
                 </button>
               </div>
             ) : null}
@@ -177,9 +183,14 @@ export function AppLayout() {
                     <span className="note note--faint">@{user.username}</span>
                   </span>
                 </div>
-                <button type="button" className="btn btn--sm" onClick={handleLogout}>
-                  <Icon as={LogOut} size={13} />
-                  Cerrar sesión
+                <button
+                  type="button"
+                  className="btn btn--sm"
+                  onClick={handleLogout}
+                  disabled={loggingOut}
+                >
+                  {loggingOut ? <span className="btn__spin" /> : <Icon as={LogOut} size={13} />}
+                  {loggingOut ? SENDING_TEXT : 'Cerrar sesión'}
                 </button>
               </motion.div>
             ) : null}
@@ -199,18 +210,14 @@ export function AppLayout() {
           >
             {/* Suspense propio: al cargar una vista diferida la isla de
                 navegación sigue en pantalla. */}
-            <Suspense fallback={<Working label="Cargando…" />}>{outlet}</Suspense>
+            <Suspense fallback={<Working label={LOADING_TEXT} />}>{outlet}</Suspense>
           </motion.div>
         </AnimatePresence>
       </main>
 
       <footer className="shell__foot">
         <span className="label">TeamMatchUp · 2026</span>
-        {env.useMockApi ? (
-          <span className="note note--faint">
-            Datos de demostración. Nada de lo que ves proviene de Riot, Ubisoft o Steam todavía.
-          </span>
-        ) : null}
+        <DemoTag />
       </footer>
     </div>
   );

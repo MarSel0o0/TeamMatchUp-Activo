@@ -10,7 +10,7 @@ interface CountUpProps {
 
 /**
  * Número que cuenta hasta su valor al aparecer, y que vuelve a contar desde el
- * valor anterior cuando cambia.
+ * valor anterior al cambiar.
  *
  * El texto lo escribe la animación directo en el nodo: contar con `useState`
  * re-renderizaría el árbol sesenta veces por segundo. Por eso el span no tiene

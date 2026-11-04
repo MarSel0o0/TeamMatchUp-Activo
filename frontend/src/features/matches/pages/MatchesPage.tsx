@@ -1,9 +1,10 @@
 import { Link2, SearchX } from 'lucide-react';
 import { AnimatePresence } from 'motion/react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/app/routes';
-import type { GameId, MatchCandidate, MatchFilters } from '@/domain/types';
+import type { Proposal } from '@/domain/proposal';
+import type { GameId, MatchFilters } from '@/domain/types';
 import { useAccounts, useAvailability } from '@/features/profile/hooks';
 import { GameTabs } from '@/shared/components/GameTabs';
 import { Blank, Failure, SheetSkeleton } from '@/shared/components/States';
@@ -54,15 +55,13 @@ export default function MatchesPage() {
   const candidates = matchesQuery.data ?? [];
   const viewerBlocks = availabilityQuery.data ?? [];
 
-  const proposeSession = (candidate: MatchCandidate) => {
-    // La agenda recibe el contexto y abre la papeleta en el mejor bloque en común.
-    navigate(ROUTES.schedule, {
-      state: {
-        gameId: candidate.gameId,
-        withUser: candidate.user.displayName,
-        suggestedBlock: candidate.sharedBlocks[0] ?? null,
-      },
-    });
+  // Una sola navegación por visita a la página: dos pulsaciones seguidas de "Proponer" no
+  // dejan dos entradas en el historial (RF-29).
+  const proposing = useRef(false);
+  const proposeSession = (proposal: Proposal) => {
+    if (proposing.current) return;
+    proposing.current = true;
+    navigate(ROUTES.schedule, { state: { proposal } });
   };
 
   if (accountsQuery.isPending) {
@@ -104,7 +103,7 @@ export default function MatchesPage() {
         onChange={setActiveGame}
       />
 
-      {viewerBlocks.length === 0 ? (
+      {availabilityQuery.isSuccess && viewerBlocks.length === 0 ? (
         <p className="notice notice--pen">
           No has marcado horas, así que nadie puede cruzarse contigo.{' '}
           <Link to={ROUTES.settings}>Marca tu disponibilidad</Link> para ver resultados reales.
@@ -164,6 +163,7 @@ export default function MatchesPage() {
                     key={candidate.account.id}
                     candidate={candidate}
                     viewerBlocks={viewerBlocks}
+                    viewerLoaded={availabilityQuery.isSuccess}
                     onPropose={proposeSession}
                   />
                 ))}

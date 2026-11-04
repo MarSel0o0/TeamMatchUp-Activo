@@ -9,7 +9,7 @@
   display: grid;
   grid-template-columns: 52px repeat(7, minmax(104px, 1fr));
   column-gap: 4px;
-  /* Fila de días automática; cada hora mide lo mismo aunque una sesión
+  /* Fila de días de alto libre; cada hora mide lo mismo aunque una sesión
      angosta tenga más texto del que cabe. */
   grid-template-rows: auto;
   grid-auto-rows: 44px;

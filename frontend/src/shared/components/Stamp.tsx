@@ -16,8 +16,8 @@ interface StampProps {
 /**
  * Sello de goma.
  *
- * Marca los estados que en un formulario de papel se estamparían: rango
- * verificado, inscripción registrada, cupo lleno. Al montar —o cuando cambia
+ * Marca los estados que en un formulario de papel se estamparían: cuenta
+ * verificada, inscripción registrada, cupo lleno. Al montar —o al variar
  * `pressKey`— el sello aterriza sobre el papel; es el único momento animado del
  * producto.
  */

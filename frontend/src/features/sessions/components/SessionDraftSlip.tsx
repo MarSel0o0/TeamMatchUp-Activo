@@ -1,11 +1,21 @@
 import { AlertCircle, PenLine } from 'lucide-react';
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { GRID_HOURS, WEEK_DAYS, formatHour } from '@/domain/availability';
 import { GAME_LIST } from '@/domain/games';
+import { PROPOSAL_DEFAULTS } from '@/domain/proposal';
+import {
+  NOTES_MAX_LENGTH,
+  SESSION_ERRORS,
+  TITLE_MAX_LENGTH,
+  isValidSessionTitle,
+} from '@/domain/sessionRules';
 import type { GameId, WeekDay } from '@/domain/types';
 import { Slip } from '@/shared/components/Slip';
 import { Icon } from '@/shared/components/Icon';
+import { MutationNotice } from '@/shared/components/MutationNotice';
 import { TextField } from '@/shared/components/TextField';
+import { useCodePointLimit } from '@/shared/hooks/useCodePointLimit';
+import { SENDING_TEXT } from '@/shared/utils/copy';
 import { useCreateSession } from '../hooks';
 import './sessionDraftSlip.css';
 
@@ -14,7 +24,11 @@ export interface SessionDraft {
   day: WeekDay;
   startHour: number;
   title?: string;
+  /** Duración que trae una propuesta (RF-30); sin ella, 2 horas. */
+  durationHours?: number;
 }
+
+const DEFAULT_DURATION_HOURS = 2;
 
 interface SessionDraftSlipProps {
   open: boolean;
@@ -40,10 +54,17 @@ export function SessionDraftSlip({
   const [day, setDay] = useState<WeekDay>(draft.day);
   const [startHour, setStartHour] = useState(draft.startHour);
   const [title, setTitle] = useState(draft.title ?? '');
-  const [notes, setNotes] = useState('');
-  const [durationHours, setDurationHours] = useState(2);
-  const [slots, setSlots] = useState(5);
+  const [notes, setNotes] = useState<string>(PROPOSAL_DEFAULTS.notes);
+  const [durationHours, setDurationHours] = useState(draft.durationHours ?? DEFAULT_DURATION_HOURS);
+  const [slots, setSlots] = useState<number>(PROPOSAL_DEFAULTS.slots);
   const [error, setError] = useState<string | null>(null);
+  const notesLimit = useCodePointLimit<HTMLTextAreaElement>({
+    value: notes,
+    onValueChange: setNotes,
+    max: NOTES_MAX_LENGTH,
+  });
+  // Un solo envío por doble clic, aunque el estado de la escritura aún no se haya pintado (RF-20).
+  const sending = useRef(false);
 
   // Al abrir el modal desde otra celda (o desde una coincidencia) el formulario
   // se reinicia con el bloque elegido.
@@ -53,19 +74,23 @@ export function SessionDraftSlip({
     setDay(draft.day);
     setStartHour(draft.startHour);
     setTitle(draft.title ?? '');
-    setNotes('');
+    setNotes(PROPOSAL_DEFAULTS.notes);
+    setDurationHours(draft.durationHours ?? DEFAULT_DURATION_HOURS);
+    setSlots(PROPOSAL_DEFAULTS.slots);
     setError(null);
   }, [open, draft]);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
+    if (sending.current) return;
     setError(null);
 
-    if (!title.trim()) {
-      setError('Ponle un título a la sesión para que otros sepan de qué se trata.');
+    if (!isValidSessionTitle(title)) {
+      setError(SESSION_ERRORS.title);
       return;
     }
 
+    sending.current = true;
     try {
       const created = await createSession.mutateAsync({
         gameId,
@@ -78,10 +103,10 @@ export function SessionDraftSlip({
       });
       onCreated?.(created.id);
       onClose();
-    } catch (mutationError) {
-      setError(
-        mutationError instanceof Error ? mutationError.message : 'No se pudo publicar la sesión.',
-      );
+    } catch {
+      // El error se muestra con `MutationNotice` desde el estado de la escritura (RF-9).
+    } finally {
+      sending.current = false;
     }
   };
 
@@ -105,7 +130,7 @@ export function SessionDraftSlip({
             disabled={createSession.isPending}
           >
             {createSession.isPending ? <span className="btn__spin" /> : <Icon as={PenLine} size={14} />}
-            {createSession.isPending ? 'Anotando…' : 'Anotar sesión'}
+            {createSession.isPending ? SENDING_TEXT : 'Anotar sesión'}
           </button>
         </>
       }
@@ -117,6 +142,7 @@ export function SessionDraftSlip({
             {error}
           </p>
         ) : null}
+        <MutationNotice error={createSession.error} />
 
         <ol className="draft">
           <li className="draft__row">
@@ -124,8 +150,8 @@ export function SessionDraftSlip({
           label="Título"
           placeholder="Ej.: Ranked flex, buscamos dos"
           value={title}
-          onChange={(event) => setTitle(event.target.value)}
-          maxLength={60}
+          onValueChange={setTitle}
+          maxCodePoints={TITLE_MAX_LENGTH}
         />
           </li>
 
@@ -237,10 +263,9 @@ export function SessionDraftSlip({
           <textarea
             id="session-notes"
             className="textarea"
-            maxLength={160}
             placeholder="Requisitos, tono de la sesión, canal de voz…"
             value={notes}
-            onChange={(event) => setNotes(event.target.value)}
+            {...notesLimit}
           />
         </div>
           </li>
