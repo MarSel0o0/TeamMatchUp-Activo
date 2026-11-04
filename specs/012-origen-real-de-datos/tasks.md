@@ -32,7 +32,7 @@ y lint del frontend en las tareas del frontend), sin `.only`.
     textos exactos (con "1 minuto" en singular y "N minutos" en plural) y la edición
     rechazada.
 
-- [ ] **T3. El simulador deja de decidir `verified`; mensaje del filtro.** RF-1, RF-2, RF-4,
+- [x] **T3. El simulador deja de decidir `verified`; mensaje del filtro.** RF-1, RF-2, RF-4,
   RF-23 (plan, P12-1; riesgo R2).
   - Quitar `isVerified` y `SimulatedReading.verified` (`rankSimulator.ts`) y `verified` de
     `AccountState`, `initialState` y `applySync`.

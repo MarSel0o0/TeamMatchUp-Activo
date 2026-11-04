@@ -252,7 +252,7 @@ function expectedJson(id: string, userId: string, region: string, state: Account
     currentRank: storedSnapshot(state.currentRank),
     rankHistory: state.rankHistory.map(storedSnapshot),
     lastSyncedAt: state.lastSyncedAt,
-    verified: state.verified,
+    verified: false,
     simulated: true,
   });
 }
@@ -278,7 +278,7 @@ function expectedStored(id: string, userId: string, region: string, state: Accou
     })),
     readingNumber: state.readingNumber,
     lastSyncedAt: state.lastSyncedAt,
-    verified: state.verified,
+    verified: false,
   };
 }
 

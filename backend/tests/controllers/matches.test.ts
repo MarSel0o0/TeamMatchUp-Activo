@@ -343,7 +343,7 @@ describe("errores", () => {
     const ana = await signUp(app, ANA);
     for (const value of ["TRUE", "1", "abc", "", "true&onlyVerified=false"]) {
       const response = await get(ana, `?game=lol&onlyVerified=${value}`);
-      assertStatusError(response, 400, "filtro «Solo cuentas con rango verificado» no válido: usa true o false");
+      assertStatusError(response, 400, "filtro «Solo cuentas verificadas» no válido: usa true o false");
     }
   });
 
@@ -374,7 +374,7 @@ describe("errores", () => {
   test("orden de RF-16: solo verificadas antes que búsqueda", async () => {
     const ana = await signUp(app, ANA);
     const response = await get(ana, "?game=lol&onlyVerified=abc&search=a&search=b");
-    assertStatusError(response, 400, "filtro «Solo cuentas con rango verificado» no válido: usa true o false");
+    assertStatusError(response, 400, "filtro «Solo cuentas verificadas» no válido: usa true o false");
   });
 
   test("orden de RF-16: sin cuenta y con horas 169 → 400 de horas, no 404", async () => {
@@ -398,6 +398,37 @@ describe("errores", () => {
     for (const response of responses) {
       assert.doesNotMatch(JSON.stringify(response.body), /riot|ubisoft|valve|faceit/i);
     }
+  });
+});
+
+describe("filtro «Solo cuentas verificadas» con cuentas vinculadas por la API (spec 012, RF-1, RF-2, RF-4)", () => {
+  test("las cuentas vinculadas a mano no están verificadas: el filtro deja la lista vacía", async () => {
+    const ana = await signUp(app, ANA);
+    const beto = await signUp(app, BETO);
+    await setAvailability(ana.id, ["0-5", "0-6"]);
+    await setAvailability(beto.id, ["0-5", "0-6"]);
+    const links = [
+      { user: ana, handle: "Jugador3#LAS" },
+      { user: beto, handle: "jugador1#las" }, // el simulador antiguo lo marcaba como verificado
+    ];
+    for (const { user, handle } of links) {
+      const linked = await withSession(user.agent.post("/api/accounts"), user.csrf).send({
+        gameId: "lol",
+        handle,
+        region: "LAS",
+      });
+      assert.strictEqual(linked.status, 201);
+      assert.strictEqual(linked.body.verified, false);
+    }
+
+    const all = await get(ana, "?game=lol");
+    assert.strictEqual(all.status, 200);
+    assert.strictEqual(all.body.length, 1);
+    assert.strictEqual(all.body[0].account.verified, false);
+
+    const verifiedOnly = await get(ana, "?game=lol&onlyVerified=true");
+    assert.strictEqual(verifiedOnly.status, 200);
+    assert.deepStrictEqual(verifiedOnly.body, []);
   });
 });
 

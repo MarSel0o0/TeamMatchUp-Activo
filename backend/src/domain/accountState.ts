@@ -14,7 +14,6 @@ export interface AccountState {
   matches: SimulatedMatch[];
   readingNumber: number;
   lastSyncedAt: Date;
-  verified: boolean;
 }
 
 /** Estado al vincular: lectura número 0 (RF-4). */
@@ -25,7 +24,6 @@ export function initialState(reading: SimulatedReading, now: Date): AccountState
     matches: mergeMatches([], reading.matches, reading.mainMatchId),
     readingNumber: 0,
     lastSyncedAt: now,
-    verified: reading.verified,
   };
 }
 
@@ -44,7 +42,6 @@ export function applySync(
     matches: mergeMatches(state.matches, reading.matches, reading.mainMatchId),
     readingNumber,
     lastSyncedAt: now,
-    verified: reading.verified,
   };
 }
 

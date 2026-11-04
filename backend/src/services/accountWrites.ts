@@ -56,7 +56,7 @@ export async function linkAccount(userId: string, data: LinkData, state: Account
       matches: state.matches.map(toMatchRecord),
       readingNumber: state.readingNumber,
       lastSyncedAt: state.lastSyncedAt,
-      verified: state.verified,
+      verified: false, // spec 012, RF-2: vincular a mano nunca verifica (T4 reemplaza este campo)
     });
   } catch (error) {
     if (isDuplicateKeyError(error)) return { ok: false, status: 400, error: ACCOUNT_ERRORS.duplicate };

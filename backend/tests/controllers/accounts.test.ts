@@ -161,7 +161,7 @@ function expectedAccountJson(
     currentRank: storedSnapshot(state.currentRank),
     rankHistory: state.rankHistory.map(storedSnapshot),
     lastSyncedAt: state.lastSyncedAt,
-    verified: state.verified,
+    verified: false,
     simulated: true,
   });
 }
@@ -192,7 +192,7 @@ function expectedRawAccount(
     })),
     readingNumber: 0,
     lastSyncedAt: state.lastSyncedAt,
-    verified: state.verified,
+    verified: false,
     __v: 0,
   };
 }
@@ -806,7 +806,7 @@ describe("vincular", () => {
       currentRank: { tier: "Champion", points: 9999, normalized: 100, recordedAt: "2000-01-01T00:00:00.000Z" },
       rankHistory: [],
       matches: [],
-      verified: !state.verified,
+      verified: true,
       readingNumber: 7,
       lastSyncedAt: "2000-01-01T00:00:00.000Z",
       simulated: false,

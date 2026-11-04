@@ -72,7 +72,7 @@ function cs2Account() {
     matches: state.matches.map(({ id, ...rest }) => ({ matchId: id, ...rest })),
     readingNumber: state.readingNumber,
     lastSyncedAt: state.lastSyncedAt,
-    verified: state.verified,
+    verified: false,
   });
 }
 
@@ -178,7 +178,7 @@ describe("GameAccount: toJSON en lista blanca (RF-37, DP-32, DP-33)", () => {
     const { tier, points, normalized } = state.currentRank;
     assert.deepStrictEqual(json.currentRank, { tier, points, normalized, recordedAt: NOW.toISOString() });
     assert.deepStrictEqual(json.rankHistory, [{ tier, points, normalized, recordedAt: NOW.toISOString() }]);
-    assert.strictEqual(json.verified, state.verified);
+    assert.strictEqual(json.verified, false);
     assert.strictEqual(json.lastSyncedAt, NOW.toISOString());
   });
 

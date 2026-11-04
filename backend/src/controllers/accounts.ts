@@ -59,7 +59,6 @@ function toAccountState(account: GameAccountDocument): AccountState {
     })),
     readingNumber: account.readingNumber,
     lastSyncedAt: account.lastSyncedAt,
-    verified: account.verified,
   };
 }
 
@@ -221,7 +220,6 @@ export function createAccountsRouter({ jwtSecret, now }: AccountsRouterOptions):
       account.matches = next.matches.map(toMatchRecord);
       account.readingNumber = next.readingNumber;
       account.lastSyncedAt = next.lastSyncedAt;
-      account.verified = next.verified;
       return null;
     });
     if (!result.ok) {

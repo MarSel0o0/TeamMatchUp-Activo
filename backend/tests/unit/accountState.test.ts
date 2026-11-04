@@ -48,8 +48,8 @@ function ids(matches: readonly SimulatedMatch[]): string[] {
 }
 
 /** Lectura construida a mano a partir de la fotografía y las partidas dadas. */
-function reading(snap: Snapshot, matches: SimulatedMatch[], mainMatchId: string, verified = true): SimulatedReading {
-  return { snapshot: snap, matches, mainMatchId, verified };
+function reading(snap: Snapshot, matches: SimulatedMatch[], mainMatchId: string): SimulatedReading {
+  return { snapshot: snap, matches, mainMatchId };
 }
 
 describe("compareMatches (RF-28)", () => {
@@ -234,7 +234,7 @@ describe("shouldAppendSnapshot (DP-9)", () => {
 });
 
 describe("initialState (RF-4)", () => {
-  test("lectura 0 real: rango vigente, único elemento del historial, partidas, verificada, número 0 y fecha", () => {
+  test("lectura 0 real: rango vigente, único elemento del historial, partidas, número 0 y fecha, sin marca de verificada", () => {
     const r = simulateReading({ gameId: "lol", canonicalHandle: "jugador1#las", readingNumber: 0, now: NOW });
     const state = initialState(r, NOW);
     assert.deepStrictEqual(state.currentRank, r.snapshot);
@@ -242,14 +242,13 @@ describe("initialState (RF-4)", () => {
     assert.deepStrictEqual(state.matches, mergeMatches([], r.matches, r.mainMatchId));
     assert.strictEqual(state.readingNumber, 0);
     assert.deepStrictEqual(state.lastSyncedAt, NOW);
-    assert.strictEqual(state.verified, r.verified);
+    assert.strictEqual(Object.hasOwn(state, "verified"), false); // spec 012, RF-1
   });
 
   test("las partidas quedan en el orden de RF-28 aunque la lectura venga desordenada", () => {
-    const r = reading(snapshot(), [match("m-0-1", minutesBefore(NOW, 30)), match("m-0-0", NOW)], "m-0-0", false);
+    const r = reading(snapshot(), [match("m-0-1", minutesBefore(NOW, 30)), match("m-0-0", NOW)], "m-0-0");
     const state = initialState(r, NOW);
     assert.deepStrictEqual(ids(state.matches), ["m-0-0", "m-0-1"]);
-    assert.strictEqual(state.verified, false);
     assert.strictEqual(state.readingNumber, 0);
   });
 });
@@ -263,7 +262,6 @@ describe("applySync (RF-10, DP-9, DP-36)", () => {
       matches: [match("m-0-0", NOW), match("m-0-1", minutesBefore(NOW, 40))],
       readingNumber: 0,
       lastSyncedAt: NOW,
-      verified: true,
     };
   }
 
@@ -291,10 +289,10 @@ describe("applySync (RF-10, DP-9, DP-36)", () => {
   test("con cambio de rango: agrega la fotografía al final y deja el vigente", () => {
     const state = baseState();
     const next = snapshot({ points: 60, recordedAt: LATER });
-    const result = applySync(state, reading(next, [match("m-1-0", LATER)], "m-1-0", false), 1, LATER);
+    const result = applySync(state, reading(next, [match("m-1-0", LATER)], "m-1-0"), 1, LATER);
     assert.deepStrictEqual(result.rankHistory, [state.currentRank, next]);
     assert.deepStrictEqual(result.currentRank, next);
-    assert.strictEqual(result.verified, false);
+    assert.strictEqual(Object.hasOwn(result, "verified"), false);
   });
 
   test("reloj atrasado: la fotografía va al final aunque su fecha sea anterior (DP-36)", () => {
