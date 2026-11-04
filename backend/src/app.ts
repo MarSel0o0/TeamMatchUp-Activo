@@ -11,6 +11,7 @@ import { createAuthRouter } from "./controllers/auth.ts";
 import { createMatchesRouter } from "./controllers/matches.ts";
 import { createSessionsRouter } from "./controllers/sessions.ts";
 import { createUsersRouter } from "./controllers/users.ts";
+import type { SourceRegistry } from "./services/realSources.ts";
 import type { NodeEnv } from "./utils/config.ts";
 import { errorHandler, unknownEndpoint } from "./utils/middleware.ts";
 
@@ -18,6 +19,10 @@ export interface AppOptions {
   jwtSecret: string;
   nodeEnv: NodeEnv;
   now?: () => number; // segundos Unix; por defecto el reloj real
+  /** Spec 012 (P12-5): fuentes reales por juego; sin ellas solo hay cuentas simuladas (RF-20). */
+  sources?: SourceRegistry;
+  /** Plazo de una consulta a una fuente en ms; por defecto 8 s (RNF-5). Lo cambian las pruebas. */
+  sourceTimeoutMs?: number;
 }
 
 // Reloj real en segundos Unix (el de las credenciales).
@@ -26,7 +31,7 @@ function systemNow(): number {
 }
 
 export function createApp(options: AppOptions): Express {
-  const { jwtSecret, nodeEnv, now = systemNow } = options;
+  const { jwtSecret, nodeEnv, now = systemNow, sources = {}, sourceTimeoutMs } = options;
   const app = express();
 
   // Spec 006 (RF-23, RF-28, P6-1): `/api/sessions` acepta JSON escalar (`strict: false`) para
@@ -45,7 +50,8 @@ export function createApp(options: AppOptions): Express {
   // Registro público (002-RF-26); el resto de rutas de usuario, protegidas (003-RF-1).
   app.use("/api/users", createUsersRouter({ jwtSecret, nodeEnv, now }));
   app.use("/api/auth", createAuthRouter({ jwtSecret, nodeEnv, now })); // login y logout públicos; me protegida (RF-26)
-  app.use("/api/accounts", createAccountsRouter({ jwtSecret, now })); // spec 004: todas con sesión (RF-1)
+  // Spec 004: todas con sesión (RF-1). Spec 012: fuentes reales para resincronizar (RF-15).
+  app.use("/api/accounts", createAccountsRouter({ jwtSecret, now, sources, sourceTimeoutMs }));
 
   app.use("/api/matches", createMatchesRouter({ jwtSecret, now })); // spec 005: con sesión (RF-1)
   app.use("/api/sessions", createSessionsRouter({ jwtSecret, now })); // spec 006: con sesión (RF-1)

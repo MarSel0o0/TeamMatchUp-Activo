@@ -65,7 +65,7 @@ y lint del frontend en las tareas del frontend), sin `.only`.
     cambia el rango) y con fuente que no los entrega (rango, historial y partidas de `base`
     intactos).
 
-- [ ] **T6. Fuentes inyectables y resincronización real.** RF-15 a RF-21, RNF-1, RNF-5
+- [x] **T6. Fuentes inyectables y resincronización real.** RF-15 a RF-21, RNF-1, RNF-5
   (plan, sección 3.1, P12-5, P12-7).
   - `services/realSources.ts`: `RealSource`, `RealResult`, `SourceRegistry`,
     `readWithTimeout` (8 s).
