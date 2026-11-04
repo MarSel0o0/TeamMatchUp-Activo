@@ -57,7 +57,7 @@ y lint del frontend en las tareas del frontend), sin `.only`.
     cuentas sin verificar con el mismo identificador; `prepareDatabase` dos veces seguidas no
     falla); desvincular una cuenta verificada la borra con su verificación (RF-3).
 
-- [ ] **T5. Transiciones reales puras.** RF-8, RF-9, RF-15 (plan, sección 2).
+- [x] **T5. Transiciones reales puras.** RF-8, RF-9, RF-15 (plan, sección 2).
   - `domain/verification.ts`: `verifiedState(base, real, now)` y
     `applyRealSync(state, real, now)`.
   - Hecho cuando: pruebas unitarias en verde con fuente que entrega rango y partidas (el
