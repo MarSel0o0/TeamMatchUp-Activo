@@ -265,3 +265,25 @@ si existe una cuenta con `gameId` + `handleKey` y `verification` de otro usuario
 8. Frontend: tipos, `originLabel`, `OriginTag` y el modo simulado.
 9. Frontend: componentes de perfil, coincidencias y ficha.
 10. Cierre: suite sin red, typecheck, lint, build, recorrido manual y `MEMORY.md`.
+
+## 10. Cambio del 2026-11-18 tras la validación (T11)
+La validación del 2026-11-18 encontró dos puntos de esta spec. No cambian el backend de
+producción: solo se agrega una prueba de endpoint.
+
+| Archivo | Cambio | RF |
+|---|---|---|
+| `features/profile/components/AccountRow.tsx` | Junto al identificador, `<OriginTag origin={account.origins.identity} />`. `AccountRow` también se usa en la ficha de jugador (`GameSummaryPanel`), así que cubre perfil, Configuración y ficha | RF-6 |
+| `backend/tests/controllers/accountRealSync.test.ts` | Prueba del endpoint: `PUT /api/accounts/:id` de una cuenta verificada → 400 `verifiedNotEditable`, con región nueva y con cuerpo vacío, y la cuenta (región, `handle`, `verification`) queda igual | RF-14 |
+
+- **P12-9. Etiqueta de identidad siempre, no solo cuando es real.** RF-6 pide etiqueta junto
+  a todo bloque, también el simulado; el identificador de una cuenta sin verificar muestra
+  «Datos de demostración». *Descartada:* mostrarla solo cuando el origen es real, con menos
+  texto pero dejando un bloque sin origen visible.
+- Fuera de esta spec (decisión del usuario del 2026-11-18): el aviso global «Datos de
+  demostración» con el servidor real y el texto de «Resincronizar» en cuentas verificadas
+  chocan con la spec 007 (RF-11 y RF-18) y solo se vuelven incorrectos cuando exista una
+  cuenta verificada. Se resuelven en la spec 013 (anotado en `MEMORY.md`).
+- Pruebas: el código de RF-14 ya existe, así que su prueba no puede empezar en rojo. Se
+  comprueba que detecta el fallo desactivando temporalmente la regla de `validateAccountEdit`
+  (y se restaura). Frontend: build, typecheck y lint (constitución, principio 4), más el
+  recorrido de la validación.

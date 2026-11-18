@@ -1,5 +1,5 @@
 # Tareas 012 — Origen real de los datos y cuentas verificadas
-Estado: aprobado (2026-11-04)
+Estado: aprobado (2026-11-04). T11 agregada el 2026-11-18 (aprobada por el usuario).
 
 Spec: `spec.md` (aprobada el 2026-11-04). Plan: `plan.md` (aprobado el 2026-11-04).
 Regla de cada tarea (constitución, principio 4): pruebas primero en rojo, después el código,
@@ -118,3 +118,15 @@ y lint del frontend en las tareas del frontend), sin `.only`.
   - Marcar las casillas de "Criterios de finalización" y actualizar `MEMORY.md`.
   - Hecho cuando: todo lo anterior en verde, con el número de tests anotado en `MEMORY.md`,
     y la spec lista para `/sdd-validate 012-origen-real-de-datos`.
+
+- [x] **T11. Correcciones de la validación del 2026-11-18.** RF-6, RF-14 (plan, sección 10).
+  - Prueba del endpoint de RF-14 en `accountRealSync.test.ts`: `PUT` de una cuenta verificada
+    responde 400 «una cuenta verificada no se puede editar: desvincúlala y vuelve a
+    verificarla», con región nueva y con cuerpo vacío, y la cuenta queda igual. Se comprueba
+    que falla con la regla desactivada y se restaura.
+  - `AccountRow`: `OriginTag` del bloque de identidad junto al identificador (RF-6, P12-9).
+  - Volver a marcar los criterios de finalización 1 y 3 de la spec y actualizar `MEMORY.md`.
+  - Hecho cuando: suite, typecheck y lint del backend en verde; build, typecheck y lint del
+    frontend en verde; recorrido con Chrome headless a 1280 y 375 px: una cuenta de CS2
+    verificada con Steam muestra «Datos de Steam» junto al SteamID64, y una sin verificar
+    muestra «Datos de demostración» junto al identificador.

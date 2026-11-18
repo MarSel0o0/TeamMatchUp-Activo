@@ -382,3 +382,68 @@ describe("solo se consulta al resincronizar (RF-17)", () => {
     assert.strictEqual(steam.calls.length, 0);
   });
 });
+
+describe("editar una cuenta verificada: PUT /api/accounts/:id (spec 012, T11, RF-14)", () => {
+  const VERIFIED_NOT_EDITABLE = "una cuenta verificada no se puede editar: desvincúlala y vuelve a verificarla";
+
+  test("región nueva: 400 «una cuenta verificada no se puede editar…» y la cuenta queda igual", async () => {
+    const ana = await signUp(app, ANA);
+    const account = await verifiedAccount(ana.id);
+    const before = await rawAccountsInDb();
+
+    const response = await withSession(ana.agent.put(`/api/accounts/${account.id}`), ana.csrf).send({ region: "EUW" });
+
+    assert.strictEqual(response.status, 400);
+    assert.deepStrictEqual(response.body, { error: VERIFIED_NOT_EDITABLE });
+    assert.deepStrictEqual(await rawAccountsInDb(), before);
+  });
+
+  test("identificador nuevo: 400 y la cuenta conserva identificador y verificación", async () => {
+    const ana = await signUp(app, ANA);
+    const account = await verifiedAccount(ana.id, { externalId: "puuid-ana" });
+    const before = await rawAccountsInDb();
+
+    const response = await withSession(ana.agent.put(`/api/accounts/${account.id}`), ana.csrf).send({
+      handle: "Otro#LAS",
+      region: "LAS",
+    });
+
+    assert.strictEqual(response.status, 400);
+    assert.deepStrictEqual(response.body, { error: VERIFIED_NOT_EDITABLE });
+    assert.deepStrictEqual(await rawAccountsInDb(), before);
+    const stored = await GameAccount.findById(account.id);
+    assert.strictEqual(stored?.handle, "Jugador#LAS");
+    assert.strictEqual(stored?.verification?.externalId, "puuid-ana");
+  });
+
+  test("cuerpo vacío: también 400, porque la regla va antes de mirar el cuerpo", async () => {
+    const ana = await signUp(app, ANA);
+    const account = await verifiedAccount(ana.id);
+    const before = await rawAccountsInDb();
+
+    const response = await withSession(ana.agent.put(`/api/accounts/${account.id}`), ana.csrf);
+
+    assert.strictEqual(response.status, 400);
+    assert.deepStrictEqual(response.body, { error: VERIFIED_NOT_EDITABLE });
+    assert.deepStrictEqual(await rawAccountsInDb(), before);
+  });
+
+  test("no consulta la fuente", async () => {
+    const ana = await signUp(app, ANA);
+    const account = await verifiedAccount(ana.id);
+
+    await withSession(ana.agent.put(`/api/accounts/${account.id}`), ana.csrf).send({ region: "EUW" });
+
+    assert.strictEqual(riot.calls.length, 0);
+  });
+
+  test("una cuenta sin verificar sí se edita (la regla es solo de las verificadas)", async () => {
+    const ana = await signUp(app, ANA);
+    const account = await unverifiedAccount(ana.id);
+
+    const response = await withSession(ana.agent.put(`/api/accounts/${account.id}`), ana.csrf).send({ region: "EUW" });
+
+    assert.strictEqual(response.status, 200);
+    assert.strictEqual((await GameAccount.findById(account.id))?.region, "EUW");
+  });
+});

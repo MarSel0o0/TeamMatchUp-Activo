@@ -23,7 +23,7 @@ interface AccountRowProps {
   showHandleLabel?: boolean;
 }
 
-/** Asiento de una cuenta vinculada: identificador, sello de verificación, rango con la etiqueta de su origen y última lectura (spec 012, RF-6, RF-22). */
+/** Asiento de una cuenta vinculada: identificador con la etiqueta de su origen, sello de verificación, rango con la suya y última lectura (spec 012, RF-6, RF-22). */
 export function AccountRow({
   account,
   onSync,
@@ -50,6 +50,7 @@ export function AccountRow({
             {showHandleLabel ? `${game.handleLabel} · ` : null}
             {account.handle}
           </p>
+          <OriginTag origin={account.origins.identity} />
         </div>
         <div className="account__mark">
           <Stamp

@@ -1,5 +1,6 @@
 # Spec 012 — Origen real de los datos y cuentas verificadas
-Estado: aprobada (2026-11-04)
+Estado: aprobada (2026-11-04). Aclaración de RF-6 del 2026-11-18, tras la validación
+(aprobada por el usuario el 2026-11-18).
 
 ## Contexto y objetivo
 Hoy el rango, el historial, las partidas y la marca de verificada de toda cuenta de juego los
@@ -115,6 +116,8 @@ Lo que sí fija esta spec, común a las 013 y 014:
   ("Datos de Steam", "Datos de Riot Games").
 - RF-7: EL SISTEMA nunca atribuye a una fuente real un dato simulado, ni muestra como simulado
   un dato obtenido de una fuente real.
+- RF-6 incluye el bloque de identidad: junto al identificador de la cuenta se muestra la
+  etiqueta de su origen (aclaración del 2026-11-18).
 - RF-8: CUANDO una cuenta sin verificar pasa a verificada, EL SISTEMA descarta su rango, su
   historial y sus partidas simulados y los reemplaza por los de la fuente real en los bloques
   que esa fuente entrega; los bloques que la fuente no entrega siguen simulados y etiquetados
@@ -203,10 +206,12 @@ Lo que sí fija esta spec, común a las 013 y 014:
 - Iniciar sesión en TeamMatchUp con Steam o Riot.
 
 ## Criterios de finalización
-- [x] RF-1 a RF-23 cubiertos por pruebas en verde, sin red (RNF-1).
+- [x] RF-1 a RF-23 cubiertos por pruebas en verde, sin red (RNF-1). (Desmarcado el 2026-11-18
+      por RF-14 sin prueba del endpoint; vuelto a marcar con la T11.)
 - [x] Ninguna cuenta de demostración sale verificada; el filtro "Solo verificadas" solo
       deja pasar cuentas verificadas por RF-1.
-- [x] En la interfaz cada bloque de datos muestra su origen (RF-6).
+- [x] En la interfaz cada bloque de datos muestra su origen (RF-6). (Desmarcado el
+      2026-11-18 por la identidad sin etiqueta; vuelto a marcar con la T11.)
 - [x] Constitución, `PRODUCT.md` y specs afectadas actualizadas (ver "Impacto").
       (`PRODUCT.md` queda para las specs 013 y 014, como dice "Impacto".)
 
