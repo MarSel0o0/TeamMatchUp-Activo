@@ -5,11 +5,12 @@ import { Link } from 'react-router-dom';
 import { playerPath } from '@/app/routes';
 import { formatRange, groupBlocks } from '@/domain/availability';
 import { formatRank, getGame } from '@/domain/games';
+import { verifiedLabel } from '@/domain/origins';
 import { scoreLabel } from '@/domain/matching';
 import { blockReason, buildProposal, type Proposal } from '@/domain/proposal';
-import type { MatchCandidate, RankSnapshot } from '@/domain/types';
+import type { MatchCandidate, Origin, RankSnapshot } from '@/domain/types';
 import { useAvailabilityOf } from '@/features/profile/hooks';
-import { DemoTag } from '@/shared/components/DemoTag';
+import { OriginTag } from '@/shared/components/OriginTag';
 import { HoursSheet } from '@/shared/components/HoursSheet';
 import { Icon } from '@/shared/components/Icon';
 import { Monogram } from '@/shared/components/Monogram';
@@ -69,7 +70,7 @@ export const MatchEntry = forwardRef<HTMLElement, MatchEntryProps>(function Matc
   // Defensivo (RF-14): el servidor no entrega cuentas sin rango, pero si llegara una no se
   // muestra ni se calcula ninguna distancia con él.
   const rank: RankSnapshot | null | undefined = candidate.account.currentRank;
-  const simulated = candidate.account.simulated;
+  const rankOrigin = candidate.account.origins.rank;
 
   return (
     <motion.article
@@ -103,7 +104,7 @@ export const MatchEntry = forwardRef<HTMLElement, MatchEntryProps>(function Matc
                 {formatRank(candidate.gameId, rank)}
               </span>
               <span className="note note--faint num">{rankDistanceText(candidate.rankDistance)}</span>
-              {simulated ? <DemoTag className="entry__demo" /> : null}
+              <OriginTag origin={rankOrigin} className="entry__demo" />
             </>
           ) : (
             <span className="note note--faint">{NO_DATA_TEXT}</span>
@@ -124,7 +125,7 @@ export const MatchEntry = forwardRef<HTMLElement, MatchEntryProps>(function Matc
           <ScoreRing
             score={candidate.score}
             label={scoreLabel(candidate.score)}
-            simulated={simulated}
+            origin={rankOrigin}
           />
         ) : (
           <span className="note note--faint">{NO_DATA_TEXT}</span>
@@ -175,12 +176,10 @@ export const MatchEntry = forwardRef<HTMLElement, MatchEntryProps>(function Matc
           >
             <div className="entry__detail">
               <div className="entry__stamps">
-                {candidate.account.verified ? (
-                  <Stamp tone="sealed">Verificada</Stamp>
-                ) : (
-                  <Stamp tone="warn">Sin verificar</Stamp>
-                )}
-                {simulated ? <DemoTag className="entry__demo" /> : null}
+                <Stamp tone={candidate.account.verified ? 'sealed' : 'warn'}>
+                  {verifiedLabel(candidate.account.verifiedWith)}
+                </Stamp>
+                <OriginTag origin={rankOrigin} className="entry__demo" />
                 <span className="note note--faint">
                   Última lectura {timeAgo(candidate.account.lastSyncedAt)}
                 </span>
@@ -211,11 +210,11 @@ export const MatchEntry = forwardRef<HTMLElement, MatchEntryProps>(function Matc
 function ScoreRing({
   score,
   label,
-  simulated,
+  origin,
 }: {
   score: number;
   label: string;
-  simulated: boolean;
+  origin: Origin;
 }) {
   const tone = score >= 75 ? 'var(--volt)' : score >= 50 ? 'var(--ink)' : 'var(--ink-3)';
 
@@ -236,7 +235,7 @@ function ScoreRing({
       </svg>
       <CountUp value={score} className="entry__score-value" />
       <span className="entry__score-label">{label}</span>
-      {simulated ? <DemoTag className="entry__demo" /> : null}
+      <OriginTag origin={origin} className="entry__demo" />
     </div>
   );
 }

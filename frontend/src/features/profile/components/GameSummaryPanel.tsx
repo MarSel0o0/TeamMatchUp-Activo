@@ -2,7 +2,7 @@ import { formatRank } from '@/domain/games';
 import { readNormalized, readWinRate } from '@/domain/playerSheet';
 import type { RankSnapshot } from '@/domain/types';
 import type { GameProfileSummary } from '@/services/api';
-import { DemoTag } from '@/shared/components/DemoTag';
+import { OriginTag } from '@/shared/components/OriginTag';
 import { MutationNotice } from '@/shared/components/MutationNotice';
 import { RankScale } from '@/shared/components/RankScale';
 import { CountUp } from '@/shared/motion/CountUp';
@@ -74,12 +74,8 @@ export function GameSummaryPanel({
                   READINGS_UNIT.other,
                 )}
               </span>
-              {summary.account.simulated ? (
-                <>
-                  {' · '}
-                  <DemoTag />
-                </>
-              ) : null}
+              {' · '}
+              <OriginTag origin={summary.account.origins.rank} />
             </span>
           </div>
           {hasRank ? (
@@ -113,7 +109,7 @@ export function GameSummaryPanel({
             )}
           </span>
         </div>
-        <MatchLedger matches={summary.recentMatches} simulated={summary.account.simulated} />
+        <MatchLedger matches={summary.recentMatches} origin={summary.account.origins.matches} />
       </div>
     </div>
   );

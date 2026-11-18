@@ -89,7 +89,7 @@ y lint del frontend en las tareas del frontend), sin `.only`.
     simultáneas del mismo `externalId` (una gana, la otra 409); vínculo manual con 409 y
     vínculo manual libre después de que el dueño desvincula.
 
-- [ ] **T8. Frontend: tipos, etiquetas de origen y modo simulado.** RF-2, RF-5, RF-6, RF-7,
+- [x] **T8. Frontend: tipos, etiquetas de origen y modo simulado.** RF-2, RF-5, RF-6, RF-7,
   RF-12, RF-14, RF-23 (plan, sección 1, Frontend).
   - `domain/types.ts`: sale `simulated`; entran `verifiedWith?`, `verifiedAt?`, `origins`,
     `profile?`.
@@ -101,7 +101,7 @@ y lint del frontend en las tareas del frontend), sin `.only`.
     `simulated` en los componentes se reemplazan en T9; en esta tarea basta con que compilen
     contra el tipo nuevo).
 
-- [ ] **T9. Frontend: componentes con origen por bloque y marca real.** RF-6, RF-22 (plan,
+- [x] **T9. Frontend: componentes con origen por bloque y marca real.** RF-6, RF-22 (plan,
   sección 4).
   - `AccountRow`, `GameSummaryPanel`, `MatchLedger`, `MatchEntry`, `playerSheet.ts` y
     `RankDistanceBlock` usan `origins` y `verifiedLabel`; `DemoTag` queda solo en
@@ -110,7 +110,7 @@ y lint del frontend en las tareas del frontend), sin `.only`.
     `simulated`; en modo simulado el perfil, las coincidencias y la ficha muestran "Sin
     verificar" y "Datos de demostración" por bloque.
 
-- [ ] **T10. Cierre y validación.** RNF-1; criterios de finalización de la spec.
+- [x] **T10. Cierre y validación.** RNF-1; criterios de finalización de la spec.
   - Suite completa del backend **sin conexión a Internet**, más typecheck y lint del
     backend; build, typecheck y lint del frontend.
   - Recorrido manual con el servidor real: vincular a mano, resincronizar sin espera, filtro

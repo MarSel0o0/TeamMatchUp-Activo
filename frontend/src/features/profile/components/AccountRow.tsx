@@ -1,8 +1,9 @@
 import { RefreshCw, Unlink } from 'lucide-react';
 import { formatRank, getGame } from '@/domain/games';
+import { verifiedLabel } from '@/domain/origins';
 import type { GameAccount, RankSnapshot } from '@/domain/types';
-import { DemoTag } from '@/shared/components/DemoTag';
 import { Icon } from '@/shared/components/Icon';
+import { OriginTag } from '@/shared/components/OriginTag';
 import { Stamp } from '@/shared/components/Stamp';
 import { NO_DATA_TEXT, RESYNC_LABEL, RESYNC_NOTE, SENDING_TEXT } from '@/shared/utils/copy';
 import { timeAgo } from '@/shared/utils/format';
@@ -22,7 +23,7 @@ interface AccountRowProps {
   showHandleLabel?: boolean;
 }
 
-/** Asiento de una cuenta vinculada: identificador, rango sellado, etiqueta de datos simulados y última lectura (RF-11, RF-18, RF-31). */
+/** Asiento de una cuenta vinculada: identificador, sello de verificación, rango con la etiqueta de su origen y última lectura (spec 012, RF-6, RF-22). */
 export function AccountRow({
   account,
   onSync,
@@ -55,9 +56,8 @@ export function AccountRow({
             tone={account.verified ? 'sealed' : 'warn'}
             pressKey={`${account.id}-${account.lastSyncedAt}`}
           >
-            {account.verified ? 'Verificada' : 'Sin verificar'}
+            {verifiedLabel(account.verifiedWith)}
           </Stamp>
-          {account.simulated ? <DemoTag /> : null}
         </div>
       </div>
 
@@ -67,9 +67,9 @@ export function AccountRow({
           <dd className="num" style={{ color: game.accent }}>
             {rank ? formatRank(account.gameId, rank) : NO_DATA_TEXT}
           </dd>
-          {account.simulated && rank ? (
+          {rank ? (
             <dd>
-              <DemoTag />
+              <OriginTag origin={account.origins.rank} />
             </dd>
           ) : null}
         </div>

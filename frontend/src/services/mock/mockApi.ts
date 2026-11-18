@@ -41,7 +41,13 @@ import { ApiError, CSRF_HEADER } from '../http/httpClient';
 import { execute, type HeaderReader, type RawResponse } from '../http/transport';
 import { resolveMockSessionId } from './mockSessionTarget';
 import { resolveMockUserTarget } from './mockUserTarget';
-import { createSeedDatabase, matchJson, snapshotJson, type MockDatabase } from './seed';
+import {
+  createSeedDatabase,
+  matchJson,
+  SIMULATED_ORIGINS,
+  snapshotJson,
+  type MockDatabase,
+} from './seed';
 import { canonicalHandle, readAccountState } from './simulatedProvider';
 
 /* -------------------------------------------------------------------------- */
@@ -175,6 +181,10 @@ const MESSAGES = {
   } satisfies Record<GameId, string>,
   invalidRegion: (gameId: GameId): string => `región no válida para ${GAMES[gameId].name}`,
   duplicateAccount: 'ya tienes una cuenta vinculada en este juego',
+  // Spec 012 (`ACCOUNT_ERRORS` del servidor). El modo simulado no tiene cuentas verificadas,
+  // así que hoy ninguna operación los produce; quedan iguales a los del servidor (RF-12, RF-14).
+  verifiedElsewhere: 'esta cuenta ya está verificada por otro usuario',
+  verifiedNotEditable: 'una cuenta verificada no se puede editar: desvincúlala y vuelve a verificarla',
   accountNotFound: 'cuenta no encontrada',
   noAccountForGame: 'el jugador no tiene una cuenta vinculada en este juego',
   forbidden: 'no tienes permiso para esta operación',
@@ -196,13 +206,12 @@ const MESSAGES = {
   userNotFound: 'usuario no encontrado',
   // Spec 005 (`MATCH_ERRORS` de `backend/src/domain/matchQuery.ts`, DP5-2, DP5-3 y DP5-17):
   // minúscula inicial y sin punto final; los rótulos entre « » conservan su mayúscula. El del
-  // filtro de verificadas conserva «rango verificado»: excepción al RF-16 de la spec 007 aprobada
-  // por el usuario el 2026-10-19 (R21); es el literal del servidor y la interfaz nunca lo muestra.
+  // filtro de verificadas dice «Solo cuentas verificadas» como el servidor (spec 012, RF-23).
   matchMaxRankDistance:
     'filtro «Diferencia máxima de rango» no válido: usa un número entero de 0 a 100',
   matchMinSharedHours:
     'filtro «Horas en común por semana» no válido: usa un número entero de 0 a 168',
-  matchOnlyVerified: 'filtro «Solo cuentas con rango verificado» no válido: usa true o false',
+  matchOnlyVerified: 'filtro «Solo cuentas verificadas» no válido: usa true o false',
   matchSearch: 'filtro «Buscar jugador» no válido',
   matchNoAccount: 'no tienes una cuenta vinculada en este juego',
   // Spec 006 (`SESSION_ERRORS` de `backend/src/domain/sessionRules.ts`): mayúscula inicial y
@@ -801,8 +810,9 @@ export const mockApi: ApiContract = {
           currentRank: snapshot,
           rankHistory: [snapshot],
           lastSyncedAt: at.toISOString(),
-          verified: reading.verified,
-          simulated: true,
+          // Spec 012, RF-2: el modo simulado nunca verifica; todos los bloques son simulados.
+          verified: false,
+          origins: { ...SIMULATED_ORIGINS },
         };
 
         database.accounts.push(account);
@@ -850,7 +860,6 @@ export const mockApi: ApiContract = {
         }
         account.currentRank = snapshot;
         account.lastSyncedAt = at.toISOString();
-        account.verified = reading.verified;
         database.matchHistory[account.id] = mergeMatches(
           database.matchHistory[account.id] ?? [],
           reading.matches.map(matchJson),
@@ -963,7 +972,7 @@ export const mockApi: ApiContract = {
             return [
               {
                 user: toPublicUser(owner),
-                account: { ...account, simulated: true },
+                account,
                 blocks: database.availability[owner.id] ?? [],
               },
             ];

@@ -203,11 +203,12 @@ Lo que sí fija esta spec, común a las 013 y 014:
 - Iniciar sesión en TeamMatchUp con Steam o Riot.
 
 ## Criterios de finalización
-- [ ] RF-1 a RF-23 cubiertos por pruebas en verde, sin red (RNF-1).
-- [ ] Ninguna cuenta de demostración sale verificada; el filtro "Solo verificadas" solo
+- [x] RF-1 a RF-23 cubiertos por pruebas en verde, sin red (RNF-1).
+- [x] Ninguna cuenta de demostración sale verificada; el filtro "Solo verificadas" solo
       deja pasar cuentas verificadas por RF-1.
-- [ ] En la interfaz cada bloque de datos muestra su origen (RF-6).
-- [ ] Constitución, `PRODUCT.md` y specs afectadas actualizadas (ver "Impacto").
+- [x] En la interfaz cada bloque de datos muestra su origen (RF-6).
+- [x] Constitución, `PRODUCT.md` y specs afectadas actualizadas (ver "Impacto").
+      (`PRODUCT.md` queda para las specs 013 y 014, como dice "Impacto".)
 
 ## Impacto en otras specs y documentos
 - **Constitución, principio 5**: hoy solo admite datos simulados y prohíbe atribuirlos a una

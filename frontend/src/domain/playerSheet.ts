@@ -10,7 +10,7 @@ import { GAME_IDS } from './games';
 import { rankDistance } from './matching';
 import { blockReason, buildProposal } from './proposal';
 import type { BlockReason, Proposal } from './proposal';
-import type { GameId, TimeBlock } from './types';
+import type { GameId, Origin, TimeBlock } from './types';
 
 /** Estado de un dato ya traducido desde la consulta (la traducción vive en los hooks). */
 export type Loadable<T> = { state: 'loading' } | { state: 'failed' } | { state: 'ready'; value: T };
@@ -105,7 +105,7 @@ export type DistanceView =
   | { kind: 'failed'; source: 'ownAccounts' | 'summary' }
   | { kind: 'noOwnAccount'; gameId: GameId }
   | { kind: 'noData' }
-  | { kind: 'value'; points: number; simulated: boolean };
+  | { kind: 'value'; points: number; origin: Origin };
 
 /**
  * Primero las cuentas propias (RF-13 prevalece sobre RF-17 y sobre el estado del resumen,
@@ -116,7 +116,7 @@ export function distanceView(input: {
   myAccounts: Loadable<
     readonly { gameId: GameId; currentRank?: { normalized?: unknown } | null }[]
   >;
-  theirAccount: Loadable<{ currentRank?: { normalized?: unknown } | null; simulated?: boolean }>;
+  theirAccount: Loadable<{ currentRank?: { normalized?: unknown } | null; origins: { rank: Origin } }>;
 }): DistanceView {
   const mine = input.myAccounts;
   if (mine.state === 'loading') return { kind: 'loading' };
@@ -134,7 +134,7 @@ export function distanceView(input: {
   return {
     kind: 'value',
     points: rankDistance({ normalized: myNormalized }, { normalized: theirNormalized }),
-    simulated: theirs.value.simulated === true,
+    origin: theirs.value.origins.rank,
   };
 }
 

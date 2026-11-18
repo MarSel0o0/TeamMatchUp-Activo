@@ -17,6 +17,6 @@ export const env = {
 export const STORAGE_KEYS = {
   csrf: 'tmu.csrf',
   sessionSignal: 'tmu.session-signal',
-  mockDb: 'tmu.mock-db.v3',
+  mockDb: 'tmu.mock-db.v4',
   theme: 'tmu.theme',
 } as const;
