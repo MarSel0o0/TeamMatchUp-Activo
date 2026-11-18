@@ -1,6 +1,6 @@
 # Spec 012 — Origen real de los datos y cuentas verificadas
-Estado: aprobada (2026-11-04). Aclaración de RF-6 del 2026-11-18, tras la validación
-(aprobada por el usuario el 2026-11-18).
+Estado: implementada (validada el 2026-11-18). Aprobada el 2026-11-04; aclaración de RF-6
+del 2026-11-18, tras la primera validación (aprobada por el usuario el 2026-11-18).
 
 ## Contexto y objetivo
 Hoy el rango, el historial, las partidas y la marca de verificada de toda cuenta de juego los
