@@ -57,16 +57,21 @@ export default function RiotVerifyPage() {
   const accountsQuery = useAccounts();
   const currentChallengeQuery = useCurrentRiotChallenge();
   const [createdChallenge, setCreatedChallenge] = useState<RiotChallenge | null>(null);
+  // Desafío confirmado con éxito en esta visita. Mientras la página sale animada hacia `/perfil`,
+  // la invalidación de cuentas marca LoL como verificada; sin esta marca, la redirección de RF-6
+  // reemplazaría la navegación y borraría el aviso de RF-7 / RF-27 que lleva su `state`.
+  const [confirmedChallenge, setConfirmedChallenge] = useState<RiotChallenge | null>(null);
 
   const accounts = accountsQuery.data ?? [];
   const hasVerifiedLol = accounts.some((account) => account.gameId === 'lol' && account.verified);
 
-  if (hasVerifiedLol) {
+  if (hasVerifiedLol && confirmedChallenge === null) {
     return <Navigate to={ROUTES.profile} replace />;
   }
 
   const manualLol = accounts.find((account) => account.gameId === 'lol' && !account.verified);
-  const activeChallenge = createdChallenge ?? currentChallengeQuery.data ?? null;
+  const activeChallenge =
+    confirmedChallenge ?? createdChallenge ?? currentChallengeQuery.data ?? null;
   const goBack = () => navigate(returnTo);
 
   return (
@@ -114,6 +119,7 @@ export default function RiotVerifyPage() {
             key={`${activeChallenge.id}-${activeChallenge.expiresAt}`}
             challenge={activeChallenge}
             onChallengeCreated={setCreatedChallenge}
+            onConfirmed={setConfirmedChallenge}
             onBack={goBack}
           />
         ) : (
@@ -227,6 +233,8 @@ function RiotChallengeForm({ manualLol, onChallengeCreated, onBack }: RiotChalle
 interface RiotChallengeViewProps {
   challenge: RiotChallenge;
   onChallengeCreated: (challenge: RiotChallenge) => void;
+  /** Avisa a la página de que el desafío se confirmó, antes de navegar a `/perfil`. */
+  onConfirmed: (challenge: RiotChallenge) => void;
   onBack: () => void;
 }
 
@@ -234,7 +242,12 @@ interface RiotChallengeViewProps {
  * Pantalla del desafío abierto (RF-2, RF-7, RF-27, RF-47, RF-54, D77, D99, D100).
  * Se monta con `key` único por desafío para reiniciar cuenta atrás, errores y estado terminal.
  */
-function RiotChallengeView({ challenge, onChallengeCreated, onBack }: RiotChallengeViewProps) {
+function RiotChallengeView({
+  challenge,
+  onChallengeCreated,
+  onConfirmed,
+  onBack,
+}: RiotChallengeViewProps) {
   const navigate = useNavigate();
   const ddragonQuery = useDdragonVersion();
   const confirmChallenge = useConfirmRiotChallenge();
@@ -275,6 +288,7 @@ function RiotChallengeView({ challenge, onChallengeCreated, onBack }: RiotChalle
     confirmSending.current = true;
     confirmChallenge.mutate(challenge.id, {
       onSuccess: (result) => {
+        onConfirmed(challenge);
         navigate(ROUTES.profile, {
           replace: true,
           state: {
