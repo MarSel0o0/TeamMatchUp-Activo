@@ -19,6 +19,8 @@ export const ROUTES = {
    * `PROTECTED_PATHS`: sin sesión no se recuerda para continuar después de iniciar sesión (RF-7).
    */
   steamReturn: '/verificar/steam',
+  /** Verificación de cuenta de LoL con Riot Games (spec 014, O-2, RF-2, RF-45, RF-46). */
+  riotVerify: '/verificar/riot',
 } as const;
 
 export type RoutePath = (typeof ROUTES)[keyof typeof ROUTES];
@@ -43,13 +45,14 @@ export function sessionPath(sessionId: string): string {
   return `${SESSION_PATH_PREFIX}${encodeURIComponent(sessionId)}`;
 }
 
-/** Rutas que exigen sesión; las specs 008 y 009 añaden las suyas (plan 3.5). */
+/** Rutas que exigen sesión; las specs 008, 009 y 014 añaden las suyas (plan 3.5). */
 const PROTECTED_PATHS: readonly string[] = [
   ROUTES.home,
   ROUTES.profile,
   ROUTES.settings,
   ROUTES.matches,
   ROUTES.schedule,
+  ROUTES.riotVerify,
 ];
 
 /**

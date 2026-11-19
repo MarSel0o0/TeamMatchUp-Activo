@@ -53,8 +53,11 @@ function toSnapshot(stored: RankSnapshotFields): Snapshot {
 }
 
 // Estado puro de una cuenta guardada ("estado(account)" del plan de la 004, sección 6);
-// `matchId` → `id`. Lo usan la resincronización y la verificación (spec 012).
+// `matchId` → `id`. Lo usan la resincronización simulada y fuentes genéricas 012/013.
 export function toAccountState(account: GameAccountDocument): AccountState {
+  if (account.currentRank === null) {
+    throw new Error("la cuenta no tiene rango vigente");
+  }
   return {
     currentRank: toSnapshot(account.currentRank),
     rankHistory: account.rankHistory.map(toSnapshot),
@@ -65,7 +68,7 @@ export function toAccountState(account: GameAccountDocument): AccountState {
       result,
       summary,
       durationMinutes,
-      rankDelta,
+      rankDelta: rankDelta ?? 0,
     })),
     readingNumber: account.readingNumber,
     lastSyncedAt: account.lastSyncedAt,

@@ -21,6 +21,7 @@ const SchedulePage = lazy(() => import('@/features/sessions/pages/SchedulePage')
 const SessionDetailPage = lazy(() => import('@/features/sessions/pages/SessionDetailPage'));
 const PlayerPage = lazy(() => import('@/features/players/pages/PlayerPage'));
 const SteamReturnPage = lazy(() => import('@/features/steam/pages/SteamReturnPage'));
+const RiotVerifyPage = lazy(() => import('@/features/riot/pages/RiotVerifyPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 const LandingPage = lazy(() => import('./pages/LandingPage'));
 const HomePage = lazy(() => import('@/features/home/pages/HomePage'));
@@ -54,6 +55,8 @@ export function AppRouter() {
             <Route path={ROUTES.sessionDetail} element={<SessionDetailPage />} />
             {/* Ficha de otro jugador (spec 008, RF-1): protegida y diferida como las demás. */}
             <Route path={ROUTES.player} element={<PlayerPage />} />
+            {/* Verificación de cuenta de LoL con Riot Games (spec 014, O-2, RF-2, RF-45, RF-46). */}
+            <Route path={ROUTES.riotVerify} element={<RiotVerifyPage />} />
           </Route>
         </Route>
 

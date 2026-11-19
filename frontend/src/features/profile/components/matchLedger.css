@@ -79,3 +79,7 @@
 .ledger__delta[data-up] {
   color: var(--ok);
 }
+
+.ledger__delta[data-none] {
+  color: var(--ink-3);
+}

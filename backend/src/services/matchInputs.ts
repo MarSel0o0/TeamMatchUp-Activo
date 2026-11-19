@@ -18,6 +18,7 @@ export type { GameAccountJson };
 export type MatchInputs =
   | { kind: "noSession" } // el usuario de la sesión ya no existe (RF-13)
   | { kind: "noAccount" } // sin cuenta propia en el juego (RF-6)
+  | { kind: "unranked" } // LoL sin clasificar o con rango pendiente (spec 014, RF-33, RF-44)
   | {
       kind: "ok";
       viewer: { userId: string; account: GameAccountJson; blocks: string[] };
@@ -55,7 +56,17 @@ export async function loadMatchInputs(userId: string, gameId: GameId): Promise<M
   const own = await GameAccount.findOne({ user: userId, gameId });
   if (own === null) return { kind: "noAccount" };
 
-  const accounts = await GameAccount.find({ gameId, user: { $ne: userId } });
+  // Spec 014 (RF-13, RF-33, RF-44; D57, D67, D80): cuenta de LoL sin clasificar o con bloque de
+  // rango pendiente → 409 al buscar y excluida como candidata; partidas o perfil pendientes no.
+  if (gameId === "lol" && (own.currentRank == null || own.pendingBlocks?.includes("rank") === true)) {
+    return { kind: "unranked" };
+  }
+
+  const accounts = await GameAccount.find({
+    gameId,
+    user: { $ne: userId },
+    ...(gameId === "lol" ? { currentRank: { $ne: null }, pendingBlocks: { $ne: "rank" } } : {}),
+  });
   const ownerIds = [...new Set(accounts.map((account) => account.user.toString()))];
   const owners = await User.find({ _id: { $in: ownerIds } })
     .select("username displayName avatarColor bio timezone createdAt availability")

@@ -37,10 +37,17 @@ import { linkAccount, toAccountState, toMatchRecord, updateOwnedAccount } from "
 import { simulatedRankProvider } from "../services/rankProvider.ts";
 import { SOURCE_TIMEOUT_MS, readWithTimeout } from "../services/realSources.ts";
 import type { SourceRegistry } from "../services/realSources.ts";
+import { cancelOpenChallengesForUsers } from "../services/riotChallenges.ts";
+import { createRiotLimiter } from "../services/riotLimiter.ts";
+import type { RiotLimiter } from "../services/riotLimiter.ts";
+import { syncRiotAccount } from "../services/riotSync.ts";
+import { createRiotUserLock } from "../services/riotUserLock.ts";
+import type { RiotUserLock } from "../services/riotUserLock.ts";
 import { decodeSegment } from "../services/userTarget.ts";
 import { clock } from "../utils/clock.ts";
 import { MESSAGES } from "../utils/errors.ts";
 import { createWithUser } from "../utils/middleware.ts";
+import type { RiotIntegration } from "./riot.ts";
 
 // Aplica una lectura real a la cuenta en memoria (spec 012, RF-9, RF-15). Rango, historial y
 // partidas por `applyRealSync`; el identificador visible y el perfil, tal como los entrega la
@@ -60,6 +67,11 @@ export interface AccountsRouterOptions {
   now: () => number; // segundos Unix (reloj de las credenciales)
   sources?: SourceRegistry; // spec 012: sin ellas, las cuentas verificadas no se pueden resincronizar
   sourceTimeoutMs?: number | undefined;
+  /** Spec 014: integración con Riot Games para resincronización dedicada (P14-3). */
+  riotIntegration?: RiotIntegration | undefined;
+  riotLimiter?: RiotLimiter | undefined;
+  riotUserLock?: RiotUserLock | undefined;
+  operationTimeoutMs?: number | undefined;
 }
 
 export function createAccountsRouter({
@@ -67,6 +79,10 @@ export function createAccountsRouter({
   now,
   sources = {},
   sourceTimeoutMs = SOURCE_TIMEOUT_MS,
+  riotIntegration,
+  riotLimiter = riotIntegration?.limiter ?? createRiotLimiter(),
+  riotUserLock = createRiotUserLock(),
+  operationTimeoutMs,
 }: AccountsRouterOptions): Router {
   const router = Router();
 
@@ -146,6 +162,10 @@ export function createAccountsRouter({
       response.status(result.status).json({ error: result.error });
       return;
     }
+    // Spec 014 (RF-29, D59): vincular LoL a mano anula el desafío abierto de Riot del usuario.
+    if (data.gameId === "lol") {
+      await cancelOpenChallengesForUsers([sessionUserId], at);
+    }
     response.status(201).json(result.account);
   });
 
@@ -153,6 +173,7 @@ export function createAccountsRouter({
   // luego RF-38). Solo se leen identificador y región; el juego del cuerpo se ignora (RF-7).
   // No se obtiene ninguna lectura: rango, historial, partidas, número y fecha no cambian.
   router.put("/:id", async (request, response) => {
+    const at = clock.now();
     const { id } = request.params;
     if (!isValidId(id)) {
       response.status(400).json({ error: ACCOUNT_ERRORS.invalidId });
@@ -160,15 +181,24 @@ export function createAccountsRouter({
     }
     const sessionUserId = request.userId ?? "";
     const body: unknown = request.body;
+    let regionChanged = false;
     const result = await updateOwnedAccount(id, sessionUserId, (account) => {
+      regionChanged = false;
       const edit = validateAccountEdit(account, body);
       if (!edit.ok) return edit.error;
-      if (edit.value.region !== undefined) account.region = edit.value.region;
+      if (edit.value.region !== undefined) {
+        regionChanged = edit.value.region !== account.region;
+        account.region = edit.value.region;
+      }
       return null;
     });
     if (!result.ok) {
       response.status(result.status).json({ error: result.error });
       return;
+    }
+    // Spec 014 (RF-29, D59): editar la región de la cuenta manual de LoL anula el desafío abierto.
+    if (result.account.gameId === "lol" && regionChanged) {
+      await cancelOpenChallengesForUsers([sessionUserId], at);
     }
     response.status(200).json(result.account);
   });
@@ -177,6 +207,7 @@ export function createAccountsRouter({
   // de la cuenta (con su historial y sus partidas), sin tocar al usuario. Si otra
   // desvinculación se completó entre la lectura y el borrado, `deletedCount` es 0 → 404.
   router.delete("/:id", async (request, response) => {
+    const at = clock.now();
     const { id } = request.params;
     if (!isValidId(id)) {
       response.status(400).json({ error: ACCOUNT_ERRORS.invalidId });
@@ -196,6 +227,13 @@ export function createAccountsRouter({
     if (deletion.deletedCount === 0) {
       response.status(404).json({ error: ACCOUNT_ERRORS.accountNotFound });
       return;
+    }
+    // Spec 014 (RF-29, D59): desvincular la cuenta manual de LoL anula el desafío abierto.
+    if (
+      account.gameId === "lol" &&
+      (account.verification === undefined || account.verification === null)
+    ) {
+      await cancelOpenChallengesForUsers([sessionUserId], at);
     }
     response.status(204).end();
   });
@@ -253,6 +291,36 @@ export function createAccountsRouter({
         return;
       }
       response.status(200).json(result.account);
+      return;
+    }
+
+    // Spec 014 (RF-51, RF-53, P14-3): resincronización dedicada de cuentas verificadas con Riot.
+    // Preserva el camino genérico `sources.lol` de la spec 012 cuando `riotIntegration` no está
+    // presente y sí se inyectó `sources.lol` con id `"riot"` (`accountRealSync.test.ts`).
+    if (
+      verification.source === "riot" &&
+      (riotIntegration !== undefined || sources.lol?.id !== "riot")
+    ) {
+      const syncResult = await syncRiotAccount({
+        accountId: id,
+        userId: sessionUserId,
+        client: riotIntegration?.client,
+        limiter: riotLimiter,
+        userLock: riotUserLock,
+        operationTimeoutMs,
+        at,
+      });
+      if (!syncResult.ok) {
+        response.status(syncResult.status).json({ error: syncResult.error });
+        return;
+      }
+      response
+        .status(200)
+        .json(
+          syncResult.syncNotice === undefined
+            ? syncResult.account
+            : { ...syncResult.account, syncNotice: syncResult.syncNotice },
+        );
       return;
     }
 

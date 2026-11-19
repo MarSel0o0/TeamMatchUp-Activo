@@ -101,7 +101,7 @@ describe("alta de una cuenta verificada (RF-1, RF-8)", () => {
     assert.strictEqual(account?.handle, "Verificada#LAS");
     assert.strictEqual(account?.handleKey, "verificada#las");
     assert.strictEqual(account?.region, "LAS");
-    assert.strictEqual(account?.currentRank.tier, "Platinum");
+    assert.strictEqual(account?.currentRank?.tier, "Platinum");
     assert.strictEqual(account?.rankHistory.length, 1);
     assert.deepStrictEqual(account?.matches.map((m) => m.matchId), ["r-1"]);
     assert.strictEqual(account?.profile?.level, 100);
@@ -149,7 +149,7 @@ describe("conversión de la cuenta propia (RF-13)", () => {
     assert.strictEqual(stored[0]?.id, id);
     assert.strictEqual(stored[0]?.verification?.externalId, "puuid-1");
     assert.strictEqual(stored[0]?.rankHistory.length, 1); // se descartó el historial simulado (RF-8)
-    assert.strictEqual(stored[0]?.currentRank.tier, "Platinum");
+    assert.strictEqual(stored[0]?.currentRank?.tier, "Platinum");
   });
 
   test("otra identidad: se reemplaza el identificador por el verificado y se recalcula handleKey", async () => {
@@ -230,7 +230,7 @@ describe("exclusividad (RF-10)", () => {
     assert.ok((await verifyAccount(riotInput(ana.id))).ok);
     const again = await verifyAccount(riotInput(ana.id, { real: { handle: "Verificada#LAS", rank: { ...REAL_RANK, points: 80 } } }));
     assert.ok(again.ok);
-    assert.strictEqual((await accountsOf(ana.id))[0]?.currentRank.points, 80);
+    assert.strictEqual((await accountsOf(ana.id))[0]?.currentRank?.points, 80);
     assert.strictEqual(await GameAccount.countDocuments({}), 1);
   });
 });

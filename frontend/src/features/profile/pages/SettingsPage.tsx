@@ -1,4 +1,4 @@
-import { Check, Save } from 'lucide-react';
+import { AlertCircle, Check, Save } from 'lucide-react';
 import { useRef, useState, type FormEvent } from 'react';
 import { formatRange, groupBlocks } from '@/domain/availability';
 import type { TimeBlock } from '@/domain/types';
@@ -12,6 +12,7 @@ import { TextField } from '@/shared/components/TextField';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { REREAD_TEXT, SENDING_TEXT } from '@/shared/utils/copy';
 import { pluralize } from '@/shared/utils/format';
+import { RiotVerifyButton } from '@/features/riot/components/RiotVerifyButton';
 import { SteamVerifyButton } from '@/features/steam/components/SteamVerifyButton';
 import { AccountRow } from '../components/AccountRow';
 import { LinkAccountForm } from '../components/LinkAccountForm';
@@ -103,6 +104,7 @@ export default function SettingsPage() {
 
   const accountsBusy = syncAccount.isPending || unlinkAccount.isPending;
   const accountError = syncAccount.error ?? unlinkAccount.error;
+  const syncNotice = syncAccount.isSuccess ? syncAccount.data.syncNotice : undefined;
 
   if (!user) return null;
 
@@ -187,6 +189,14 @@ export default function SettingsPage() {
           ) : (
             <>
               <MutationNotice error={accountError} padded />
+              {syncNotice ? (
+                <div className="sheet__body">
+                  <p className="notice notice--pen" role="status">
+                    <Icon as={AlertCircle} size={15} />
+                    {syncNotice}
+                  </p>
+                </div>
+              ) : null}
               <div className="sheet__body sheet__body--flush">
                 {accounts.map((account) => (
                   <AccountRow
@@ -198,6 +208,7 @@ export default function SettingsPage() {
                     unlinking={unlinkAccount.isPending && unlinkAccount.variables === account.id}
                     locked={accountsBusy}
                     offerSteamVerify
+                    offerRiotVerify
                     owner={user}
                   />
                 ))}
@@ -213,6 +224,7 @@ export default function SettingsPage() {
           <div className="sheet__body">
             <LinkAccountForm
               linkedGames={accounts.map((account) => account.gameId)}
+              aboveLol={<RiotVerifyButton />}
               aboveCs2={<SteamVerifyButton />}
             />
           </div>

@@ -6,6 +6,7 @@
 // utilizable), el mensaje va por el logger (callado en prueba, D10) y el código es 1.
 import { createApp } from "./app.ts";
 import { startServer } from "./server.ts";
+import { createRiotClient } from "./services/riotClient.ts";
 import { createSteamClient } from "./services/steamClient.ts";
 import { formatConfigErrors, loadConfig } from "./utils/config.ts";
 import { logger } from "./utils/logger.ts";
@@ -17,15 +18,18 @@ if (!result.ok) {
 }
 
 try {
-  // Spec 013 (RF-22, RNF-2): la clave de Steam solo se usa para construir el cliente; sin ella no
-  // hay integración y `/api/steam` responde que no está disponible.
-  const { jwtSecret, nodeEnv, steam } = result.config;
+  // Spec 013 (RF-22, RNF-2) y spec 014 (RF-38, RNF-4): las claves solo construyen sus clientes;
+  // sin ellas no hay integración y `/api/steam` o `/api/riot` responden que no están disponibles.
+  const { jwtSecret, nodeEnv, steam, riot } = result.config;
   const app = createApp({
     jwtSecret,
     nodeEnv,
     ...(steam === null
       ? {}
       : { steamIntegration: { publicUrl: steam.publicUrl, client: createSteamClient({ apiKey: steam.apiKey }) } }),
+    ...(riot === null
+      ? {}
+      : { riotIntegration: { client: createRiotClient({ apiKey: riot.apiKey }) } }),
   });
   await startServer(result.config, { app, log: logger });
 } catch (error) {

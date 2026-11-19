@@ -31,6 +31,12 @@ export interface SteamConfig {
   publicUrl: string;
 }
 
+/** Spec 014: Riot Games configurado. Sin `RIOT_API_KEY` no existe (RF-38). */
+export interface RiotConfig {
+  /** Secreto de la instancia: nunca en respuestas, mensajes ni registros (RNF-4). */
+  apiKey: string;
+}
+
 export interface Config {
   nodeEnv: NodeEnv;
   port: number;
@@ -38,6 +44,7 @@ export interface Config {
   db: DatabaseConfig; // ya elegida según el entorno
   jwtSecret: string; // tal como viene, sin recortar (D18 de la 001)
   steam: SteamConfig | null; // spec 013: null = Steam no configurado (RF-22)
+  riot: RiotConfig | null; // spec 014: null = Riot no configurado (RF-38)
 }
 
 export type ConfigResult = { ok: true; config: Config } | { ok: false; errors: string[] };
@@ -182,11 +189,17 @@ export function parseConfig(env: EnvSource): ConfigResult {
     }
   }
 
+  // Spec 014, RF-17, RF-38 y P14-10: Riot Games es opcional y no requiere PUBLIC_URL. Vacía o solo
+  // espacios cuenta como no definida; ningún mensaje ni registro incluye la clave (RNF-4).
+  const rawRiotKey = env.RIOT_API_KEY;
+  const riot: RiotConfig | null =
+    rawRiotKey !== undefined && !isBlank(rawRiotKey) ? { apiKey: rawRiotKey } : null;
+
   if (missing.length > 0) errors.unshift(MESSAGES.missing(missing));
   if (errors.length > 0 || nodeEnv === null || port === null || db === null || jwtSecret === null) {
     return { ok: false, errors };
   }
-  return { ok: true, config: { nodeEnv, port, host, db, jwtSecret, steam } };
+  return { ok: true, config: { nodeEnv, port, host, db, jwtSecret, steam, riot } };
 }
 
 export function formatConfigErrors(errors: readonly string[]): string {

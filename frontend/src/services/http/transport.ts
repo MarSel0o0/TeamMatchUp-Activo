@@ -67,6 +67,8 @@ export interface ExecuteOptions {
   signal?: AbortSignal;
   /** Mensaje de un 401 sin cuerpo legible; por defecto el de la spec 002. */
   unauthorizedMessage?: string;
+  /** Plazo opcional de la petición en ms; por defecto `REQUEST_TIMEOUT_MS` (30 s; Riot usa 65 s, P14-11). */
+  timeoutMs?: number;
 }
 
 export interface ExecuteResult<T> {
@@ -102,7 +104,8 @@ export async function execute<T>(
   const epochAtStart = epoch;
   const controller = new AbortController();
   inFlight.add(controller);
-  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const timeoutMs = options.timeoutMs ?? REQUEST_TIMEOUT_MS;
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
 
   const externalSignal = options.signal;
   const forwardAbort = () => controller.abort();

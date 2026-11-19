@@ -25,6 +25,6 @@ export function verifiedLabel(source?: SourceId): string {
     case 'steam':
       return 'Verificada con Steam';
     case 'riot':
-      return 'Verificada con Riot';
+      return 'Verificada con Riot Games';
   }
 }

@@ -6,12 +6,16 @@ import type {
   PlaySession,
   PublicUser,
   RegisterPayload,
+  RiotChallenge,
+  RiotConfirmResult,
+  SyncAccountResult,
   TimeBlock,
   User,
 } from '@/domain/types';
 import { BAD_CREDENTIALS_TEXT, NO_MESSAGE_TEXT } from '@/shared/utils/copy';
 import type {
   ApiContract,
+  CreateRiotChallengePayload,
   CreateSessionPayload,
   GameProfileSummary,
   LinkAccountPayload,
@@ -21,6 +25,12 @@ import type {
 } from '../apiContract';
 import { saveCsrf } from './csrfStorage';
 import { ApiError, CSRF_HEADER, request, requestWithHeaders } from './httpClient';
+
+/**
+ * Plazo en ms para operaciones que consultan a Riot Games (spec 014, RNF-7, P14-11):
+ * el servidor corta a los 60 s, así que 65 s garantiza recibir la respuesta (incluido el 503).
+ */
+const RIOT_REQUEST_TIMEOUT_MS = 65_000;
 
 /**
  * Implementación del contrato contra el servidor Express (plan, sección 4).
@@ -78,7 +88,10 @@ export const httpApi: ApiContract = {
       request<void>(`/accounts/${encodeURIComponent(accountId)}`, { method: 'DELETE' }),
 
     syncAccount: (accountId: string) =>
-      request<GameAccount>(`/accounts/${encodeURIComponent(accountId)}/sync`, { method: 'POST' }),
+      request<SyncAccountResult>(`/accounts/${encodeURIComponent(accountId)}/sync`, {
+        method: 'POST',
+        timeoutMs: RIOT_REQUEST_TIMEOUT_MS,
+      }),
 
     getAvailability: () => request<TimeBlock[]>('/users/me/availability'),
 
@@ -113,6 +126,33 @@ export const httpApi: ApiContract = {
     // viajan como en cualquier operación protegida (spec 013, D3, RNF-6).
     complete: (query: Record<string, string>) =>
       request<SteamCompleteResult>('/steam/complete', { method: 'POST', body: { query } }),
+  },
+
+  riot: {
+    status: () => request<{ available: boolean }>('/riot'),
+
+    async currentChallenge(): Promise<RiotChallenge | null> {
+      const { challenge } = await request<{ challenge: RiotChallenge | null }>(
+        '/riot/challenges/current',
+      );
+      return challenge;
+    },
+
+    createChallenge: (payload: CreateRiotChallengePayload) =>
+      request<RiotChallenge>('/riot/challenges', {
+        method: 'POST',
+        body: payload,
+        timeoutMs: RIOT_REQUEST_TIMEOUT_MS,
+      }),
+
+    confirmChallenge: (challengeId: string) =>
+      request<RiotConfirmResult>(
+        `/riot/challenges/${encodeURIComponent(challengeId)}/confirm`,
+        {
+          method: 'POST',
+          timeoutMs: RIOT_REQUEST_TIMEOUT_MS,
+        },
+      ),
   },
 
   matches: {

@@ -60,6 +60,12 @@ Confirmado y construido:
 - Verificación de la cuenta de CS2 iniciando sesión en Steam, cuando la instancia tiene la
   clave de Steam: nombre, avatar, país y horas de CS2 reales, atribuidos a Steam. El rango, el
   historial y las partidas de CS2 siguen siendo simulados y etiquetados como tales.
+- Verificación de la cuenta de League of Legends cambiando temporalmente el ícono de invocador
+  en el cliente de LoL, cuando la instancia tiene la clave de desarrollo de Riot Games
+  (`RIOT_API_KEY`): rango clasificatorio Solo/Dúo, historial construido con sus propias lecturas,
+  hasta 20 últimas partidas Solo/Dúo (sin remakes) y perfil (nivel e ícono de invocador) reales,
+  atribuidos a Riot Games. Las cuentas sin clasificar o con rango pendiente quedan fuera de las
+  coincidencias de LoL hasta tener rango.
 
 Restricciones técnicas:
 
@@ -83,11 +89,12 @@ título.
 ## Evidence on Hand
 
 No existe ningún dato real todavía: no hay usuarios registrados, ni partidas reales, ni
-integración viva con Riot o Ubisoft. La verificación de CS2 con Steam está construida, pero
-solo produce datos reales (nombre, avatar, país y horas de CS2) cuando una instancia tiene la
-clave de Steam y alguien verifica su cuenta; no hay recorrido con una cuenta real todavía. Todo
-lo demás son datos de demostración generados con semilla fija y están etiquetados como tales
-en la interfaz.
+integración viva con Ubisoft. La verificación de CS2 con Steam y la de League of Legends con Riot
+Games están construidas, pero solo producen datos reales (nombre, avatar, país y horas de CS2
+desde Steam; rango Solo/Dúo, partidas, nivel e ícono de invocador de LoL desde Riot Games) cuando
+una instancia tiene su clave configurada (`STEAM_API_KEY` / `RIOT_API_KEY`) y alguien verifica su
+cuenta; no hay recorrido con una cuenta real de Steam ni de Riot todavía. Todo lo demás son datos
+de demostración generados con semilla fija y están etiquetados como tales en la interfaz.
 
 Nada de lo siguiente puede inventarse: cantidad de usuarios, partidas emparejadas,
 testimonios, tasas de éxito o respaldo de los estudios de los juegos.

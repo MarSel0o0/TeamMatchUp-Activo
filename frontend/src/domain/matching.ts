@@ -18,7 +18,7 @@ export interface MatchCriteria {
 /** Lo mínimo que el motor necesita de una cuenta; el resto (`origins`, `handle`…) pasa intacto. */
 export interface RankedAccount {
   userId: string;
-  currentRank: { normalized: number };
+  currentRank: { normalized: number } | null;
   verified: boolean;
 }
 
@@ -140,19 +140,26 @@ export function buildMatches<A extends RankedAccount>(
   viewer: { userId: string; account: RankedAccount; blocks: readonly string[] },
   candidates: readonly CandidateInput<A>[],
 ): MatchCandidate<A>[] {
+  const viewerRank = viewer.account.currentRank;
+  if (viewerRank === null) return [];
+
   return candidates
-    .filter((candidate) => candidate.account.userId !== viewer.userId)
-    .map((candidate): MatchCandidate<A> => {
-      const distance = rankDistance(viewer.account.currentRank, candidate.account.currentRank);
+    .flatMap((candidate): MatchCandidate<A>[] => {
+      if (candidate.account.userId === viewer.userId) return [];
+      const candidateRank = candidate.account.currentRank;
+      if (candidateRank === null) return [];
+      const distance = rankDistance(viewerRank, candidateRank);
       const sharedBlocks = intersectBlocks(viewer.blocks, candidate.blocks);
-      return {
-        user: candidate.user,
-        gameId: criteria.gameId,
-        account: candidate.account,
-        rankDistance: distance,
-        sharedBlocks,
-        score: scoreCandidate(distance, sharedBlocks.length),
-      };
+      return [
+        {
+          user: candidate.user,
+          gameId: criteria.gameId,
+          account: candidate.account,
+          rankDistance: distance,
+          sharedBlocks,
+          score: scoreCandidate(distance, sharedBlocks.length),
+        },
+      ];
     })
     .filter((match) => match.rankDistance <= criteria.maxRankDistance)
     .filter((match) => match.sharedBlocks.length >= criteria.minSharedHours)

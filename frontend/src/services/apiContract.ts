@@ -8,6 +8,9 @@ import type {
   PlaySession,
   PublicUser,
   RegisterPayload,
+  RiotChallenge,
+  RiotConfirmResult,
+  SyncAccountResult,
   TimeBlock,
   User,
   WeekDay,
@@ -16,6 +19,12 @@ import type {
 export interface LinkAccountPayload {
   gameId: GameId;
   handle: string;
+  region: string;
+}
+
+/** Datos para pedir un desafío de verificación con Riot Games (spec 014, RF-1). */
+export interface CreateRiotChallengePayload {
+  riotId: string;
   region: string;
 }
 
@@ -84,7 +93,7 @@ export interface ApiContract {
     linkAccount(payload: LinkAccountPayload): Promise<GameAccount>;
     unlinkAccount(accountId: string): Promise<void>;
     /** Fuerza una relectura del rango desde la fuente externa del juego. */
-    syncAccount(accountId: string): Promise<GameAccount>;
+    syncAccount(accountId: string): Promise<SyncAccountResult>;
     getAvailability(): Promise<TimeBlock[]>;
     /** Horas marcadas por otro jugador; las usa "Proponer" (plan 3.11, R-6). */
     getAvailabilityOf(userId: string): Promise<TimeBlock[]>;
@@ -111,6 +120,17 @@ export interface ApiContract {
     start(): Promise<{ url: string }>;
     /** `POST /api/steam/complete`: completa la verificación con lo que trajo la dirección de vuelta (RF-4). */
     complete(query: Record<string, string>): Promise<SteamCompleteResult>;
+  };
+  /** Verificación de la cuenta de LoL con Riot Games (spec 014): `/api/riot`. */
+  riot: {
+    /** `GET /api/riot`: ¿la instancia tiene Riot Games configurado? (RF-38). */
+    status(): Promise<{ available: boolean }>;
+    /** `GET /api/riot/challenges/current`: recupera el desafío abierto del usuario o `null` (RF-45). */
+    currentChallenge(): Promise<RiotChallenge | null>;
+    /** `POST /api/riot/challenges`: crea un desafío con ícono de inicio (RF-1). */
+    createChallenge(payload: CreateRiotChallengePayload): Promise<RiotChallenge>;
+    /** `POST /api/riot/challenges/:id/confirm`: comprueba el ícono y verifica la cuenta (RF-7, RF-27). */
+    confirmChallenge(challengeId: string): Promise<RiotConfirmResult>;
   };
   matches: {
     list(filters: MatchFilters): Promise<MatchCandidate[]>;

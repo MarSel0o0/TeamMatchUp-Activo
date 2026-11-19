@@ -23,11 +23,19 @@ import type {
   PublicUser,
   RankSnapshot,
   RegisterPayload,
+  RiotChallenge,
+  RiotConfirmResult,
+  SyncAccountResult,
   TimeBlock,
   User,
   WeekDay,
 } from '@/domain/types';
-import { BAD_CREDENTIALS_TEXT, NO_MESSAGE_TEXT, STEAM_MOCK_DISABLED_TEXT } from '@/shared/utils/copy';
+import {
+  BAD_CREDENTIALS_TEXT,
+  NO_MESSAGE_TEXT,
+  RIOT_MOCK_DISABLED_TEXT,
+  STEAM_MOCK_DISABLED_TEXT,
+} from '@/shared/utils/copy';
 import type {
   ApiContract,
   CreateSessionPayload,
@@ -394,7 +402,10 @@ function gameSummaryOf(account: GameAccount): GameProfileSummary {
     account,
     recentMatches,
     winRate: winRateOf(recentMatches),
-    trend: first === undefined ? 0 : account.currentRank.normalized - first.normalized,
+    trend:
+      account.currentRank === null || first === undefined
+        ? 0
+        : account.currentRank.normalized - first.normalized,
   };
 }
 
@@ -839,7 +850,7 @@ export const mockApi: ApiContract = {
       }),
 
     syncAccount: (accountId: string) =>
-      protectedOperation<GameAccount>((user) => {
+      protectedOperation<SyncAccountResult>((user) => {
         // Spec 004, RF-10 y RF-11: existencia (404) y luego propiedad (403).
         const account = database.accounts.find((candidate) => candidate.id === accountId);
         if (account === undefined) return fail(404, MESSAGES.accountNotFound);
@@ -856,7 +867,7 @@ export const mockApi: ApiContract = {
           now: at,
         });
         const snapshot = snapshotJson(reading.snapshot);
-        if (shouldAppendSnapshot(account.currentRank, snapshot)) {
+        if (account.currentRank === null || shouldAppendSnapshot(account.currentRank, snapshot)) {
           account.rankHistory = [...account.rankHistory, snapshot];
         }
         account.currentRank = snapshot;
@@ -1119,5 +1130,16 @@ export const mockApi: ApiContract = {
     status: () => protectedOperation<{ available: boolean }>(() => reply(200, { available: false })),
     start: () => protectedOperation<{ url: string }>(() => fail(503, STEAM_MOCK_DISABLED_TEXT)),
     complete: () => protectedOperation<SteamCompleteResult>(() => fail(503, STEAM_MOCK_DISABLED_TEXT)),
+  },
+
+  // Spec 014, RF-42: en modo simulado nunca se simula una verificación con Riot ni datos de Riot
+  // (constitución, principio 5).
+  riot: {
+    status: () => protectedOperation<{ available: boolean }>(() => reply(200, { available: false })),
+    currentChallenge: () => protectedOperation<RiotChallenge | null>(() => reply(200, null)),
+    createChallenge: () =>
+      protectedOperation<RiotChallenge>(() => fail(503, RIOT_MOCK_DISABLED_TEXT)),
+    confirmChallenge: () =>
+      protectedOperation<RiotConfirmResult>(() => fail(503, RIOT_MOCK_DISABLED_TEXT)),
   },
 };

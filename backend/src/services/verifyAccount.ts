@@ -13,16 +13,35 @@ import { initialState } from "../domain/accountState.ts";
 import { GAMES } from "../domain/games.ts";
 import type { GameId } from "../domain/games.ts";
 import { canonicalHandle } from "../domain/rankSimulator.ts";
+import type { PendingBlock } from "../domain/riotChallenge.ts";
+import type { RiotMatchRecord, RiotRankSnapshot } from "../domain/riotData.ts";
+import type { RiotLpBaseline } from "../domain/riotLpDelta.ts";
 import type { SourceId } from "../domain/sources.ts";
 import { verifiedState } from "../domain/verification.ts";
 import type { RealData } from "../domain/verification.ts";
 import { ACCOUNT_ERRORS } from "../domain/accountRules.ts";
 import { GameAccount } from "../models/gameAccount.ts";
-import type { GameAccountDocument } from "../models/gameAccount.ts";
+import type {
+  AccountProfileFields,
+  GameAccountDocument,
+  MatchRecordFields,
+} from "../models/gameAccount.ts";
 import { User } from "../models/user.ts";
 import { simulatedRankProvider } from "./rankProvider.ts";
 import { toAccountState, toMatchRecord } from "./accountWrites.ts";
+import { cancelOpenChallengesForUsers } from "./riotChallenges.ts";
 import { USER_TARGET_MESSAGES } from "./userTarget.ts";
+
+/** Estado ya calculado para cuentas verificadas con Riot Games (spec 014, plan §5.2). */
+export interface RiotVerifyState {
+  currentRank: RiotRankSnapshot | null;
+  rankHistory: RiotRankSnapshot[];
+  matches: RiotMatchRecord[];
+  profile: AccountProfileFields;
+  pendingBlocks: PendingBlock[];
+  lastSuccessfulSyncAt: Date | null;
+  riotLpBaseline: RiotLpBaseline | null;
+}
 
 export interface VerifyInput {
   /** Usuario de la sesión; nunca un identificador enviado por el cliente (constitución, 5). */
@@ -36,8 +55,10 @@ export interface VerifyInput {
    */
   region?: string;
   verification: { source: SourceId; externalId: string };
-  /** Lo que la fuente entregó al verificar. */
-  real: RealData;
+  /** Lo que la fuente entregó al verificar (fuentes genéricas 012/013). */
+  real?: RealData;
+  /** Estado completo o parcial de Riot Games ya calculado por `applyRiotReading` (spec 014). */
+  riotState?: RiotVerifyState;
   now: Date;
 }
 
@@ -53,15 +74,57 @@ function isDuplicateKeyError(error: unknown): error is mongoose.mongo.MongoServe
   return error instanceof mongoose.mongo.MongoServerError && error.code === 11000;
 }
 
-/** El choque fue con el índice de la verificación (otro usuario ganó), no con `{ user, gameId }`. */
+/** El choque fue con el índice de la verificación, no con `{ user, gameId }`. */
 function collidedOnVerification(error: mongoose.mongo.MongoServerError): boolean {
   const pattern: unknown = error.keyPattern;
   return typeof pattern === "object" && pattern !== null && "verification.externalId" in pattern;
 }
 
+async function isTakenByOtherUser(
+  gameId: GameId,
+  externalId: string,
+  userId: string,
+): Promise<boolean> {
+  const taken = await GameAccount.exists({
+    gameId,
+    "verification.externalId": externalId,
+    user: { $ne: userId },
+  });
+  return taken !== null;
+}
+
+function toRiotMatchRecord(match: RiotMatchRecord): MatchRecordFields {
+  const { id, gameId, playedAt, result, summary, durationMinutes, rankDelta } = match;
+  return rankDelta === undefined
+    ? { matchId: id, gameId, playedAt, result, summary, durationMinutes }
+    : { matchId: id, gameId, playedAt, result, summary, durationMinutes, rankDelta };
+}
+
 // Aplica la verificación a una cuenta existente (RF-8, RF-13). `handleKey` lo recalcula
 // `pre("validate")` al guardar.
 function convert(account: GameAccountDocument, input: VerifyInput): void {
+  if (input.riotState !== undefined) {
+    const state = input.riotState;
+    account.verification = { ...input.verification, verifiedAt: input.now };
+    account.handle = input.handle;
+    if (input.region !== undefined) account.region = input.region;
+    account.currentRank = state.currentRank;
+    account.rankHistory = state.rankHistory;
+    account.matches = state.matches.map(toRiotMatchRecord);
+    account.lastSyncedAt = input.now;
+    account.profile = state.profile;
+    if (state.pendingBlocks.length > 0) {
+      account.pendingBlocks = [...state.pendingBlocks];
+    } else {
+      account.set("pendingBlocks", undefined);
+    }
+    account.lastSuccessfulSyncAt = state.lastSuccessfulSyncAt;
+    account.riotLpBaseline = state.riotLpBaseline;
+    return;
+  }
+  if (input.real === undefined) {
+    throw new Error("verifyAccount requiere `real` o `riotState`");
+  }
   const next = verifiedState(toAccountState(account), input.real, input.now);
   account.currentRank = next.currentRank;
   account.rankHistory = next.rankHistory;
@@ -73,9 +136,33 @@ function convert(account: GameAccountDocument, input: VerifyInput): void {
   if (input.real.profile !== undefined) account.profile = input.real.profile;
 }
 
-// Cuenta nueva ya verificada: la base es la lectura simulada número 0 (spec 004, RF-4) y la
-// fuente reemplaza los bloques que entrega (RF-8).
+// Cuenta nueva ya verificada: para Riot usa `riotState`; para fuentes genéricas (012/013) la base
+// es la lectura simulada número 0 (spec 004, RF-4) y la fuente reemplaza los bloques que entrega.
 async function createVerified(input: VerifyInput): Promise<GameAccountDocument> {
+  const region = input.region ?? GAMES[input.gameId].regions[0];
+  if (region === undefined) throw new Error(`el juego ${input.gameId} no tiene regiones`);
+  if (input.riotState !== undefined) {
+    const state = input.riotState;
+    return GameAccount.create({
+      user: input.userId,
+      gameId: input.gameId,
+      handle: input.handle,
+      region,
+      currentRank: state.currentRank,
+      rankHistory: state.rankHistory,
+      matches: state.matches.map(toRiotMatchRecord),
+      readingNumber: 0,
+      lastSyncedAt: input.now,
+      verification: { ...input.verification, verifiedAt: input.now },
+      profile: state.profile,
+      ...(state.pendingBlocks.length > 0 ? { pendingBlocks: [...state.pendingBlocks] } : {}),
+      lastSuccessfulSyncAt: state.lastSuccessfulSyncAt,
+      ...(state.riotLpBaseline === null ? {} : { riotLpBaseline: state.riotLpBaseline }),
+    });
+  }
+  if (input.real === undefined) {
+    throw new Error("verifyAccount requiere `real` o `riotState`");
+  }
   const base = initialState(
     simulatedRankProvider.read({
       gameId: input.gameId,
@@ -86,8 +173,6 @@ async function createVerified(input: VerifyInput): Promise<GameAccountDocument> 
     input.now,
   );
   const state = verifiedState(base, input.real, input.now);
-  const region = input.region ?? GAMES[input.gameId].regions[0];
-  if (region === undefined) throw new Error(`el juego ${input.gameId} no tiene regiones`);
   return GameAccount.create({
     user: input.userId,
     gameId: input.gameId,
@@ -103,26 +188,38 @@ async function createVerified(input: VerifyInput): Promise<GameAccountDocument> 
   });
 }
 
-/** Cuentas sin verificar de otros usuarios con el mismo juego e identificador (RF-11). */
-async function unlinkUnverifiedElsewhere(account: GameAccountDocument): Promise<void> {
-  await GameAccount.deleteMany({
+/**
+ * Cuentas sin verificar de otros usuarios con el mismo juego e identificador (spec 012, RF-11).
+ * En LoL, además anula los desafíos abiertos de Riot de esos usuarios (spec 014, RF-29, D89) y
+ * devuelve sus identificadores.
+ */
+export async function unlinkUnverifiedElsewhere(
+  account: GameAccountDocument,
+  at: Date,
+): Promise<string[]> {
+  const filter = {
     gameId: account.gameId,
     handleKey: account.handleKey,
     user: { $ne: account.user },
     verification: { $exists: false },
-  });
+  };
+  if (account.gameId !== "lol") {
+    await GameAccount.deleteMany(filter);
+    return [];
+  }
+  const doomed = await GameAccount.find(filter, { user: 1 }).lean();
+  await GameAccount.deleteMany(filter);
+  if (doomed.length === 0) return [];
+  const userIds = Array.from(new Set(doomed.map((doc) => doc.user.toString())));
+  await cancelOpenChallengesForUsers(userIds, at);
+  return userIds;
 }
 
 export async function verifyAccount(input: VerifyInput): Promise<VerifyResult> {
   const { userId, gameId, verification } = input;
 
   // RF-10: otro usuario ya verificó esta cuenta real. El índice único cubre la carrera.
-  const taken = await GameAccount.exists({
-    gameId,
-    "verification.externalId": verification.externalId,
-    user: { $ne: userId },
-  });
-  if (taken !== null) return TAKEN;
+  if (await isTakenByOtherUser(gameId, verification.externalId, userId)) return TAKEN;
 
   for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt += 1) {
     const own = await GameAccount.findOne({ user: userId, gameId });
@@ -135,7 +232,10 @@ export async function verifyAccount(input: VerifyInput): Promise<VerifyResult> {
       } catch (error) {
         if (error instanceof mongoose.Error.VersionError) continue; // otra escritura ganó: releer
         if (error instanceof mongoose.Error.DocumentNotFoundError) continue; // desvinculada en medio
-        if (isDuplicateKeyError(error) && collidedOnVerification(error)) return TAKEN;
+        if (isDuplicateKeyError(error) && collidedOnVerification(error)) {
+          if (await isTakenByOtherUser(gameId, verification.externalId, userId)) return TAKEN;
+          continue;
+        }
         throw error;
       }
       account = own;
@@ -144,7 +244,12 @@ export async function verifyAccount(input: VerifyInput): Promise<VerifyResult> {
         account = await createVerified(input);
       } catch (error) {
         if (!isDuplicateKeyError(error)) throw error;
-        if (collidedOnVerification(error)) return TAKEN;
+        if (
+          collidedOnVerification(error) &&
+          (await isTakenByOtherUser(gameId, verification.externalId, userId))
+        ) {
+          return TAKEN;
+        }
         continue; // alta simultánea del mismo usuario: ahora existe y se convierte
       }
       if ((await User.exists({ _id: userId })) === null) {
@@ -154,7 +259,7 @@ export async function verifyAccount(input: VerifyInput): Promise<VerifyResult> {
       }
     }
 
-    await unlinkUnverifiedElsewhere(account); // RF-11
+    await unlinkUnverifiedElsewhere(account, input.now); // RF-11 + spec 014 RF-29/D89
     return { ok: true, account };
   }
   throw new Error(`no se pudo verificar la cuenta de ${userId} en ${gameId} tras ${MAX_ATTEMPTS} intentos`);

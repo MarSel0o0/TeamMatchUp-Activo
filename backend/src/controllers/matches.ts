@@ -9,6 +9,7 @@
 import { Router } from "express";
 import { buildMatches } from "../domain/matching.ts";
 import { MATCH_ERRORS, parseMatchQuery } from "../domain/matchQuery.ts";
+import { RIOT_ERRORS } from "../domain/riotRules.ts";
 import { loadMatchInputs } from "../services/matchInputs.ts";
 import { SESSION_MESSAGES } from "../services/sessionToken.ts";
 import type { SessionGuardOptions } from "../utils/middleware.ts";
@@ -33,6 +34,10 @@ export function createMatchesRouter({ jwtSecret, now }: SessionGuardOptions): Ro
     }
     if (inputs.kind === "noAccount") {
       response.status(404).json({ error: MATCH_ERRORS.noAccount });
+      return;
+    }
+    if (inputs.kind === "unranked") {
+      response.status(409).json({ error: RIOT_ERRORS.unrankedForMatches });
       return;
     }
     response.status(200).json(buildMatches(query.value, inputs.viewer, inputs.candidates));

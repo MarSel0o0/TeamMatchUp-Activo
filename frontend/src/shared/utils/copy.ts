@@ -50,6 +50,35 @@ export const STEAM_NOTICES = {
   cancelled: 'verificación con Steam cancelada',
 } as const;
 
+/** Verificación con Riot Games (spec 014, RF-2, RF-7, RF-13, RF-27, RF-39 a RF-42, RF-53, RF-54). */
+export const RIOT_VERIFY_LABEL = 'Verificar con Riot Games';
+/** RF-42: en modo simulado el botón se ve desactivado con este texto. */
+export const RIOT_MOCK_DISABLED_TEXT = 'No disponible en modo de demostración';
+/** RF-41: texto junto a «Resincronizar» de una cuenta de LoL verificada con Riot Games. */
+export const RIOT_RESYNC_NOTE =
+  'Al resincronizar, se vuelven a leer tus datos de Riot Games. Puedes hacerlo cada 5 minutos.';
+/** RF-27: etiqueta de cada bloque cuya lectura falló al verificar con Riot Games. */
+export const RIOT_PENDING_LABEL = 'Datos pendientes de Riot Games';
+/** RF-13: etiqueta de una cuenta de LoL verificada que no tiene rango Solo/Dúo vigente. */
+export const RIOT_UNRANKED_LABEL = 'sin clasificar';
+/** RF-7: aviso en el perfil al completar la verificación de Riot sin datos pendientes. */
+export const RIOT_VERIFIED_NOTICE = 'Cuenta de Riot verificada';
+/** RF-53: aviso tras una resincronización parcial de Riot Games. */
+export const RIOT_PARTIAL_SYNC_NOTICE =
+  'No pudimos actualizar algunos de tus datos de Riot Games. Resincroniza más tarde para verlos.';
+/** RF-2: pasos fijos de la pantalla del desafío para cambiar el ícono en el cliente de LoL. */
+export const RIOT_CHALLENGE_STEPS = [
+  'Abre tu Perfil en el cliente de LoL',
+  'Haz clic en tu ícono',
+  'Elige el ícono indicado y guarda',
+] as const;
+export const RIOT_CONFIRM_BUTTON = 'Ya puse el ícono';
+export const RIOT_RETRY_CHALLENGE_BUTTON = 'Pedir otro desafío';
+export const RIOT_BACK_BUTTON = 'Volver';
+export const RIOT_CHALLENGE_EXPIRED_TITLE = 'El desafío venció';
+/** RF-2: respaldo textual cuando la imagen del ícono asignado no carga desde Data Dragon. */
+export const riotIconFallbackText = (id: number): string => `Ícono n.º ${id}`;
+
 /** Sustituye a las promesas de relectura sin intervención del usuario (RF-26). */
 export const REREAD_TEXT = 'El rango se vuelve a leer al pulsar "Resincronizar".';
 

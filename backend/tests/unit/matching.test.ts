@@ -385,6 +385,34 @@ describe("filtros", () => {
     assert.strictEqual(result.length, 3);
     for (const match of result) assert.deepStrictEqual(match.sharedBlocks, []);
   });
+
+  test("excluye candidatos con currentRank null (sin clasificar o rango pendiente, spec 014 RF-13/RF-44)", () => {
+    const unrankedUser = makeUser("sin_rango");
+    const unranked: CandidateInput<TestAccount> = {
+      user: unrankedUser,
+      account: {
+        id: `acc-${unrankedUser.id}`,
+        userId: unrankedUser.id,
+        gameId: "lol",
+        currentRank: null,
+        verified: true,
+        simulated: true,
+      },
+      blocks: VIEWER_BLOCKS,
+    };
+    const ranked = makeCandidate("clasificada", 52, VIEWER_BLOCKS, { verified: true });
+    const result = buildMatches(NO_FILTERS, VIEWER, [unranked, ranked]);
+    assert.deepStrictEqual(names(result), ["clasificada"]);
+  });
+
+  test("si el visitante tiene currentRank null devuelve lista vacía sin fallar", () => {
+    const unrankedViewer = {
+      userId: "id-viewer",
+      account: { userId: "id-viewer", currentRank: null, verified: true },
+      blocks: VIEWER_BLOCKS,
+    };
+    assert.deepStrictEqual(buildMatches(NO_FILTERS, unrankedViewer, candidates), []);
+  });
 });
 
 describe("orden", () => {

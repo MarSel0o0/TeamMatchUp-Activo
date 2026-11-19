@@ -9,11 +9,15 @@ import type { Express } from "express";
 import { createAccountsRouter } from "./controllers/accounts.ts";
 import { createAuthRouter } from "./controllers/auth.ts";
 import { createMatchesRouter } from "./controllers/matches.ts";
+import { createRiotRouter } from "./controllers/riot.ts";
+import type { RiotIntegration } from "./controllers/riot.ts";
 import { createSessionsRouter } from "./controllers/sessions.ts";
 import { createSteamRouter } from "./controllers/steam.ts";
 import type { SteamIntegration } from "./controllers/steam.ts";
 import { createUsersRouter } from "./controllers/users.ts";
 import type { SourceRegistry } from "./services/realSources.ts";
+import { createRiotLimiter } from "./services/riotLimiter.ts";
+import { createRiotUserLock } from "./services/riotUserLock.ts";
 import { createSteamSource } from "./services/steamSource.ts";
 import type { NodeEnv } from "./utils/config.ts";
 import { errorHandler, unknownEndpoint } from "./utils/middleware.ts";
@@ -33,6 +37,14 @@ export interface AppOptions {
    * resincronizaciones (RF-14).
    */
   steamIntegration?: SteamIntegration;
+  /**
+   * Spec 014: Riot Games configurado (cliente y dobles opcionales; no se llama `riot` para no
+   * chocar con `Config.riot` al pasar la configuración entera). Sin él, `/api/riot` informa
+   * no disponible y las operaciones que consultan a Riot responden 503 (RF-38).
+   */
+  riotIntegration?: RiotIntegration;
+  /** Plazo máximo de una operación completa con Riot en ms; por defecto 60 s (RNF-7). */
+  operationTimeoutMs?: number;
 }
 
 // Reloj real en segundos Unix (el de las credenciales).
@@ -41,7 +53,17 @@ function systemNow(): number {
 }
 
 export function createApp(options: AppOptions): Express {
-  const { jwtSecret, nodeEnv, now = systemNow, sourceTimeoutMs, steamIntegration: steam } = options;
+  const {
+    jwtSecret,
+    nodeEnv,
+    now = systemNow,
+    sourceTimeoutMs,
+    steamIntegration: steam,
+    riotIntegration,
+    operationTimeoutMs,
+  } = options;
+  const riotLimiter = riotIntegration?.limiter ?? createRiotLimiter();
+  const riotUserLock = createRiotUserLock();
   const sources: SourceRegistry =
     steam !== undefined && options.sources?.cs2 === undefined
       ? { ...options.sources, cs2: createSteamSource(steam.client) }
@@ -65,9 +87,34 @@ export function createApp(options: AppOptions): Express {
   app.use("/api/users", createUsersRouter({ jwtSecret, nodeEnv, now }));
   app.use("/api/auth", createAuthRouter({ jwtSecret, nodeEnv, now })); // login y logout públicos; me protegida (RF-26)
   // Spec 004: todas con sesión (RF-1). Spec 012: fuentes reales para resincronizar (RF-15).
-  app.use("/api/accounts", createAccountsRouter({ jwtSecret, now, sources, sourceTimeoutMs }));
+  // Spec 014: resincronización dedicada con Riot (RF-51, RF-53, P14-3) y anulación de desafíos (RF-29).
+  app.use(
+    "/api/accounts",
+    createAccountsRouter({
+      jwtSecret,
+      now,
+      sources,
+      sourceTimeoutMs,
+      riotIntegration,
+      riotLimiter,
+      riotUserLock,
+      operationTimeoutMs,
+    }),
+  );
 
   app.use("/api/steam", createSteamRouter({ jwtSecret, now, steam, sourceTimeoutMs })); // spec 013: con sesión (RNF-6)
+  // Spec 014: verificación de LoL por ícono de invocador; todas las rutas exigen sesión.
+  app.use(
+    "/api/riot",
+    createRiotRouter({
+      jwtSecret,
+      now,
+      riot: riotIntegration,
+      limiter: riotLimiter,
+      userLock: riotUserLock,
+      operationTimeoutMs,
+    }),
+  );
   app.use("/api/matches", createMatchesRouter({ jwtSecret, now })); // spec 005: con sesión (RF-1)
   app.use("/api/sessions", createSessionsRouter({ jwtSecret, now })); // spec 006: con sesión (RF-1)
 

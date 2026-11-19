@@ -11,7 +11,7 @@ import {
   trend,
   winRate,
 } from "../../src/domain/accountState.ts";
-import type { AccountState } from "../../src/domain/accountState.ts";
+import type { AccountMatch, AccountState } from "../../src/domain/accountState.ts";
 import { simulateReading } from "../../src/domain/rankSimulator.ts";
 import type { SimulatedMatch, SimulatedReading, Snapshot } from "../../src/domain/rankSimulator.ts";
 
@@ -378,9 +378,15 @@ describe("trend (DP-30)", () => {
   test("historial vacío = 0", () => {
     assert.strictEqual(trend(snapshot(), []), 0);
   });
+
+  test("sin rango vigente (null, spec 014 RF-13/RF-27) devuelve 0 aunque haya historial", () => {
+    const first = snapshot({ normalized: 40 });
+    assert.strictEqual(trend(null, [first]), 0);
+    assert.strictEqual(trend(null, []), 0);
+  });
 });
 
-describe("recentMatches", () => {
+describe("recentMatches y mergeMatches con partidas sin rankDelta (spec 014, RF-12, RF-30)", () => {
   test("devuelve las 8 primeras", () => {
     const matches: SimulatedMatch[] = [];
     for (let j = 0; j < 12; j += 1) matches.push(match(`m-0-${j}`, minutesBefore(NOW, j)));
@@ -390,5 +396,35 @@ describe("recentMatches", () => {
   test("con menos de 8 devuelve todas", () => {
     const matches = [match("m-0-0", NOW), match("m-0-1", minutesBefore(NOW, 1))];
     assert.deepStrictEqual(recentMatches(matches), matches);
+  });
+
+  test("admite partidas sin rankDelta (undefined) en compareMatches, mergeMatches y recentMatches", () => {
+    const a: AccountMatch = {
+      id: "LA2_2",
+      gameId: "lol",
+      playedAt: NOW,
+      result: "win",
+      summary: "Ahri · 5/1/8",
+      durationMinutes: 28,
+    };
+    const b: AccountMatch = {
+      id: "LA2_1",
+      gameId: "lol",
+      playedAt: minutesBefore(NOW, 30),
+      result: "loss",
+      summary: "Jinx · 3/4/2",
+      durationMinutes: 32,
+      rankDelta: -16,
+    };
+    assert.ok(compareMatches(a, b) < 0);
+    const merged = mergeMatches([b], [a], "");
+    assert.deepStrictEqual(
+      merged.map((m) => [m.id, m.rankDelta]),
+      [
+        ["LA2_2", undefined],
+        ["LA2_1", -16],
+      ],
+    );
+    assert.deepStrictEqual(recentMatches(merged), merged);
   });
 });

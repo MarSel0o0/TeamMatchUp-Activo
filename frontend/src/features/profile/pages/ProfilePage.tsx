@@ -5,6 +5,7 @@ import { ROUTES } from '@/app/routes';
 import { formatRange, groupBlocks } from '@/domain/availability';
 import type { GameId } from '@/domain/types';
 import { useAuth } from '@/features/auth/useAuth';
+import { readRiotNotice } from '@/features/riot/notice';
 import { readSteamNotice } from '@/features/steam/notice';
 import { GameTabs } from '@/shared/components/GameTabs';
 import { Icon } from '@/shared/components/Icon';
@@ -25,9 +26,11 @@ export default function ProfilePage() {
   const accountsQuery = useAccounts();
   const availabilityQuery = useAvailability();
   const syncAccount = useSyncAccount();
-  // Spec 013, RF-20: el aviso de la verificación con Steam llega en el estado de navegación y dura
-  // hasta que el usuario sale de esta página.
-  const steamNotice = readSteamNotice(useLocation().state);
+  // Spec 013, RF-20 y spec 014, RF-7/RF-27: los avisos de verificación llegan en el estado de
+  // navegación y duran hasta que el usuario sale de esta página.
+  const location = useLocation();
+  const steamNotice = readSteamNotice(location.state);
+  const riotNotice = readRiotNotice(location.state);
 
   // Memorizado: sin esto el arreglo cambia de identidad en cada render y el
   // efecto que fija el juego activo se dispararía en bucle.
@@ -56,6 +59,14 @@ export default function ProfilePage() {
   const summaryQuery = useGameSummary(activeGame);
   const availability = availabilityQuery.data ?? [];
   const summary = summaryQuery.data;
+  const syncNotice =
+    syncAccount.isSuccess && summary && syncAccount.data.id === summary.account.id
+      ? syncAccount.data.syncNotice
+      : undefined;
+  const syncError =
+    syncAccount.isError && summary && syncAccount.variables === summary.account.id
+      ? syncAccount.error
+      : null;
 
   if (!user) return null;
 
@@ -68,6 +79,16 @@ export default function ProfilePage() {
         >
           <Icon as={steamNotice.tone === 'error' ? AlertCircle : CheckCircle2} size={15} />
           {steamNotice.text}
+        </p>
+      ) : null}
+
+      {riotNotice ? (
+        <p
+          className={riotNotice.tone === 'error' ? 'notice notice--error' : 'notice notice--pen'}
+          role={riotNotice.tone === 'error' ? 'alert' : 'status'}
+        >
+          <Icon as={riotNotice.tone === 'error' ? AlertCircle : CheckCircle2} size={15} />
+          {riotNotice.text}
         </p>
       ) : null}
 
@@ -158,9 +179,11 @@ export default function ProfilePage() {
               <GameSummaryPanel
                 summary={summary}
                 onSync={handleSync}
-                syncing={syncAccount.isPending}
-                syncError={syncAccount.error}
+                syncing={syncAccount.isPending && syncAccount.variables === summary.account.id}
+                syncError={syncError}
+                syncNotice={syncNotice}
                 offerSteamVerify
+                offerRiotVerify
                 owner={user}
               />
             ) : null}

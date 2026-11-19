@@ -40,11 +40,12 @@ import { SESSION_COOKIE, sessionCookieOptions } from "../services/sessionToken.t
 import { USER_TARGET_MESSAGES, resolveUserTarget } from "../services/userTarget.ts";
 import { ACCOUNT_ERRORS } from "../domain/accountRules.ts";
 import { recentMatches, trend, winRate } from "../domain/accountState.ts";
+import type { AccountMatch } from "../domain/accountState.ts";
 import { isGameId } from "../domain/games.ts";
-import type { SimulatedMatch } from "../domain/rankSimulator.ts";
 import { GameAccount, toGameAccountJson } from "../models/gameAccount.ts";
 import type { GameAccountDocument } from "../models/gameAccount.ts";
 import { PlaySession } from "../models/playSession.ts";
+import { RiotChallenge } from "../models/riotChallenge.ts";
 import { SteamAttempt } from "../models/steamAttempt.ts";
 import { removeUserFromSessions } from "../services/sessionWrites.ts";
 import type { NodeEnv } from "../utils/config.ts";
@@ -74,11 +75,11 @@ function userJson(user: UserDocument, sessionUserId: string): OwnUserJson | Publ
   return user.id === sessionUserId.toLowerCase() ? toOwnUserJson(user) : toPublicUserJson(user);
 }
 
-// Resumen por juego (RF-12, RF-37; plan, sección 6): la cuenta (con `simulated`), las 8
-// primeras partidas guardadas en el orden de RF-28, la tasa de victorias de esas partidas y
-// la tendencia. `matchId` se entrega como `id`; `matches` y `readingNumber` no salen.
+// Resumen por juego (RF-12, RF-37; plan, sección 6): la cuenta, las 8 primeras partidas
+// guardadas en el orden de RF-28, la tasa de victorias de esas partidas y la tendencia.
+// `matchId` se entrega como `id`; `matches` y `readingNumber` no salen; `rankDelta` se omite si falta.
 function gameSummaryJson(account: GameAccountDocument) {
-  const matches: SimulatedMatch[] = account.matches.map(
+  const matches: AccountMatch[] = account.matches.map(
     ({ matchId, gameId, playedAt, result, summary, durationMinutes, rankDelta }) => ({
       id: matchId,
       gameId,
@@ -86,7 +87,7 @@ function gameSummaryJson(account: GameAccountDocument) {
       result,
       summary,
       durationMinutes,
-      rankDelta,
+      ...(rankDelta == null ? {} : { rankDelta }),
     }),
   );
   const recent = recentMatches(matches);
@@ -94,7 +95,7 @@ function gameSummaryJson(account: GameAccountDocument) {
     account: toGameAccountJson(account),
     recentMatches: recent,
     winRate: winRate(recent),
-    trend: trend(account.currentRank, account.rankHistory),
+    trend: trend(account.currentRank ?? null, account.rankHistory),
   };
 }
 
@@ -239,8 +240,12 @@ export function createUsersRouter({ jwtSecret, nodeEnv, now }: UsersRouterOption
     // C4 y fuera del `finally`, igual que ella. Si lanzara, el intento residual es inservible
     // (`withUser` responde 401 al usuario que ya no existe) y el índice TTL lo borra (RNF-7).
     await SteamAttempt.deleteMany({ user: sessionUserId });
-    // La cookie solo se borra si terminaron C1, C2, C3, C4 y C5: tras un 500 en C1 o C2 la sesión
-    // sigue sirviendo para repetir la eliminación mientras el usuario exista.
+    // Spec 014, RF-29 (plan, §3.1): C6 borra los desafíos de verificación con Riot del usuario.
+    // Va tras C5 y fuera del `finally`, igual que C4 y C5. Si lanzara, los desafíos residuales
+    // son inservibles (`withUser` responde 401) y el índice TTL en `deleteAt` los borra (RF-28).
+    await RiotChallenge.deleteMany({ user: sessionUserId });
+    // La cookie solo se borra si terminaron C1, C2, C3, C4, C5 y C6: tras un 500 en C1 o C2 la
+    // sesión sigue sirviendo para repetir la eliminación mientras el usuario exista.
     response.clearCookie(SESSION_COOKIE, cookieOptions); // mismos atributos que la emisión
     response.status(204).end();
   });

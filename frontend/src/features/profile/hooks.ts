@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/app/providers/queryKeys';
 import { api, type LinkAccountPayload, type UpdateProfilePayload } from '@/services/api';
-import type { GameAccount, GameId, TimeBlock } from '@/domain/types';
+import type { GameId, SyncAccountResult, TimeBlock } from '@/domain/types';
 import { useAuth } from '@/features/auth/useAuth';
 import { useSessionUserId } from '@/features/auth/useSessionUserId';
 
@@ -98,7 +98,7 @@ export function useSyncAccount() {
 
   return useMutation({
     mutationFn: (accountId: string) => api.profile.syncAccount(accountId),
-    onSuccess: (account: GameAccount) => {
+    onSuccess: (account: SyncAccountResult) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.accounts(userId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.gameSummary(userId, account.gameId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.allMatches(userId) });

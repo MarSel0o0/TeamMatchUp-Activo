@@ -1,4 +1,4 @@
-import { Link2, SearchX } from 'lucide-react';
+import { AlertCircle, Link2, SearchX } from 'lucide-react';
 import { AnimatePresence } from 'motion/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -6,7 +6,9 @@ import { ROUTES } from '@/app/routes';
 import type { Proposal } from '@/domain/proposal';
 import type { GameId, MatchFilters } from '@/domain/types';
 import { useAccounts, useAvailability } from '@/features/profile/hooks';
+import { ApiError } from '@/services/api';
 import { GameTabs } from '@/shared/components/GameTabs';
+import { Icon } from '@/shared/components/Icon';
 import { Blank, Failure, SheetSkeleton } from '@/shared/components/States';
 import { useDebouncedValue } from '@/shared/hooks/useDebouncedValue';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
@@ -52,8 +54,17 @@ export default function MatchesPage() {
   );
 
   const matchesQuery = useMatches(appliedFilters, activeGame !== null);
-  const candidates = matchesQuery.data ?? [];
+  const candidates = matchesQuery.isError ? [] : (matchesQuery.data ?? []);
   const viewerBlocks = availabilityQuery.data ?? [];
+  // Spec 014, RF-33 y RF-44: cuenta de LoL verificada sin clasificar o con rango pendiente.
+  const conflictMessage =
+    matchesQuery.isError &&
+    matchesQuery.error instanceof ApiError &&
+    matchesQuery.error.status === 409 &&
+    matchesQuery.error.hasMessage &&
+    matchesQuery.error.message
+      ? matchesQuery.error.message
+      : null;
 
   // Una sola navegación por visita a la página: dos pulsaciones seguidas de "Proponer" no
   // dejan dos entradas en el historial (RF-29).
@@ -127,6 +138,13 @@ export default function MatchesPage() {
           {matchesQuery.isPending ? (
             <div className="sheet__body">
               <SheetSkeleton rows={5} height={62} />
+            </div>
+          ) : conflictMessage !== null ? (
+            <div className="sheet__body">
+              <p className="notice notice--pen" role="status">
+                <Icon as={AlertCircle} size={15} />
+                {conflictMessage}
+              </p>
             </div>
           ) : matchesQuery.isError ? (
             <Failure error={matchesQuery.error} onRetry={() => matchesQuery.refetch()} />

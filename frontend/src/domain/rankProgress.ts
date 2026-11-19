@@ -10,11 +10,11 @@ import { NO_DATA_TEXT } from '@/shared/utils/copy';
  * defensivo).
  */
 export function rankGainSinceFirst(account: {
-  currentRank: { normalized: number };
+  currentRank: { normalized: number } | null;
   rankHistory: readonly { normalized: number }[];
 }): number | null {
   const first = account.rankHistory[0];
-  if (first === undefined) return null;
+  if (account.currentRank === null || first === undefined) return null;
   return account.currentRank.normalized - first.normalized;
 }
 

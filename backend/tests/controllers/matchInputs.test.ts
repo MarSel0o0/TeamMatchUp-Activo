@@ -147,7 +147,7 @@ describe("matchInputs: sesión y cuenta propia", () => {
     assert.deepStrictEqual(result.viewer.blocks, ["2-20", "0-5", "0-23"]);
     assert.strictEqual(result.viewer.account.id, own.id);
     assert.strictEqual(result.viewer.account.userId, ana.id);
-    assert.strictEqual(result.viewer.account.currentRank.normalized, 61);
+    assert.strictEqual(result.viewer.account.currentRank?.normalized, 61);
     assert.strictEqual(result.viewer.account.verified, true);
     assert.strictEqual(result.viewer.account.handle, "ana#LAS");
     assert.deepStrictEqual(result.candidates, []);
@@ -327,7 +327,7 @@ describe("matchInputs: candidatos", () => {
     assert.strictEqual(result.kind, "ok");
     if (result.kind !== "ok") return;
     const rows = result.candidates
-      .map((candidate) => [candidate.user.username, candidate.account.currentRank.normalized, candidate.blocks])
+      .map((candidate) => [candidate.user.username, candidate.account.currentRank?.normalized, candidate.blocks])
       .sort();
     assert.deepStrictEqual(rows, [
       ["Beto", 10, ["0-10"]],

@@ -107,6 +107,7 @@ describe("parseConfig", () => {
       db: { uri: DEV_URI, name: "teammatchup" },
       jwtSecret: SECRET,
       steam: null, // spec 013, RF-22: sin STEAM_API_KEY, Steam no está configurado
+      riot: null, // spec 014, RF-38: sin RIOT_API_KEY, Riot no está configurado
     });
     const otra = expectConfig(
       parseConfig(
@@ -126,6 +127,7 @@ describe("parseConfig", () => {
       db: { uri: "mongodb://otra:27017", name: "otra" },
       jwtSecret: "otro-secreto",
       steam: null,
+      riot: null,
     });
   });
 
@@ -473,6 +475,96 @@ describe("parseConfig — Steam (013, RF-22, RNF-2, RNF-4)", () => {
     assert.deepStrictEqual(delArchivo.steam, { apiKey: KEY, publicUrl: LOCAL });
     const delProceso = expectConfig(loadConfig({ envFilePath, processEnv: { PUBLIC_URL: "http://localhost:4000" } }));
     assert.equal(delProceso.steam?.publicUrl, "http://localhost:4000");
+  });
+});
+
+// Spec 014 (T1): RIOT_API_KEY opcional, sin requerir PUBLIC_URL (P14-10). Sin clave, Riot no
+// está configurado (RF-38); la clave nunca sale en errores ni registros (RNF-4) y se renueva
+// reemplazándola en `.env` y reiniciando (RF-17).
+describe("parseConfig — Riot (014, RF-17, RF-38, RNF-4)", () => {
+  const KEY = "RGAPI-00000000-0000-0000-0000-000000000001";
+  const KEY_TWO = "RGAPI-00000000-0000-0000-0000-000000000002";
+
+  test("RF-38: sin RIOT_API_KEY → riot es null en los tres entornos", () => {
+    for (const env of [devEnv(), prodEnv(), testEnv()]) {
+      assert.equal(expectConfig(parseConfig(env)).riot, null);
+    }
+  });
+
+  test("RF-38: RIOT_API_KEY vacía o solo espacios → riot es null", () => {
+    for (const blank of ["", " ", "   ", "\t "]) {
+      for (const env of [devEnv({ RIOT_API_KEY: blank }), prodEnv({ RIOT_API_KEY: blank }), testEnv({ RIOT_API_KEY: blank })]) {
+        assert.equal(expectConfig(parseConfig(env)).riot, null, JSON.stringify(blank));
+      }
+    }
+  });
+
+  test("RF-38 / P14-10: con RIOT_API_KEY presente → riot.apiKey tal cual, sin exigir PUBLIC_URL", () => {
+    for (const env of [devEnv({ RIOT_API_KEY: KEY }), prodEnv({ RIOT_API_KEY: KEY }), testEnv({ RIOT_API_KEY: KEY })]) {
+      const config = expectConfig(parseConfig(env));
+      assert.deepStrictEqual(config.riot, { apiKey: KEY });
+      assert.equal(config.steam, null);
+    }
+    // Sin recortar (D18 de la 001), igual que JWT_SECRET y STEAM_API_KEY.
+    assert.deepStrictEqual(expectConfig(parseConfig(devEnv({ RIOT_API_KEY: ` ${KEY} ` }))).riot, {
+      apiKey: ` ${KEY} `,
+    });
+    // Sin STEAM_API_KEY, PUBLIC_URL inválida se sigue ignorando aunque haya RIOT_API_KEY.
+    const conUrlInvalida = expectConfig(
+      parseConfig(devEnv({ RIOT_API_KEY: KEY, PUBLIC_URL: "no-es-una-url" })),
+    );
+    assert.deepStrictEqual(conUrlInvalida.riot, { apiKey: KEY });
+    assert.equal(conUrlInvalida.steam, null);
+  });
+
+  test("RIOT_API_KEY convive con STEAM_API_KEY sin interferencias", () => {
+    const steamKey = "0123456789ABCDEF0123456789ABCDEF";
+    const localUrl = "http://localhost:5173";
+    const config = expectConfig(
+      parseConfig(devEnv({ STEAM_API_KEY: steamKey, PUBLIC_URL: localUrl, RIOT_API_KEY: KEY })),
+    );
+    assert.deepStrictEqual(config.steam, { apiKey: steamKey, publicUrl: localUrl });
+    assert.deepStrictEqual(config.riot, { apiKey: KEY });
+  });
+
+  test("RNF-4: ningún mensaje de error contiene la clave de Riot", () => {
+    const secreta = "RGAPI-SECRETO-RIOT-NO-FILTRAR-999999";
+    const casos: EnvSource[] = [
+      devEnv({ RIOT_API_KEY: secreta, PORT: "abc" }),
+      devEnv({ RIOT_API_KEY: secreta, MONGODB_URI: "" }),
+      devEnv({ RIOT_API_KEY: secreta, STEAM_API_KEY: "0123456789ABCDEF0123456789ABCDEF" }),
+      prodEnv({ RIOT_API_KEY: secreta, JWT_SECRET: DEV_JWT_SECRET, PORT: "0" }),
+    ];
+    for (const env of casos) {
+      const mensaje = allErrors(parseConfig(env));
+      assert.doesNotMatch(mensaje, /RGAPI-SECRETO-RIOT/);
+      assert.doesNotMatch(formatConfigErrors(expectErrors(parseConfig(env))), /RGAPI-SECRETO-RIOT/);
+    }
+  });
+
+  test("RF-17: loadConfig lee RIOT_API_KEY desde .env, el proceso prevalece y renovar .env carga la nueva clave", async (t) => {
+    const dir = await mkdtemp(join(tmpdir(), "tmu-riot-"));
+    t.after(() => rm(dir, { recursive: true, force: true }));
+    const envFilePath = join(dir, ".env");
+    const baseLines = [
+      "NODE_ENV=development",
+      "PORT=3001",
+      `JWT_SECRET=${SECRET}`,
+      `MONGODB_URI=${DEV_URI}`,
+      "MONGODB_DBNAME=teammatchup",
+    ];
+
+    await writeFile(envFilePath, [...baseLines, `RIOT_API_KEY=${KEY}`, ""].join("\n"));
+    assert.deepStrictEqual(expectConfig(loadConfig({ envFilePath, processEnv: {} })).riot, { apiKey: KEY });
+
+    const delProceso = expectConfig(loadConfig({ envFilePath, processEnv: { RIOT_API_KEY: "RGAPI-desde-proceso" } }));
+    assert.deepStrictEqual(delProceso.riot, { apiKey: "RGAPI-desde-proceso" });
+
+    const vaciaEnProceso = expectConfig(loadConfig({ envFilePath, processEnv: { RIOT_API_KEY: "" } }));
+    assert.equal(vaciaEnProceso.riot, null);
+
+    await writeFile(envFilePath, [...baseLines, `RIOT_API_KEY=${KEY_TWO}`, ""].join("\n"));
+    assert.deepStrictEqual(expectConfig(loadConfig({ envFilePath, processEnv: {} })).riot, { apiKey: KEY_TWO });
   });
 });
 

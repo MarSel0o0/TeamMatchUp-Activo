@@ -6,10 +6,13 @@ import { intersectBlocks } from "./availability.ts";
 import type { GameId } from "./games.ts";
 import type { MatchCriteria } from "./matchQuery.ts";
 
-/** Lo mínimo que el motor necesita de una cuenta; el resto (`simulated`, `handle`…) pasa intacto. */
+/**
+ * Lo mínimo que el motor necesita de una cuenta; el resto (`handle`, `origins`…) pasa intacto.
+ * Spec 014 (RF-13, RF-44): `currentRank` puede ser `null` si está sin clasificar o pendiente.
+ */
 export interface RankedAccount {
   userId: string;
-  currentRank: { normalized: number };
+  currentRank: { normalized: number } | null;
   verified: boolean;
 }
 
@@ -131,18 +134,24 @@ export function assembleCandidates<A extends RankedAccount>(
 }
 
 /**
- * Coincidencias de un juego (RF-2, RF-4, RF-7, RF-8, RF-9): excluye al propio usuario, calcula
- * distancia, bloques en común y puntaje, aplica los filtros y ordena con `compareCandidates`.
+ * Coincidencias de un juego (RF-2, RF-4, RF-7, RF-8, RF-9; spec 014 RF-13, RF-44): excluye al
+ * propio usuario y a cualquier cuenta con `currentRank === null`, calcula distancia, bloques en
+ * común y puntaje, aplica los filtros y ordena con `compareCandidates`.
  */
 export function buildMatches<A extends RankedAccount>(
   criteria: MatchCriteria,
   viewer: { userId: string; account: RankedAccount; blocks: readonly string[] },
   candidates: readonly CandidateInput<A>[],
 ): MatchCandidate<A>[] {
+  const viewerRank = viewer.account.currentRank;
+  if (viewerRank === null) return [];
   return candidates
-    .filter((candidate) => candidate.account.userId !== viewer.userId)
+    .filter(
+      (candidate): candidate is CandidateInput<A> & { account: A & { currentRank: { normalized: number } } } =>
+        candidate.account.userId !== viewer.userId && candidate.account.currentRank !== null,
+    )
     .map((candidate): MatchCandidate<A> => {
-      const distance = rankDistance(viewer.account.currentRank, candidate.account.currentRank);
+      const distance = rankDistance(viewerRank, candidate.account.currentRank);
       const sharedBlocks = intersectBlocks(viewer.blocks, candidate.blocks);
       return {
         user: candidate.user,

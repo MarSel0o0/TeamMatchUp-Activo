@@ -14,6 +14,12 @@ export const queryKeys = {
   accounts: (userId: QueryUserId) => ['u', userId, 'profile', 'accounts'] as const,
   /** ¿Tiene la instancia Steam configurado? (spec 013, RF-22). */
   steamStatus: (userId: QueryUserId) => ['u', userId, 'steam', 'status'] as const,
+  /** ¿Tiene la instancia Riot Games configurado? (spec 014, RF-38). */
+  riotStatus: (userId: QueryUserId) => ['u', userId, 'riot', 'status'] as const,
+  /** Desafío abierto de verificación con Riot Games del usuario (spec 014, RF-45). */
+  riotChallenge: (userId: QueryUserId) => ['u', userId, 'riot', 'challenge'] as const,
+  /** Versión más reciente de Data Dragon para los íconos de LoL (spec 014, D93, O-3). */
+  ddragonVersion: ['ddragon', 'version'] as const,
   availability: (userId: QueryUserId) => ['u', userId, 'profile', 'availability'] as const,
   gameSummary: (userId: QueryUserId, gameId: GameId) =>
     ['u', userId, 'profile', 'summary', gameId] as const,

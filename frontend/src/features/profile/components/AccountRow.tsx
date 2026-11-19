@@ -1,14 +1,26 @@
 import { RefreshCw, Unlink } from 'lucide-react';
 import { formatRank, getGame } from '@/domain/games';
 import { verifiedLabel } from '@/domain/origins';
+import { isBlockPending } from '@/domain/riotDisplay';
 import type { GameAccount, RankSnapshot } from '@/domain/types';
+import { RiotProfileBlock } from '@/features/riot/components/RiotProfileBlock';
+import { RiotVerifyButton } from '@/features/riot/components/RiotVerifyButton';
 import { SteamProfileBlock } from '@/features/steam/components/SteamProfileBlock';
 import type { SteamProfileOwner } from '@/features/steam/components/SteamProfileBlock';
 import { SteamVerifyButton } from '@/features/steam/components/SteamVerifyButton';
 import { Icon } from '@/shared/components/Icon';
 import { OriginTag } from '@/shared/components/OriginTag';
 import { Stamp } from '@/shared/components/Stamp';
-import { NO_DATA_TEXT, RESYNC_LABEL, RESYNC_NOTE, SENDING_TEXT, STEAM_RESYNC_NOTE } from '@/shared/utils/copy';
+import {
+  NO_DATA_TEXT,
+  RESYNC_LABEL,
+  RESYNC_NOTE,
+  RIOT_PENDING_LABEL,
+  RIOT_RESYNC_NOTE,
+  RIOT_UNRANKED_LABEL,
+  SENDING_TEXT,
+  STEAM_RESYNC_NOTE,
+} from '@/shared/utils/copy';
 import { timeAgo } from '@/shared/utils/format';
 import './accountRow.css';
 
@@ -29,6 +41,11 @@ interface AccountRowProps {
    * dueño, en su perfil y en Configuración; nunca en la ficha de otro jugador.
    */
   offerSteamVerify?: boolean;
+  /**
+   * Ofrece «Verificar con Riot Games» en una cuenta de LoL sin verificar (spec 014, RF-39): solo
+   * para el dueño, en su perfil y en Configuración; nunca en la ficha de otro jugador.
+   */
+  offerRiotVerify?: boolean;
   /** Dueño de la cuenta: su avatar de TeamMatchUp reemplaza al de Steam si este no carga (spec 013, RF-19). */
   owner?: SteamProfileOwner | undefined;
 }
@@ -43,13 +60,16 @@ export function AccountRow({
   locked = false,
   showHandleLabel = false,
   offerSteamVerify = false,
+  offerRiotVerify = false,
   owner,
 }: AccountRowProps) {
   const game = getGame(account.gameId);
   const busy = syncing || unlinking || locked;
-  // Defensivo (RF-14): el servidor no entrega cuentas sin rango vigente, pero si llegara una
-  // se muestra "Sin datos" y ningún valor derivado.
+  // En cuentas verificadas con Riot el rango puede estar pendiente (RF-27) o sin clasificar (RF-13);
+  // en el resto, si faltara de forma defensiva (007 RF-14), se muestra «Sin datos».
   const rank: RankSnapshot | null | undefined = account.currentRank;
+  const rankPending = isBlockPending(account, 'rank');
+  const riotUnranked = account.verifiedWith === 'riot' && !rankPending && rank == null;
 
   return (
     <article className="account">
@@ -78,17 +98,32 @@ export function AccountRow({
         <SteamProfileBlock account={account} owner={owner} canSync={onSync !== undefined} />
       ) : null}
 
+      {account.verifiedWith === 'riot' ? <RiotProfileBlock account={account} /> : null}
+
       <dl className="account__entries">
         <div>
           <dt className="label">Rango vigente</dt>
-          <dd className="num" style={{ color: game.accent }}>
-            {rank ? formatRank(account.gameId, rank) : NO_DATA_TEXT}
-          </dd>
-          {rank ? (
-            <dd>
-              <OriginTag origin={account.origins.rank} />
-            </dd>
-          ) : null}
+          {rankPending ? (
+            <dd className="note note--faint">{RIOT_PENDING_LABEL}</dd>
+          ) : riotUnranked ? (
+            <>
+              <dd>{RIOT_UNRANKED_LABEL}</dd>
+              <dd>
+                <OriginTag origin={account.origins.rank} />
+              </dd>
+            </>
+          ) : (
+            <>
+              <dd className="num" style={{ color: game.accent }}>
+                {rank ? formatRank(account.gameId, rank) : NO_DATA_TEXT}
+              </dd>
+              {rank ? (
+                <dd>
+                  <OriginTag origin={account.origins.rank} />
+                </dd>
+              ) : null}
+            </>
+          )}
         </div>
         <div>
           <dt className="label">Región</dt>
@@ -103,6 +138,12 @@ export function AccountRow({
       {offerSteamVerify && account.gameId === 'cs2' && !account.verified ? (
         <div className="account__actions">
           <SteamVerifyButton />
+        </div>
+      ) : null}
+
+      {offerRiotVerify && account.gameId === 'lol' && !account.verified ? (
+        <div className="account__actions">
+          <RiotVerifyButton />
         </div>
       ) : null}
 
@@ -134,7 +175,11 @@ export function AccountRow({
       ) : null}
       {onSync ? (
         <p className="note note--faint">
-          {account.verifiedWith === 'steam' ? STEAM_RESYNC_NOTE : RESYNC_NOTE}
+          {account.verifiedWith === 'steam'
+            ? STEAM_RESYNC_NOTE
+            : account.verifiedWith === 'riot'
+              ? RIOT_RESYNC_NOTE
+              : RESYNC_NOTE}
         </p>
       ) : null}
     </article>

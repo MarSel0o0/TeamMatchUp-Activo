@@ -44,6 +44,32 @@ describe(".env.example (001-RF-9, RF-27, RF-28)", () => {
     assert.doesNotMatch(text, /^#\s*STEAM_API_KEY=\S*[0-9A-Fa-f]{32}/m, "no debe traer una clave de 32 caracteres");
   });
 
+  // Spec 014 (T1, RF-17, RF-38, RNF-4): RIOT_API_KEY es opcional, va comentada sin clave real
+  // y documenta la caducidad de 24 h sin alterar las siete variables obligatorias.
+  test("spec 014: RIOT_API_KEY aparece solo comentada, sin clave real y con nota de caducidad de 24 h", () => {
+    const { text, values } = readExample();
+    assert.equal(Object.hasOwn(values, "RIOT_API_KEY"), false, "RIOT_API_KEY no debe estar definida");
+    assert.match(text, /^#\s*RIOT_API_KEY=/m, "RIOT_API_KEY debe aparecer comentada");
+    assert.doesNotMatch(text, /^#\s*RIOT_API_KEY=\S+/m, "RIOT_API_KEY no debe traer un valor de clave");
+    assert.doesNotMatch(text, /RGAPI-/i, "la plantilla no debe contener una clave de Riot");
+
+    const lines = text.split(/\r?\n/);
+    const keyLine = lines.findIndex((line) => /^#\s*RIOT_API_KEY=/.test(line));
+    assert.ok(keyLine > 0, "falta la línea comentada # RIOT_API_KEY=");
+    const comments: string[] = [];
+    for (let i = keyLine - 1; i >= 0 && (lines[i] ?? "").startsWith("#"); i--) {
+      comments.push(lines[i] ?? "");
+    }
+    assert.ok(
+      comments.some((line) => /24\s*(?:h|horas)/i.test(line)),
+      "ningún comentario justo antes de RIOT_API_KEY indica su caducidad de 24 h",
+    );
+
+    const parsed = parseConfig(values);
+    assert.equal(parsed.ok, true);
+    if (parsed.ok) assert.equal(parsed.config.riot, null);
+  });
+
   test("HOST aparece solo comentada como opcional", () => {
     const { text, values } = readExample();
     assert.equal(Object.hasOwn(values, "HOST"), false);

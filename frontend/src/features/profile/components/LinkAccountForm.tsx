@@ -13,6 +13,11 @@ interface LinkAccountFormProps {
   linkedGames: GameId[];
   onLinked?: () => void;
   /**
+   * Se pinta sobre los campos cuando el juego elegido es LoL (spec 014, RF-39): «Verificar con
+   * Riot Games» convive con el vínculo manual, que no cambia.
+   */
+  aboveLol?: ReactNode;
+  /**
    * Se pinta sobre los campos cuando el juego elegido es CS2 (spec 013, RF-2): «Verificar con Steam»
    * convive con el vínculo manual, que no cambia (RF-16).
    */
@@ -23,7 +28,7 @@ interface LinkAccountFormProps {
  * Alta de una cuenta de juego. Solo se piden identificador y región: el rango lo
  * lee la plataforma y no se declara a mano (RF-15, sin nombrar fuentes).
  */
-export function LinkAccountForm({ linkedGames, onLinked, aboveCs2 }: LinkAccountFormProps) {
+export function LinkAccountForm({ linkedGames, onLinked, aboveLol, aboveCs2 }: LinkAccountFormProps) {
   const available = useMemo(
     () => GAME_LIST.filter((game) => !linkedGames.includes(game.id)),
     [linkedGames],
@@ -104,6 +109,7 @@ export function LinkAccountForm({ linkedGames, onLinked, aboveCs2 }: LinkAccount
         </select>
       </div>
 
+      {gameId === 'lol' ? aboveLol : null}
       {gameId === 'cs2' ? aboveCs2 : null}
 
       <TextField

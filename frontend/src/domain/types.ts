@@ -75,6 +75,9 @@ export interface AccountProfile {
   isPrivate?: boolean;
 }
 
+/** Bloques de una cuenta verificada con Riot que pueden quedar pendientes (spec 014, RF-27). */
+export type PendingBlock = 'rank' | 'matches' | 'profile';
+
 export interface GameAccount {
   id: string;
   userId: string;
@@ -82,7 +85,8 @@ export interface GameAccount {
   /** Identificador dentro del juego (Riot ID, Ubisoft ID, SteamID...). */
   handle: string;
   region: string;
-  currentRank: RankSnapshot;
+  /** Puede ser `null` en cuentas verificadas con Riot sin clasificar o con rango pendiente (spec 014, RF-13, RF-27). */
+  currentRank: RankSnapshot | null;
   /** Historial de variación del rango, de más antiguo a más reciente. */
   rankHistory: RankSnapshot[];
   lastSyncedAt: string;
@@ -94,6 +98,30 @@ export interface GameAccount {
   /** Origen de cada bloque de datos (spec 012, RF-5, RF-6). */
   origins: BlockOrigins;
   profile?: AccountProfile;
+  /** Bloques que faltan por leer tras una verificación parcial con Riot (spec 014, RF-27). */
+  pendingBlocks?: PendingBlock[];
+}
+
+/** Resultado de resincronizar una cuenta; añade aviso solo en resincronización parcial de Riot (spec 014, RF-53, O-1). */
+export type SyncAccountResult = GameAccount & {
+  syncNotice?: string;
+};
+
+/** Desafío de verificación de LoL con Riot Games (spec 014, RF-1, RF-45; nunca incluye `puuid`, RNF-3). */
+export interface RiotChallenge {
+  id: string;
+  iconId: number;
+  expiresAt: string;
+  remainingSeconds: number;
+  riotId: string;
+  region: string;
+}
+
+/** Resultado de confirmar un desafío de Riot con éxito (spec 014, RF-7, RF-27). */
+export interface RiotConfirmResult {
+  outcome: 'verified';
+  account: GameAccount;
+  notice?: string;
 }
 
 export type MatchResult = 'win' | 'loss';
@@ -106,7 +134,8 @@ export interface MatchRecord {
   /** Resumen corto y agnóstico del juego, ej. `Ahri · 8/2/11`. */
   summary: string;
   durationMinutes: number;
-  rankDelta: number;
+  /** Variación de puntos; opcional en partidas reales de Riot sin variación fiable (spec 014, RF-12, RF-30). */
+  rankDelta?: number;
 }
 
 /** Usuario recomendado por el motor de coincidencias, para un juego concreto. */

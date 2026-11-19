@@ -6,6 +6,7 @@ import type { AddressInfo } from "node:net";
 import mongoose from "mongoose";
 import { canonicalHandle } from "./domain/rankSimulator.ts";
 import { GameAccount } from "./models/gameAccount.ts";
+import { RiotChallenge } from "./models/riotChallenge.ts";
 import { SteamAttempt } from "./models/steamAttempt.ts";
 import { User } from "./models/user.ts";
 import type { Config, DatabaseConfig } from "./utils/config.ts";
@@ -57,6 +58,7 @@ export async function prepareDatabase(): Promise<void> {
   await User.init();
   await GameAccount.init();
   await SteamAttempt.init(); // spec 013: índice único por usuario e índice TTL (RNF-7)
+  await RiotChallenge.init(); // spec 014: índices de consulta e índice TTL en deleteAt (RF-28, P14-1)
   await migrateAccounts();
 }
 
