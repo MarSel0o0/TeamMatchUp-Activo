@@ -109,6 +109,10 @@ async function verifiedAccount(userId: string, seed: Seed = {}) {
       externalId: seed.externalId ?? `ext-${userId}`,
       verifiedAt: new Date(FIXED_NOW - 7_200_000),
     },
+    // Spec 013, RF-12 y D6: la espera mínima solo cuenta para una cuenta con datos de perfil (una
+    // lectura real exitosa los trae siempre). Sin perfil se puede resincronizar de inmediato
+    // (`tests/controllers/steamResync.test.ts`).
+    profile: { displayName: "Perfil de prueba" },
   });
 }
 

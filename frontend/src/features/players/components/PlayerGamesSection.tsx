@@ -30,6 +30,8 @@ interface PlayerGamesSectionProps {
   onRetrySummary: () => void;
   /** RF-19: se vuelven a pedir usuario y cuentas; el panel muestra carga (RF-8). */
   rechecking: boolean;
+  /** Dueño de la ficha: su avatar de TeamMatchUp es el respaldo del de Steam (spec 013, RF-19). */
+  owner?: { displayName: string; avatarColor: string };
 }
 
 /**
@@ -54,6 +56,7 @@ export function PlayerGamesSection({
   summaryError,
   onRetrySummary,
   rechecking,
+  owner,
 }: PlayerGamesSectionProps) {
   return (
     <section className="sheet" aria-labelledby={TITLE_ID}>
@@ -72,6 +75,7 @@ export function PlayerGamesSection({
         summaryError={summaryError}
         onRetrySummary={onRetrySummary}
         rechecking={rechecking}
+        owner={owner}
       />
     </section>
   );
@@ -87,6 +91,7 @@ function GamesBody({
   summaryError,
   onRetrySummary,
   rechecking,
+  owner,
 }: PlayerGamesSectionProps) {
   if (accounts.state === 'loading') {
     return (
@@ -130,7 +135,7 @@ function GamesBody({
         ) : summary.state === 'failed' ? (
           <Failure error={summaryError} onRetry={onRetrySummary} />
         ) : (
-          <GameSummaryPanel summary={summary.value} showHandleLabel />
+          <GameSummaryPanel summary={summary.value} showHandleLabel owner={owner} />
         )}
       </div>
     </>

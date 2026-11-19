@@ -1,4 +1,5 @@
 import { formatRank } from '@/domain/games';
+import type { SteamProfileOwner } from '@/features/steam/components/SteamProfileBlock';
 import { readNormalized, readWinRate } from '@/domain/playerSheet';
 import type { RankSnapshot } from '@/domain/types';
 import type { GameProfileSummary } from '@/services/api';
@@ -28,6 +29,10 @@ interface GameSummaryPanelProps {
   syncError?: unknown;
   /** Etiqueta de formato junto al identificador (spec 008, RF-4). */
   showHandleLabel?: boolean;
+  /** Ofrece «Verificar con Steam» en la cuenta de CS2 sin verificar (spec 013, RF-2): solo el perfil propio. */
+  offerSteamVerify?: boolean;
+  /** Dueño de la cuenta (spec 013, RF-19): su avatar de TeamMatchUp es el respaldo del de Steam. */
+  owner?: SteamProfileOwner;
 }
 
 /**
@@ -42,6 +47,8 @@ export function GameSummaryPanel({
   syncing = false,
   syncError,
   showHandleLabel = false,
+  offerSteamVerify = false,
+  owner,
 }: GameSummaryPanelProps) {
   // Defensivo (RF-14): el servidor no entrega cuentas sin rango ni sin tasa de victorias, pero si
   // llegara una no se muestra ni se calcula ningún valor derivado: aparece "Sin datos".
@@ -61,6 +68,8 @@ export function GameSummaryPanel({
           onSync={onSync}
           syncing={syncing}
           showHandleLabel={showHandleLabel}
+          offerSteamVerify={offerSteamVerify}
+          owner={owner}
         />
 
         <div className="ficha__scale">

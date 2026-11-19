@@ -2,10 +2,13 @@ import { RefreshCw, Unlink } from 'lucide-react';
 import { formatRank, getGame } from '@/domain/games';
 import { verifiedLabel } from '@/domain/origins';
 import type { GameAccount, RankSnapshot } from '@/domain/types';
+import { SteamProfileBlock } from '@/features/steam/components/SteamProfileBlock';
+import type { SteamProfileOwner } from '@/features/steam/components/SteamProfileBlock';
+import { SteamVerifyButton } from '@/features/steam/components/SteamVerifyButton';
 import { Icon } from '@/shared/components/Icon';
 import { OriginTag } from '@/shared/components/OriginTag';
 import { Stamp } from '@/shared/components/Stamp';
-import { NO_DATA_TEXT, RESYNC_LABEL, RESYNC_NOTE, SENDING_TEXT } from '@/shared/utils/copy';
+import { NO_DATA_TEXT, RESYNC_LABEL, RESYNC_NOTE, SENDING_TEXT, STEAM_RESYNC_NOTE } from '@/shared/utils/copy';
 import { timeAgo } from '@/shared/utils/format';
 import './accountRow.css';
 
@@ -21,6 +24,13 @@ interface AccountRowProps {
   locked?: boolean;
   /** Antepone al identificador su etiqueta de formato ("Riot ID", "Ubisoft ID", "SteamID64"; spec 008, RF-4). */
   showHandleLabel?: boolean;
+  /**
+   * Ofrece «Verificar con Steam» en una cuenta de CS2 sin verificar (spec 013, RF-2): solo para el
+   * dueño, en su perfil y en Configuración; nunca en la ficha de otro jugador.
+   */
+  offerSteamVerify?: boolean;
+  /** Dueño de la cuenta: su avatar de TeamMatchUp reemplaza al de Steam si este no carga (spec 013, RF-19). */
+  owner?: SteamProfileOwner | undefined;
 }
 
 /** Asiento de una cuenta vinculada: identificador con la etiqueta de su origen, sello de verificación, rango con la suya y última lectura (spec 012, RF-6, RF-22). */
@@ -32,6 +42,8 @@ export function AccountRow({
   unlinking = false,
   locked = false,
   showHandleLabel = false,
+  offerSteamVerify = false,
+  owner,
 }: AccountRowProps) {
   const game = getGame(account.gameId);
   const busy = syncing || unlinking || locked;
@@ -62,6 +74,10 @@ export function AccountRow({
         </div>
       </div>
 
+      {account.verifiedWith === 'steam' ? (
+        <SteamProfileBlock account={account} owner={owner} canSync={onSync !== undefined} />
+      ) : null}
+
       <dl className="account__entries">
         <div>
           <dt className="label">Rango vigente</dt>
@@ -83,6 +99,12 @@ export function AccountRow({
           <dd className="num">{timeAgo(account.lastSyncedAt)}</dd>
         </div>
       </dl>
+
+      {offerSteamVerify && account.gameId === 'cs2' && !account.verified ? (
+        <div className="account__actions">
+          <SteamVerifyButton />
+        </div>
+      ) : null}
 
       {onSync || onUnlink ? (
         <div className="account__actions">
@@ -110,7 +132,11 @@ export function AccountRow({
           ) : null}
         </div>
       ) : null}
-      {onSync ? <p className="note note--faint">{RESYNC_NOTE}</p> : null}
+      {onSync ? (
+        <p className="note note--faint">
+          {account.verifiedWith === 'steam' ? STEAM_RESYNC_NOTE : RESYNC_NOTE}
+        </p>
+      ) : null}
     </article>
   );
 }

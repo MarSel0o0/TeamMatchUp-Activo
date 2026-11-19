@@ -10,8 +10,11 @@ import { createAccountsRouter } from "./controllers/accounts.ts";
 import { createAuthRouter } from "./controllers/auth.ts";
 import { createMatchesRouter } from "./controllers/matches.ts";
 import { createSessionsRouter } from "./controllers/sessions.ts";
+import { createSteamRouter } from "./controllers/steam.ts";
+import type { SteamIntegration } from "./controllers/steam.ts";
 import { createUsersRouter } from "./controllers/users.ts";
 import type { SourceRegistry } from "./services/realSources.ts";
+import { createSteamSource } from "./services/steamSource.ts";
 import type { NodeEnv } from "./utils/config.ts";
 import { errorHandler, unknownEndpoint } from "./utils/middleware.ts";
 
@@ -23,6 +26,13 @@ export interface AppOptions {
   sources?: SourceRegistry;
   /** Plazo de una consulta a una fuente en ms; por defecto 8 s (RNF-5). Lo cambian las pruebas. */
   sourceTimeoutMs?: number;
+  /**
+   * Spec 013: Steam configurado (dirección pública y cliente; no se llama `steam` para no chocar con
+   * `Config.steam`, que lleva la clave, cuando se le pasa la configuración entera). Sin él, `/api/steam` responde que
+   * no está disponible (RF-22). Si no hay otra fuente para CS2, Steam es la de las
+   * resincronizaciones (RF-14).
+   */
+  steamIntegration?: SteamIntegration;
 }
 
 // Reloj real en segundos Unix (el de las credenciales).
@@ -31,7 +41,11 @@ function systemNow(): number {
 }
 
 export function createApp(options: AppOptions): Express {
-  const { jwtSecret, nodeEnv, now = systemNow, sources = {}, sourceTimeoutMs } = options;
+  const { jwtSecret, nodeEnv, now = systemNow, sourceTimeoutMs, steamIntegration: steam } = options;
+  const sources: SourceRegistry =
+    steam !== undefined && options.sources?.cs2 === undefined
+      ? { ...options.sources, cs2: createSteamSource(steam.client) }
+      : (options.sources ?? {});
   const app = express();
 
   // Spec 006 (RF-23, RF-28, P6-1): `/api/sessions` acepta JSON escalar (`strict: false`) para
@@ -53,6 +67,7 @@ export function createApp(options: AppOptions): Express {
   // Spec 004: todas con sesión (RF-1). Spec 012: fuentes reales para resincronizar (RF-15).
   app.use("/api/accounts", createAccountsRouter({ jwtSecret, now, sources, sourceTimeoutMs }));
 
+  app.use("/api/steam", createSteamRouter({ jwtSecret, now, steam, sourceTimeoutMs })); // spec 013: con sesión (RNF-6)
   app.use("/api/matches", createMatchesRouter({ jwtSecret, now })); // spec 005: con sesión (RF-1)
   app.use("/api/sessions", createSessionsRouter({ jwtSecret, now })); // spec 006: con sesión (RF-1)
 

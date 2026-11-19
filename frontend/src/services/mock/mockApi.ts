@@ -27,13 +27,14 @@ import type {
   User,
   WeekDay,
 } from '@/domain/types';
-import { BAD_CREDENTIALS_TEXT, NO_MESSAGE_TEXT } from '@/shared/utils/copy';
+import { BAD_CREDENTIALS_TEXT, NO_MESSAGE_TEXT, STEAM_MOCK_DISABLED_TEXT } from '@/shared/utils/copy';
 import type {
   ApiContract,
   CreateSessionPayload,
   SessionEditPayload,
   GameProfileSummary,
   LinkAccountPayload,
+  SteamCompleteResult,
   UpdateProfilePayload,
 } from '../apiContract';
 import { readCsrf, saveCsrf } from '../http/csrfStorage';
@@ -1109,5 +1110,14 @@ export const mockApi: ApiContract = {
         persist();
         return reply(204);
       }),
+  },
+
+  // Spec 013, RF-21 y D10: en modo simulado nunca se simula una verificación con Steam ni datos de
+  // Steam (constitución, principio 5). La interfaz muestra el botón desactivado; si algo llamara
+  // igual a `start` o `complete`, rechazan con el mismo texto.
+  steam: {
+    status: () => protectedOperation<{ available: boolean }>(() => reply(200, { available: false })),
+    start: () => protectedOperation<{ url: string }>(() => fail(503, STEAM_MOCK_DISABLED_TEXT)),
+    complete: () => protectedOperation<SteamCompleteResult>(() => fail(503, STEAM_MOCK_DISABLED_TEXT)),
   },
 };

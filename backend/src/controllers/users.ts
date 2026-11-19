@@ -45,6 +45,7 @@ import type { SimulatedMatch } from "../domain/rankSimulator.ts";
 import { GameAccount, toGameAccountJson } from "../models/gameAccount.ts";
 import type { GameAccountDocument } from "../models/gameAccount.ts";
 import { PlaySession } from "../models/playSession.ts";
+import { SteamAttempt } from "../models/steamAttempt.ts";
 import { removeUserFromSessions } from "../services/sessionWrites.ts";
 import type { NodeEnv } from "../utils/config.ts";
 import { createUserRoutesGuard, createWithUser } from "../utils/middleware.ts";
@@ -234,7 +235,11 @@ export function createUsersRouter({ jwtSecret, nodeEnv, now }: UsersRouterOption
     // eliminación ya da 401 "token inválido").
     await PlaySession.deleteMany({ host: sessionUserId });
     await removeUserFromSessions(sessionUserId);
-    // La cookie solo se borra si terminaron C1, C2, C3 y C4: tras un 500 en C1 o C2 la sesión
+    // Spec 013, RF-26 (plan, 4.5): C5 borra el intento de verificación con Steam abierto. Va tras
+    // C4 y fuera del `finally`, igual que ella. Si lanzara, el intento residual es inservible
+    // (`withUser` responde 401 al usuario que ya no existe) y el índice TTL lo borra (RNF-7).
+    await SteamAttempt.deleteMany({ user: sessionUserId });
+    // La cookie solo se borra si terminaron C1, C2, C3, C4 y C5: tras un 500 en C1 o C2 la sesión
     // sigue sirviendo para repetir la eliminación mientras el usuario exista.
     response.clearCookie(SESSION_COOKIE, cookieOptions); // mismos atributos que la emisión
     response.status(204).end();

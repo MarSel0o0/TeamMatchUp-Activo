@@ -4,6 +4,7 @@ import { Fragment, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { ROUTES } from '@/app/routes';
 import { SignUpSheetPreview } from '@/app/layouts/SignUpSheetPreview';
+import { env } from '@/config/env';
 import { intersectBlocks, toBlock } from '@/domain/availability';
 import { GAME_LIST } from '@/domain/games';
 import type { TimeBlock, WeekDay } from '@/domain/types';
@@ -229,7 +230,7 @@ export default function LandingPage() {
         <span className="label">TeamMatchUp · 2026</span>
         <span className="line">
           <span className="note note--faint">Proyecto académico.</span>
-          <DemoTag />
+          {env.useMockApi ? <DemoTag /> : null}
         </span>
       </footer>
     </div>

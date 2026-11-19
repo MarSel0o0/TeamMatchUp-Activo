@@ -2,6 +2,8 @@ import { describe, test } from "node:test";
 import assert from "node:assert/strict";
 import {
   STEAM_OPENID_URL,
+  STEAM_RETURN_PATH,
+  buildReturnTo,
   buildCheckAuthBody,
   buildLoginParams,
   isValidCheckResponse,
@@ -36,6 +38,18 @@ function validQuery(overrides: Record<string, string | undefined> = {}): Record<
   }
   return base;
 }
+
+describe("buildReturnTo (RF-1, RNF-4)", () => {
+  test("la página de vuelta de la instancia con el token del intento", () => {
+    assert.equal(STEAM_RETURN_PATH, "/verificar/steam");
+    assert.equal(buildReturnTo(REALM, "abc123"), RETURN_TO);
+    assert.equal(buildReturnTo("http://localhost:5173", "t-_9"), "http://localhost:5173/verificar/steam?attempt=t-_9");
+  });
+
+  test("un token con caracteres especiales se codifica", () => {
+    assert.equal(buildReturnTo(REALM, "a b&c=d"), `${REALM}/verificar/steam?attempt=a%20b%26c%3Dd`);
+  });
+});
 
 describe("buildLoginParams (RF-1)", () => {
   test("pide el inicio de sesión de Steam con la dirección de vuelta y el realm dados", () => {

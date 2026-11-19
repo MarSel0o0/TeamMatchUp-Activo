@@ -16,6 +16,7 @@ import type {
   GameProfileSummary,
   LinkAccountPayload,
   SessionEditPayload,
+  SteamCompleteResult,
   UpdateProfilePayload,
 } from '../apiContract';
 import { saveCsrf } from './csrfStorage';
@@ -101,6 +102,17 @@ export const httpApi: ApiContract = {
       request<GameProfileSummary>(
         `/users/${encodeURIComponent(userId)}/games/${encodeURIComponent(gameId)}`,
       ),
+  },
+
+  steam: {
+    status: () => request<{ available: boolean }>('/steam'),
+
+    start: () => request<{ url: string }>('/steam/start', { method: 'POST' }),
+
+    // El servidor recibe lo que trajo la dirección de vuelta; el comprobante anti-CSRF y la cookie
+    // viajan como en cualquier operación protegida (spec 013, D3, RNF-6).
+    complete: (query: Record<string, string>) =>
+      request<SteamCompleteResult>('/steam/complete', { method: 'POST', body: { query } }),
   },
 
   matches: {

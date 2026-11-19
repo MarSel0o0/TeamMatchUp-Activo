@@ -80,7 +80,7 @@ anti-CSRF. Ninguna regla de la spec 002 se relaja (RNF-6).
 | `controllers/steam.ts` (nuevo) | `createSteamRouter({ jwtSecret, now, steam? })`: `GET /` (¿disponible?), `POST /start`, `POST /complete`. Todas con `withUser` (sesión y comprobante, RNF-6) | RF-1 a RF-9, RF-12, RF-22 |
 | `controllers/accounts.ts` | La proyección de `/:id/sync` añade `profile`; la espera se calcula con `current.profile === undefined ? null : current.lastSyncedAt` | RF-12, D6 |
 | `controllers/users.ts` | C5: `SteamAttempt.deleteMany({ user })` tras C4 | RF-26 |
-| `app.ts` | `AppOptions.steam?: { publicUrl; client }`; monta `/api/steam`; si hay `steam` y no hay `sources.cs2`, registra `createSteamSource(client)` | RF-14, RF-22, RNF-4 |
+| `app.ts` | `AppOptions.steamIntegration?: { publicUrl; client }` (no `steam`, para no chocar con `Config.steam`, que lleva la clave); monta `/api/steam`; si hay integración y no hay `sources.cs2`, registra `createSteamSource(client)` | RF-14, RF-22, RNF-4 |
 | `index.ts` | Construye `steam` desde `config.steam` (con `createSteamClient`) y lo pasa a `createApp`; deja de pasar `result.config` entero | RF-22, RNF-2 |
 | `server.ts` | `prepareDatabase()` agrega `SteamAttempt.init()` (crea los índices) | RNF-7 |
 | `utils/config.ts` | `Config.steam: { apiKey; publicUrl } \| null`. Variables **opcionales** `STEAM_API_KEY` y `PUBLIC_URL`; ver 5.2 | RF-22, RNF-2, RNF-4 |

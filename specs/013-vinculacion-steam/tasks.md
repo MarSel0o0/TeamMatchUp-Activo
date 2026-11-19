@@ -1,5 +1,5 @@
 # Tareas 013 — Verificación de cuentas de Counter-Strike 2 con Steam
-Estado: aprobado (2026-11-18, por el usuario: «apruebo las tareas»); **T1 y T2 hechas (2026-11-18)**. Plan:
+Estado: aprobado (2026-11-18, por el usuario: «apruebo las tareas»); **T1 a T8 hechas (2026-11-18); backend cerrado. T9 a T11: código y documentación hechos, falta la verificación en navegador y los recorridos manuales (ver `validation.md`)**. Plan:
 `specs/013-vinculacion-steam/plan.md` (aprobado el 2026-11-18). Spec:
 `specs/013-vinculacion-steam/spec.md`.
 
@@ -54,7 +54,7 @@ No se editan las specs 002, 007 ni 012 (decisión del 2026-11-18).
   **Misma salvedad que la T1:** los 8 fallos y el único error de `typecheck` son de
   `tests/controllers/ui.test.ts` (spec 010, sin commitear, `uiDir` ausente de `app.ts`).
 
-- [ ] **T3. Intentos de verificación.** `models/steamAttempt.ts` (`{ user, tokenHash, expiresAt }`,
+- [x] **T3. Intentos de verificación.** `models/steamAttempt.ts` (`{ user, tokenHash, expiresAt }`,
   índice único en `user`, índice TTL con `expireAfterSeconds: 0`), `services/steamAttempts.ts`
   (`openAttempt` con reemplazo por `upsert` y token en claro solo en el retorno, `findAttempt`,
   `consumeAttempt`, `discardAttempt`), `SteamAttempt.init()` en `prepareDatabase`
@@ -66,8 +66,15 @@ No se editan las specs 002, 007 ni 012 (decisión del 2026-11-18).
   con dos llamadas simultáneas) y el caso de `userDeletion` (un usuario con intento abierto lo
   pierde al eliminarse) vistos en rojo y luego en verde; `userDeletionCascade.test.ts` y
   `startup.test.ts` siguen en verde; `typecheck` y `lint` en verde.
+  **Resultado (2026-11-18):** 28 pruebas nuevas (`steamAttemptModel`, `steamAttempts`,
+  `steamAttemptCascade`) vistas en rojo y luego en verde; `userDeletion`, `userDeletionCascade` y
+  `startup` siguen en verde (76 en serie con las nuevas); `lint` sin errores; suite completa
+  2498 de 2506. **Misma salvedad que la T1 y la T2:** los 8 fallos y el único error de
+  `typecheck` son de `tests/controllers/ui.test.ts` (spec 010). Nota de las pruebas:
+  `Model.init()` de Mongoose se memoiza, así que la prueba de arranque comprueba que
+  `prepareDatabase` lo llama y otra, aparte, que los índices existen en la base.
 
-- [ ] **T4. Cliente y fuente de Steam.** `services/steamClient.ts` (`SteamClient`,
+- [x] **T4. Cliente y fuente de Steam.** `services/steamClient.ts` (`SteamClient`,
   `createSteamClient({ apiKey, fetchFn })`: `verifyAssertion` con `check_authentication` y
   `readProfile` con `GetPlayerSummaries` y `GetOwnedGames` en paralelo; todo fallo →
   `unavailable`, sin registrar la dirección ni el error; jugador inexistente → `gone`) y
@@ -77,8 +84,11 @@ No se editan las specs 002, 007 ni 012 (decisión del 2026-11-18).
   y `unavailable` (y el cuerpo enviado a Steam, solo `openid.*`); perfil público, privado, sin
   juegos, sin jugador, HTTP 500, JSON roto y plazo vencido; la clave no aparece en ningún
   mensaje ni registro. Visto en rojo y luego en verde; `typecheck` y `lint` en verde.
+  **Resultado (2026-11-18):** `steamClient.test.ts` 23/23 (vistos en rojo antes), incluida la
+  prueba de que un error de red con la dirección completa no filtra la clave ni escribe en la
+  consola; `lint` sin errores.
 
-- [ ] **T5. Rutas de estado y de inicio.** `controllers/steam.ts` con `createSteamRouter`
+- [x] **T5. Rutas de estado y de inicio.** `controllers/steam.ts` con `createSteamRouter`
   (`withUser` en todas): `GET /` → `{ available }` y `POST /start` (plan, 4.1); `AppOptions.steam`
   en `app.ts` (monta `/api/steam` y registra `createSteamSource` como fuente de CS2 si no hay
   otra); `index.ts` construye la integración desde `config.steam` y deja de pasar `result.config`
@@ -90,8 +100,13 @@ No se editan las specs 002, 007 ni 012 (decisión del 2026-11-18).
   existir) y la URL devuelta (host de Steam, `return_to` con `PUBLIC_URL` y el token); visto en
   rojo y luego en verde; `app.test.ts`, `startup.test.ts` y `process.test.ts` siguen en verde;
   `typecheck` y `lint` en verde.
+  **Resultado (2026-11-18):** 18 pruebas de `steam.test.ts` y 2 de `buildReturnTo` vistas en rojo
+  y luego en verde; suite completa 2541 de 2549 (los 8 fallos son de `ui.test.ts`, spec 010).
+  **Cambio de nombre:** la opción de `createApp` se llama `steamIntegration` y no `steam`, porque
+  `app.test.ts` y `startup.test.ts` le pasan el `Config` entero y `Config.steam` (con la clave)
+  chocaba con ella. `buildReturnTo` y `STEAM_RETURN_PATH` se agregaron a `steamOpenId.ts` (T2).
 
-- [ ] **T6. Completar la verificación.** `POST /api/steam/complete` en `controllers/steam.ts`
+- [x] **T6. Completar la verificación.** `POST /api/steam/complete` en `controllers/steam.ts`
   (plan, 4.2): cancelación, intento (ajeno sin consumir, vencido, ya usado), validación local,
   `check_authentication`, lectura del perfil con `readWithTimeout`, `verifyAccount` de la 012 y
   las respuestas `200 { outcome, account }`, 400 (RF-6), 409 (RF-8), 503 (RF-9).
@@ -104,8 +119,12 @@ No se editan las specs 002, 007 ni 012 (decisión del 2026-11-18).
   que falla o `gone` → cuenta verificada sin `profile`; dos `complete` simultáneos (uno verifica,
   el otro RF-6); los textos literales de RF-6, RF-8 y RF-9; la respuesta sin `externalId` ni
   clave. Visto en rojo y luego en verde; `typecheck` y `lint` en verde.
+  **Resultado (2026-11-18):** 38 pruebas de `steamComplete.test.ts` (34 en rojo antes) en verde;
+  suite completa 2579 de 2587 (los 8 fallos son de `ui.test.ts`, spec 010). Las pruebas de la
+  T6 viven en `steamComplete.test.ts` (no en `steam.test.ts`) y el cliente falso, en
+  `steamHelpers.ts`.
 
-- [ ] **T7. Resincronizar con Steam.** En `controllers/accounts.ts`, la proyección de
+- [x] **T7. Resincronizar con Steam.** En `controllers/accounts.ts`, la proyección de
   `POST /:id/sync` incluye `profile` y la espera usa
   `syncCooldown(current.profile === undefined ? null : current.lastSyncedAt, at)` (plan, 4.4).
   RF-12, RF-14, RF-23.
@@ -115,8 +134,13 @@ No se editan las specs 002, 007 ni 012 (decisión del 2026-11-18).
   cuenta verificada sin perfil resincroniza de inmediato y queda con perfil) vistas en rojo y
   luego en verde; la suite completa del backend (`npm test --script-shell=bash`), `typecheck` y
   `lint` en verde. Con esta tarea queda cerrado el backend.
+  **Resultado (2026-11-18):** 13 pruebas de `steamResync.test.ts` (3 en rojo antes: la espera
+  de RF-12); suite completa 2592 de 2600 (los 8 fallos son de `ui.test.ts`, spec 010). **Cambio
+  en pruebas de la 012:** el helper `verifiedAccount` de `accountRealSync.test.ts` ahora siembra un
+  perfil, porque desde la D6 una cuenta verificada sin perfil no tiene espera (las 3 pruebas de
+  la espera de la 012 la daban por hecha sin perfil).
 
-- [ ] **T8. Contrato y modo simulado en la interfaz.** Grupo `steam` en
+- [x] **T8. Contrato y modo simulado en la interfaz.** Grupo `steam` en
   `frontend/src/services/apiContract.ts` (`status`, `start`, `complete` y el tipo del resultado),
   implementación en `http/httpApi.ts`, `mockApi.steam` (no disponible, rechaza con «No disponible
   en modo de demostración» y nunca simula), `domain/steamDisplay.ts` (`formatHours`,
@@ -125,6 +149,11 @@ No se editan las specs 002, 007 ni 012 (decisión del 2026-11-18).
   RF-11, RF-17, RF-18, RF-21, RF-25.
   Hecho cuando: `npm run typecheck`, `npm run lint` y `npm run build` en verde, y una revisión
   del código confirma que `mockApi.steam` no devuelve ningún dato de Steam ni una verificación.
+  **Resultado (2026-11-18):** `typecheck`, `lint` y `build` sin errores; `mockApi.steam` solo
+  responde `available: false` y rechaza `start` y `complete` con «No disponible en modo de
+  demostración». `STEAM_PRIVATE_TEXT` vive en `domain/steamDisplay.ts` (como los textos de
+  `origins.ts`) y no en `copy.ts`; `domain/steamLogin.ts` (nuevo) comprueba que la URL de Steam sea la
+  oficial antes de redirigir.
 
 - [ ] **T9. Página de vuelta, botón y avisos.** `features/steam/pages/SteamReturnPage.tsx`
   (sin sesión → login sin `from`; con sesión, una sola llamada, «Verificando con Steam…», y
@@ -139,6 +168,13 @@ No se editan las specs 002, 007 ni 012 (decisión del 2026-11-18).
   aparece sin clave, aparece desactivado en modo simulado, y que abrir `/verificar/steam` sin
   sesión lleva a login y, tras entrar, no vuelve a la página de vuelta (registro del recorrido en
   `validation.md`).
+  **Estado (2026-11-18): código hecho, verificación en navegador pendiente; la casilla sigue
+  abierta.** Hechos: `SteamReturnPage` (fuera de las rutas protegidas y de `isProtectedPath`, sin
+  sesión → login sin `from`, una sola llamada), `useSteamAvailability`, `useStartSteamVerification`,
+  `SteamVerifyButton` (desactivado en modo simulado, oculto sin clave), aviso por `location.state` en
+  `ProfilePage`, botón en `AccountRow` (perfil y Configuración) y sobre el formulario de CS2
+  (`LinkAccountForm.aboveCs2`). `typecheck`, `lint` y `build` sin errores. Falta ver el recorrido en un
+  navegador (no hay herramienta de navegador en esta sesión); ver `validation.md`, sección 3.
 
 - [ ] **T10. Datos de Steam en la cuenta, texto de «Resincronizar» y aviso global.**
   `features/steam/components/SteamProfileBlock.tsx` (avatar con respaldo `onError` al monograma
@@ -154,6 +190,12 @@ No se editan las specs 002, 007 ni 012 (decisión del 2026-11-18).
   (todo público, país ausente, sin lista de juegos), 0 h y la verificación sin perfil; sin aviso
   global con el servidor real y con aviso en modo simulado. Capturas y resultado en
   `validation.md`.
+  **Estado (2026-11-18): código hecho, verificación en navegador pendiente; la casilla sigue
+  abierta.** Hechos: `SteamProfileBlock` (avatar con respaldo `onError` al monograma del dueño, nombre
+  recortado con CSS, país, horas, «perfil de Steam privado» por dato, texto sin perfil, etiqueta
+  «Datos de Steam»), `AccountRow`/`GameSummaryPanel`/`PlayerGamesSection` con `owner` y el texto
+  `STEAM_RESYNC_NOTE`, y `DemoTag` global solo con `env.useMockApi` (barra, pie y portada). `typecheck`,
+  `lint` y `build` sin errores. Faltan las capturas a 1280 y 375 px y los casos de privacidad.
 
 - [ ] **T11. Cierre y recorridos manuales.** Suite completa del backend sin conexión a Internet,
   `typecheck`, `lint` y `build` de ambos lados; `AGENTS.md`, `PRODUCT.md` («Evidence on Hand» y
@@ -168,3 +210,9 @@ No se editan las specs 002, 007 ni 012 (decisión del 2026-11-18).
   Hecho cuando: todo en verde; una búsqueda de la clave real en el repositorio y en
   `git status` no encuentra nada; `validation.md` tiene cada comprobación con su resultado; los
   recorridos manuales los ejecuta el equipo con sus credenciales y quedan anotados.
+  **Estado (2026-11-18): hecho lo automático; la casilla sigue abierta.** Hechos: suite del backend
+  2592 de 2600 (los 8 fallos son de `ui.test.ts`, spec 010), `lint` sin errores, frontend sin errores,
+  `AGENTS.md`, `PRODUCT.md`, `README.md` y `backend/requests/steam.rest`, y `validation.md` con lo
+  comprobado y la lista de lo pendiente. Falta: los recorridos manuales con la cuenta y la clave
+  reales (desarrollo local y servidor del curso), anotar la respuesta de `GetOwnedGames` (R13-1) y
+  marcar los criterios de finalización de `spec.md`.

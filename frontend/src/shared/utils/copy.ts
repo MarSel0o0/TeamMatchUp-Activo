@@ -35,6 +35,21 @@ export const RESYNC_LABEL = 'Resincronizar';
 export const RESYNC_NOTE =
   'Al resincronizar, tu rango puede cambiar un escalón y pueden llegar partidas nuevas.';
 
+/** Verificación con Steam (spec 013). Los avisos son literales de RF-4 y RF-5 (RF-20). */
+export const STEAM_VERIFY_LABEL = 'Verificar con Steam';
+export const STEAM_VERIFYING_TEXT = 'Verificando con Steam…';
+/** RF-21: en modo simulado el botón se ve desactivado con este texto. */
+export const STEAM_MOCK_DISABLED_TEXT = 'No disponible en modo de demostración';
+/** RF-25: texto junto a «Resincronizar» de una cuenta verificada con Steam. */
+export const STEAM_RESYNC_NOTE =
+  'Al resincronizar, se vuelven a leer tus datos de Steam. Puedes hacerlo cada 5 minutos.';
+/** RF-12: cuenta verificada que aún no tiene datos de perfil (se obtienen resincronizando). */
+export const STEAM_NO_PROFILE_TEXT = 'Aún no tenemos tus datos de Steam; resincroniza para obtenerlos.';
+export const STEAM_NOTICES = {
+  verified: 'cuenta de Steam verificada',
+  cancelled: 'verificación con Steam cancelada',
+} as const;
+
 /** Sustituye a las promesas de relectura sin intervención del usuario (RF-26). */
 export const REREAD_TEXT = 'El rango se vuelve a leer al pulsar "Resincronizar".';
 

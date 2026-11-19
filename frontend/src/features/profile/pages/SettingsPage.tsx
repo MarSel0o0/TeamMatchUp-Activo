@@ -12,6 +12,7 @@ import { TextField } from '@/shared/components/TextField';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { REREAD_TEXT, SENDING_TEXT } from '@/shared/utils/copy';
 import { pluralize } from '@/shared/utils/format';
+import { SteamVerifyButton } from '@/features/steam/components/SteamVerifyButton';
 import { AccountRow } from '../components/AccountRow';
 import { LinkAccountForm } from '../components/LinkAccountForm';
 import {
@@ -196,6 +197,8 @@ export default function SettingsPage() {
                     syncing={syncAccount.isPending && syncAccount.variables === account.id}
                     unlinking={unlinkAccount.isPending && unlinkAccount.variables === account.id}
                     locked={accountsBusy}
+                    offerSteamVerify
+                    owner={user}
                   />
                 ))}
               </div>
@@ -208,7 +211,10 @@ export default function SettingsPage() {
             <h2 className="sheet-title">Vincular un juego</h2>
           </div>
           <div className="sheet__body">
-            <LinkAccountForm linkedGames={accounts.map((account) => account.gameId)} />
+            <LinkAccountForm
+              linkedGames={accounts.map((account) => account.gameId)}
+              aboveCs2={<SteamVerifyButton />}
+            />
           </div>
         </section>
       </div>

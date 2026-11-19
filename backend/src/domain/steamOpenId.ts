@@ -12,6 +12,9 @@ import { GAMES } from "./games.ts";
 /** Página oficial de inicio de sesión de Steam y `op_endpoint` de sus respuestas. */
 export const STEAM_OPENID_URL = "https://steamcommunity.com/openid/login";
 
+/** Página de la app a la que Steam devuelve al usuario (spec 013, D3). */
+export const STEAM_RETURN_PATH = "/verificar/steam";
+
 const OPENID_NS = "http://specs.openid.net/auth/2.0";
 const IDENTIFIER_SELECT = "http://specs.openid.net/auth/2.0/identifier_select";
 const CLAIMED_ID_PREFIX = "https://steamcommunity.com/openid/id/";
@@ -30,6 +33,14 @@ export type ParsedResponse =
   | { kind: "cancelled" }
   | { kind: "invalid" }
   | { kind: "assertion"; steamId: string; params: Record<string, string> };
+
+/**
+ * Dirección a la que Steam devuelve al usuario: la página de vuelta de esta instancia con el
+ * token del intento (RF-1, RNF-4). Steam firma `return_to`, así que el token viaja protegido.
+ */
+export function buildReturnTo(publicUrl: string, token: string): string {
+  return `${publicUrl}${STEAM_RETURN_PATH}?attempt=${encodeURIComponent(token)}`;
+}
 
 /** Parámetros de la petición que lleva al usuario al inicio de sesión de Steam (RF-1). */
 export function buildLoginParams(returnTo: string, realm: string): Record<string, string> {

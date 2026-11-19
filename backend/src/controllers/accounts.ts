@@ -218,7 +218,7 @@ export function createAccountsRouter({
     // comprobar al escribir.
     const current = await GameAccount.findOne(
       { _id: id },
-      { user: 1, gameId: 1, handle: 1, lastSyncedAt: 1, verification: 1 },
+      { user: 1, gameId: 1, handle: 1, lastSyncedAt: 1, verification: 1, profile: 1 },
     ).lean();
     if (current === null) {
       response.status(404).json({ error: ACCOUNT_ERRORS.accountNotFound });
@@ -256,8 +256,11 @@ export function createAccountsRouter({
       return;
     }
 
-    // RF-16: la espera mínima va antes de consultar la fuente y no la consulta.
-    const cooldown = syncCooldown(current.lastSyncedAt, at);
+    // RF-16: la espera mínima va antes de consultar la fuente y no la consulta. Spec 013, RF-12 y
+    // D6: una cuenta verificada sin datos de perfil no tiene una lectura que cuente, así que
+    // puede resincronizar de inmediato (también tras intentos que fallaron).
+    const hasProfile = current.profile !== undefined && current.profile !== null;
+    const cooldown = syncCooldown(hasProfile ? current.lastSyncedAt : null, at);
     if (!cooldown.allowed) {
       response.status(429).json({ error: ACCOUNT_ERRORS.syncCooldown(cooldown.minutes) });
       return;

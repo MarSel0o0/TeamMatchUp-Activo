@@ -6,6 +6,7 @@ import type { AddressInfo } from "node:net";
 import mongoose from "mongoose";
 import { canonicalHandle } from "./domain/rankSimulator.ts";
 import { GameAccount } from "./models/gameAccount.ts";
+import { SteamAttempt } from "./models/steamAttempt.ts";
 import { User } from "./models/user.ts";
 import type { Config, DatabaseConfig } from "./utils/config.ts";
 import type { Logger } from "./utils/logger.ts";
@@ -55,6 +56,7 @@ export async function connectDatabase(db: DatabaseConfig): Promise<void> {
 export async function prepareDatabase(): Promise<void> {
   await User.init();
   await GameAccount.init();
+  await SteamAttempt.init(); // spec 013: índice único por usuario e índice TTL (RNF-7)
   await migrateAccounts();
 }
 

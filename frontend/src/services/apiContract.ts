@@ -55,6 +55,14 @@ export interface GameProfileSummary {
 }
 
 /**
+ * Resultado de completar la verificación con Steam (spec 013, RF-4, RF-5). Los demás desenlaces
+ * (RF-6, RF-8, RF-9) llegan como error con el texto del servidor.
+ */
+export type SteamCompleteResult =
+  | { outcome: 'verified'; account: GameAccount }
+  | { outcome: 'cancelled' };
+
+/**
  * Contrato que la interfaz consume. Existen dos implementaciones
  * intercambiables —el backend simulado en memoria y el cliente HTTP contra
  * Express— y la aplicación elige una u otra según la configuración. Cualquier
@@ -94,6 +102,15 @@ export interface ApiContract {
     listAccounts(userId: string): Promise<GameAccount[]>;
     /** `GET /api/users/:id/games/:gameId`. */
     getGameSummary(userId: string, gameId: GameId): Promise<GameProfileSummary>;
+  };
+  /** Verificación de la cuenta de CS2 con Steam (spec 013): `/api/steam`. */
+  steam: {
+    /** `GET /api/steam`: ¿la instancia tiene Steam configurado? (RF-22). */
+    status(): Promise<{ available: boolean }>;
+    /** `POST /api/steam/start`: abre el intento y devuelve la página de inicio de sesión de Steam (RF-1). */
+    start(): Promise<{ url: string }>;
+    /** `POST /api/steam/complete`: completa la verificación con lo que trajo la dirección de vuelta (RF-4). */
+    complete(query: Record<string, string>): Promise<SteamCompleteResult>;
   };
   matches: {
     list(filters: MatchFilters): Promise<MatchCandidate[]>;

@@ -20,6 +20,7 @@ const MatchesPage = lazy(() => import('@/features/matches/pages/MatchesPage'));
 const SchedulePage = lazy(() => import('@/features/sessions/pages/SchedulePage'));
 const SessionDetailPage = lazy(() => import('@/features/sessions/pages/SessionDetailPage'));
 const PlayerPage = lazy(() => import('@/features/players/pages/PlayerPage'));
+const SteamReturnPage = lazy(() => import('@/features/steam/pages/SteamReturnPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 const LandingPage = lazy(() => import('./pages/LandingPage'));
 const HomePage = lazy(() => import('@/features/home/pages/HomePage'));
@@ -55,6 +56,12 @@ export function AppRouter() {
             <Route path={ROUTES.player} element={<PlayerPage />} />
           </Route>
         </Route>
+
+        {/*
+          Página de vuelta de Steam (spec 013, D3, RF-7): fuera de `ProtectedRoute` y de
+          `PublicOnlyRoute` a propósito. Sin sesión lleva a login sin recordar esta dirección.
+        */}
+        <Route path={ROUTES.steamReturn} element={<SteamReturnPage />} />
 
         <Route path="*" element={<NotFoundPage />} />
       </Routes>

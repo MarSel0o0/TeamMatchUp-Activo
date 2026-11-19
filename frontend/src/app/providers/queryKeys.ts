@@ -12,6 +12,8 @@ export type QueryUserId = string | null;
 
 export const queryKeys = {
   accounts: (userId: QueryUserId) => ['u', userId, 'profile', 'accounts'] as const,
+  /** ¿Tiene la instancia Steam configurado? (spec 013, RF-22). */
+  steamStatus: (userId: QueryUserId) => ['u', userId, 'steam', 'status'] as const,
   availability: (userId: QueryUserId) => ['u', userId, 'profile', 'availability'] as const,
   gameSummary: (userId: QueryUserId, gameId: GameId) =>
     ['u', userId, 'profile', 'summary', gameId] as const,

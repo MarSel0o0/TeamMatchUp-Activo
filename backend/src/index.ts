@@ -6,6 +6,7 @@
 // utilizable), el mensaje va por el logger (callado en prueba, D10) y el código es 1.
 import { createApp } from "./app.ts";
 import { startServer } from "./server.ts";
+import { createSteamClient } from "./services/steamClient.ts";
 import { formatConfigErrors, loadConfig } from "./utils/config.ts";
 import { logger } from "./utils/logger.ts";
 
@@ -16,7 +17,17 @@ if (!result.ok) {
 }
 
 try {
-  await startServer(result.config, { app: createApp(result.config), log: logger });
+  // Spec 013 (RF-22, RNF-2): la clave de Steam solo se usa para construir el cliente; sin ella no
+  // hay integración y `/api/steam` responde que no está disponible.
+  const { jwtSecret, nodeEnv, steam } = result.config;
+  const app = createApp({
+    jwtSecret,
+    nodeEnv,
+    ...(steam === null
+      ? {}
+      : { steamIntegration: { publicUrl: steam.publicUrl, client: createSteamClient({ apiKey: steam.apiKey }) } }),
+  });
+  await startServer(result.config, { app, log: logger });
 } catch (error) {
   logger.error(error instanceof Error ? error.message : String(error));
   process.exit(1);

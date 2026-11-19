@@ -1,0 +1,20 @@
+@baseUrl = http://localhost:3001/api
+
+### Spec 013 — Verificar la cuenta de CS2 con Steam.
+### Todas las rutas exigen sesión: primero inicia sesión (auth.rest) y copia el comprobante
+### anti-CSRF de la cabecera X-CSRF-Token de la respuesta en la variable de abajo. La cookie la
+### guarda el cliente. Steam debe estar configurado en backend/.env (STEAM_API_KEY y PUBLIC_URL).
+@csrf = pega-aqui-el-comprobante
+
+### ¿Está disponible la verificación con Steam? { "available": true | false }
+GET {{baseUrl}}/steam
+X-CSRF-Token: {{csrf}}
+
+### Abre un intento (válido 10 minutos; anula el anterior) y devuelve la URL de Steam: { "url": "…" }
+### Abre esa URL en el navegador, inicia sesión en Steam y vuelve a la app (la página de vuelta
+### completa la verificación). Con una cuenta de CS2 ya verificada responde 409.
+POST {{baseUrl}}/steam/start
+X-CSRF-Token: {{csrf}}
+
+### «Completar» no se prueba a mano desde aquí: necesita la respuesta firmada que solo Steam
+### entrega al navegador (POST {{baseUrl}}/steam/complete con { "query": { … } }).
