@@ -4,7 +4,7 @@ Registro dinámico. Se actualiza al cerrar cada fase SDD.
 
 ## Última actualización
 
-2026-10-19
+2026-11-18 (spec 012 implementada y validada)
 
 ## Fase actual
 
@@ -101,7 +101,7 @@ hacer la 008.
   la interfaz con la misma escala y puntaje que el servidor (`domain/rankScale.ts`, `matching.ts`;
   paridad comprobada en T27). Modo simulado: `mockApi.ts` responde como el servidor, con
   `simulatedProvider.ts` (mismo algoritmo que `backend/src/domain/rankSimulator.ts`) y datos ficticios en
-  `seed.ts` (16 jugadores, 25 cuentas, base `tmu.mock-db.v3`, cuenta `demo@teammatchup.gg`).
+  `seed.ts` (16 jugadores, 25 cuentas, base `tmu.mock-db.v4` desde la spec 012, cuenta `demo@teammatchup.gg`).
   Sin runner de pruebas (RNF-3): lo probado vive en `specs/007-integrar-frontend/validation.md`
   y `validation/{baseline,after}/`.
 - Backend (`backend/`): servidor base de la spec 001. Express 5.1.0 + Mongoose 8.24.5 +
@@ -195,6 +195,9 @@ hacer la 008.
 | `008-ficha-de-jugador` | Spec, plan y tareas aprobados (2026-10-18) | Precondición cumplida: la 007 está implementada (T1–T31). Los enlaces de RF-2 son su T9. |
 | `009-detalle-de-sesion` | Spec, plan y tareas aprobados (2026-10-18) | 18 tareas (T0–T17), sin dividir la spec por decisión de la usuaria. T0 exige plan de la 007 aprobado, 007 hecha (cumplido) y la tarea de enlaces de la 008 hecha (pendiente). La validación de reviewer espera a que estén implementadas la 006, la 007 y la 008. No cambia el backend. |
 | `010-despliegue` | Borrador | Servirá la interfaz desde el servidor (rutas fuera de `/api`). |
+| `012-origen-real-de-datos` | Implementada y validada (2026-11-18). T1–T11 hechas y commiteadas (`0ba0f99` T8–T10, `ad58178` T11). 1ª validación (2026-11-18): dos puntos (RF-6 identidad sin etiqueta; RF-14 sin prueba del endpoint), cerrados con la T11. 2ª validación (2026-11-18, Opus): cumplida; 706 tests de la 012 y suite completa 2379/2379 en verde, typecheck y lint del backend y build, typecheck y lint del frontend sin errores; interfaz por Chrome headless (CDP) a 1280 y 375 px con verificación escrita directo en una base temporal (no hay rutas de verificación hasta la 013/014). Observaciones sin bloquear: la aclaración de RF-6 es una línea sin número en `spec.md`; el bloque de perfil (avatar, nivel, horas) no se muestra en ninguna parte (para la 013) | Base común: cuenta verificada solo por verificación real (revoca RF-41 de la 004 y la decisión «Todo simulado» del 2026-10-17), origen por bloque de datos, exclusividad (primera verificación gana y desvincula las no verificadas de otros), resincronización bajo demanda con espera de 5 min, 503 si la fuente cae. Propone texto para el principio 5 de la constitución. Dudas D1–D3 cerradas el 2026-11-04 (visible para todos, «1 minuto», filtro «Solo cuentas verificadas»). Rama `feature/vinculacion-steam-riot`. |
+| `013-vinculacion-steam` | Spec aprobada (2026-11-04) y revisada tras la clarificación (2026-11-18, aprobada por el usuario) | Verificar CS2 con el inicio de sesión de Steam; perfil y horas reales; rango CS2 sigue simulado. Depende de la 012. Clarificación del 2026-11-18: 29 hallazgos resueltos como D3–D12 y RF-18 a RF-26. Bloqueante resuelto con D3: la vuelta de Steam llega a una página de la app, que completa la verificación con la sesión y el comprobante anti-CSRF del usuario (la cookie `SameSite=Strict` no viaja en la navegación desde Steam); sin cambiar la spec 002. Absorbe los tres pendientes de la validación de la 012: aviso global solo en modo simulado (RF-24), texto de «Resincronizar» (RF-25) y bloque de perfil visible con «Datos de Steam» (RF-15). Sin clave de Steam no se ofrece verificar (D4, revoca el RNF-2 anterior). Sin dependencias nuevas (RNF-5). Los ajustes a las specs 002, 007 y 012 quedan en su sección «Impacto», sin editar esos archivos. **Plan redactado el 2026-11-18** (`plan.md`, borrador pendiente de aprobación): OpenID 2.0 de Steam con intento en MongoDB (TTL, hash del token, uno por usuario), `POST /api/steam/{start,complete}` y `GET /api/steam`, página de vuelta fuera de las rutas protegidas (RF-7), `STEAM_API_KEY` y `PUBLIC_URL` opcionales, `syncCooldown(null)` para RF-12; 11 tareas previstas. Observaciones O-1 a O-4 por confirmar (región de la cuenta nueva, texto «sin perfil», texto del rechazo de RF-3, 11 tareas). Plan aprobado el 2026-11-18 (O-1 a O-4 con los valores por defecto). **Tareas aprobadas el 2026-11-18** (`tasks.md`, T1 a T11). **T1 hecha** (`Config.steam`, `STEAM_API_KEY` y `PUBLIC_URL` opcionales y comentadas en `.env.example`; sin commitear). Salvedad: `tests/controllers/ui.test.ts` (spec 010) falla porque `uiDir` no está en `app.ts` de esta rama. **T2 hecha** (dominio puro: `steamAttempt`, `steamOpenId`, `steamProfile`, `steamRules` y `syncCooldown(null)`; 71 pruebas nuevas, sin commitear). **T1 a T7 hechas; backend de la 013 cerrado** (`/api/steam` con `GET /`, `POST /start` y `POST /complete`; cliente de Steam con `fetch` inyectable; `AppOptions.steamIntegration`; espera sin perfil; suite 2592/2600, los 8 fallos son de `ui.test.ts` de la spec 010; sin commitear). Detalle T3: modelo `SteamAttempt` con índice único por usuario y TTL, servicio `steamAttempts`, `SteamAttempt.init()` en `prepareDatabase` y C5 en la cascada; 28 pruebas nuevas, sin commitear). **T8 hecha.** T9 a T11 con el código y la documentación hechos (página de vuelta, botón, bloque de datos de Steam, aviso global solo en modo simulado; `typecheck`, `lint` y `build` del frontend sin errores) pero **sin verificar en un navegador ni con la cuenta real de Steam**: casillas abiertas, pendientes en `specs/013-vinculacion-steam/validation.md`. Siguiente: recorridos manuales del equipo (necesitan `STEAM_API_KEY` y `PUBLIC_URL`) y cerrar T9 a T11. |
+| `014-verificacion-riot` | Spec aprobada (2026-11-04) | Verificar LoL con ícono de inicio (0–28, distinto del actual, 10 min, máx. 10 confirmaciones); rango Solo/Dúo, partidas y perfil reales. Development key aceptada por el equipo pese a los términos de Riot. Depende de la 012. Dudas D1–D2 cerradas el 2026-11-04 (sin clasificar → fuera de coincidencias; solo partidas Solo/Dúo). R6 queda para una posible 015. |
 
 ## Deuda conocida
 
@@ -270,7 +273,7 @@ hacer la 008.
     perfil (522) y coincidencias (361). Ya fallaba en la línea base (504, 425 y 361); el perfil
     empeora por la semilla nueva (`.rank-scale__rail`, absoluto). `body` tiene `overflow-x:
     hidden`, así que no se ve desplazamiento. El «Hecho cuando» de la T28 no se cumple a la letra.
-  - `mockApi.ts` escribe `tmu.mock-db.v3` en `localStorage` al importarse aunque el modo simulado
+  - `mockApi.ts` escribe `tmu.mock-db.v4` (`v3` hasta la spec 012) en `localStorage` al importarse aunque el modo simulado
     esté desactivado (`api.ts` lo importa de forma estática); no es credencial (`session: null`).
     Nada limpia un `tmu.token` ni un `tmu.mock-db.v2` antiguos: un navegador viejo los conserva
     sin que el código los use.
@@ -339,7 +342,7 @@ hacer la 008.
     cabeceras del login; `normalizeRank` se importa de `domain/rankScale.ts` (sin reexportar desde
     `games.ts`, por el ciclo de imports); `simulatedProvider.ts` copia el algoritmo completo del
     servidor, así que sus valores coinciden exactamente; el simulado deja el número de lectura en
-    `readings` dentro de la base; la clave de la base simulada es `tmu.mock-db.v3`.
+    `readings` dentro de la base; la clave de la base simulada es `tmu.mock-db.v4` (era `v3` hasta la spec 012, que la subió para descartar cuentas guardadas con `verified: true` y sin `origins`).
   - Plan 3.9: la sesión simulada vive dentro de la base simulada (`{ userId, csrf }`); la
     interfaz no la lee.
 
@@ -531,7 +534,9 @@ defectos D-A2 y D-A1 corregidos. Antes: la 006 implementada y validada; el paso 
 401 adoptado en las specs 004 y 005 (DP-43, DP5-18; 2276 tests en verde); la laguna de RF-16
 resuelta (DP6-40).
 
-Siguiente: (1) decidir lo pendiente de «Deuda conocida — spec 007»; (2) validar la 007 con
+Spec 012 (2026-11-18): T1–T10 commiteadas (`0ba0f99`); implementada y validada (T1–T11; 2ª validación cumplida). Siguiente: planificar la 013 (Steam, con sus dos pendientes de la tabla) y la 014 (Riot), que solo tienen `spec.md`.
+
+Antes de lo anterior: (1) decidir lo pendiente de «Deuda conocida — spec 007»; (2) validar la 007 con
 `reviewer` (`/sdd-validate 007-integrar-frontend`); (3) commitear (hoy nada de la 007 está
 commiteado); (4) la tarea de enlaces de la 008 (T9) y el resto de la 008; después, la 009 desde su
 T0 (`/sdd-implement 009-detalle-de-sesion T0`); (5) la 010 (despliegue).

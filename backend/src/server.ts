@@ -4,7 +4,9 @@ import http from "node:http";
 import type { RequestListener } from "node:http";
 import type { AddressInfo } from "node:net";
 import mongoose from "mongoose";
+import { canonicalHandle } from "./domain/rankSimulator.ts";
 import { GameAccount } from "./models/gameAccount.ts";
+import { SteamAttempt } from "./models/steamAttempt.ts";
 import { User } from "./models/user.ts";
 import type { Config, DatabaseConfig } from "./utils/config.ts";
 import type { Logger } from "./utils/logger.ts";
@@ -48,9 +50,28 @@ export async function connectDatabase(db: DatabaseConfig): Promise<void> {
 // Spec 002, RF-21 (D14): los índices únicos de `email` y `usernameKey` existen antes de
 // aceptar la primera petición, sin depender del `autoIndex` en segundo plano.
 // Spec 004, RF-5 (plan, sección 8): igual con el índice único `{ user, gameId }` de las cuentas.
+// Spec 012 (RF-2, RF-10; P12-1, P12-3, P12-4): índice único parcial de la verificación y una
+// pasada idempotente sobre las cuentas anteriores: completa `handleKey` y retira el `verified`
+// que guardaba el modelo antiguo (esas cuentas quedan sin verificar).
 export async function prepareDatabase(): Promise<void> {
   await User.init();
   await GameAccount.init();
+  await SteamAttempt.init(); // spec 013: índice único por usuario e índice TTL (RNF-7)
+  await migrateAccounts();
+}
+
+// Con el driver y no con el modelo: `verified` ya no está en el esquema (modo estricto).
+async function migrateAccounts(): Promise<void> {
+  const collection = GameAccount.collection;
+  const missing = await collection
+    .find({ handleKey: { $exists: false } }, { projection: { handle: 1 } })
+    .toArray();
+  for (const { _id, handle } of missing) {
+    if (typeof handle === "string") {
+      await collection.updateOne({ _id }, { $set: { handleKey: canonicalHandle(handle) } });
+    }
+  }
+  await collection.updateMany({ verified: { $exists: true } }, { $unset: { verified: "" } });
 }
 
 function errorCode(error: unknown): string | undefined {

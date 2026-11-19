@@ -119,6 +119,7 @@ function PlayerSheet({ rawId, myZone }: { rawId: string; myZone: string }) {
         summaryError={summaryQuery.error}
         onRetrySummary={() => void summaryQuery.refetch()}
         rechecking={rechecking}
+        owner={userQuery.data}
       />
       {/* Bloque "Cruce": distancia y horas en común (T7) y "Proponer sesión" (T8). */}
       <section className="sheet" aria-labelledby={CROSS_TITLE_ID}>

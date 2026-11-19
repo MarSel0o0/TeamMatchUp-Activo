@@ -2,6 +2,7 @@ import { LogOut } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Suspense, useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation, useOutlet } from 'react-router-dom';
+import { env } from '@/config/env';
 import { useAuth } from '@/features/auth/useAuth';
 import { BrandMark } from '@/shared/components/BrandMark';
 import { DemoTag } from '@/shared/components/DemoTag';
@@ -103,7 +104,7 @@ export function AppLayout() {
 
           <div className="dock__end">
             <ThemeToggle />
-            <DemoTag className="dock__demo" />
+            {env.useMockApi ? <DemoTag className="dock__demo" /> : null}
 
             {user ? (
               <div className="dock__user">
@@ -217,7 +218,7 @@ export function AppLayout() {
 
       <footer className="shell__foot">
         <span className="label">TeamMatchUp · 2026</span>
-        <DemoTag />
+        {env.useMockApi ? <DemoTag /> : null}
       </footer>
     </div>
   );

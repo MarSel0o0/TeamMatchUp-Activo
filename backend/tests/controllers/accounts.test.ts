@@ -87,12 +87,15 @@ const ACCOUNT_KEYS = [
   "handle",
   "id",
   "lastSyncedAt",
+  "origins",
   "rankHistory",
   "region",
-  "simulated",
   "userId",
   "verified",
 ];
+
+// Cuenta vinculada a mano: todos los bloques simulados (spec 012, RF-2, RF-5).
+const SIMULATED_ORIGINS = { identity: "simulated", rank: "simulated", matches: "simulated", profile: "simulated" };
 
 const REAL_SOURCES = /riot|ubisoft|valve|faceit|steam/i;
 
@@ -161,8 +164,8 @@ function expectedAccountJson(
     currentRank: storedSnapshot(state.currentRank),
     rankHistory: state.rankHistory.map(storedSnapshot),
     lastSyncedAt: state.lastSyncedAt,
-    verified: state.verified,
-    simulated: true,
+    verified: false,
+    origins: SIMULATED_ORIGINS,
   });
 }
 
@@ -192,7 +195,7 @@ function expectedRawAccount(
     })),
     readingNumber: 0,
     lastSyncedAt: state.lastSyncedAt,
-    verified: state.verified,
+    handleKey: link.handle.trim().toLowerCase(),
     __v: 0,
   };
 }
@@ -204,8 +207,9 @@ function assertAccountShape(account: unknown): void {
   assert.match(String(Reflect.get(account, "id")), HEX24_LOWER);
   assert.match(String(Reflect.get(account, "userId")), HEX24_LOWER);
   assert.match(String(Reflect.get(account, "lastSyncedAt")), ISO_MS_Z);
-  assert.strictEqual(Reflect.get(account, "simulated"), true);
-  assert.strictEqual(typeof Reflect.get(account, "verified"), "boolean");
+  assert.strictEqual(Reflect.get(account, "verified"), false);
+  assert.deepStrictEqual(Reflect.get(account, "origins"), SIMULATED_ORIGINS);
+  assert.strictEqual("simulated" in account, false); // spec 012, RF-5
   const current: unknown = Reflect.get(account, "currentRank");
   assert.ok(typeof current === "object" && current !== null);
   assert.match(String(Reflect.get(current, "recordedAt")), ISO_MS_Z);
@@ -806,7 +810,7 @@ describe("vincular", () => {
       currentRank: { tier: "Champion", points: 9999, normalized: 100, recordedAt: "2000-01-01T00:00:00.000Z" },
       rankHistory: [],
       matches: [],
-      verified: !state.verified,
+      verified: true,
       readingNumber: 7,
       lastSyncedAt: "2000-01-01T00:00:00.000Z",
       simulated: false,
@@ -860,13 +864,12 @@ describe("vincular", () => {
     await linkOk(beto, { gameId: "lol", handle: "jugador3#las", region: "EUW" });
     const [first, second] = await rawAccountsInDb();
     assert.ok(first !== undefined && second !== undefined);
-    const reading = ({ currentRank, rankHistory, matches, readingNumber, lastSyncedAt, verified }: typeof first) => ({
+    const reading = ({ currentRank, rankHistory, matches, readingNumber, lastSyncedAt }: typeof first) => ({
       currentRank,
       rankHistory,
       matches,
       readingNumber,
       lastSyncedAt,
-      verified,
     });
     assert.deepStrictEqual(reading(first), reading(second));
     assert.strictEqual(first.handle, "Jugador3#LAS");

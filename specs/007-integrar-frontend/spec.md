@@ -17,6 +17,8 @@ usuario (RF-10 punto 12, RF-16 y R14); (2) el texto del 401 del inicio de sesió
 el backend (caso límite de las credenciales incorrectas); (3) el estado de «Depende de» se
 actualiza (004 y 005 implementadas el 2026-10-19). No cambia ningún otro requisito.
 
+Cambio por la spec 012 (2026-11-04, aprobado): la etiqueta «Datos de demostración» pasa a ser por bloque de datos y cada bloque de origen real muestra el nombre de su fuente (spec 012, RF-5 a RF-7). El modo simulado deja todas las cuentas sin verificar (RF-2).
+
 ## Contexto y objetivo
 Las vistas del Hito 1 funcionan contra un backend simulado en el navegador. El cliente HTTP
 que existe nunca se ejecutó y asume otro esquema de sesión: guarda el JWT en un

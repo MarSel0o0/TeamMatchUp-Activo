@@ -57,6 +57,9 @@ Confirmado y construido:
   entre juegos ocurre sin recargar la página.
 - Coincidencias por juego con filtros dinámicos.
 - Agenda semanal: publicar sesiones en bloques concretos y sumarse a las de otros.
+- Verificación de la cuenta de CS2 iniciando sesión en Steam, cuando la instancia tiene la
+  clave de Steam: nombre, avatar, país y horas de CS2 reales, atribuidos a Steam. El rango, el
+  historial y las partidas de CS2 siguen siendo simulados y etiquetados como tales.
 
 Restricciones técnicas:
 
@@ -79,10 +82,12 @@ título.
 
 ## Evidence on Hand
 
-No existe ningún dato real todavía: no hay usuarios registrados, ni cuentas
-vinculadas verificadas, ni partidas reales, ni integración viva con Riot, Ubisoft o
-Steam. Todo lo que se ve hoy son datos de demostración generados con semilla fija y
-están etiquetados como tales en la interfaz.
+No existe ningún dato real todavía: no hay usuarios registrados, ni partidas reales, ni
+integración viva con Riot o Ubisoft. La verificación de CS2 con Steam está construida, pero
+solo produce datos reales (nombre, avatar, país y horas de CS2) cuando una instancia tiene la
+clave de Steam y alguien verifica su cuenta; no hay recorrido con una cuenta real todavía. Todo
+lo demás son datos de demostración generados con semilla fija y están etiquetados como tales
+en la interfaz.
 
 Nada de lo siguiente puede inventarse: cantidad de usuarios, partidas emparejadas,
 testimonios, tasas de éxito o respaldo de los estudios de los juegos.

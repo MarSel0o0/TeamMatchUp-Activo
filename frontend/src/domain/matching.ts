@@ -15,7 +15,7 @@ export interface MatchCriteria {
   search: string | null;
 }
 
-/** Lo mínimo que el motor necesita de una cuenta; el resto (`simulated`, `handle`…) pasa intacto. */
+/** Lo mínimo que el motor necesita de una cuenta; el resto (`origins`, `handle`…) pasa intacto. */
 export interface RankedAccount {
   userId: string;
   currentRank: { normalized: number };

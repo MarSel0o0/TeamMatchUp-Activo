@@ -26,6 +26,16 @@ export const ACCOUNT_ERRORS = {
     "el identificador del juego no se puede editar: desvincula la cuenta y vuelve a vincularla",
   accountNotFound: "cuenta no encontrada",
   noAccountForGame: "el jugador no tiene una cuenta vinculada en este juego",
+  // Spec 012: cuentas verificadas con una fuente real. Los nombres de las fuentes llegan como
+  // parámetro (`SOURCE_NAMES`): aquí no se escribe ninguno.
+  verifiedElsewhere: "esta cuenta ya está verificada por otro usuario",
+  verifiedNotEditable: "una cuenta verificada no se puede editar: desvincúlala y vuelve a verificarla",
+  syncCooldown: (minutes: number): string =>
+    minutes === 1
+      ? "espera 1 minuto antes de volver a resincronizar"
+      : `espera ${minutes} minutos antes de volver a resincronizar`,
+  sourceUnavailable: (sourceName: string): string => `${sourceName} no está disponible por ahora, intenta más tarde`,
+  sourceAccountGone: (sourceName: string): string => `la cuenta ya no existe en ${sourceName}`,
 } as const;
 
 export type RuleResult<T> = { ok: true; value: T } | { ok: false; status: 400; error: string };
@@ -86,13 +96,18 @@ export function validateLinkPayload(
 }
 
 /**
- * RF-22 antes que RF-38. Nunca lee `gameId` del cuerpo (RF-7). Cuerpo vacío, que no es
+ * RF-14 de la spec 012 antes que todo. RF-22 antes que RF-38. Nunca lee `gameId` del cuerpo (RF-7). Cuerpo vacío, que no es
  * objeto o solo con campos ignorados → `{}` (RF-40). Devuelve la región normalizada si vino.
  */
 export function validateAccountEdit(
-  account: { gameId: GameId; handle: string },
+  account: { gameId: GameId; handle: string; verification?: unknown },
   body: unknown,
 ): RuleResult<{ region?: string }> {
+  // Spec 012, RF-14: una cuenta verificada no se edita (ni el identificador ni la región); se
+  // rechaza antes de mirar el cuerpo, también el que no cambia nada.
+  if (account.verification !== undefined && account.verification !== null) {
+    return fail(ACCOUNT_ERRORS.verifiedNotEditable);
+  }
   const fields = asObject(body);
   if ("handle" in fields) {
     const handle = fields.handle;

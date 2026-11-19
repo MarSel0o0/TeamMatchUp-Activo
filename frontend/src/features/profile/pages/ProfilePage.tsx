@@ -1,10 +1,11 @@
-import { CalendarClock, Link2, PenLine } from 'lucide-react';
+import { AlertCircle, CalendarClock, CheckCircle2, Link2, PenLine } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/app/routes';
 import { formatRange, groupBlocks } from '@/domain/availability';
 import type { GameId } from '@/domain/types';
 import { useAuth } from '@/features/auth/useAuth';
+import { readSteamNotice } from '@/features/steam/notice';
 import { GameTabs } from '@/shared/components/GameTabs';
 import { Icon } from '@/shared/components/Icon';
 import { Monogram } from '@/shared/components/Monogram';
@@ -24,6 +25,9 @@ export default function ProfilePage() {
   const accountsQuery = useAccounts();
   const availabilityQuery = useAvailability();
   const syncAccount = useSyncAccount();
+  // Spec 013, RF-20: el aviso de la verificación con Steam llega en el estado de navegación y dura
+  // hasta que el usuario sale de esta página.
+  const steamNotice = readSteamNotice(useLocation().state);
 
   // Memorizado: sin esto el arreglo cambia de identidad en cada render y el
   // efecto que fija el juego activo se dispararía en bucle.
@@ -57,6 +61,16 @@ export default function ProfilePage() {
 
   return (
     <>
+      {steamNotice ? (
+        <p
+          className={steamNotice.tone === 'error' ? 'notice notice--error' : 'notice notice--pen'}
+          role={steamNotice.tone === 'error' ? 'alert' : 'status'}
+        >
+          <Icon as={steamNotice.tone === 'error' ? AlertCircle : CheckCircle2} size={15} />
+          {steamNotice.text}
+        </p>
+      ) : null}
+
       <header className="ficha sheet sheet--punched">
         <div className="ficha__head">
           <Monogram name={user.displayName} color={user.avatarColor} size="lg" />
@@ -146,6 +160,8 @@ export default function ProfilePage() {
                 onSync={handleSync}
                 syncing={syncAccount.isPending}
                 syncError={syncAccount.error}
+                offerSteamVerify
+                owner={user}
               />
             ) : null}
           </>

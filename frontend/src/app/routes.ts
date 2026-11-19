@@ -14,6 +14,11 @@ export const ROUTES = {
   schedule: '/agenda',
   sessionDetail: '/agenda/:sessionId',
   player: '/jugadores/:userId',
+  /**
+   * Página a la que Steam devuelve al usuario (spec 013, D3). Va fuera de las rutas protegidas y de
+   * `PROTECTED_PATHS`: sin sesión no se recuerda para continuar después de iniciar sesión (RF-7).
+   */
+  steamReturn: '/verificar/steam',
 } as const;
 
 export type RoutePath = (typeof ROUTES)[keyof typeof ROUTES];

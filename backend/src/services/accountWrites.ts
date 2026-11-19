@@ -12,10 +12,11 @@
 import mongoose from "mongoose";
 import { ACCOUNT_ERRORS } from "../domain/accountRules.ts";
 import type { AccountState } from "../domain/accountState.ts";
+import type { Snapshot } from "../domain/rankSimulator.ts";
 import type { GameId } from "../domain/games.ts";
 import type { SimulatedMatch } from "../domain/rankSimulator.ts";
 import { GameAccount } from "../models/gameAccount.ts";
-import type { GameAccountDocument, MatchRecordFields } from "../models/gameAccount.ts";
+import type { GameAccountDocument, MatchRecordFields, RankSnapshotFields } from "../models/gameAccount.ts";
 import { User } from "../models/user.ts";
 import { MESSAGES } from "../utils/errors.ts";
 import { USER_TARGET_MESSAGES } from "./userTarget.ts";
@@ -43,6 +44,34 @@ export function toMatchRecord(match: SimulatedMatch): MatchRecordFields {
   return { matchId: id, gameId, playedAt, result, summary, durationMinutes, rankDelta };
 }
 
+// Fotografía guardada → fotografía del dominio (sin `division` si no la tiene).
+function toSnapshot(stored: RankSnapshotFields): Snapshot {
+  const { tier, division, points, normalized, recordedAt } = stored;
+  return division === undefined
+    ? { tier, points, normalized, recordedAt }
+    : { tier, division, points, normalized, recordedAt };
+}
+
+// Estado puro de una cuenta guardada ("estado(account)" del plan de la 004, sección 6);
+// `matchId` → `id`. Lo usan la resincronización y la verificación (spec 012).
+export function toAccountState(account: GameAccountDocument): AccountState {
+  return {
+    currentRank: toSnapshot(account.currentRank),
+    rankHistory: account.rankHistory.map(toSnapshot),
+    matches: account.matches.map(({ matchId, gameId, playedAt, result, summary, durationMinutes, rankDelta }) => ({
+      id: matchId,
+      gameId,
+      playedAt,
+      result,
+      summary,
+      durationMinutes,
+      rankDelta,
+    })),
+    readingNumber: account.readingNumber,
+    lastSyncedAt: account.lastSyncedAt,
+  };
+}
+
 export async function linkAccount(userId: string, data: LinkData, state: AccountState): Promise<WriteResult> {
   let account: GameAccountDocument;
   try {
@@ -56,7 +85,6 @@ export async function linkAccount(userId: string, data: LinkData, state: Account
       matches: state.matches.map(toMatchRecord),
       readingNumber: state.readingNumber,
       lastSyncedAt: state.lastSyncedAt,
-      verified: state.verified,
     });
   } catch (error) {
     if (isDuplicateKeyError(error)) return { ok: false, status: 400, error: ACCOUNT_ERRORS.duplicate };

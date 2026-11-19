@@ -16,6 +16,8 @@ Pendiente fuera del código: la etiqueta de datos simulados con el servidor real
 está implementada). Alineada en la spec 007 el 2026-10-19 (RF-11, RF-22 y R19; también la
 alineación de sus textos de error con DP5-17, RF-10 punto 12); falta implementarla.
 
+Cambio por la spec 012 (2026-11-04, aprobado): el filtro «Solo verificadas» usa la marca real de la spec 012 (RF-1, RF-4) y se rotula «Solo cuentas verificadas», con el mensaje «filtro «Solo cuentas verificadas» no válido: usa true o false» (RF-23). Con solo cuentas simuladas el filtro deja la lista vacía.
+
 Cambio A del 2026-10-19 (aprobado por el usuario el 2026-10-19): la spec 004 vigente
 (reescrita el 2026-10-18; RF-44 y DP-37) responde 401 "token inválido", no "sesión no
 iniciada", a la credencial de un usuario eliminado, y el usuario eligió adaptar esta spec a la

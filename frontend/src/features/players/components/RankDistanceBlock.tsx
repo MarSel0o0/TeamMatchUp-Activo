@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { ROUTES } from '@/app/routes';
 import { GAMES } from '@/domain/games';
 import type { DistanceView } from '@/domain/playerSheet';
-import { DemoTag } from '@/shared/components/DemoTag';
+import { OriginTag } from '@/shared/components/OriginTag';
 import { Failure, SheetSkeleton } from '@/shared/components/States';
 import {
   NO_DATA_TEXT,
@@ -87,7 +87,7 @@ function DistanceBody({
       return (
         <p className="player-distance__value">
           <strong className="num">{rankDistanceText(view.points)}</strong>
-          {view.simulated ? <DemoTag /> : null}
+          <OriginTag origin={view.origin} />
         </p>
       );
   }

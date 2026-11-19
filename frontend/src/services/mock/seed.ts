@@ -1,6 +1,7 @@
 import { GAME_LIST } from '@/domain/games';
 import { toBlock } from '@/domain/availability';
 import type {
+  BlockOrigins,
   GameAccount,
   GameId,
   MatchRecord,
@@ -17,6 +18,14 @@ import {
   type SimulatedMatch,
   type Snapshot,
 } from './simulatedProvider';
+
+/** Origen de todos los bloques en el modo simulado: nada se verifica (spec 012, RF-2, RF-5). */
+export const SIMULATED_ORIGINS: Readonly<BlockOrigins> = {
+  identity: 'simulated',
+  rank: 'simulated',
+  matches: 'simulated',
+  profile: 'simulated',
+};
 
 export interface MockDatabase {
   users: User[];
@@ -314,8 +323,8 @@ export function createSeedDatabase(): MockDatabase {
         currentRank: snapshot,
         rankHistory: [snapshot],
         lastSyncedAt: at.toISOString(),
-        verified: reading.verified,
-        simulated: true,
+        verified: false,
+        origins: { ...SIMULATED_ORIGINS },
       };
 
       accounts.push(account);

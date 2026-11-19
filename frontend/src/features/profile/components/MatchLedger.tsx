@@ -1,17 +1,17 @@
 import type { CSSProperties } from 'react';
-import type { MatchRecord } from '@/domain/types';
-import { DemoTag } from '@/shared/components/DemoTag';
+import type { MatchRecord, Origin } from '@/domain/types';
+import { OriginTag } from '@/shared/components/OriginTag';
 import { timeAgo } from '@/shared/utils/format';
 import './matchLedger.css';
 
 interface MatchLedgerProps {
   matches: MatchRecord[];
-  /** La cuenta lleva la marca de datos simulados: la etiqueta va junto a las partidas (RF-11). */
-  simulated?: boolean;
+  /** Origen del bloque de partidas de la cuenta: su etiqueta va junto a la lista (spec 012, RF-6). */
+  origin: Origin;
 }
 
 /** Historial de partidas: una fila por partida, con su variación de rango. */
-export function MatchLedger({ matches, simulated = false }: MatchLedgerProps) {
+export function MatchLedger({ matches, origin }: MatchLedgerProps) {
   if (matches.length === 0) {
     return (
       <p className="note note--faint">
@@ -22,7 +22,7 @@ export function MatchLedger({ matches, simulated = false }: MatchLedgerProps) {
 
   return (
     <>
-      {simulated ? <DemoTag /> : null}
+      <OriginTag origin={origin} />
       <table className="ledger">
         <thead>
           <tr>

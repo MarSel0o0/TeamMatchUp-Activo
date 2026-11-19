@@ -1,5 +1,5 @@
 import { AlertCircle, Link2 } from 'lucide-react';
-import { useMemo, useRef, useState, type FormEvent } from 'react';
+import { useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { GAME_LIST, getGame } from '@/domain/games';
 import type { GameId } from '@/domain/types';
 import { Icon } from '@/shared/components/Icon';
@@ -12,13 +12,18 @@ interface LinkAccountFormProps {
   /** Juegos ya vinculados: no se vuelven a ofrecer. */
   linkedGames: GameId[];
   onLinked?: () => void;
+  /**
+   * Se pinta sobre los campos cuando el juego elegido es CS2 (spec 013, RF-2): «Verificar con Steam»
+   * convive con el vínculo manual, que no cambia (RF-16).
+   */
+  aboveCs2?: ReactNode;
 }
 
 /**
  * Alta de una cuenta de juego. Solo se piden identificador y región: el rango lo
  * lee la plataforma y no se declara a mano (RF-15, sin nombrar fuentes).
  */
-export function LinkAccountForm({ linkedGames, onLinked }: LinkAccountFormProps) {
+export function LinkAccountForm({ linkedGames, onLinked, aboveCs2 }: LinkAccountFormProps) {
   const available = useMemo(
     () => GAME_LIST.filter((game) => !linkedGames.includes(game.id)),
     [linkedGames],
@@ -98,6 +103,8 @@ export function LinkAccountForm({ linkedGames, onLinked }: LinkAccountFormProps)
           ))}
         </select>
       </div>
+
+      {gameId === 'cs2' ? aboveCs2 : null}
 
       <TextField
         label={game.handleLabel}

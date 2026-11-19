@@ -20,6 +20,8 @@ en común esta semana." (P59; decisión del usuario (2026-10-20): opción a); ni
 requisito cambia de comportamiento. El resto del cambio A afecta solo al plan y a las
 tareas. No quedan dudas abiertas del cambio A.
 
+Cambio por la spec 012 (2026-11-04, aprobado): la ficha muestra la marca de verificada real y el origen de cada bloque, visibles para cualquier usuario con sesión (spec 012, RF-22).
+
 ## Contexto y objetivo
 El enunciado del Hito 2 exige dos vistas completas nuevas que funcionen de punta a punta
 contra el servidor real y respeten las rutas protegidas, sin nombrarlas. La spec original

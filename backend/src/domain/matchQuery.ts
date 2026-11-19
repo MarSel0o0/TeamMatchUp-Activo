@@ -15,7 +15,7 @@ export const MATCH_ERRORS = {
     "filtro «Diferencia máxima de rango» no válido: usa un número entero de 0 a 100",
   minSharedHours:
     "filtro «Horas en común por semana» no válido: usa un número entero de 0 a 168",
-  onlyVerified: "filtro «Solo cuentas con rango verificado» no válido: usa true o false",
+  onlyVerified: "filtro «Solo cuentas verificadas» no válido: usa true o false",
   search: "filtro «Buscar jugador» no válido",
   noAccount: "no tienes una cuenta vinculada en este juego",
 } as const;

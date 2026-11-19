@@ -49,6 +49,32 @@ export interface RankSnapshot {
   recordedAt: string;
 }
 
+/** Fuente real que puede verificar una cuenta (spec 012; backend `domain/sources.ts`). */
+export type SourceId = 'steam' | 'riot';
+
+/** `simulated` o la fuente real de la que vino un dato (spec 012, RF-5). */
+export type Origin = 'simulated' | SourceId;
+
+/** Origen de cada bloque de datos de una cuenta (spec 012, RF-5). */
+export interface BlockOrigins {
+  identity: Origin;
+  rank: Origin;
+  matches: Origin;
+  profile: Origin;
+}
+
+/** Datos de perfil que entrega la fuente real; todos opcionales (spec 012, RF-22). */
+export interface AccountProfile {
+  displayName?: string;
+  avatarUrl?: string;
+  country?: string;
+  level?: number;
+  iconId?: number;
+  hoursTotal?: number;
+  hoursRecent?: number;
+  isPrivate?: boolean;
+}
+
 export interface GameAccount {
   id: string;
   userId: string;
@@ -60,10 +86,14 @@ export interface GameAccount {
   /** Historial de variación del rango, de más antiguo a más reciente. */
   rankHistory: RankSnapshot[];
   lastSyncedAt: string;
-  /** La plataforma pudo leer el rango desde la fuente externa. */
+  /** Verificada con una fuente real; ya no la decide el simulador (spec 012, RF-1, RF-2). */
   verified: boolean;
-  /** Los datos de la cuenta son de demostración (RF-11). */
-  simulated: boolean;
+  /** Fuente con la que se verificó; solo presente si `verified` (spec 012, RF-5). */
+  verifiedWith?: SourceId;
+  verifiedAt?: string;
+  /** Origen de cada bloque de datos (spec 012, RF-5, RF-6). */
+  origins: BlockOrigins;
+  profile?: AccountProfile;
 }
 
 export type MatchResult = 'win' | 'loss';

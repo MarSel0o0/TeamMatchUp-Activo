@@ -23,12 +23,21 @@ export interface DatabaseConfig {
   name: string;
 }
 
+/** Spec 013: Steam configurado. Sin `STEAM_API_KEY` no existe (RF-22). */
+export interface SteamConfig {
+  /** Secreto de la instancia: nunca en respuestas, mensajes ni registros (RNF-2). */
+  apiKey: string;
+  /** Origen (sin ruta ni barra final) con que el navegador abre esta instancia (RNF-4). */
+  publicUrl: string;
+}
+
 export interface Config {
   nodeEnv: NodeEnv;
   port: number;
   host: string | null; // null = todas las interfaces
   db: DatabaseConfig; // ya elegida según el entorno
   jwtSecret: string; // tal como viene, sin recortar (D18 de la 001)
+  steam: SteamConfig | null; // spec 013: null = Steam no configurado (RF-22)
 }
 
 export type ConfigResult = { ok: true; config: Config } | { ok: false; errors: string[] };
@@ -44,6 +53,10 @@ const MESSAGES = {
   sameDatabase:
     "la base de prueba no puede ser la de desarrollo: TEST_MONGODB_URI y TEST_MONGODB_DBNAME coinciden con MONGODB_URI y MONGODB_DBNAME",
   devJwtSecretInProduction: "JWT_SECRET tiene el valor de desarrollo, que no se admite en producción",
+  steamKeyWithoutUrl: "STEAM_API_KEY requiere PUBLIC_URL, la dirección de esta instancia",
+  invalidPublicUrl:
+    "PUBLIC_URL no es válida: debe ser una dirección http o https con servidor y puerto, sin ruta, consulta ni #",
+  publicUrlNotHttps: "PUBLIC_URL debe usar https en producción",
   header: "configuración inválida, el servidor no arranca:",
 } as const;
 
@@ -66,6 +79,24 @@ export function isValidHostSyntax(host: string): boolean {
   if (!labels.every((label) => HOSTNAME_LABEL.test(label))) return false;
   // RFC 1123 §2.1 / RFC 3696 §2: la última etiqueta no puede ser solo numérica (D20).
   return !/^[0-9]+$/.test(labels[labels.length - 1] ?? "");
+}
+
+/**
+ * Origen de `PUBLIC_URL` (spec 013, RNF-4) o `null` si no es una dirección `http(s)` con servidor
+ * y puerto opcional, sin ruta, consulta, `#` ni usuario. Se rechazan los espacios en vez de
+ * recortarlos (D18). Una barra final se acepta y se quita.
+ */
+export function parsePublicUrl(raw: string): string | null {
+  if (raw !== raw.trim() || raw.includes("?") || raw.includes("#")) return null;
+  let url: URL;
+  try {
+    url = new URL(raw);
+  } catch {
+    return null;
+  }
+  if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+  if (url.hostname === "" || url.username !== "" || url.password !== "" || url.pathname !== "/") return null;
+  return url.origin;
 }
 
 function isNodeEnv(value: string): value is NodeEnv {
@@ -134,11 +165,28 @@ export function parseConfig(env: EnvSource): ConfigResult {
     errors.push(MESSAGES.devJwtSecretInProduction);
   }
 
+  // Spec 013, RF-22 y RNF-4: Steam es opcional. Sin clave no hay Steam y PUBLIC_URL se ignora;
+  // con clave hace falta la dirección de la instancia, y en producción debe ser https. Ningún
+  // mensaje incluye la clave (RNF-2).
+  let steam: SteamConfig | null = null;
+  const rawKey = env.STEAM_API_KEY;
+  if (rawKey !== undefined && !isBlank(rawKey)) {
+    const rawUrl = env.PUBLIC_URL;
+    if (rawUrl === undefined || isBlank(rawUrl)) {
+      errors.push(MESSAGES.steamKeyWithoutUrl);
+    } else {
+      const publicUrl = parsePublicUrl(rawUrl);
+      if (publicUrl === null) errors.push(MESSAGES.invalidPublicUrl);
+      else if (nodeEnv === "production" && !publicUrl.startsWith("https://")) errors.push(MESSAGES.publicUrlNotHttps);
+      else steam = { apiKey: rawKey, publicUrl };
+    }
+  }
+
   if (missing.length > 0) errors.unshift(MESSAGES.missing(missing));
   if (errors.length > 0 || nodeEnv === null || port === null || db === null || jwtSecret === null) {
     return { ok: false, errors };
   }
-  return { ok: true, config: { nodeEnv, port, host, db, jwtSecret } };
+  return { ok: true, config: { nodeEnv, port, host, db, jwtSecret, steam } };
 }
 
 export function formatConfigErrors(errors: readonly string[]): string {

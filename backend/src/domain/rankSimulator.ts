@@ -1,6 +1,7 @@
-// Proveedor simulado puro (spec 004, RF-34, RF-35, RF-36, RF-41, RF-42, RF-43, RNF-7;
+// Proveedor simulado puro (spec 004, RF-34, RF-35, RF-36, RF-42, RF-43, RNF-7;
 // plan, sección 4). Todo depende solo de (juego, identificador canónico, número de lectura);
 // el instante llega como parámetro y solo fija las fechas. Sin reloj, azar, Express ni Mongoose.
+// Spec 012 (RF-1, RF-2): la lectura ya no decide la marca de verificada; solo la fija una verificación real.
 import type { GameId } from "./games.ts";
 import { ladder, normalizeStep, pointsBand } from "./rankScale.ts";
 
@@ -26,7 +27,6 @@ export interface SimulatedReading {
   snapshot: Snapshot;
   matches: SimulatedMatch[];
   mainMatchId: string;
-  verified: boolean;
 }
 
 export interface ReadingInput {
@@ -74,13 +74,6 @@ export function canonicalHandle(handle: string): string {
 /** Generador de la lectura k (plan, 4.1). */
 function readingRng(gameId: GameId, canonical: string, k: number): () => number {
   return createRng(hash32(`${gameId}|${canonical}|${k}`));
-}
-
-/** Verificada si la suma de los códigos del identificador canónico es par (plan, 4.4). */
-export function isVerified(canonical: string): boolean {
-  let sum = 0;
-  for (let i = 0; i < canonical.length; i += 1) sum += canonical.charCodeAt(i);
-  return sum % 2 === 0;
 }
 
 export function evolveStep(previous: number, delta: -1 | 0 | 1, size: number): number {
@@ -184,5 +177,5 @@ export function simulateReading(input: ReadingInput): SimulatedReading {
     });
   }
 
-  return { snapshot, matches, mainMatchId: `m-${n}-0`, verified: isVerified(canonical) };
+  return { snapshot, matches, mainMatchId: `m-${n}-0` };
 }

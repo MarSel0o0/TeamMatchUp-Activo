@@ -1,6 +1,8 @@
 # Spec 011 — Datos de demostración en el servidor
 Estado: borrador (las dudas D1 a D4 se cerraron el 2026-10-19; ver "Decisiones")
 
+Cambio por la spec 012 (2026-11-04, aprobado): las cuentas de demostración salen todas sin verificar y con origen simulado (spec 012, RF-2); la marca de verificada deja de venir de la lectura 0.
+
 ## Contexto y objetivo
 Con el servidor real, la base de desarrollo empieza vacía: para ver coincidencias o una
 agenda con gente hay que registrar varios usuarios a mano, vincular cuentas y marcar
