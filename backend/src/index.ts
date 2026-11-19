@@ -4,6 +4,7 @@
 // del logger, para que se vea en todos los entornos, también en prueba (RNF-1, D10).
 // RF-12, RF-13, RF-14: si el arranque falla (base no disponible o dirección/puerto no
 // utilizable), el mensaje va por el logger (callado en prueba, D10) y el código es 1.
+import { resolve } from "node:path";
 import { createApp } from "./app.ts";
 import { startServer } from "./server.ts";
 import { formatConfigErrors, loadConfig } from "./utils/config.ts";
@@ -16,7 +17,11 @@ if (!result.ok) {
 }
 
 try {
-  await startServer(result.config, { app: createApp(result.config), log: logger });
+  // Spec 010 (RF-1): en producción la interfaz compilada vive en `dist/`, junto a package.json
+  // (la deja ahí `npm run build:ui`); se resuelve desde la carpeta donde corre el proceso.
+  const frontend = result.config.nodeEnv === "production" ? { frontendDir: resolve("dist") } : {};
+  const app = createApp({ ...result.config, ...frontend });
+  await startServer(result.config, { app, log: logger });
 } catch (error) {
   logger.error(error instanceof Error ? error.message : String(error));
   process.exit(1);

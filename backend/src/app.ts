@@ -3,6 +3,7 @@
 // No conecta a la base: la conexión vive en src/server.ts. No lee `process.env`: el secreto,
 // el entorno y el reloj llegan como opciones (D11), así las pruebas pueden fijarlos.
 
+import { join } from "node:path";
 import cookieParser from "cookie-parser";
 import express from "express";
 import type { Express } from "express";
@@ -23,6 +24,11 @@ export interface AppOptions {
   sources?: SourceRegistry;
   /** Plazo de una consulta a una fuente en ms; por defecto 8 s (RNF-5). Lo cambian las pruebas. */
   sourceTimeoutMs?: number;
+  /**
+   * Spec 010 (RF-1, RF-2): carpeta absoluta con la interfaz compilada. Si se da, el mismo
+   * servidor la entrega; sin ella (desarrollo y prueba) solo responde la API.
+   */
+  frontendDir?: string;
 }
 
 // Reloj real en segundos Unix (el de las credenciales).
@@ -31,7 +37,7 @@ function systemNow(): number {
 }
 
 export function createApp(options: AppOptions): Express {
-  const { jwtSecret, nodeEnv, now = systemNow, sources = {}, sourceTimeoutMs } = options;
+  const { jwtSecret, nodeEnv, now = systemNow, sources = {}, sourceTimeoutMs, frontendDir } = options;
   const app = express();
 
   // Spec 006 (RF-23, RF-28, P6-1): `/api/sessions` acepta JSON escalar (`strict: false`) para
@@ -55,6 +61,22 @@ export function createApp(options: AppOptions): Express {
 
   app.use("/api/matches", createMatchesRouter({ jwtSecret, now })); // spec 005: con sesión (RF-1)
   app.use("/api/sessions", createSessionsRouter({ jwtSecret, now })); // spec 006: con sesión (RF-1)
+
+  // Spec 010: interfaz compilada, después de la API para que una ruta /api inexistente siga
+  // respondiendo 404 en JSON (RF-3). Cualquier GET/HEAD fuera de /api que no sea un archivo
+  // entrega index.html, así recargar una ruta de la interfaz carga la aplicación (RF-2).
+  // Middleware y no `app.get("*")`: en Express 5 el comodín `*` ya no es válido.
+  if (frontendDir !== undefined) {
+    app.use(express.static(frontendDir));
+    app.use((request, response, next) => {
+      const isRead = request.method === "GET" || request.method === "HEAD";
+      if (isRead && request.path !== "/api" && !request.path.startsWith("/api/")) {
+        response.sendFile(join(frontendDir, "index.html"));
+      } else {
+        next();
+      }
+    });
+  }
 
   app.use(unknownEndpoint);
   app.use(errorHandler); // siempre el último
