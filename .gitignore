@@ -148,3 +148,7 @@ vite.config.ts.timestamp-*
 # Evidencia transitoria de las rondas de inspección visual (capturas, diffs).
 .impeccable/review/
 .impeccable/mocks/
+
+# Claude Code: configuración local por desarrollador (hooks de graphify, etc.)
+.claude/settings.local.json
+.claude/*.graphify-bak
