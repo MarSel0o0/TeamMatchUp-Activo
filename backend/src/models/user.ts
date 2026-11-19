@@ -10,6 +10,7 @@
 //   (RF-46: vincular y desvincular no escriben al usuario).
 import { Schema, model } from "mongoose";
 import type { HydratedDocument } from "mongoose";
+import { COLLECTIONS } from "./collections.ts";
 
 export const USER_DEFAULTS = { avatarColor: "#6d5efc", bio: "", timezone: "America/Santiago" } as const;
 
@@ -73,7 +74,7 @@ const UserSchema = new Schema<UserFields>(
   },
 );
 
-export const User = model<UserFields>("User", UserSchema);
+export const User = model<UserFields>("User", UserSchema, COLLECTIONS.users);
 
 // Solo para responder al propio usuario (registro, inicio de sesión, sesión actual).
 export function toOwnUserJson(user: UserDocument): OwnUserJson {

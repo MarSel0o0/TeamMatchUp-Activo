@@ -13,6 +13,7 @@ import type { GameId } from "../domain/games.ts";
 import { canonicalHandle } from "../domain/rankSimulator.ts";
 import { SOURCE_IDS, blockOrigins } from "../domain/sources.ts";
 import type { BlockOrigins, SourceId } from "../domain/sources.ts";
+import { COLLECTIONS } from "./collections.ts";
 
 /** Máximo de partidas guardadas por cuenta (RF-15). */
 const MAX_STORED_MATCHES = 20;
@@ -242,4 +243,4 @@ GameAccountSchema.index({ gameId: 1, handleKey: 1 });
 
 GameAccountSchema.index({ user: 1, gameId: 1 }, { unique: true });
 
-export const GameAccount = model<GameAccountFields>("GameAccount", GameAccountSchema);
+export const GameAccount = model<GameAccountFields>("GameAccount", GameAccountSchema, COLLECTIONS.gameAccounts);
