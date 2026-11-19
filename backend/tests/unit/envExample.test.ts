@@ -33,6 +33,17 @@ describe(".env.example (001-RF-9, RF-27, RF-28)", () => {
     assert.equal(values.NODE_ENV, "development");
   });
 
+  // Spec 013 (T1, RF-22, RNF-2): las dos variables de Steam son opcionales, van comentadas y no
+  // llevan ningún valor real (la plantilla no puede traer una clave).
+  test("STEAM_API_KEY y PUBLIC_URL aparecen solo comentadas, sin clave real", () => {
+    const { text, values } = readExample();
+    for (const name of ["STEAM_API_KEY", "PUBLIC_URL"]) {
+      assert.equal(Object.hasOwn(values, name), false, `${name} no debe estar definida`);
+      assert.match(text, new RegExp(`^#\\s*${name}=`, "m"), `${name} debe aparecer comentada`);
+    }
+    assert.doesNotMatch(text, /^#\s*STEAM_API_KEY=\S*[0-9A-Fa-f]{32}/m, "no debe traer una clave de 32 caracteres");
+  });
+
   test("HOST aparece solo comentada como opcional", () => {
     const { text, values } = readExample();
     assert.equal(Object.hasOwn(values, "HOST"), false);

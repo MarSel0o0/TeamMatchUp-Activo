@@ -106,6 +106,7 @@ describe("parseConfig", () => {
       host: "127.0.0.1",
       db: { uri: DEV_URI, name: "teammatchup" },
       jwtSecret: SECRET,
+      steam: null, // spec 013, RF-22: sin STEAM_API_KEY, Steam no está configurado
     });
     const otra = expectConfig(
       parseConfig(
@@ -124,6 +125,7 @@ describe("parseConfig", () => {
       host: "localhost",
       db: { uri: "mongodb://otra:27017", name: "otra" },
       jwtSecret: "otro-secreto",
+      steam: null,
     });
   });
 
@@ -347,6 +349,130 @@ describe("parseConfig", () => {
   test("la función no modifica el objeto recibido", () => {
     const env = Object.freeze(devEnv());
     expectConfig(parseConfig(env));
+  });
+});
+
+// Spec 013 (T1): STEAM_API_KEY y PUBLIC_URL, ambas opcionales. Sin clave, Steam no está
+// configurado (RF-22); la dirección es la de la instancia en uso (RNF-4); la clave nunca sale
+// en un mensaje (RNF-2).
+describe("parseConfig — Steam (013, RF-22, RNF-2, RNF-4)", () => {
+  const KEY = "0123456789ABCDEF0123456789ABCDEF";
+  const LOCAL = "http://localhost:5173";
+  const COURSE = "https://fullstack.dcc.uchile.cl:7041";
+  const URL_ERROR =
+    "PUBLIC_URL no es válida: debe ser una dirección http o https con servidor y puerto, sin ruta, consulta ni #";
+  const KEY_WITHOUT_URL = "STEAM_API_KEY requiere PUBLIC_URL, la dirección de esta instancia";
+  const HTTPS_IN_PRODUCTION = "PUBLIC_URL debe usar https en producción";
+
+  test("RF-22: sin STEAM_API_KEY ni PUBLIC_URL → steam es null", () => {
+    for (const env of [devEnv(), prodEnv(), testEnv()]) assert.equal(expectConfig(parseConfig(env)).steam, null);
+  });
+
+  test("RF-22: una clave vacía o en blanco cuenta como no definida", () => {
+    for (const blank of ["", "   "]) {
+      const config = expectConfig(parseConfig(devEnv({ STEAM_API_KEY: blank, PUBLIC_URL: LOCAL })));
+      assert.equal(config.steam, null);
+    }
+  });
+
+  test("RF-22: PUBLIC_URL sin clave se ignora, también si no es válida", () => {
+    assert.equal(expectConfig(parseConfig(devEnv({ PUBLIC_URL: LOCAL }))).steam, null);
+    assert.equal(expectConfig(parseConfig(devEnv({ PUBLIC_URL: "esto no es una dirección" }))).steam, null);
+  });
+
+  test("clave y dirección válidas → steam con la clave tal cual y la dirección sin barra final", () => {
+    const config = expectConfig(parseConfig(devEnv({ STEAM_API_KEY: KEY, PUBLIC_URL: LOCAL })));
+    assert.deepStrictEqual(config.steam, { apiKey: KEY, publicUrl: LOCAL });
+    const conBarra = expectConfig(parseConfig(devEnv({ STEAM_API_KEY: KEY, PUBLIC_URL: `${LOCAL}/` })));
+    assert.deepStrictEqual(conBarra.steam, { apiKey: KEY, publicUrl: LOCAL });
+  });
+
+  test("RNF-4: en producción acepta https con puerto, como el servidor del curso", () => {
+    const config = expectConfig(parseConfig(prodEnv({ STEAM_API_KEY: KEY, PUBLIC_URL: COURSE })));
+    assert.deepStrictEqual(config.steam, { apiKey: KEY, publicUrl: COURSE });
+  });
+
+  test("RNF-4: la clave sin PUBLIC_URL (ausente o vacía) es un error", () => {
+    for (const env of [devEnv({ STEAM_API_KEY: KEY }), devEnv({ STEAM_API_KEY: KEY, PUBLIC_URL: "  " })]) {
+      assert.deepEqual(expectErrors(parseConfig(env)), [KEY_WITHOUT_URL]);
+    }
+  });
+
+  test("RNF-4: PUBLIC_URL con ruta, consulta, #, usuario, otro protocolo o espacios es un error", () => {
+    const invalidas = [
+      "http://localhost:5173/app",
+      "http://localhost:5173/?a=1",
+      "http://localhost:5173?a=1",
+      "http://localhost:5173/#x",
+      "http://localhost:5173#",
+      "http://usuario:clave@localhost:5173",
+      "ftp://localhost:5173",
+      "localhost:5173",
+      "localhost",
+      " http://localhost:5173",
+      "http://localhost:5173 ",
+      "http://",
+    ];
+    for (const publicUrl of invalidas) {
+      assert.deepEqual(
+        expectErrors(parseConfig(devEnv({ STEAM_API_KEY: KEY, PUBLIC_URL: publicUrl }))),
+        [URL_ERROR],
+        publicUrl,
+      );
+    }
+  });
+
+  test("RNF-4: en producción http es un error; en desarrollo y prueba es válido", () => {
+    assert.deepEqual(expectErrors(parseConfig(prodEnv({ STEAM_API_KEY: KEY, PUBLIC_URL: LOCAL }))), [
+      HTTPS_IN_PRODUCTION,
+    ]);
+    for (const env of [devEnv(), testEnv()]) {
+      const config = expectConfig(parseConfig({ ...env, STEAM_API_KEY: KEY, PUBLIC_URL: LOCAL }));
+      assert.equal(config.steam?.publicUrl, LOCAL);
+    }
+  });
+
+  test("los errores de Steam se acumulan con los demás", () => {
+    const errors = expectErrors(parseConfig(prodEnv({ PORT: "abc", STEAM_API_KEY: KEY })));
+    assert.equal(errors.length, 2);
+    assert.ok(errors.includes(KEY_WITHOUT_URL));
+  });
+
+  test("RNF-2: ningún mensaje de error contiene la clave", () => {
+    const secreta = "CLAVE-SECRETA-0123456789ABCDEF-0123";
+    const casos: EnvSource[] = [
+      devEnv({ STEAM_API_KEY: secreta }),
+      devEnv({ STEAM_API_KEY: secreta, PUBLIC_URL: "http://localhost:5173/ruta" }),
+      prodEnv({ STEAM_API_KEY: secreta, PUBLIC_URL: LOCAL, PORT: "abc", JWT_SECRET: DEV_JWT_SECRET }),
+    ];
+    for (const env of casos) {
+      const mensaje = allErrors(parseConfig(env));
+      assert.doesNotMatch(mensaje, /CLAVE-SECRETA/);
+      assert.doesNotMatch(formatConfigErrors(expectErrors(parseConfig(env))), /CLAVE-SECRETA/);
+    }
+  });
+
+  test("loadConfig toma las dos variables del archivo y el proceso prevalece", async (t) => {
+    const dir = await mkdtemp(join(tmpdir(), "tmu-steam-"));
+    t.after(() => rm(dir, { recursive: true, force: true }));
+    const envFilePath = join(dir, ".env");
+    await writeFile(
+      envFilePath,
+      [
+        "NODE_ENV=development",
+        "PORT=3001",
+        `JWT_SECRET=${SECRET}`,
+        `MONGODB_URI=${DEV_URI}`,
+        "MONGODB_DBNAME=teammatchup",
+        `STEAM_API_KEY=${KEY}`,
+        `PUBLIC_URL=${LOCAL}`,
+        "",
+      ].join("\n"),
+    );
+    const delArchivo = expectConfig(loadConfig({ envFilePath, processEnv: {} }));
+    assert.deepStrictEqual(delArchivo.steam, { apiKey: KEY, publicUrl: LOCAL });
+    const delProceso = expectConfig(loadConfig({ envFilePath, processEnv: { PUBLIC_URL: "http://localhost:4000" } }));
+    assert.equal(delProceso.steam?.publicUrl, "http://localhost:4000");
   });
 });
 

@@ -9,6 +9,15 @@ const after = (ms: number) => new Date(LAST.getTime() + ms);
 const SECOND = 1000;
 const MINUTE = 60 * SECOND;
 
+// Spec 013, RF-12 y D6: una cuenta verificada sin perfil no tiene una lectura que cuente para la
+// espera (`null`), así que el dueño puede resincronizar de inmediato.
+describe("syncCooldown sin lectura que cuente (013, RF-12, D6)", () => {
+  test("null → permitido, sea cual sea el instante", () => {
+    assert.deepEqual(syncCooldown(null, LAST), { allowed: true });
+    assert.deepEqual(syncCooldown(null, new Date(0)), { allowed: true });
+  });
+});
+
 describe("syncCooldown (RF-16)", () => {
   test("la espera mínima es de 5 minutos", () => {
     assert.equal(SYNC_COOLDOWN_MS, 5 * MINUTE);
