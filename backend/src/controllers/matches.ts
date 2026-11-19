@@ -1,6 +1,6 @@
 // Coincidencias: `GET /api/matches` (spec 005, plan, sección 5).
 // Sesión, errores y respuesta. RF-1, RF-3, RF-5, RF-6, RF-12, RF-13, RF-14, RF-15, RF-16,
-// RF-18, RNF-2.
+// RF-18, RNF-2. Spec 015: RF-10 (409 de CS2 sin rango Premier).
 // - Controlador fino: lectura de la consulta → lectura de datos → motor → respuesta.
 // - Orden de RF-16: sesión (`withUser`, que ya cubre los 401 de la spec 002 y el del usuario
 //   eliminado: "token inválido", RF-13, RF-44 de la spec 004) → filtros → usuario todavía existe
@@ -8,6 +8,7 @@
 // - Sin `try/catch`: Express 5 envía los rechazos al `errorHandler` (RT-03).
 import { Router } from "express";
 import { buildMatches } from "../domain/matching.ts";
+import { LEETIFY_ERRORS } from "../domain/leetify.ts";
 import { MATCH_ERRORS, parseMatchQuery } from "../domain/matchQuery.ts";
 import { RIOT_ERRORS } from "../domain/riotRules.ts";
 import { loadMatchInputs } from "../services/matchInputs.ts";
@@ -38,6 +39,15 @@ export function createMatchesRouter({ jwtSecret, now }: SessionGuardOptions): Ro
     }
     if (inputs.kind === "unranked") {
       response.status(409).json({ error: RIOT_ERRORS.unrankedForMatches });
+      return;
+    }
+    if (inputs.kind === "noPremier") {
+      response.status(409).json({
+        error:
+          inputs.premier === "unrated"
+            ? LEETIFY_ERRORS.noPremierForMatches
+            : LEETIFY_ERRORS.premierUnavailableForMatches,
+      });
       return;
     }
     response.status(200).json(buildMatches(query.value, inputs.viewer, inputs.candidates));

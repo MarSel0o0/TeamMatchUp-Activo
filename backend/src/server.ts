@@ -63,7 +63,12 @@ export async function prepareDatabase(): Promise<void> {
 }
 
 // Con el driver y no con el modelo: `verified` ya no está en el esquema (modo estricto).
-async function migrateAccounts(): Promise<void> {
+// Spec 015, RF-20 y D9: las cuentas de CS2 verificadas con Steam sin `premier` son las de la spec
+// 013, con rango e historial simulados; pasan a «rango no disponible» (sin rango y sin historial)
+// hasta que su dueño resincronice. El criterio es el estado de la cuenta, no una fecha, y la
+// pasada es idempotente: una cuenta que ya tiene `premier` no vuelve a coincidir. No consulta
+// Leetify. Las partidas simuladas se conservan (RF-13).
+export async function migrateAccounts(): Promise<void> {
   const collection = GameAccount.collection;
   const missing = await collection
     .find({ handleKey: { $exists: false } }, { projection: { handle: 1 } })
@@ -74,6 +79,18 @@ async function migrateAccounts(): Promise<void> {
     }
   }
   await collection.updateMany({ verified: { $exists: true } }, { $unset: { verified: "" } });
+  await collection.updateMany(
+    { gameId: "cs2", "verification.source": "steam", premier: { $exists: false } },
+    { $set: { premier: "unavailable", currentRank: null, rankHistory: [] } },
+  );
+  // Spec 015, RF-24 y D27: sin historial real guardado. Las cuentas de CS2 verificadas con Steam
+  // pierden su historial (el simulado de antes y el que dejó la primera versión de la 015); solo
+  // se vacía `rankHistory`, no `premier` ni `currentRank`. Las sin verificar (historial
+  // simulado, RF-22) y las de Riot no coinciden con el filtro. Idempotente, sin Leetify.
+  await collection.updateMany(
+    { gameId: "cs2", "verification.source": "steam", "rankHistory.0": { $exists: true } },
+    { $set: { rankHistory: [] } },
+  );
 }
 
 function errorCode(error: unknown): string | undefined {

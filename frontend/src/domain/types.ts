@@ -52,8 +52,14 @@ export interface RankSnapshot {
 /** Fuente real que puede verificar una cuenta (spec 012; backend `domain/sources.ts`). */
 export type SourceId = 'steam' | 'riot';
 
-/** `simulated` o la fuente real de la que vino un dato (spec 012, RF-5). */
-export type Origin = 'simulated' | SourceId;
+/**
+ * Quien entrega un dato de rango sin verificar la cuenta: Leetify, para el rango Premier de CS2
+ * (spec 015, RF-6; backend `DATA_SOURCE_IDS`).
+ */
+export type DataSourceId = SourceId | 'leetify';
+
+/** `simulated` o la fuente real de la que vino un dato (spec 012, RF-5; spec 015, RF-6). */
+export type Origin = 'simulated' | DataSourceId;
 
 /** Origen de cada bloque de datos de una cuenta (spec 012, RF-5). */
 export interface BlockOrigins {
@@ -100,7 +106,15 @@ export interface GameAccount {
   profile?: AccountProfile;
   /** Bloques que faltan por leer tras una verificación parcial con Riot (spec 014, RF-27). */
   pendingBlocks?: PendingBlock[];
+  /**
+   * Solo en CS2 verificada con Steam y sin rating: «sin rango Premier» o «rango no disponible»
+   * (spec 015, RF-7, RF-8). Con rating no viene.
+   */
+  premierStatus?: PremierStatus;
 }
+
+/** Cuenta de CS2 sin rating de Leetify: sin rango Premier o rango no disponible (spec 015). */
+export type PremierStatus = 'unrated' | 'unavailable';
 
 /** Resultado de resincronizar una cuenta; añade aviso solo en resincronización parcial de Riot (spec 014, RF-53, O-1). */
 export type SyncAccountResult = GameAccount & {

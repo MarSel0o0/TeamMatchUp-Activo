@@ -232,14 +232,14 @@ describe("GameAccount: verificación y origen por bloque (spec 012, RF-1, RF-5, 
     assert.deepStrictEqual(json.origins, { identity: "riot", rank: "riot", matches: "riot", profile: "riot" });
   });
 
-  test("verificada con Steam: identidad y perfil de Steam; rango y partidas siguen simulados (RF-8)", () => {
+  test("verificada con Steam: identidad y perfil de Steam, rango de Leetify y partidas simuladas (RF-8; spec 015, RF-6)", () => {
     const json = serialized(
       lolAccount(undefined, { verification: { source: "steam", externalId: "76561190000000001", verifiedAt: NOW } }),
     );
     assert.strictEqual(json.verifiedWith, "steam");
     assert.deepStrictEqual(json.origins, {
       identity: "steam",
-      rank: "simulated",
+      rank: "leetify",
       matches: "simulated",
       profile: "steam",
     });
@@ -277,6 +277,110 @@ describe("GameAccount: verificación y origen por bloque (spec 012, RF-1, RF-5, 
     account.set("handle", "  Otro#TAG ");
     await account.validate();
     assert.strictEqual(account.handleKey, "otro#tag");
+  });
+});
+
+// Spec 015 (T3): rango Premier de CS2 con Leetify. `premier` guarda el estado de la cuenta
+// (P15-1) y es interno; el JSON solo dice `premierStatus` cuando la cuenta no tiene rating
+// (P15-2). Sin rating, `currentRank` es `null`, pero solo en cuentas verificadas con Steam.
+describe("GameAccount: rango Premier de CS2 (spec 015, RF-7, RF-8, RF-20; P15-1, P15-2)", () => {
+  const STEAM_VERIFICATION = { source: "steam", externalId: "76561198000000001", verifiedAt: NOW } as const;
+  const RATED = { tier: "Gold", points: 36210, normalized: 100, recordedAt: NOW };
+
+  function steamAccount(extra: Record<string, unknown> = {}) {
+    return new GameAccount({
+      user: new mongoose.Types.ObjectId(),
+      gameId: "cs2",
+      handle: "76561198000000001",
+      region: "South America",
+      currentRank: null,
+      rankHistory: [],
+      matches: [],
+      readingNumber: 0,
+      lastSyncedAt: NOW,
+      verification: STEAM_VERIFICATION,
+      ...extra,
+    });
+  }
+
+  test("verificada con Steam y rango no disponible: currentRank nulo es válido y sale premierStatus", async () => {
+    const account = steamAccount({ premier: "unavailable" });
+    await account.validate();
+    const json = serialized(account);
+    assert.strictEqual(json.currentRank, null);
+    assert.deepStrictEqual(json.rankHistory, []);
+    assert.strictEqual(json.premierStatus, "unavailable");
+    assert.deepStrictEqual(json.origins, { identity: "steam", rank: "leetify", matches: "simulated", profile: "steam" });
+  });
+
+  test("verificada con Steam y sin rango Premier: currentRank nulo es válido y sale premierStatus", async () => {
+    const account = steamAccount({ premier: "unrated", rankHistory: [RATED] });
+    await account.validate();
+    const json = serialized(account);
+    assert.strictEqual(json.currentRank, null);
+    assert.strictEqual(json.premierStatus, "unrated");
+    assert.strictEqual((json.rankHistory as unknown[]).length, 1);
+  });
+
+  test("con rating no sale premierStatus ni premier: el estado es interno", async () => {
+    const account = steamAccount({ premier: "rated", currentRank: RATED, rankHistory: [RATED] });
+    await account.validate();
+    const json = serialized(account);
+    assert.ok(!("premierStatus" in json));
+    assert.ok(!("premier" in json));
+    assert.deepStrictEqual(Object.keys(json).sort(), [...PUBLIC_KEYS, "verifiedWith", "verifiedAt"].sort());
+    assert.strictEqual(json.verifiedWith, "steam");
+  });
+
+  test("`premier` nunca sale en el JSON, con ningún valor", () => {
+    for (const premier of ["rated", "unrated", "unavailable"]) {
+      const json = serialized(steamAccount({ premier, currentRank: RATED }));
+      assert.ok(!("premier" in json), premier);
+    }
+  });
+
+  // RF-8 (plan, §12.2): una verificada con Steam sin `premier` es la de la spec 013, con rango
+  // simulado; si alguna quedara sin migrar, la fila dice «rango no disponible» y no el simulado.
+  test("verificada con Steam y sin `premier` (sin migrar): premierStatus es unavailable", async () => {
+    const account = steamAccount({ currentRank: RATED, rankHistory: [RATED] });
+    await account.validate();
+    const json = serialized(account);
+    assert.strictEqual(json.premierStatus, "unavailable");
+    assert.ok(!("premier" in json));
+  });
+
+  test("sin `premier`, premierStatus solo sale en CS2 verificada con Steam", () => {
+    assert.ok(!("premierStatus" in serialized(cs2Account())));
+    assert.ok(!("premierStatus" in serialized(lolAccount(undefined, { verification: RIOT_VERIFICATION }))));
+  });
+
+  test("currentRank nulo no es válido sin verificar, aunque diga premier", async () => {
+    for (const extra of [{}, { premier: "unavailable" }, { premier: "unrated" }]) {
+      const account = steamAccount({ verification: undefined, ...extra });
+      await assert.rejects(account.validate(), JSON.stringify(extra));
+    }
+  });
+
+  test("currentRank nulo no es válido en Steam sin `premier` ni con `premier` con rating", async () => {
+    await assert.rejects(steamAccount().validate());
+    await assert.rejects(steamAccount({ premier: "rated" }).validate());
+  });
+
+  test("currentRank nulo sigue siendo válido con Riot y no es válido en LoL manual (spec 014)", async () => {
+    await lolAccount(undefined, { verification: RIOT_VERIFICATION, currentRank: null }).validate();
+    await assert.rejects(lolAccount(undefined, { currentRank: null }).validate());
+  });
+
+  test("`premier` solo admite rated, unrated y unavailable", async () => {
+    // Con rango, para que lo único que pueda fallar sea el valor de `premier`.
+    await steamAccount({ premier: "rated", currentRank: RATED }).validate();
+    const account = steamAccount({ premier: "otro", currentRank: RATED });
+    await assert.rejects(account.validate(), /premier/);
+  });
+
+  test("una cuenta sin verificar no tiene `premier` por defecto", () => {
+    assert.strictEqual(cs2Account().premier, undefined);
+    assert.ok(!("premierStatus" in serialized(cs2Account())));
   });
 });
 

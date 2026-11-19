@@ -8,6 +8,8 @@
 export interface SteamNotice {
   tone: 'ok' | 'error';
   text: string;
+  /** Segundo aviso, debajo del primero y siempre de error: Leetify no respondió (spec 015, RF-15). */
+  extra?: string;
 }
 
 /** Lee el aviso del estado de navegación; cualquier otra forma no es un aviso. */
@@ -18,5 +20,6 @@ export function readSteamNotice(state: unknown): SteamNotice | null {
   const tone: unknown = Reflect.get(notice, 'tone');
   const text: unknown = Reflect.get(notice, 'text');
   if ((tone !== 'ok' && tone !== 'error') || typeof text !== 'string' || text === '') return null;
-  return { tone, text };
+  const extra: unknown = Reflect.get(notice, 'extra');
+  return typeof extra === 'string' && extra !== '' ? { tone, text, extra } : { tone, text };
 }

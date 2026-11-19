@@ -4,7 +4,7 @@ Registro dinámico. Se actualiza al cerrar cada fase SDD.
 
 ## Última actualización
 
-2026-11-19 (spec 014 implementada T1–T12; pendiente validación de `reviewer` y recorrido real)
+2026-11-19 (spec 015 implementada: T1–T22 y validación del `reviewer` APROBADA; recorridos con cuentas reales pospuestos, ver «Próximo paso»)
 
 ## Fase actual
 
@@ -223,7 +223,7 @@ hacer la 008.
 | `012-origen-real-de-datos` | Implementada y validada (2026-11-18). T1–T11 hechas y commiteadas (`0ba0f99` T8–T10, `ad58178` T11). 1ª validación (2026-11-18): dos puntos (RF-6 identidad sin etiqueta; RF-14 sin prueba del endpoint), cerrados con la T11. 2ª validación (2026-11-18, Opus): cumplida; 706 tests de la 012 y suite completa 2379/2379 en verde, typecheck y lint del backend y build, typecheck y lint del frontend sin errores; interfaz por Chrome headless (CDP) a 1280 y 375 px con verificación escrita directo en una base temporal (no hay rutas de verificación hasta la 013/014). Observaciones sin bloquear: la aclaración de RF-6 es una línea sin número en `spec.md`; el bloque de perfil (avatar, nivel, horas) no se muestra en ninguna parte (para la 013) | Base común: cuenta verificada solo por verificación real (revoca RF-41 de la 004 y la decisión «Todo simulado» del 2026-10-17), origen por bloque de datos, exclusividad (primera verificación gana y desvincula las no verificadas de otros), resincronización bajo demanda con espera de 5 min, 503 si la fuente cae. Propone texto para el principio 5 de la constitución. Dudas D1–D3 cerradas el 2026-11-04 (visible para todos, «1 minuto», filtro «Solo cuentas verificadas»). Rama `feature/vinculacion-steam-riot`. |
 | `013-vinculacion-steam` | Spec aprobada (2026-11-04) y revisada tras la clarificación (2026-11-18, aprobada por el usuario) | Verificar CS2 con el inicio de sesión de Steam; perfil y horas reales; rango CS2 sigue simulado. Depende de la 012. Clarificación del 2026-11-18: 29 hallazgos resueltos como D3–D12 y RF-18 a RF-26. Bloqueante resuelto con D3: la vuelta de Steam llega a una página de la app, que completa la verificación con la sesión y el comprobante anti-CSRF del usuario (la cookie `SameSite=Strict` no viaja en la navegación desde Steam); sin cambiar la spec 002. Absorbe los tres pendientes de la validación de la 012: aviso global solo en modo simulado (RF-24), texto de «Resincronizar» (RF-25) y bloque de perfil visible con «Datos de Steam» (RF-15). Sin clave de Steam no se ofrece verificar (D4, revoca el RNF-2 anterior). Sin dependencias nuevas (RNF-5). Los ajustes a las specs 002, 007 y 012 quedan en su sección «Impacto», sin editar esos archivos. **Plan redactado el 2026-11-18** (`plan.md`, borrador pendiente de aprobación): OpenID 2.0 de Steam con intento en MongoDB (TTL, hash del token, uno por usuario), `POST /api/steam/{start,complete}` y `GET /api/steam`, página de vuelta fuera de las rutas protegidas (RF-7), `STEAM_API_KEY` y `PUBLIC_URL` opcionales, `syncCooldown(null)` para RF-12; 11 tareas previstas. Observaciones O-1 a O-4 por confirmar (región de la cuenta nueva, texto «sin perfil», texto del rechazo de RF-3, 11 tareas). Plan aprobado el 2026-11-18 (O-1 a O-4 con los valores por defecto). **Tareas aprobadas el 2026-11-18** (`tasks.md`, T1 a T11). **T1 hecha** (`Config.steam`, `STEAM_API_KEY` y `PUBLIC_URL` opcionales y comentadas en `.env.example`; sin commitear). Salvedad: `tests/controllers/ui.test.ts` (spec 010) falla porque `uiDir` no está en `app.ts` de esta rama. **T2 hecha** (dominio puro: `steamAttempt`, `steamOpenId`, `steamProfile`, `steamRules` y `syncCooldown(null)`; 71 pruebas nuevas, sin commitear). **T1 a T7 hechas; backend de la 013 cerrado** (`/api/steam` con `GET /`, `POST /start` y `POST /complete`; cliente de Steam con `fetch` inyectable; `AppOptions.steamIntegration`; espera sin perfil; suite 2592/2600, los 8 fallos son de `ui.test.ts` de la spec 010; sin commitear). Detalle T3: modelo `SteamAttempt` con índice único por usuario y TTL, servicio `steamAttempts`, `SteamAttempt.init()` en `prepareDatabase` y C5 en la cascada; 28 pruebas nuevas, sin commitear). **T8 hecha.** T9 a T11 con el código y la documentación hechos (página de vuelta, botón, bloque de datos de Steam, aviso global solo en modo simulado; `typecheck`, `lint` y `build` del frontend sin errores) pero **sin verificar en un navegador ni con la cuenta real de Steam**: casillas abiertas, pendientes en `specs/013-vinculacion-steam/validation.md`. Siguiente: recorridos manuales del equipo (necesitan `STEAM_API_KEY` y `PUBLIC_URL`) y cerrar T9 a T11. |
 | `014-verificacion-riot` | Implementada (T1–T12, 2026-11-19); pendiente validación de `reviewer` y recorrido real | Verificar LoL con ícono de inicio (0–28, distinto del actual, 10 min, máx. 10 confirmaciones); rango Solo/Dúo, partidas y perfil reales. Development key aceptada por el equipo pese a los términos de Riot. Depende de la 012. Spec aprobada el 2026-11-18 (D1–D104); plan y tareas (T1–T12) aprobados el 2026-11-19. **T1–T8 (backend) y T9–T12 (frontend, docs y cierre) hechas** (sin commitear): 82 archivos de prueba del backend en verde sin red ni clave real (0 fallos; 217/217 nuevos de Riot + 249/249 modificados/clave; ~2,786 pruebas; salvedades preexistentes/entorno: `ui.test.ts` de la 010 y `process.test.ts` bajo Node `v22.14.0`), `tsc --noEmit` (`src/`) y `lint` del backend en verde, y `typecheck`, `lint` y `build` del frontend en verde; auditoría estática limpia (sin dependencias nuevas, sin fugas de clave, sin `.only`/`any`). `README.md`, `AGENTS.md`, `PRODUCT.md` y `specs/014-verificacion-riot/validation.md` actualizados. `spec.md` sigue en «aprobada» (sin marcar casillas manuales) hasta completar la validación de `reviewer` en Chrome DevTools (1280 y 375 px) y el recorrido manual del equipo con cuenta real de LoL y `RIOT_API_KEY`. |
-| `015-rango-premier` | Spec aprobada (2026-11-18) y revisada tras la clarificación (2026-11-18), revisión pendiente de aprobación | Rango Premier real de CS2 verificadas desde la API pública de Leetify. RF-1 a RF-23, RNF-1 a RNF-7. Clarificación: 31 hallazgos resueltos como D6–D25 (más D1–D5 de la entrevista); sin dudas abiertas. Claves: principio 5 de la constitución ampliado (terceros nombrados por una spec, atribuidos a quien entrega; aplicado en docs/constitution.md); tener rango = rating entero 1–99999 (0/vacío/sin perfil = «sin rango Premier», excepción a RF-21 de la 012); respuesta inválida o rechazo = fallo; «rango no disponible» = bloque de origen Leetify vacío; fuera de coincidencias sin rango (mensaje en Coincidencias CS2); resync: Steam primero, Leetify solo si Steam responde, máx. 16 s, 200 con indicador si Leetify falla (excepción a RF-19 de la 012), espera corre; concurrentes: solo una, la otra 429; historial: punto por cada cambio de rating; migración al arrancar: verificadas con rango simulado → «rango no disponible»; aviso junto a «Verificar con Steam»; «Datos de Leetify» enlaza al perfil en Leetify; clave opcional. Las excepciones a otras specs son RF propios (no se editan las otras specs). Depende de la 013. |
+| `015-rango-premier` | Spec aprobada (2026-11-18); revisión tras la clarificación aprobada por el usuario (2026-11-19). Plan aprobado (2026-11-19). Tareas T1–T10 aprobadas (2026-11-19); cambio de requisitos D26–D30 y T11–T16 aprobadas (2026-11-19); T1–T16 hechas (2026-11-19, sin commitear): backend con la suite completa en verde salvo los 8 fallos conocidos de `ui.test.ts`; frontend con typecheck, lint y build en verde; T16 documentos, `leetify.rest` y comprobación (ver «Spec 015 (implementación T11–T16)»). Términos de Leetify leídos: la pauta de métricas no se cumplía; cambio D31–D32 (sin escala ni distancia con rangos de Leetify; RF-5 y RF-12 modificados, RF-25 nuevo), plan §13 y T17–T20 aprobados y hechos (2026-11-19, solo frontend). Validación del `reviewer` con navegador: CAMBIOS NECESARIOS (etiqueta del anillo de afinidad); cambio D33–D34 (RF-26, logo a 24 px), T21–T22 hechos y **validación APROBADA** (2026-11-19). **Implementada (2026-11-19).** **Pendiente (pospuesto por el usuario):** los dos recorridos manuales con cuentas reales; ver «Próximo paso» y `specs/015-rango-premier/validation.md` §2.2. | Rango Premier real de CS2 verificadas desde la API pública de Leetify. RF-1 a RF-26, RNF-1 a RNF-8. Clarificación: 31 hallazgos resueltos como D6–D25 (más D1–D5 de la entrevista); sin dudas abiertas. Claves: principio 5 de la constitución ampliado (terceros nombrados por una spec, atribuidos a quien entrega; aplicado en docs/constitution.md); tener rango = rating entero 1–99999 (0/vacío/sin perfil = «sin rango Premier», excepción a RF-21 de la 012); respuesta inválida o rechazo = fallo; «rango no disponible» = bloque de origen Leetify vacío; fuera de coincidencias sin rango (mensaje en Coincidencias CS2); resync: Steam primero, Leetify solo si Steam responde, máx. 16 s, 200 con indicador si Leetify falla (excepción a RF-19 de la 012), espera corre; concurrentes: solo una, la otra 429; historial: punto por cada cambio de rating; migración al arrancar: verificadas con rango simulado → «rango no disponible»; aviso junto a «Verificar con Steam»; «Datos de Leetify» enlaza al perfil en Leetify; clave opcional. Las excepciones a otras specs son RF propios (no se editan las otras specs). Depende de la 013. |
 
 ## Deuda conocida
 
@@ -355,6 +355,118 @@ hacer la 008.
     servidor).
 
 ## Decisiones recientes
+
+- Spec 015 (T21–T22, cambio D33–D34, 2026-11-19):
+  - T21 (solo frontend): `scoreOriginLabel` (`premierDisplay.ts`): el anillo de afinidad nunca
+    lleva «Datos de Leetify»; «Datos de demostración» si algún rango es simulado, sin etiqueta si
+    los dos son de Leetify. Logo de Leetify a 24 px; rama muerta de `RankDistanceBlock` quitada.
+  - T22: `reviewer` APROBADO con navegador (`validation.md` §3.8). Pruebas como antes (solo los 8
+    de `ui.test.ts`). Opcional fuera de la 015: `/perfil` del modo simulado desborda a 375 px
+    (`.tabs__tab`, `.rank-scale__rail`).
+  - Cierre: el usuario pospuso el paso 4 (recorridos con cuentas reales) y pidió cerrar y
+    commitear. `spec.md` pasa a implementada con esa salvedad.
+
+- Spec 015 (validación con navegador y cambio D33–D34, 2026-11-19) — **traspaso a otro agente**:
+  - Paso 3 ejecutado: `reviewer` CAMBIOS NECESARIOS. Todo cumple en pruebas y en navegador
+    (Chrome headless por CDP; no hay MCP de DevTools) salvo el defecto 1: el anillo de afinidad
+    de Coincidencias mostraba «Datos de Leetify» (R8 era falso). Detalle en `validation.md` §3.7.
+  - Cambio aprobado por el usuario: D33 / RF-26 (afinidad sin Leetify: «Datos de demostración»
+    si algún rango es simulado, sin etiqueta si los dos son de Leetify) y D34 (logo a ~24 px);
+    también quitar la rama muerta de `RankDistanceBlock`. Plan §14, tareas T21–T22 escritas.
+  - **Siguiente:** T21 (implementer), T22 (reviewer), pasos 4–6 de la guía. Instrucciones
+    completas, entorno visual y restricciones del usuario en `validation.md` §5. Nada commiteado.
+
+- Spec 015 (términos de Leetify contra lo construido y cambio D31–D32, 2026-11-19):
+  - Paso 2 de la guía de `validation.md` hecho (§3.5): 8 pautas cumplen; R6 (guardar el rating
+    vigente) no se reabre porque «please refrain from storing» es una petición. **No cumplía**
+    la de métricas: la escala 0–100 y «Δ n pts» se derivaban del rating y salían junto al logo.
+  - Cambio de requisitos aprobado por el usuario (opción A): D31 (ninguna cifra reescalada en
+    pantalla), D32 (el filtro «n pts» no cambia), RF-5 y RF-12 modificados, RF-25 nuevo. Solo
+    frontend. Plan §13 y tareas T17–T20 aprobados por el usuario (2026-11-19).
+  - T17–T20 hechas (2026-11-19, sin commitear): `showsRankDistance` y
+    `LEETIFY_HIDDEN_DISTANCE_TEXT` en `premierDisplay.ts`; caso `leetifyHidden` en `playerSheet.ts`
+    y `RankDistanceBlock`; `MatchEntry` sin «Δ» si alguno de los rangos es de Leetify
+    (`ownRankOrigin` desde `MatchesPage`); `GameSummaryPanel` con rango de Leetify solo con
+    `LEETIFY_NO_HISTORY_TEXT` (sin escala). `MatchFiltersPanel` (D32), backend y contrato sin
+    cambios. `PRODUCT.md` actualizado; `AGENTS.md` sin cambios (no describe la escala de CS2
+    verificado).
+  - Decisión no prevista en el plan (T18): sin cuenta propia del juego activo, `ownRankOrigin` vale
+    `'simulated'` por defecto; solo ocurre en un render de transición (sin cuenta la lista no se
+    pinta) y el origen del candidato se comprueba igual en cada fila.
+  - Comprobación de T20: backend 2971 pruebas, 2963 pasan, 8 fallan (todas de `ui.test.ts`);
+    typecheck con el único error `ui.test.ts(28,83)`; lint de backend y frontend, typecheck y build
+    del frontend, en verde. Sin `.only`, `any` ni dependencias nuevas. Detalle en
+    `validation.md` §3.6.
+  - **Pendiente:** paso 3 de la guía (navegador, con RF-12 y RF-25 en las cuatro combinaciones
+    propia/candidato) y validación del `reviewer` de T17–T20.
+  - Riesgo R8 a confirmar por el usuario: el puntaje «Afinidad n de 100» (spec 005) usa la
+    distancia; se considera puntaje de la plataforma y RF-25 no lo toca.
+
+- Spec 015 (implementación T11–T16, 2026-11-19):
+  - Estado real: T1–T16 marcadas. Sin historial real (D27): el guardado queda vacío al leer y la
+    migración de RF-24 lo vacía en las cuentas existentes; atribución con el logo «Data Provided by
+    Leetify» y «View on Leetify» (`LeetifyAttribution`, logos en `frontend/src/assets/leetify/`);
+    bloqueo y D28 en `cs2Sync.ts`. T16: `backend/requests/leetify.rest` (la clave es la variable
+    `leetifyKey`, nunca escrita; la cabecera `_leetify_key` solo sale de `leetifyClient.ts` en
+    `backend/src`), `AGENTS.md`, `PRODUCT.md`, `validation.md`. El `README.md` no menciona el
+    historial: sin cambios.
+  - Comprobado: backend `npm test` 2971 pruebas, 2963 pasan, 8 fallan (todas `ui.test.ts`, spec
+    010); typecheck con un único error (`ui.test.ts(28,83)`); lint de backend y frontend, y
+    typecheck y build del frontend, en verde. Salvedad vigente: `ui.test.ts`, previa a la 015.
+  - **No** ejecutado: navegador (1280 y 375 px, tema oscuro y claro), recorridos con cuentas reales
+    y lectura de los términos de Leetify tras el cambio. La spec **no** pasa a «implementada» hasta
+    cerrarlos y la validación del `reviewer`. Sin commit ni `graphify update` (pendiente según
+    `CLAUDE.md`).
+  - Desvíos a revisar por el `reviewer`:
+    - (a) T13 relee la cuenta dentro del bloqueo de `cs2Sync.ts` para cerrar una carrera que el
+      plan no cubría (una consulta más por resincronización). Aceptada por el usuario el
+      2026-11-19 y anotada en el plan, §12.2.
+    - (b) T12 ajustó tres pruebas existentes a RF-8 y RF-24.
+    - (c) El contador «N lecturas registradas» de `GameSummaryPanel` se oculta con rango de
+      Leetify (diría «0 lecturas registradas»; los casos límite piden solo el texto de RF-12).
+      Decidido por el usuario el 2026-11-19; corrección dentro de T15, sin cambio de requisitos.
+    - (d) `LEETIFY_NO_HISTORY_TEXT` («Leetify solo entrega el rango vigente: no hay historial») se
+      definió en T15 en `premierDisplay.ts`.
+
+- Spec 015 (validación, 2026-11-19):
+  - El `reviewer` da CAMBIOS NECESARIOS:
+    - Bloqueante: «Último rango registrado» en `GameSummaryPanel` en lugar del gráfico (RF-12).
+    - Menor: segunda lectura de Leetify antes de 5 min si falló el perfil de Steam (RNF-7).
+    - Las decisiones a, b y c, aceptadas.
+  - Términos de Leetify (Developer Guidelines) incompatibles con la spec:
+    - logo «Data Provided by Leetify» enlazado a leetify.com;
+    - enlace «View on Leetify»;
+    - no almacenar los datos de la API (choca con RF-9, RF-11 y RF-18);
+    - métricas tal como las presenta Leetify.
+    Hace falta un cambio de requisitos. Detalle en `validation.md` §2.3 y §2.4.
+  - Cambio de requisitos aprobado el 2026-11-19 (D26 a D30): logo «Data Provided by Leetify»
+    y «View on Leetify»; sin historial real (RF-24 vacía el guardado); dos lecturas toleradas
+    (D28); escala y distancia se mantienen (D30). Plan §12 y tareas T11 a T16 aprobados; el
+    usuario confirmó `leetify.rest`.
+  - Siguiente paso: hecho (T11 a T16 implementadas el 2026-11-19; ver la entrada siguiente). Los
+    logos oficiales estaban en `~/Desktop/leetify/`; T14 copió los «Small».
+  - P15-3 confirmado: Leetify responde 404 `text/plain` a un SteamID64 no registrado (una
+    petición sin clave, autorizada por el usuario).
+  - Navegador sin ejecutar: queda para después de T16.
+
+- Spec 015 (implementación T6–T10, 2026-11-19):
+  - **Cuentas de CS2 verificadas con Steam sin `premier`** (anteriores a la 015; en producción no
+    existen por la migración de T3, pero las pruebas antiguas las crean): no entran como candidatas
+    y, como cuenta propia, dan el 409 de «rango no disponible» hasta resincronizar. Una verificada
+    con Steam solo es candidata con `premier: "rated"`; las de CS2 sin verificar (sin `premier`,
+    simuladas) siguen entrando (RF-22). Motivo: el filtro del plan (`$nin`) las habría dejado
+    pasar con un rango simulado atribuido a Leetify (constitución, principio 5). Cubierto en
+    `matchInputs.test.ts` y `matches.test.ts`; es una precisión sobre §4.5 del plan, que decía
+    `$nin`.
+  - Estado real: T1–T10 marcadas. T6 con pruebas primero (9 en rojo por la razón correcta, luego
+    verde). T7–T9 solo con typecheck, lint y build (sin navegador). T10: documentos y
+    comprobación; **no** ejecutado: navegador (1280 y 375 px), recorridos con cuentas reales,
+    términos de Leetify. Salvedad vigente: 8 fallos y 1 error de typecheck de `ui.test.ts`
+    (spec 010), previos a la 015.
+  - Dos desvíos menores del plan, para el `reviewer`: `LEETIFY_PRIVACY_TEXT` vive en
+    `copy.ts` (lo dice T7) y no en `premierDisplay.ts` (§3 del plan); la nota de RF-21 se muestra
+    también junto al botón desactivado del modo simulado. T8 añade «Último rango registrado»
+    para una cuenta que pasó a sin rango con historial (RF-9), sin texto en la spec.
 
 - Spec 007 (implementación, 2026-10-19):
   - El usuario aprobó el plan y las 30 tareas (T1–T30) y pidió hacerlas todas de corrido, en
@@ -554,6 +666,12 @@ hacer la 008.
 - Los `.DS_Store` (raíz y `frontend/`) no deberían subirse.
 
 ## Próximo paso
+
+**Pendiente de la spec 015 (pospuesto por el usuario el 2026-11-19): recorridos con cuentas
+reales** (paso 4 de la guía de `specs/015-rango-premier/validation.md`, §2.2). Nunca se probó
+contra Steam ni Leetify reales, solo con dobles. Requisitos: `STEAM_API_KEY` (la pone el usuario
+en `backend/.env`; nunca pedirla ni escribirla) y `PUBLIC_URL=http://localhost:5173`. Anotar
+resultados en §2.2 y marcar los dos criterios pospuestos de `spec.md`.
 
 Hecho: la 007 implementada (T1–T31, 2026-10-19), con recorrido manual (T29), capturas (T28) y
 defectos D-A2 y D-A1 corregidos. Antes: la 006 implementada y validada; el paso del cuerpo antes del

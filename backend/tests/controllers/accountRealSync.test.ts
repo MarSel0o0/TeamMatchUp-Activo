@@ -192,9 +192,10 @@ describe("cuenta verificada: resincronizar (RF-15)", () => {
     assert.strictEqual(response.status, 200);
     assert.deepStrictEqual(response.body.profile, { displayName: "Ana", hoursTotal: 321 });
     assert.deepStrictEqual(response.body.rankHistory, JSON.parse(JSON.stringify(before?.rankHistory)));
+    // Spec 015, RF-6, P15-7: el rango de Steam lo atribuye Leetify; el dato sigue simulado hasta la T4.
     assert.deepStrictEqual(response.body.origins, {
       identity: "steam",
-      rank: "simulated",
+      rank: "leetify",
       matches: "simulated",
       profile: "steam",
     });

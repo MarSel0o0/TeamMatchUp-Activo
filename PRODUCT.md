@@ -58,8 +58,15 @@ Confirmado y construido:
 - Coincidencias por juego con filtros dinámicos.
 - Agenda semanal: publicar sesiones en bloques concretos y sumarse a las de otros.
 - Verificación de la cuenta de CS2 iniciando sesión en Steam, cuando la instancia tiene la
-  clave de Steam: nombre, avatar, país y horas de CS2 reales, atribuidos a Steam. El rango, el
-  historial y las partidas de CS2 siguen siendo simulados y etiquetados como tales.
+  clave de Steam: nombre, avatar, país y horas de CS2 reales, atribuidos a Steam. El rango Premier
+  se lee de Leetify con el SteamID64 (clave opcional) y se atribuye con el logo «Data Provided by
+  Leetify» y el enlace «View on Leetify» a su perfil. Solo se guarda el rating vigente: Leetify no
+  entrega historial y no se construye uno (sin historial real). Por las pautas de Leetify, con un
+  rango de Leetify no se muestra la posición en la escala del juego ni la distancia de rango con
+  otro jugador (sí el rating exacto). Las cuentas de CS2 verificadas
+  sin rango Premier o con el rango no disponible quedan fuera de las coincidencias de CS2. Las
+  partidas de CS2 siguen siendo simuladas y etiquetadas como tales, igual que todo en las cuentas
+  sin verificar.
 - Verificación de la cuenta de League of Legends cambiando temporalmente el ícono de invocador
   en el cliente de LoL, cuando la instancia tiene la clave de desarrollo de Riot Games
   (`RIOT_API_KEY`): rango clasificatorio Solo/Dúo, historial construido con sus propias lecturas,
@@ -91,9 +98,10 @@ título.
 No existe ningún dato real todavía: no hay usuarios registrados, ni partidas reales, ni
 integración viva con Ubisoft. La verificación de CS2 con Steam y la de League of Legends con Riot
 Games están construidas, pero solo producen datos reales (nombre, avatar, país y horas de CS2
-desde Steam; rango Solo/Dúo, partidas, nivel e ícono de invocador de LoL desde Riot Games) cuando
-una instancia tiene su clave configurada (`STEAM_API_KEY` / `RIOT_API_KEY`) y alguien verifica su
-cuenta; no hay recorrido con una cuenta real de Steam ni de Riot todavía. Todo lo demás son datos
+desde Steam; rating Premier de CS2 desde Leetify; rango Solo/Dúo, partidas, nivel e ícono de
+invocador de LoL desde Riot Games) cuando una instancia tiene su clave configurada
+(`STEAM_API_KEY` / `RIOT_API_KEY`; la de Leetify es opcional) y alguien verifica su cuenta; no hay
+recorrido con una cuenta real de Steam, de Leetify ni de Riot todavía. Todo lo demás son datos
 de demostración generados con semilla fija y están etiquetados como tales en la interfaz.
 
 Nada de lo siguiente puede inventarse: cantidad de usuarios, partidas emparejadas,

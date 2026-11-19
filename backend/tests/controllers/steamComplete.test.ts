@@ -125,9 +125,10 @@ describe("verificación correcta (RF-4, RF-10, RF-13)", () => {
     assert.equal(body.account["userId"], ana.id);
     assert.equal(body.account["verified"], true);
     assert.equal(body.account["verifiedWith"], "steam");
+    // Spec 015, RF-6, P15-7: el rango de Steam lo atribuye Leetify.
     assert.deepEqual(body.account["origins"], {
       identity: "steam",
-      rank: "simulated",
+      rank: "leetify",
       matches: "simulated",
       profile: "steam",
     });
@@ -151,13 +152,20 @@ describe("verificación correcta (RF-4, RF-10, RF-13)", () => {
     assert.equal(await findAttempt(token), null);
   });
 
-  test("RF-13: el rango, el historial y las partidas de CS2 siguen simulados, con rango vigente", async () => {
+  // Spec 015, RF-3 y P15-9: el rango simulado se descarta al verificar; esta aplicación no tiene
+  // cliente de Leetify, así que la lectura es un fallo y el rango queda no disponible. Las
+  // partidas siguen simuladas (RF-13 de la 013).
+  test("RF-3 (015), P15-9: sin Leetify, rango no disponible y sin historial; partidas simuladas", async () => {
     const ana = await signUp(app, ANA);
     const token = await openToken(ana);
     const response = await complete(ana, steamLoginQuery(token));
-    const account = (response.body as { account: { currentRank: unknown; rankHistory: unknown[] } }).account;
-    assert.ok(account.currentRank);
-    assert.ok(account.rankHistory.length >= 1);
+    const account = (
+      response.body as { account: { currentRank: unknown; rankHistory: unknown[]; premierStatus?: string } }
+    ).account;
+    assert.equal(account.currentRank, null);
+    assert.deepEqual(account.rankHistory, []);
+    assert.equal(account.premierStatus, "unavailable");
+    assert.ok(((await cs2Accounts(ana.id))[0]?.matches.length ?? 0) >= 1);
   });
 
   test("a Steam solo se le piden los openid.* (nunca el intento) y el perfil del SteamID64 confirmado", async () => {

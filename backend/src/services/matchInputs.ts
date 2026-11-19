@@ -19,6 +19,7 @@ export type MatchInputs =
   | { kind: "noSession" } // el usuario de la sesión ya no existe (RF-13)
   | { kind: "noAccount" } // sin cuenta propia en el juego (RF-6)
   | { kind: "unranked" } // LoL sin clasificar o con rango pendiente (spec 014, RF-33, RF-44)
+  | { kind: "noPremier"; premier: "unrated" | "unavailable" } // CS2 sin rating de Leetify (spec 015, RF-10)
   | {
       kind: "ok";
       viewer: { userId: string; account: GameAccountJson; blocks: string[] };
@@ -62,10 +63,19 @@ export async function loadMatchInputs(userId: string, gameId: GameId): Promise<M
     return { kind: "unranked" };
   }
 
+  // Spec 015 (RF-7, RF-8, RF-10, RF-18): una cuenta de CS2 verificada con Steam solo entra con rating
+  // de Leetify (`premier: "rated"`). Sin `premier` es anterior a la 015 y su rango es simulado, así
+  // que cuenta como «no disponible» hasta resincronizar (no se atribuiría a Leetify un dato simulado).
+  if (gameId === "cs2" && own.verification?.source === "steam" && own.premier !== "rated") {
+    return { kind: "noPremier", premier: own.premier === "unrated" ? "unrated" : "unavailable" };
+  }
+
   const accounts = await GameAccount.find({
     gameId,
     user: { $ne: userId },
     ...(gameId === "lol" ? { currentRank: { $ne: null }, pendingBlocks: { $ne: "rank" } } : {}),
+    // Las de CS2 sin verificar (simuladas, sin `premier`) siguen entrando (RF-22).
+    ...(gameId === "cs2" ? { $or: [{ "verification.source": { $ne: "steam" } }, { premier: "rated" }] } : {}),
   });
   const ownerIds = [...new Set(accounts.map((account) => account.user.toString()))];
   const owners = await User.find({ _id: { $in: ownerIds } })

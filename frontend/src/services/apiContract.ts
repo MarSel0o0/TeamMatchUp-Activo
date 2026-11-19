@@ -65,10 +65,11 @@ export interface GameProfileSummary {
 
 /**
  * Resultado de completar la verificación con Steam (spec 013, RF-4, RF-5). Los demás desenlaces
- * (RF-6, RF-8, RF-9) llegan como error con el texto del servidor.
+ * (RF-6, RF-8, RF-9) llegan como error con el texto del servidor. `notice` es el aviso de que
+ * Leetify no respondió al verificar (spec 015, RF-15).
  */
 export type SteamCompleteResult =
-  | { outcome: 'verified'; account: GameAccount }
+  | { outcome: 'verified'; account: GameAccount; notice?: string }
   | { outcome: 'cancelled' };
 
 /**

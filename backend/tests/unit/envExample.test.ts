@@ -70,6 +70,31 @@ describe(".env.example (001-RF-9, RF-27, RF-28)", () => {
     if (parsed.ok) assert.equal(parsed.config.riot, null);
   });
 
+  // Spec 015 (T2, D24, RNF-2): LEETIFY_API_KEY es opcional (sin clave se consulta igual), va
+  // comentada, sin valor, y explica que es un secreto y para qué sirve.
+  test("spec 015: LEETIFY_API_KEY aparece solo comentada, sin valor y explicada", () => {
+    const { text, values } = readExample();
+    assert.equal(Object.hasOwn(values, "LEETIFY_API_KEY"), false, "LEETIFY_API_KEY no debe estar definida");
+    assert.match(text, /^#\s*LEETIFY_API_KEY=/m, "LEETIFY_API_KEY debe aparecer comentada");
+    assert.doesNotMatch(text, /^#\s*LEETIFY_API_KEY=\S+/m, "LEETIFY_API_KEY no debe traer un valor de clave");
+
+    const lines = text.split(/\r?\n/);
+    const keyLine = lines.findIndex((line) => /^#\s*LEETIFY_API_KEY=/.test(line));
+    assert.ok(keyLine > 0, "falta la línea comentada # LEETIFY_API_KEY=");
+    const comments: string[] = [];
+    for (let i = keyLine - 1; i >= 0 && (lines[i] ?? "").startsWith("#"); i--) {
+      comments.push(lines[i] ?? "");
+    }
+    const joined = comments.join("\n");
+    assert.match(joined, /opcional/i, "debe decir que es opcional");
+    assert.match(joined, /secreto/i, "debe decir que es un secreto");
+    assert.match(joined, /leetify\.com\/app\/developer/, "debe indicar dónde se obtiene");
+
+    const parsed = parseConfig(values);
+    assert.equal(parsed.ok, true);
+    if (parsed.ok) assert.deepEqual(parsed.config.leetify, { apiKey: null });
+  });
+
   test("HOST aparece solo comentada como opcional", () => {
     const { text, values } = readExample();
     assert.equal(Object.hasOwn(values, "HOST"), false);

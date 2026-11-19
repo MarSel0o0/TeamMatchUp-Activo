@@ -118,9 +118,11 @@ describe("alta de una cuenta verificada (RF-1, RF-8)", () => {
     assert.ok(account.matches.length >= 1); // la lectura simulada 0 trae al menos una partida
     assert.strictEqual(account.region, "South America"); // primera región del juego (sin `region`)
     assert.strictEqual(account.profile?.displayName, "Ana");
+    // Spec 015, RF-6, P15-7: el rango de Steam lo atribuye Leetify. Sin `premier` el servicio no
+    // toca el rango (plan, §2); `/api/steam/complete` siempre pasa la lectura (RF-3, P15-9).
     assert.deepStrictEqual(toGameAccountJson(result.account).origins, {
       identity: "steam",
-      rank: "simulated",
+      rank: "leetify",
       matches: "simulated",
       profile: "steam",
     });

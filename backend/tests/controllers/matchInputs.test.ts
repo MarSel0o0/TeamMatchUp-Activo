@@ -371,3 +371,138 @@ describe("matchInputs: toCandidateUser", () => {
     });
   });
 });
+
+// --- CS2 verificada con Steam: rango Premier de Leetify (spec 015, RF-7, RF-8, RF-10, RF-18) ---
+type Cs2Premier = "rated" | "unrated" | "unavailable" | "legacy" | "unverified";
+
+let steamCounter = 0;
+
+// `legacy`: cuenta verificada con Steam anterior a la spec 015 (sin `premier`, rango simulado);
+// `unverified`: cuenta de CS2 sin verificar (simulada, sin `premier`, RF-22).
+async function createCs2Account(user: mongoose.Types.ObjectId, state: Cs2Premier, normalized = 50) {
+  const recordedAt = new Date(FIXED_NOW);
+  const snapshot = { tier: "Blue", points: 12000, normalized, recordedAt };
+  const hasRank = state === "rated" || state === "legacy" || state === "unverified";
+  steamCounter += 1;
+  return GameAccount.create({
+    user,
+    gameId: "cs2",
+    handle: state === "unverified" ? `cs2-${steamCounter}` : `7656119800000${String(steamCounter).padStart(4, "0")}`,
+    region: "LAS",
+    currentRank: hasRank ? snapshot : null,
+    rankHistory: hasRank ? [snapshot] : [],
+    matches: [],
+    readingNumber: 0,
+    lastSyncedAt: recordedAt,
+    ...(state === "unverified"
+      ? {}
+      : {
+          verification: { source: "steam", externalId: `7656119800000${String(steamCounter).padStart(4, "0")}`, verifiedAt: recordedAt },
+        }),
+    ...(state === "rated" || state === "unrated" || state === "unavailable" ? { premier: state } : {}),
+  });
+}
+
+async function candidateHandles(userId: string): Promise<string[]> {
+  const result = await loadMatchInputs(userId, "cs2");
+  assert.strictEqual(result.kind, "ok");
+  if (result.kind !== "ok") return [];
+  return result.candidates.map((candidate) => candidate.user.username).sort();
+}
+
+describe("matchInputs: CS2 con rango Premier de Leetify (spec 015)", () => {
+  test("cuenta propia sin rango Premier: noPremier «unrated» (RF-7, RF-10)", async () => {
+    const ana = await createUser({ name: "Ana" });
+    await createCs2Account(ana._id, "unrated");
+
+    assert.deepStrictEqual(await loadMatchInputs(ana.id, "cs2"), { kind: "noPremier", premier: "unrated" });
+  });
+
+  test("cuenta propia con rango no disponible: noPremier «unavailable» (RF-8, RF-10)", async () => {
+    const ana = await createUser({ name: "Ana" });
+    await createCs2Account(ana._id, "unavailable");
+
+    assert.deepStrictEqual(await loadMatchInputs(ana.id, "cs2"), { kind: "noPremier", premier: "unavailable" });
+  });
+
+  test("candidatas sin rating (unrated o unavailable) quedan excluidas (RF-7, RF-8)", async () => {
+    const ana = await createUser({ name: "Ana" });
+    await createCs2Account(ana._id, "rated");
+    for (const [name, state] of [
+      ["Beto", "rated"],
+      ["Carla", "unrated"],
+      ["Dario", "unavailable"],
+    ] as const) {
+      const owner = await createUser({ name });
+      await createCs2Account(owner._id, state);
+    }
+
+    assert.deepStrictEqual(await candidateHandles(ana.id), ["Beto"]);
+  });
+
+  test("una cuenta con rating, que conserva su rango tras una lectura fallida, sigue como candidata (RF-18)", async () => {
+    const ana = await createUser({ name: "Ana" });
+    await createCs2Account(ana._id, "rated");
+    const beto = await createUser({ name: "Beto" });
+    const account = await createCs2Account(beto._id, "rated", 70);
+    // Un fallo de Leetify no toca `premier` ni `currentRank` (RF-18): solo avanza la sincronización.
+    await GameAccount.updateOne({ _id: account._id }, { $set: { lastSyncedAt: new Date(FIXED_NOW + 3_600_000) } });
+
+    const result = await loadMatchInputs(ana.id, "cs2");
+
+    assert.strictEqual(result.kind, "ok");
+    if (result.kind !== "ok") return;
+    assert.deepStrictEqual(
+      result.candidates.map((candidate) => [candidate.user.username, candidate.account.currentRank?.normalized]),
+      [["Beto", 70]],
+    );
+  });
+
+  test("cuenta de CS2 sin verificar: sin cambios, propia y candidata con su rango simulado (RF-22)", async () => {
+    const ana = await createUser({ name: "Ana" });
+    await createCs2Account(ana._id, "unverified");
+    const beto = await createUser({ name: "Beto" });
+    await createCs2Account(beto._id, "unverified");
+
+    const result = await loadMatchInputs(ana.id, "cs2");
+
+    assert.strictEqual(result.kind, "ok");
+    if (result.kind !== "ok") return;
+    assert.deepStrictEqual(
+      result.candidates.map((candidate) => candidate.user.username),
+      ["Beto"],
+    );
+  });
+
+  test("verificada con Steam sin `premier` (anterior a la 015): su rango es simulado, así que no es candidata", async () => {
+    const ana = await createUser({ name: "Ana" });
+    await createCs2Account(ana._id, "rated");
+    const beto = await createUser({ name: "Beto" });
+    await createCs2Account(beto._id, "legacy");
+    const carla = await createUser({ name: "Carla" });
+    await createCs2Account(carla._id, "unverified");
+
+    // Beto no entra: se mostraría un rango simulado atribuido a Leetify (constitución, principio 5).
+    assert.deepStrictEqual(await candidateHandles(ana.id), ["Carla"]);
+  });
+
+  test("verificada con Steam sin `premier` como cuenta propia: noPremier «unavailable» hasta resincronizar", async () => {
+    const ana = await createUser({ name: "Ana" });
+    await createCs2Account(ana._id, "legacy");
+
+    assert.deepStrictEqual(await loadMatchInputs(ana.id, "cs2"), { kind: "noPremier", premier: "unavailable" });
+  });
+
+  test("la regla es solo de CS2: una cuenta de LoL o R6 sin `premier` no se ve afectada", async () => {
+    const ana = await createUser({ name: "Ana" });
+    await createAccount({ user: ana._id, gameId: "r6" });
+    const beto = await createUser({ name: "Beto" });
+    await createAccount({ user: beto._id, gameId: "r6", verified: true });
+
+    const result = await loadMatchInputs(ana.id, "r6");
+
+    assert.strictEqual(result.kind, "ok");
+    if (result.kind !== "ok") return;
+    assert.strictEqual(result.candidates.length, 1);
+  });
+});

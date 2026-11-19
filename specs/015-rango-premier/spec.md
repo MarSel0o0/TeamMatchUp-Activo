@@ -1,6 +1,13 @@
 # Spec 015 — Rango Premier real de CS2 con Leetify
 Estado: aprobada (2026-11-18). Revisada el 2026-11-18 tras la clarificación (D6 a D25),
-pendiente de aprobación de la revisión.
+aprobada por el usuario el 2026-11-19. Cambio de requisitos del 2026-11-19 (D26 a D30),
+aprobado por el usuario el 2026-11-19. Cambio de requisitos del 2026-11-19 (D31 y D32), tras
+releer las pautas de Leetify contra lo construido (`validation.md`, §3.5, punto 9),
+aprobado por el usuario el 2026-11-19. Cambio de requisitos del 2026-11-19 (D33 y D34), tras la
+validación del `reviewer` con navegador (`validation.md`, §3.7, defecto 1), aprobado por el
+usuario el 2026-11-19. **Implementada (2026-11-19)**: T1–T22 hechas y validación del `reviewer`
+APROBADA (`validation.md`, §3.8). Salvedad: los recorridos con cuentas reales (dos criterios de
+abajo) quedan pospuestos por decisión del usuario.
 
 ## Contexto y objetivo
 Desde la spec 013, una cuenta de CS2 verificada con Steam tiene perfil y horas reales, pero su
@@ -10,14 +17,16 @@ se obtiene, no se declara"): en CS2, las coincidencias cruzan un rango inventado
 
 Esta spec toma el **rango Premier real** (CS Rating) de las cuentas de CS2 verificadas desde
 **Leetify**, un servicio de estadísticas de CS2 con una API pública y gratuita que entrega el
-rango Premier de un SteamID64. Desde entonces el rango y su historial son reales y se atribuyen
-a Leetify; las partidas siguen simuladas y etiquetadas (spec 012, RF-6, RF-8).
+rango Premier de un SteamID64. Desde entonces el rango vigente es real y se atribuye a Leetify
+como piden sus pautas para desarrolladores; esas pautas no permiten guardar un historial, así
+que las cuentas de CS2 verificadas no tienen historial de rango (D26, D27). Las partidas siguen
+simuladas y etiquetadas (spec 012, RF-6, RF-8).
 
 Por qué Leetify y no otra vía: el scraping de páginas como csstats.gg va contra sus términos y
 se rompe con facilidad; leer el rango del coordinador de partidas de Valve exige mantener una
 cuenta bot de Steam conectada; FACEIT no tiene el rango Premier, solo su propio ELO.
 
-- Depende de: spec 013 (verificación de CS2 con Steam; en implementación), spec 012 (origen por
+- Depende de: spec 013 (verificación de CS2 con Steam; implementada, validación parcial al 2026-11-18), spec 012 (origen por
   bloque, resincronización, espera mínima y fuente no disponible; implementada y validada el
   2026-11-18), spec 004 (escala de CS2 y rango normalizado) y spec 005 (coincidencias).
 - Origen: conversación con el usuario del 2026-11-18 (preguntas 1 a 5) y clarificación del
@@ -85,6 +94,57 @@ Clarificación del 2026-11-18 (el número entre paréntesis es el hallazgo):
 - Sin decisión propia: el hallazgo 24 lo cubren RF-22 y RF-23 (los datos de demostración solo
   tienen cuentas sin verificar); los hallazgos 26 y 27 los cubren RF-1, RF-2 y RF-11.
 
+Cambio de requisitos del 2026-11-19, tras leer las pautas de Leetify (D25) y la validación del
+`reviewer` (`validation.md`, §2.3 y §2.4). Fuente: «Leetify API Developer Guidelines»
+(https://leetify.com/blog/leetify-api-developer-guidelines), que la documentación de la API
+obliga a cumplir («By using the public API, you agree to adhere to our Developer Guidelines»).
+- **D26. Atribución según las pautas de Leetify.** Reemplaza la etiqueta "Datos de Leetify" de
+  D11, D14 y D25 por el logo oficial "Data Provided by Leetify", sin modificar y enlazado a
+  https://leetify.com/, y un enlace "View on Leetify" al perfil del jugador en Leetify (pautas,
+  §1 a §4). RF-6, RF-23, RNF-5, RNF-8.
+- **D27. Sin historial real.** Las pautas piden no guardar los datos de la API y borrar los que
+  la API ya no entrega (§6). Leetify solo entrega el rating vigente, así que se guarda solo ese
+  y nunca un historial; el historial ya guardado se borra. Un fallo de Leetify no es "dato que
+  ya no está disponible": el rating se conserva (RF-18). Reemplaza D17, D23 y lo que D3 y D5
+  dicen del historial real, y resuelve el defecto 1 del `reviewer` ("Último rango
+  registrado"). RF-9, RF-11, RF-12, RF-24.
+- **D28. Dos lecturas seguidas al verificar sin perfil de Steam.** Si al verificar falló el
+  perfil de Steam, la primera resincronización no espera (spec 013, D6) y hace una segunda
+  lectura antes de 5 minutos; se acepta. Defecto 2 del `reviewer`. RNF-7.
+- **D29. Métricas.** Las pautas piden mostrar las métricas como en Leetify, sin otras escalas
+  ni recálculos (§5). El rating se muestra siempre exacto, tal como lo entrega la API; el
+  escalón es la escala de Valve, no un recálculo del dato de Leetify. RF-4.
+- **D30. Escala y distancia se mantienen.** La posición en la escala del juego (0 a 100) y la
+  distancia entre rangos de la ficha y de coincidencias se siguen mostrando para CS2 verificado:
+  salen del escalón de Valve (RF-5), no de un recálculo del rating, y las coincidencias las
+  necesitan. Cierra la duda abierta del cambio. RF-5, RF-12. **Reemplazada por D31 en lo que
+  se muestra**: el cálculo se mantiene, la pantalla no.
+
+Cambio de requisitos del 2026-11-19 (segundo), tras releer las pautas contra lo construido
+(`validation.md`, §3.5, punto 9): «Do not use different scales for our metrics» y «Do not
+recalculate / present a different score than our API gives you» (pautas, §5).
+- **D31. Ninguna cifra reescalada en pantalla.** La posición en la escala 0–100 y la distancia
+  "Δ n pts" se derivan del rating de Leetify y se mostraban junto a su logo: son otra escala
+  para su métrica. En pantalla solo queda el rating exacto (RF-4) con la atribución (RF-6). El
+  rango normalizado sigue calculándose y se usa solo dentro de las coincidencias: para ordenar
+  a los candidatos y aplicar el filtro de distancia máxima. Reemplaza D30 en lo que se muestra.
+  RF-5, RF-12, RF-25.
+- **D32. El filtro de distancia máxima no cambia.** El control "n pts" de Coincidencias es un
+  parámetro de búsqueda de la plataforma: no muestra el rango de ningún jugador ni una cifra de
+  Leetify, así que se mantiene igual también en CS2. RF-25.
+
+Cambio de requisitos del 2026-11-19 (tercero), tras la validación del `reviewer` con navegador
+(`validation.md`, §3.7, defecto 1): el anillo de afinidad de Coincidencias llevaba la etiqueta de
+origen del rango del candidato y mostraba «Datos de Leetify» bajo un puntaje que calcula la
+plataforma.
+- **D33. Etiqueta del puntaje de afinidad.** El puntaje de afinidad es de la plataforma: nunca
+  se atribuye a Leetify. Lleva "Datos de demostración" si alguno de los dos rangos comparados es
+  simulado, para que lo simulado siempre quede marcado (constitución, principio 5), y ninguna
+  etiqueta si los dos vienen de Leetify. Resuelve el riesgo R8. RF-26.
+- **D34. Logo más legible.** A 18 px el texto "Data provided by" del logo casi no se lee. Se sube
+  su alto (unos 24 px), siempre dentro de RNF-8: nunca más grande ni más destacado que el nombre
+  de la plataforma. RNF-8.
+
 ## Usuarios
 - **Jugador de CS2 con cuenta verificada**: quiere que su rango Premier real aparezca en su
   perfil y sea el que usan las coincidencias.
@@ -94,7 +154,8 @@ Clarificación del 2026-11-18 (el número entre paréntesis es el hallazgo):
 - HU-1. Como jugador de CS2 con cuenta verificada, quiero que mi rango Premier se tome de una
   fuente real para que mis coincidencias se basen en mi nivel de verdad.
 - HU-2. Como jugador de CS2 con cuenta verificada, quiero resincronizar y ver mi rango
-  actualizado y su evolución para seguir mi progreso.
+  actualizado para seguir mi progreso. (La evolución quedó fuera por las pautas de Leetify,
+  D27.)
 - HU-3. Como jugador que busca compañeros, quiero ver que el rango de un candidato viene de
   Leetify para confiar en él.
 - HU-4. Como jugador sin rango Premier, quiero que la plataforma lo diga en lugar de
@@ -132,12 +193,16 @@ Clarificación del 2026-11-18 (el número entre paréntesis es el hallazgo):
   reales seguido del rating exacto (por ejemplo "Gold · 36210 CS Rating"), sin recortarlo ni
   redondearlo; en estos datos no rige el tope de Gold de la spec 004 (DP-34) (D2, D8).
 - RF-5: EL SISTEMA calcula el rango normalizado de un rango con rating con la regla de la spec
-  004 (DP-26), según su escalón: Gold, con cualquier rating de 30000 o más, vale 100.
-- RF-6: EL SISTEMA muestra la etiqueta "Datos de Leetify", como enlace al perfil del jugador en
-  Leetify, junto al rango (con rating, "sin rango Premier" o "rango no disponible") y al
-  historial de toda cuenta de CS2 verificada, a cualquier usuario con sesión: en la fila de la
-  cuenta de CS2 del perfil, en Configuración y en la ficha de jugador; en coincidencias, junto
-  al rango del candidato (spec 012, RF-6, RF-22; spec 013, D8; D11, D12, D14, D25).
+  004 (DP-26), según su escalón: Gold, con cualquier rating de 30000 o más, vale 100. Lo usa
+  solo para ordenar y filtrar las coincidencias, nunca lo muestra (RF-25, D31).
+- RF-6: EL SISTEMA muestra junto al rango de toda cuenta de CS2 verificada (con rating, "sin
+  rango Premier" o "rango no disponible"), a cualquier usuario con sesión, el logo oficial
+  "Data Provided by Leetify" sin modificar, como enlace a https://leetify.com/, y el enlace
+  "View on Leetify" al perfil del jugador en Leetify: en la fila de la cuenta de CS2 del
+  perfil, en Configuración y en la ficha de jugador; en coincidencias, junto al rango del
+  candidato. Como excepción a la spec 012 (RF-6), en el rango de estas cuentas el logo y el
+  enlace reemplazan la etiqueta con el nombre de la fuente (spec 012, RF-22; spec 013, D8;
+  D11, D12, D14, D25, D26).
 
 ### Sin rango
 - RF-7: MIENTRAS una cuenta de CS2 verificada está sin rango Premier, EL SISTEMA muestra "sin
@@ -148,7 +213,7 @@ Clarificación del 2026-11-18 (el número entre paréntesis es el hallazgo):
   "rango no disponible" en lugar de su rango y la deja fuera de las coincidencias de CS2 como
   en RF-7 (D8, D11).
 - RF-9: CUANDO una lectura termina sin rango Premier para una cuenta que tenía rating, EL
-  SISTEMA pasa la cuenta a sin rango Premier (RF-7) y conserva su historial.
+  SISTEMA pasa la cuenta a sin rango Premier (RF-7) y borra el rating que tenía guardado (D27).
 - RF-10: MIENTRAS la cuenta de CS2 del usuario de la sesión está sin rango Premier o tiene el
   rango no disponible, EL SISTEMA muestra en Coincidencias de CS2, en lugar de la lista, "tu
   cuenta de CS2 no tiene rango Premier: resincronízala cuando lo tengas en Leetify" o "tu
@@ -156,15 +221,29 @@ Clarificación del 2026-11-18 (el número entre paréntesis es el hallazgo):
   a su perfil y los filtros desactivados (D22).
 
 ### Historial
-- RF-11: EL SISTEMA agrega un punto al historial de una cuenta de CS2 verificada cuando una
-  lectura termina con rango y la cuenta no tenía rating o tenía uno distinto, aunque el
-  escalón sea el mismo; una lectura sin rango Premier o con fallo nunca agrega un punto, y el
-  historial nunca contiene puntos simulados (spec 012, RF-9; D5, D17).
-- RF-12: SI el historial de una cuenta de CS2 verificada no tiene puntos, ENTONCES EL SISTEMA
-  muestra "aún no hay historial de rango" en lugar del gráfico; SI tiene un solo punto,
-  ENTONCES el gráfico muestra ese punto con su fecha (D23).
+- RF-11: EL SISTEMA guarda de una cuenta de CS2 verificada solo el rating de la última lectura
+  que terminó con rango y nunca un historial: como excepción a la spec 012 (RF-9), ninguna
+  lectura agrega un punto al historial, que siempre está vacío (D5, D27).
+- RF-12: EL SISTEMA muestra en lugar del historial y de la escala del juego de una cuenta de
+  CS2 verificada, tenga o no rating, el texto "Leetify solo entrega el rango vigente: no hay
+  historial" y, como excepción a la spec 007 (RF-14), no muestra la diferencia desde la primera
+  lectura ni la posición del rango en la escala del juego (D27, D31).
 - RF-13: EL SISTEMA mantiene las partidas de una cuenta de CS2 verificada con origen simulado y
   la etiqueta "Datos de demostración" (D3; spec 012, RF-6).
+
+### Distancia de rango
+- RF-25: MIENTRAS el rango de alguna de las dos cuentas que se comparan (la del usuario de la
+  sesión y la del candidato o la del jugador de la ficha) viene de Leetify y las dos tienen
+  rango, EL SISTEMA no muestra la distancia de rango: en coincidencias, el candidato muestra su
+  rango y la atribución de RF-6 sin "Δ n pts"; en la ficha de jugador, el bloque de distancia
+  muestra "la distancia no se muestra con rangos de Leetify" en lugar de la cifra. Las
+  coincidencias se siguen ordenando y filtrando con esa distancia (RF-5) y el filtro de
+  distancia máxima no cambia (D31, D32).
+
+- RF-26: EL SISTEMA muestra junto al puntaje de afinidad de un candidato de coincidencias la
+  etiqueta "Datos de demostración" si el rango de la cuenta del usuario de la sesión o el del
+  candidato es simulado, y ninguna etiqueta si los dos vienen de Leetify; nunca muestra junto a
+  ese puntaje el nombre, el logo ni el enlace de Leetify (D33; spec 012, RF-6).
 
 ### Leetify no disponible
 - RF-14: EL SISTEMA da a una lectura de Leetify el resultado **fallo** cuando Leetify no
@@ -177,7 +256,7 @@ Clarificación del 2026-11-18 (el número entre paréntesis es el hallazgo):
   resincronizar" (D4, D15).
 - RF-16: SI la lectura falla al resincronizar una cuenta de CS2 verificada y Steam respondió,
   ENTONCES EL SISTEMA, en lugar del RF-19 de la spec 012, responde con éxito (200) con los
-  datos de Steam actualizados, el rango y el historial sin cambios y la indicación de que el
+  datos de Steam actualizados, el rango sin cambios y la indicación de que el
   rango no se actualizó, y muestra en la fila de la cuenta, donde se ve el resultado de
   "Resincronizar", el aviso "Leetify no está disponible por ahora: tu rango Premier no se
   actualizó" (D4, D8, D15, D16).
@@ -186,7 +265,8 @@ Clarificación del 2026-11-18 (el número entre paréntesis es el hallazgo):
   mínima (spec 012, RF-16) aunque la lectura falle, en lugar del RF-19 de la spec 012; si Steam
   no responde, rige el RF-19 de la spec 012 sin lectura de Leetify (D4, D8, D18).
 - RF-18: MIENTRAS una cuenta de CS2 verificada conserva su rating porque la última lectura
-  falló, EL SISTEMA lo sigue mostrando con "Datos de Leetify" y lo usa en las coincidencias.
+  falló, EL SISTEMA lo sigue mostrando con la atribución de RF-6 y lo usa en las coincidencias
+  (un fallo no significa que Leetify haya dejado de entregar el dato, D27).
 - RF-19: SI llegan a la vez dos resincronizaciones de la misma cuenta de CS2 verificada,
   ENTONCES EL SISTEMA ejecuta solo una y responde a la otra con el 429 de la espera mínima
   (spec 012, RF-16) (D21).
@@ -195,6 +275,9 @@ Clarificación del 2026-11-18 (el número entre paréntesis es el hallazgo):
 - RF-20: CUANDO esta versión se pone en marcha y hay cuentas de CS2 verificadas cuyo bloque de
   rango tiene origen simulado, EL SISTEMA descarta su rango y su historial simulados y las deja
   con el rango no disponible (RF-8), sin consultar Leetify (D9).
+- RF-24: CUANDO esta versión se pone en marcha y hay cuentas de CS2 verificadas con puntos en
+  su historial, EL SISTEMA vacía ese historial y conserva su rating vigente y su estado (con
+  rating, sin rango Premier o rango no disponible), sin consultar Leetify (D27).
 
 ### Aviso de privacidad
 - RF-21: EL SISTEMA muestra junto a "Verificar con Steam" (spec 013, D8) el texto "Tu rango
@@ -204,7 +287,8 @@ Clarificación del 2026-11-18 (el número entre paréntesis es el hallazgo):
 - RF-22: EL SISTEMA no consulta Leetify para cuentas de CS2 sin verificar: su rango, su
   historial y sus partidas siguen simulados como hoy (spec 012, RF-18).
 - RF-23: MIENTRAS la interfaz funciona en modo simulado, EL SISTEMA nunca muestra un rango
-  atribuido a Leetify ni la etiqueta "Datos de Leetify" (constitución, principio 5).
+  atribuido a Leetify, el logo "Data Provided by Leetify" ni el enlace "View on Leetify"
+  (constitución, principio 5; D26).
 
 ## Requisitos no funcionales
 - RNF-1: Las pruebas simulan Leetify y pasan sin conexión y sin clave (spec 012, RNF-1).
@@ -217,19 +301,41 @@ Clarificación del 2026-11-18 (el número entre paréntesis es el hallazgo):
   CS2 nunca tarda más de 16 segundos en total, por debajo de los 30 de la interfaz (spec 007)
   (D18).
 - RNF-5: Los mensajes nuevos van en español, en minúscula y sin punto final (spec 002, RNF-7),
-  salvo los que empiezan por el nombre propio Leetify y el texto de interfaz de RF-21.
+  salvo los que empiezan por el nombre propio Leetify, el texto de interfaz de RF-21 y los
+  textos de Leetify de RF-6 ("Data Provided by Leetify" y "View on Leetify"), que van en
+  inglés y tal cual porque las pautas de Leetify los fijan (D26).
 - RNF-6: Esta spec no justifica ninguna dependencia nueva (constitución, principio 1).
 - RNF-7: Hay como máximo una lectura de Leetify por cuenta cada 5 minutos, y solo a pedido de
-  su dueño o al verificar (RF-17, RF-19; spec 012, RF-17) (D19).
+  su dueño o al verificar (RF-17, RF-19; spec 012, RF-17) (D19). Única excepción: si al
+  verificar falló el perfil de Steam, la primera resincronización puede hacer una segunda
+  lectura antes de 5 minutos; nunca hay más de dos en 5 minutos (D28).
+- RNF-8: La atribución de RF-6 cumple las pautas de Leetify (D26): el logo es el archivo
+  oficial sin modificar ni animar ("Leetify Badge"), en su versión blanca sobre el tema oscuro
+  y la negra sobre el tema claro; nunca es más grande ni más destacado que el nombre de la plataforma ni se
+  usa como su icono; el enlace "View on Leetify" se reconoce como enlace (negrita, subrayado o
+  el rosa #F84982 de Leetify), y nada sugiere que Leetify desarrolle o patrocine la plataforma.
 
 ## Casos límite
 - El jugador no tiene perfil en Leetify, o su perfil es privado: sin rango Premier, fuera de
   coincidencias, y la operación tiene éxito (RF-2, RF-7).
 - Leetify entrega un rating 0 o no lo entrega (por ejemplo, al empezar una temporada): sin
-  rango Premier; el historial anterior se conserva (RF-2, RF-9).
+  rango Premier y se borra el rating guardado (RF-2, RF-9).
 - El jugador se crea un perfil en Leetify después de verificar: al resincronizar obtiene su
-  rating y el primer punto del historial (RF-1, RF-11).
-- Rating de 35000 o más: Gold con el rating exacto y rango normalizado 100 (RF-4, RF-5).
+  rating, sin historial (RF-1, RF-11).
+- Rating de 35000 o más: Gold con el rating exacto; su rango normalizado, 100, solo se usa
+  dentro de las coincidencias (RF-4, RF-5).
+- Usuario con CS2 sin verificar (rango simulado) frente a un candidato verificado, o al revés:
+  no se muestra la distancia, porque uno de los dos rangos viene de Leetify (RF-25).
+- Los dos con CS2 sin verificar: la distancia "Δ n pts" se muestra como antes, con la etiqueta
+  "Datos de demostración" (RF-25; spec 012, RF-6).
+- Jugador de la ficha verificado sin rango Premier o con el rango no disponible: el bloque de
+  distancia muestra el texto de estado con la atribución, como antes; RF-25 no aplica porque le
+  falta rango (RF-7, RF-8).
+- Puntaje de afinidad: propia de Leetify y candidato simulado, o al revés, "Datos de
+  demostración"; los dos de Leetify, sin etiqueta; los dos simulados, "Datos de demostración"
+  como antes (RF-26).
+- Dos candidatos de CS2 verificados con la misma distancia: el orden no cambia respecto a hoy,
+  aunque la distancia no se vea (RF-5, RF-25).
 - Rating negativo, decimal o mayor que 99999, o un JSON roto: fallo (RF-14).
 - Leetify cae justo al verificar: verificada, rango no disponible y fuera de coincidencias
   hasta que una lectura no falle (RF-8, RF-15).
@@ -240,17 +346,22 @@ Clarificación del 2026-11-18 (el número entre paréntesis es el hallazgo):
 - Clave de Leetify revocada o vencida: fallo (RF-14).
 - Dos resincronizaciones a la vez desde dos pestañas: una se ejecuta y la otra recibe 429
   (RF-19).
-- Dos lecturas seguidas con el mismo rating: el historial no crece (RF-11).
-- Leetify entrega un rating más bajo por datos atrasados: se agrega como un punto más (RF-11).
+- Leetify entrega un rating más bajo por datos atrasados: se muestra ese rating, el último
+  que entregó (RF-11).
 - Cuentas de CS2 verificadas con rango simulado al poner en marcha esta versión: rango no
   disponible hasta resincronizar (RF-20).
-- El usuario desvincula y vuelve a verificar su cuenta de CS2: el historial empieza de nuevo
-  (spec 012, RF-3).
+- Cuentas de CS2 verificadas con historial de Leetify guardado (de la versión anterior de esta
+  spec) al poner en marcha esta versión: el historial se vacía y el rating vigente se conserva
+  (RF-24).
+- Se verifica con el perfil de Steam caído y se resincroniza enseguida: dos lecturas en menos
+  de 5 minutos, nunca tres (RNF-7, D28).
 - El usuario de la sesión tiene su cuenta de CS2 sin rango: Coincidencias de CS2 muestra el
   mensaje de RF-10.
-- Historial vacío o de un solo punto: RF-12.
+- Cuenta de CS2 verificada, con o sin rating: nunca muestra historial ni diferencia desde la
+  primera lectura, solo el texto de RF-12.
 - Datos de demostración: todas las cuentas sembradas están sin verificar, así que siguen
-  simuladas y nunca muestran "Datos de Leetify" (RF-22, RF-23).
+  simuladas y nunca muestran el logo ni el enlace de Leetify (RF-22, RF-23).
+- Tema claro y oscuro: el logo usa la versión que las pautas indican para cada fondo (RNF-8).
 
 ## Fuera de alcance
 - Partidas reales de CS2 (de Leetify o de otra fuente).
@@ -261,17 +372,27 @@ Clarificación del 2026-11-18 (el número entre paréntesis es el hallazgo):
 - Detectar datos atrasados de Leetify (D17).
 - Un tope global de consultas a Leetify por instancia (D19).
 - Scraping, bots de Steam o lectura de demos (RNF-3).
+- Historial del rango Premier real, guardado o reconstruido con las partidas recientes que
+  entrega Leetify (D27).
+- Mostrar en lugar de la distancia otra cifra derivada del rating (por ejemplo, la diferencia
+  en CS Rating o en escalones) y explicar en pantalla por qué se ordenan así los candidatos
+  (D31).
+- La tendencia y la diferencia desde la primera lectura para cuentas de CS2 verificadas
+  (RF-12). La tendencia de la spec 004 da 0 con el historial vacío por su propia regla, así
+  que no necesita excepción.
 
 ## Criterios de finalización
-- [ ] RF-1 a RF-23 cubiertos por pruebas en verde, sin red (RNF-1).
-- [ ] Recorrido manual en desarrollo local con una cuenta de CS2 real que tenga rango Premier
-      en Leetify: verificar, ver el rango con "Datos de Leetify" y su enlace, resincronizar y
+- [x] RF-1 a RF-26 cubiertos por pruebas en verde, sin red (RNF-1); en la interfaz, RF-12,
+      RF-25 y RF-26 vistos en el navegador (el frontend no tiene pruebas).
+- [ ] (Pospuesto, 2026-11-19) Recorrido manual en desarrollo local con una cuenta de CS2 real que tenga rango Premier
+      en Leetify: verificar, ver el rango con el logo y el enlace de Leetify, resincronizar y
       ver la cuenta en coincidencias.
-- [ ] Recorrido manual con una cuenta sin perfil en Leetify: "sin rango Premier", fuera de
+- [ ] (Pospuesto, 2026-11-19) Recorrido manual con una cuenta sin perfil en Leetify: "sin rango Premier", fuera de
       coincidencias y mensaje de RF-10 en Coincidencias de CS2.
-- [ ] Modo simulado: ningún rango atribuido a Leetify (RF-23).
-- [ ] Revisados los términos de Leetify: la atribución de RF-6 basta, o se abrió un cambio de
-      requisitos (D25).
+- [x] Modo simulado: ningún rango atribuido a Leetify (RF-23).
+- [x] Revisados los términos de Leetify: la atribución de RF-6 basta, o se abrió un cambio de
+      requisitos (D25). Revisados el 2026-11-19: se abrió el cambio D26 a D29; releídos contra lo
+      construido el mismo día: se abrió el cambio D31 y D32 (métricas).
 
 ## Impacto en otras specs y documentos
 Los archivos de otras specs no se editan: cada excepción es un RF de esta spec (D8).
@@ -282,12 +403,20 @@ Los archivos de otras specs no se editan: cada excepción es un RF de esta spec 
   RF-10.
 - **Spec 012**: un perfil inexistente en Leetify no es una cuenta inexistente (RF-2, en lugar
   de su RF-21); un fallo de Leetify no hace fallar la resincronización si Steam respondió
-  (RF-16 y RF-17, en lugar de su RF-19).
+  (RF-16 y RF-17, en lugar de su RF-19); en el rango de una cuenta de CS2 verificada, el logo
+  y el enlace de Leetify reemplazan la etiqueta con el nombre de la fuente (RF-6, en lugar de
+  su RF-6), y esas cuentas no tienen historial (RF-11, en lugar de su RF-9).
+- **Spec 007**: las cuentas de CS2 verificadas no muestran historial, la diferencia desde la
+  primera lectura ni la posición en la escala del juego (RF-12, en lugar de su RF-14).
+- **Specs 005 y 008**: con un rango de Leetify en la comparación, coincidencias y la ficha de
+  jugador no muestran la distancia de rango, aunque la siguen usando para ordenar y filtrar
+  (RF-25).
 - **Spec 013**: su RF-13 y su "Fuera de alcance" dejan de regir para el rango y el historial
   de CS2; las partidas siguen simuladas. Se agrega el texto de RF-21 junto a "Verificar con
   Steam" y un segundo aviso posible al volver de Steam (RF-15).
 - **`PRODUCT.md`**: "Evidence on Hand" y "Capabilities" se actualizan al implementar esta
-  spec.
+  spec (y otra vez con D26 y D27: sin historial real, atribución con el logo de Leetify).
 
 ## Dudas abiertas
-Ninguna. Las dos dudas abiertas se cerraron en la clarificación del 2026-11-18 (D24, D25).
+Ninguna. Las dos de la clarificación del 2026-11-18 se cerraron con D24 y D25, y la del cambio
+del 2026-11-19 con D30 (reemplazada en pantalla por D31).

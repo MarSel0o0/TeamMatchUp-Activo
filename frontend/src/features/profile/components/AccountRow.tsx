@@ -1,6 +1,7 @@
 import { RefreshCw, Unlink } from 'lucide-react';
 import { formatRank, getGame } from '@/domain/games';
 import { verifiedLabel } from '@/domain/origins';
+import { isLeetifyRank, premierStatusText } from '@/domain/premierDisplay';
 import { isBlockPending } from '@/domain/riotDisplay';
 import type { GameAccount, RankSnapshot } from '@/domain/types';
 import { RiotProfileBlock } from '@/features/riot/components/RiotProfileBlock';
@@ -9,6 +10,7 @@ import { SteamProfileBlock } from '@/features/steam/components/SteamProfileBlock
 import type { SteamProfileOwner } from '@/features/steam/components/SteamProfileBlock';
 import { SteamVerifyButton } from '@/features/steam/components/SteamVerifyButton';
 import { Icon } from '@/shared/components/Icon';
+import { LeetifyAttribution } from '@/shared/components/LeetifyAttribution';
 import { OriginTag } from '@/shared/components/OriginTag';
 import { Stamp } from '@/shared/components/Stamp';
 import {
@@ -70,6 +72,14 @@ export function AccountRow({
   const rank: RankSnapshot | null | undefined = account.currentRank;
   const rankPending = isBlockPending(account, 'rank');
   const riotUnranked = account.verifiedWith === 'riot' && !rankPending && rank == null;
+  // En CS2 verificada con Steam, sin rating, en lugar del rango va «sin rango Premier» o «rango no
+  // disponible» (spec 015, RF-7, RF-8); el rango de Leetify va con su atribución (RF-6).
+  const premierText = premierStatusText(account);
+  const rankTag = isLeetifyRank(account.origins.rank) ? (
+    <LeetifyAttribution handle={account.handle} />
+  ) : (
+    <OriginTag origin={account.origins.rank} />
+  );
 
   return (
     <article className="account">
@@ -112,6 +122,13 @@ export function AccountRow({
                 <OriginTag origin={account.origins.rank} />
               </dd>
             </>
+          ) : premierText !== null ? (
+            <>
+              <dd>{premierText}</dd>
+              <dd>
+                {rankTag}
+              </dd>
+            </>
           ) : (
             <>
               <dd className="num" style={{ color: game.accent }}>
@@ -119,7 +136,7 @@ export function AccountRow({
               </dd>
               {rank ? (
                 <dd>
-                  <OriginTag origin={account.origins.rank} />
+                  {rankTag}
                 </dd>
               ) : null}
             </>

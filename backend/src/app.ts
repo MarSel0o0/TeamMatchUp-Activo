@@ -15,8 +15,10 @@ import { createSessionsRouter } from "./controllers/sessions.ts";
 import { createSteamRouter } from "./controllers/steam.ts";
 import type { SteamIntegration } from "./controllers/steam.ts";
 import { createUsersRouter } from "./controllers/users.ts";
+import type { LeetifyClient } from "./services/leetifyClient.ts";
 import type { SourceRegistry } from "./services/realSources.ts";
 import { createRiotLimiter } from "./services/riotLimiter.ts";
+import { createAccountLock } from "./services/accountLock.ts";
 import { createRiotUserLock } from "./services/riotUserLock.ts";
 import { createSteamSource } from "./services/steamSource.ts";
 import type { NodeEnv } from "./utils/config.ts";
@@ -45,6 +47,11 @@ export interface AppOptions {
   riotIntegration?: RiotIntegration;
   /** Plazo máximo de una operación completa con Riot en ms; por defecto 60 s (RNF-7). */
   operationTimeoutMs?: number;
+  /**
+   * Spec 015: cliente de Leetify para el rango Premier de CS2. Sin él (pruebas antiguas), toda
+   * lectura es un fallo y nunca hay red (P15-9, RNF-1); `index.ts` siempre lo construye.
+   */
+  leetifyClient?: LeetifyClient;
 }
 
 // Reloj real en segundos Unix (el de las credenciales).
@@ -61,9 +68,11 @@ export function createApp(options: AppOptions): Express {
     steamIntegration: steam,
     riotIntegration,
     operationTimeoutMs,
+    leetifyClient,
   } = options;
   const riotLimiter = riotIntegration?.limiter ?? createRiotLimiter();
   const riotUserLock = createRiotUserLock();
+  const accountLock = createAccountLock(); // spec 015, RF-19: uno por instancia (P15-6)
   const sources: SourceRegistry =
     steam !== undefined && options.sources?.cs2 === undefined
       ? { ...options.sources, cs2: createSteamSource(steam.client) }
@@ -99,10 +108,14 @@ export function createApp(options: AppOptions): Express {
       riotLimiter,
       riotUserLock,
       operationTimeoutMs,
+      steamIntegration: steam, // spec 015: CS2 verificada con Steam y Leetify (§4.2)
+      leetify: leetifyClient,
+      accountLock,
     }),
   );
 
-  app.use("/api/steam", createSteamRouter({ jwtSecret, now, steam, sourceTimeoutMs })); // spec 013: con sesión (RNF-6)
+  // Spec 013: con sesión (RNF-6). Spec 015: Leetify al verificar (RF-1, RF-3, RF-15).
+  app.use("/api/steam", createSteamRouter({ jwtSecret, now, steam, sourceTimeoutMs, leetify: leetifyClient }));
   // Spec 014: verificación de LoL por ícono de invocador; todas las rutas exigen sesión.
   app.use(
     "/api/riot",

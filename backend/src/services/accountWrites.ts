@@ -45,7 +45,7 @@ export function toMatchRecord(match: SimulatedMatch): MatchRecordFields {
 }
 
 // Fotografía guardada → fotografía del dominio (sin `division` si no la tiene).
-function toSnapshot(stored: RankSnapshotFields): Snapshot {
+export function toSnapshot(stored: RankSnapshotFields): Snapshot {
   const { tier, division, points, normalized, recordedAt } = stored;
   return division === undefined
     ? { tier, points, normalized, recordedAt }

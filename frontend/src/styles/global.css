@@ -241,6 +241,38 @@ a:hover {
   color: var(--ink-3);
 }
 
+/* Atribución de Leetify (spec 015, RF-6, RNF-8): logo oficial y enlace al perfil. El tema lo elige
+   este CSS: la insignia blanca va en el oscuro (el de defecto) y la negra en el claro. */
+.leetify-attribution {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s2);
+}
+
+.leetify-attribution__logo {
+  display: block;
+  height: 24px;
+  width: auto;
+}
+
+.leetify-attribution__logo--light {
+  display: none;
+}
+
+:root[data-theme='light'] .leetify-attribution__logo--dark {
+  display: none;
+}
+
+:root[data-theme='light'] .leetify-attribution__logo--light {
+  display: block;
+}
+
+.leetify-attribution__link {
+  font-weight: 700;
+  text-decoration: underline;
+}
+
 .num {
   font-family: var(--mono);
   font-variant-numeric: tabular-nums;

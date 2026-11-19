@@ -119,9 +119,11 @@ describe("resincronizar con Steam (RF-14)", () => {
     assert.deepEqual(JSON.parse(JSON.stringify(after?.currentRank)), JSON.parse(JSON.stringify(before?.currentRank)));
     assert.equal(after?.rankHistory.length, before?.rankHistory.length);
     assert.equal(after?.matches.length, before?.matches.length);
+    // Spec 015, RF-6, P15-7: el rango de Steam lo atribuye Leetify. Esta app no tiene cliente de
+    // Leetify: la lectura falla y el rango no cambia (RF-16, RF-18; casos en `cs2Resync.test.ts`).
     assert.deepEqual((response.body as { origins: unknown }).origins, {
       identity: "steam",
-      rank: "simulated",
+      rank: "leetify",
       matches: "simulated",
       profile: "steam",
     });

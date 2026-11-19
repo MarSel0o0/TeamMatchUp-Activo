@@ -40,6 +40,18 @@ que `backend/.env.example` trae comentadas y sin valores:
   (en desarrollo, la de Vite, `http://localhost:5173`; en el servidor del curso, su dirección
   `https`). Steam devuelve al usuario a esa dirección.
 
+### Rango Premier de CS2 con Leetify (clave opcional)
+
+Una cuenta de CS2 verificada con Steam obtiene su rango Premier real de la API pública de
+Leetify, consultada con su SteamID64. No hace falta configurar nada para que funcione: sin clave
+Leetify responde con límites de consulta más bajos. Si quieres subirlos, en `backend/.env`
+(nunca se sube al repositorio) se define una variable opcional, que `backend/.env.example` trae
+comentada y sin valor:
+
+- `LEETIFY_API_KEY`: la clave de la API de Leetify de la instancia (se genera en
+  https://leetify.com/app/developer). Es un secreto: no la subas ni la pegues en un chat. Vacía
+  equivale a no tenerla.
+
 ### Verificar la cuenta de League of Legends con Riot Games (opcional)
 
 Con el servidor (`backend/`), un jugador de League of Legends puede verificar su Riot ID

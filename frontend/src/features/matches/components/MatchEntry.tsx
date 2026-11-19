@@ -7,9 +7,11 @@ import { formatRange, groupBlocks } from '@/domain/availability';
 import { formatRank, getGame } from '@/domain/games';
 import { verifiedLabel } from '@/domain/origins';
 import { scoreLabel } from '@/domain/matching';
+import { isLeetifyRank, scoreOriginLabel, showsRankDistance } from '@/domain/premierDisplay';
 import { blockReason, buildProposal, type Proposal } from '@/domain/proposal';
 import type { MatchCandidate, Origin, RankSnapshot } from '@/domain/types';
 import { useAvailabilityOf } from '@/features/profile/hooks';
+import { LeetifyAttribution } from '@/shared/components/LeetifyAttribution';
 import { OriginTag } from '@/shared/components/OriginTag';
 import { HoursSheet } from '@/shared/components/HoursSheet';
 import { Icon } from '@/shared/components/Icon';
@@ -33,6 +35,8 @@ interface MatchEntryProps {
   viewerBlocks: string[];
   /** La disponibilidad propia ya llegó; mientras no, "Proponer" no puede decidir su motivo. */
   viewerLoaded: boolean;
+  /** Origen del rango propio en este juego: con Leetify en cualquiera de los dos lados no se muestra la distancia (spec 015, RF-25). */
+  ownRankOrigin: Origin;
   /** Recibe la propuesta ya calculada (RF-29); la página navega a la agenda. */
   onPropose?: (proposal: Proposal) => void;
 }
@@ -45,7 +49,7 @@ interface MatchEntryProps {
  * reacomodan deslizándose a su nueva posición en vez de saltar.
  */
 export const MatchEntry = forwardRef<HTMLElement, MatchEntryProps>(function MatchEntry(
-  { candidate, viewerBlocks, viewerLoaded, onPropose },
+  { candidate, viewerBlocks, viewerLoaded, ownRankOrigin, onPropose },
   ref,
 ) {
   const [open, setOpen] = useState(false);
@@ -71,6 +75,12 @@ export const MatchEntry = forwardRef<HTMLElement, MatchEntryProps>(function Matc
   // muestra ni se calcula ninguna distancia con él.
   const rank: RankSnapshot | null | undefined = candidate.account.currentRank;
   const rankOrigin = candidate.account.origins.rank;
+  // Con rango de Leetify, en lugar de la etiqueta va su atribución (spec 015, RF-6).
+  const rankTag = isLeetifyRank(rankOrigin) ? (
+    <LeetifyAttribution handle={candidate.account.handle} className="entry__demo" />
+  ) : (
+    <OriginTag origin={rankOrigin} className="entry__demo" />
+  );
 
   return (
     <motion.article
@@ -103,8 +113,11 @@ export const MatchEntry = forwardRef<HTMLElement, MatchEntryProps>(function Matc
               <span className="entry__rank" style={{ color: game.accent }}>
                 {formatRank(candidate.gameId, rank)}
               </span>
-              <span className="note note--faint num">{rankDistanceText(candidate.rankDistance)}</span>
-              <OriginTag origin={rankOrigin} className="entry__demo" />
+              {/* RF-25, D31: la cifra se oculta con Leetify; el orden y el filtro siguen usándola (D32). */}
+              {showsRankDistance(ownRankOrigin, rankOrigin) ? (
+                <span className="note note--faint num">{rankDistanceText(candidate.rankDistance)}</span>
+              ) : null}
+              {rankTag}
             </>
           ) : (
             <span className="note note--faint">{NO_DATA_TEXT}</span>
@@ -125,7 +138,7 @@ export const MatchEntry = forwardRef<HTMLElement, MatchEntryProps>(function Matc
           <ScoreRing
             score={candidate.score}
             label={scoreLabel(candidate.score)}
-            origin={rankOrigin}
+            origin={scoreOriginLabel(ownRankOrigin, rankOrigin)}
           />
         ) : (
           <span className="note note--faint">{NO_DATA_TEXT}</span>
@@ -179,7 +192,7 @@ export const MatchEntry = forwardRef<HTMLElement, MatchEntryProps>(function Matc
                 <Stamp tone={candidate.account.verified ? 'sealed' : 'warn'}>
                   {verifiedLabel(candidate.account.verifiedWith)}
                 </Stamp>
-                <OriginTag origin={rankOrigin} className="entry__demo" />
+                {rankTag}
                 <span className="note note--faint">
                   Última lectura {timeAgo(candidate.account.lastSyncedAt)}
                 </span>
@@ -206,7 +219,10 @@ export const MatchEntry = forwardRef<HTMLElement, MatchEntryProps>(function Matc
   );
 });
 
-/** Afinidad como anillo que se llena: la columna que el ojo recorre para comparar. */
+/**
+ * Afinidad como anillo que se llena: la columna que el ojo recorre para comparar. El puntaje es de
+ * la plataforma: `origin` lo da `scoreOriginLabel` y con `null` no lleva etiqueta (RF-26).
+ */
 function ScoreRing({
   score,
   label,
@@ -214,7 +230,7 @@ function ScoreRing({
 }: {
   score: number;
   label: string;
-  origin: Origin;
+  origin: Origin | null;
 }) {
   const tone = score >= 75 ? 'var(--volt)' : score >= 50 ? 'var(--ink)' : 'var(--ink-3)';
 
@@ -235,7 +251,7 @@ function ScoreRing({
       </svg>
       <CountUp value={score} className="entry__score-value" />
       <span className="entry__score-label">{label}</span>
-      <OriginTag origin={origin} className="entry__demo" />
+      {origin ? <OriginTag origin={origin} className="entry__demo" /> : null}
     </div>
   );
 }

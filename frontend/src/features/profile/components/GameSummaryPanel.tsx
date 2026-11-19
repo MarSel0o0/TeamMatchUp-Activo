@@ -1,5 +1,6 @@
 import { AlertCircle } from 'lucide-react';
 import { formatRank } from '@/domain/games';
+import { LEETIFY_NO_HISTORY_TEXT, isLeetifyRank } from '@/domain/premierDisplay';
 import { isBlockPending } from '@/domain/riotDisplay';
 import type { SteamProfileOwner } from '@/features/steam/components/SteamProfileBlock';
 import { readNormalized, readWinRate } from '@/domain/playerSheet';
@@ -72,6 +73,10 @@ export function GameSummaryPanel({
   // `RankScale` usa con el rango vigente (spec 008, RF-17; P52).
   const hasRank = !rankPending && currentRank != null && readNormalized(summary.account) !== null;
   const winRate = readWinRate(summary);
+  // Rango de Leetify (CS2 con Steam): nunca hay historial ni se muestra la posición en la escala,
+  // así que la sección lleva solo el texto de RF-12; el texto de estado y la atribución ya van en
+  // `AccountRow` (spec 015, RF-6, RF-7, RF-8, RF-12, D31).
+  const fromLeetify = isLeetifyRank(summary.account.origins.rank);
 
   return (
     <div className="ficha__game">
@@ -96,38 +101,45 @@ export function GameSummaryPanel({
         />
 
         <div className="ficha__scale">
-          <div className="line-between">
-            <span className="label">{SCALE_POSITION_LABEL}</span>
-            <span>
-              <span className="note note--faint">
-                {pluralize(
-                  summary.account.rankHistory.length,
-                  READINGS_UNIT.one,
-                  READINGS_UNIT.other,
-                )}
-              </span>
-              {' · '}
-              <OriginTag origin={summary.account.origins.rank} />
-            </span>
-          </div>
-          {rankPending ? (
-            <p className="note note--faint">{RIOT_PENDING_LABEL}</p>
-          ) : riotUnranked ? (
-            <p className="note note--faint">{RIOT_UNRANKED_LABEL}</p>
-          ) : hasRank ? (
-            <>
-              <RankScale
-                gameId={summary.account.gameId}
-                history={summary.account.rankHistory}
-                current={currentRank}
-              />
-              <p className="note note--faint">
-                {FIRST_READING_LABEL}{' '}
-                {firstRank ? formatRank(summary.account.gameId, firstRank) : NO_DATA_TEXT}
-              </p>
-            </>
+          {/* Con Leetify, ni lecturas que contar ni posición en la escala: solo el texto (RF-12, D31). */}
+          {fromLeetify ? (
+            <p className="note note--faint">{LEETIFY_NO_HISTORY_TEXT}</p>
           ) : (
-            <p className="note note--faint">{NO_DATA_TEXT}</p>
+            <>
+              <div className="line-between">
+                <span className="label">{SCALE_POSITION_LABEL}</span>
+                <span>
+                  <span className="note note--faint">
+                    {pluralize(
+                      summary.account.rankHistory.length,
+                      READINGS_UNIT.one,
+                      READINGS_UNIT.other,
+                    )}
+                  </span>
+                  {' · '}
+                  <OriginTag origin={summary.account.origins.rank} />
+                </span>
+              </div>
+              {rankPending ? (
+                <p className="note note--faint">{RIOT_PENDING_LABEL}</p>
+              ) : riotUnranked ? (
+                <p className="note note--faint">{RIOT_UNRANKED_LABEL}</p>
+              ) : hasRank ? (
+                <>
+                  <RankScale
+                    gameId={summary.account.gameId}
+                    history={summary.account.rankHistory}
+                    current={currentRank}
+                  />
+                  <p className="note note--faint">
+                    {FIRST_READING_LABEL}{' '}
+                    {firstRank ? formatRank(summary.account.gameId, firstRank) : NO_DATA_TEXT}
+                  </p>
+                </>
+              ) : (
+                <p className="note note--faint">{NO_DATA_TEXT}</p>
+              )}
+            </>
           )}
         </div>
       </div>

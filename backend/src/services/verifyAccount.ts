@@ -8,10 +8,15 @@
 //   vinculada a mano, esa misma cuenta pasa a verificada (RF-13).
 // - Sin transacciones: si falla el borrado final (RF-11), la cuenta queda verificada y las
 //   ajenas sin verificar siguen vinculadas hasta la próxima verificación (R1; aceptado).
+// - Spec 015 (plan, §2 y §4.3): con Steam y una lectura de Leetify (`premier`), el rango y el
+//   historial salen de `verifiedPremier` y se descarta lo simulado (RF-3, RF-15); las partidas
+//   siguen simuladas (RF-13 de la 013).
 import mongoose from "mongoose";
 import { initialState } from "../domain/accountState.ts";
 import { GAMES } from "../domain/games.ts";
 import type { GameId } from "../domain/games.ts";
+import { verifiedPremier } from "../domain/leetify.ts";
+import type { LeetifyReading, PremierState } from "../domain/leetify.ts";
 import { canonicalHandle } from "../domain/rankSimulator.ts";
 import type { PendingBlock } from "../domain/riotChallenge.ts";
 import type { RiotMatchRecord, RiotRankSnapshot } from "../domain/riotData.ts";
@@ -57,6 +62,8 @@ export interface VerifyInput {
   verification: { source: SourceId; externalId: string };
   /** Lo que la fuente entregó al verificar (fuentes genéricas 012/013). */
   real?: RealData;
+  /** Spec 015: lectura de Leetify al verificar con Steam; reemplaza el rango simulado (RF-3). */
+  premier?: LeetifyReading;
   /** Estado completo o parcial de Riot Games ya calculado por `applyRiotReading` (spec 014). */
   riotState?: RiotVerifyState;
   now: Date;
@@ -126,14 +133,24 @@ function convert(account: GameAccountDocument, input: VerifyInput): void {
     throw new Error("verifyAccount requiere `real` o `riotState`");
   }
   const next = verifiedState(toAccountState(account), input.real, input.now);
-  account.currentRank = next.currentRank;
-  account.rankHistory = next.rankHistory;
+  const premier = premierStateOf(input);
+  // `null` es un valor de Leetify (sin rango), no «falta»: no puede caer al simulado.
+  account.currentRank = premier === undefined ? next.currentRank : premier.currentRank;
+  account.rankHistory = premier === undefined ? next.rankHistory : premier.rankHistory;
+  if (premier !== undefined) account.premier = premier.premier;
   account.matches = next.matches.map(toMatchRecord);
   account.lastSyncedAt = next.lastSyncedAt;
   account.handle = input.handle;
   if (input.region !== undefined) account.region = input.region;
   account.verification = { ...input.verification, verifiedAt: input.now };
   if (input.real.profile !== undefined) account.profile = input.real.profile;
+}
+
+// Spec 015, RF-3, RF-15: estado del rango de una cuenta que se verifica con Steam y trae la
+// lectura de Leetify. Sin lectura (u otra fuente), `undefined`: rige lo de la 012.
+function premierStateOf(input: VerifyInput): PremierState | undefined {
+  if (input.verification.source !== "steam" || input.premier === undefined) return undefined;
+  return verifiedPremier(input.premier, input.now);
 }
 
 // Cuenta nueva ya verificada: para Riot usa `riotState`; para fuentes genéricas (012/013) la base
@@ -173,13 +190,15 @@ async function createVerified(input: VerifyInput): Promise<GameAccountDocument> 
     input.now,
   );
   const state = verifiedState(base, input.real, input.now);
+  const premier = premierStateOf(input);
   return GameAccount.create({
     user: input.userId,
     gameId: input.gameId,
     handle: input.handle,
     region,
-    currentRank: state.currentRank,
-    rankHistory: state.rankHistory,
+    currentRank: premier === undefined ? state.currentRank : premier.currentRank,
+    rankHistory: premier === undefined ? state.rankHistory : premier.rankHistory,
+    ...(premier === undefined ? {} : { premier: premier.premier }),
     matches: state.matches.map(toMatchRecord),
     readingNumber: state.readingNumber,
     lastSyncedAt: state.lastSyncedAt,

@@ -17,6 +17,7 @@ import { SESSION_MESSAGES } from "../../src/services/sessionToken.ts";
 import { GAME_IDS } from "../../src/domain/games.ts";
 import type { GameId } from "../../src/domain/games.ts";
 import { ladder, normalizeStep } from "../../src/domain/rankScale.ts";
+import { LEETIFY_ERRORS } from "../../src/domain/leetify.ts";
 import { testConfig } from "../server/helpers.ts";
 import {
   FIXED_NOW,
@@ -1046,5 +1047,93 @@ describe("filtros y orden", () => {
     }
     const noSession = await supertest(app).get(`${MATCHES}?game=lol`);
     assert.doesNotMatch(withoutAttribution(noSession.body), /riot|ubisoft|valve|faceit/i);
+  });
+});
+
+// --- CS2 con rango Premier de Leetify (spec 015, RF-7, RF-8, RF-10, RF-18, RF-22) -----------------
+type PremierSetup = "rated" | "unrated" | "unavailable" | "legacy";
+
+let steamIdCounter = 0;
+
+// Cuenta de CS2 verificada con Steam. `legacy` es anterior a la spec 015: sin `premier` y con
+// rango simulado.
+async function createSteamAccount(userId: string, state: PremierSetup, handle: string) {
+  const hasRank = state === "rated" || state === "legacy";
+  const snapshot = snapshotAt("cs2", 3, 17000);
+  steamIdCounter += 1;
+  return GameAccount.create({
+    user: userId,
+    gameId: "cs2",
+    handle,
+    region: "LAS",
+    currentRank: hasRank ? snapshot : null,
+    rankHistory: hasRank ? [snapshot] : [],
+    matches: [],
+    readingNumber: 0,
+    lastSyncedAt: new Date(FIXED_NOW),
+    verification: {
+      source: "steam",
+      externalId: `7656119800001${String(steamIdCounter).padStart(4, "0")}`,
+      verifiedAt: new Date(FIXED_NOW),
+    },
+    ...(state === "legacy" ? {} : { premier: state }),
+  });
+}
+
+describe("CS2 sin rango Premier (spec 015, RF-7, RF-8, RF-10, RF-18, RF-22)", () => {
+  test("cuenta propia sin rango Premier → 409 con el texto de RF-10 (RF-7)", async () => {
+    const ana = await sessionUser({});
+    await createSteamAccount(ana.id, "unrated", "ana-steam");
+
+    assertStatusError(await get(ana, "?game=cs2"), 409, LEETIFY_ERRORS.noPremierForMatches);
+  });
+
+  test("cuenta propia con rango no disponible → 409 con el otro texto (RF-8)", async () => {
+    const ana = await sessionUser({});
+    await createSteamAccount(ana.id, "unavailable", "ana-steam");
+
+    assertStatusError(await get(ana, "?game=cs2"), 409, LEETIFY_ERRORS.premierUnavailableForMatches);
+  });
+
+  test("el 409 va después del 400 de filtros y no afecta a otros juegos (RF-10)", async () => {
+    const ana = await sessionUser({ accounts: { lol: { step: 15 } } });
+    await createSteamAccount(ana.id, "unrated", "ana-steam");
+    await addPlayer("beto", { accounts: { lol: { step: 15 } } });
+
+    assert.strictEqual((await get(ana, "?game=cs2&minSharedHours=-1")).status, 400);
+    assert.strictEqual((await get(ana, "?game=cs2")).status, 409);
+    assert.deepStrictEqual(await usernames(ana, "?game=lol&maxRankDistance=100"), ["beto"]);
+  });
+
+  test("candidatas sin rating no aparecen y la que tiene rating sí (RF-7, RF-8, RF-18)", async () => {
+    const ana = await sessionUser({});
+    await createSteamAccount(ana.id, "rated", "ana-steam");
+    for (const [name, state] of [
+      ["beto", "rated"],
+      ["carla", "unrated"],
+      ["dario", "unavailable"],
+    ] as const) {
+      const id = await addPlayer(name);
+      await createSteamAccount(id, state, `${name}-steam`);
+    }
+
+    assert.deepStrictEqual(await usernames(ana, "?game=cs2&maxRankDistance=100"), ["beto"]);
+  });
+
+  test("verificada con Steam sin `premier` (anterior a la 015): 409 propia y fuera como candidata", async () => {
+    const ana = await sessionUser({});
+    await createSteamAccount(ana.id, "rated", "ana-steam");
+    const beto = await signUp(app, BETO);
+    await createSteamAccount(beto.id, "legacy", "beto-steam");
+
+    assert.deepStrictEqual(await usernames(ana, "?game=cs2&maxRankDistance=100"), []);
+    assertStatusError(await get(beto, "?game=cs2"), 409, LEETIFY_ERRORS.premierUnavailableForMatches);
+  });
+
+  test("CS2 sin verificar sigue buscando con su rango simulado, y entre ellas (RF-22)", async () => {
+    const ana = await sessionUser({ accounts: { cs2: { step: 3, points: 17000 } } });
+    await addPlayer("beto", { accounts: { cs2: { step: 3, points: 17000 } } });
+
+    assert.deepStrictEqual(await usernames(ana, "?game=cs2&maxRankDistance=100"), ["beto"]);
   });
 });

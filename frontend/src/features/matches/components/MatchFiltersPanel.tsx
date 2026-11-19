@@ -10,6 +10,8 @@ interface MatchFiltersPanelProps {
   onChange: (filters: MatchFilters) => void;
   resultCount: number;
   onReset: () => void;
+  /** Todos los controles desactivados: CS2 sin rango Premier propio, no hay búsqueda posible (spec 015, RF-10). */
+  disabled?: boolean;
 }
 
 /** Casillas del formulario de búsqueda. Se aplican sin recargar la página. */
@@ -18,6 +20,7 @@ export function MatchFiltersPanel({
   onChange,
   resultCount,
   onReset,
+  disabled = false,
 }: MatchFiltersPanelProps) {
   const patch = (changes: Partial<MatchFilters>) => onChange({ ...filters, ...changes });
 
@@ -44,6 +47,7 @@ export function MatchFiltersPanel({
               type="search"
               placeholder="Nombre o usuario"
               value={filters.search}
+              disabled={disabled}
               onChange={(event) => patch({ search: event.target.value })}
             />
           </div>
@@ -62,6 +66,7 @@ export function MatchFiltersPanel({
             max={50}
             step={5}
             value={filters.maxRankDistance}
+            disabled={disabled}
             style={{ '--fill': `${(filters.maxRankDistance / 50) * 100}%` } as CSSProperties}
             onChange={(event) => patch({ maxRankDistance: Number(event.target.value) })}
           />
@@ -83,6 +88,7 @@ export function MatchFiltersPanel({
             max={12}
             step={1}
             value={filters.minSharedHours}
+            disabled={disabled}
             style={{ '--fill': `${(filters.minSharedHours / 12) * 100}%` } as CSSProperties}
             onChange={(event) => patch({ minSharedHours: Number(event.target.value) })}
           />
@@ -92,12 +98,13 @@ export function MatchFiltersPanel({
           <input
             type="checkbox"
             checked={filters.onlyVerified}
+            disabled={disabled}
             onChange={(event) => patch({ onlyVerified: event.target.checked })}
           />
           Solo cuentas verificadas
         </label>
 
-        <button type="button" className="btn btn--sm" onClick={onReset}>
+        <button type="button" className="btn btn--sm" onClick={onReset} disabled={disabled}>
           Restablecer criterios
         </button>
       </div>

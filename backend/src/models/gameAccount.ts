@@ -8,12 +8,16 @@
 //   (sin clasificar o rango pendiente), `pendingBlocks` (solo en JSON si no vacío),
 //   `MatchRecordFields.rankDelta` opcional, `RankSnapshotFields.canonicalTier` interno,
 //   `lastSuccessfulSyncAt` interno y `riotLpBaseline` interno (nunca en JSON).
+// - Spec 015 (plan, §2, P15-1, P15-2): cuentas de CS2 verificadas con Steam guardan `premier`
+//   (interno) con el estado de su rango Premier de Leetify; sin rating (`unrated` o
+//   `unavailable`) admiten `currentRank: null` y el JSON dice `premierStatus`.
 // - El esquema repite las validaciones como red de seguridad; los mensajes que ve el cliente
 //   salen de `domain/accountRules.ts` (P-9).
 import { Schema, model } from "mongoose";
 import type { HydratedDocument, Types } from "mongoose";
 import { GAME_IDS } from "../domain/games.ts";
 import type { GameId } from "../domain/games.ts";
+import type { PremierStatus } from "../domain/leetify.ts";
 import { canonicalHandle } from "../domain/rankSimulator.ts";
 import type { PendingBlock } from "../domain/riotChallenge.ts";
 import type { RiotLpBaseline } from "../domain/riotLpDelta.ts";
@@ -25,6 +29,12 @@ const MAX_STORED_MATCHES = 20;
 
 /** Bloques de una cuenta verificada con Riot que pueden quedar pendientes (spec 014, D80, D82). */
 export const PENDING_BLOCKS: readonly PendingBlock[] = ["rank", "matches", "profile"];
+
+/** Estados del rango Premier de una cuenta de CS2 verificada con Steam (spec 015, plan, §1). */
+export const PREMIER_STATUSES: readonly PremierStatus[] = ["rated", "unrated", "unavailable"];
+
+/** Lo que el cliente sabe de una cuenta sin rating: no se expone `rated`, lo dice `currentRank` (P15-2). */
+export type PremierStatusJson = Exclude<PremierStatus, "rated">;
 
 export interface RankSnapshotFields {
   tier: string;
@@ -77,7 +87,11 @@ export interface GameAccountFields {
   /** `canonicalHandle(handle)`, calculado al validar; sirve para RF-11 y RF-12 (P12-4). */
   handleKey: string;
   region: string;
-  /** Puede ser `null` solo en cuentas verificadas con Riot sin clasificar o con rango pendiente (spec 014). */
+  /**
+   * Puede ser `null` solo en cuentas verificadas con Riot sin clasificar o con rango pendiente
+   * (spec 014) y en cuentas verificadas con Steam sin rango Premier o con el rango no disponible
+   * (spec 015).
+   */
   currentRank: RankSnapshotFields | null;
   rankHistory: RankSnapshotFields[];
   matches: MatchRecordFields[];
@@ -91,6 +105,12 @@ export interface GameAccountFields {
   lastSuccessfulSyncAt?: Date | null;
   /** Referencia de última lectura completa para variación de LP (RF-30, P14-4). Interno. */
   riotLpBaseline?: RiotLpBaselineFields | null;
+  /**
+   * Estado del rango Premier de Leetify; solo en cuentas de CS2 verificadas con Steam (spec 015,
+   * RF-7, RF-8, RF-20, P15-1). Sin él, la cuenta es anterior a la spec 015 o no está verificada
+   * (RF-22). Interno: nunca sale en JSON.
+   */
+  premier?: PremierStatus;
 }
 
 export type GameAccountDocument = HydratedDocument<GameAccountFields>;
@@ -118,6 +138,8 @@ export interface GameAccountJson {
   verifiedAt?: Date;
   profile?: AccountProfileFields;
   pendingBlocks?: PendingBlock[];
+  /** Solo si la cuenta de CS2 no tiene rating: «sin rango Premier» o «rango no disponible» (P15-2). */
+  premierStatus?: PremierStatusJson;
 }
 
 const integer = {
@@ -208,11 +230,14 @@ function toProfileJson(profile: AccountProfileFields): AccountProfileFields {
 
 // Lista blanca: un campo nuevo del esquema no se expone salvo que se añada aquí.
 // `verified` y `origins` se derivan de `verification` (spec 012, RF-1, RF-5, RF-22).
-// `pendingBlocks` solo sale cuando no está vacío (spec 014, §3.2, P14-5).
+// `pendingBlocks` solo sale cuando no está vacío (spec 014, §3.2, P14-5). `premierStatus` solo
+// sale sin rating, y `premier` nunca (spec 015, P15-2). Una CS2 verificada con Steam sin `premier`
+// (anterior a la 015, sin migrar) dice `unavailable` (RF-8).
 export function toGameAccountJson(account: GameAccountDocument): GameAccountJson {
   const verification = account.verification ?? undefined;
   const profile = account.profile ?? undefined;
   const pendingBlocks = account.pendingBlocks;
+  const premier = account.premier;
   return {
     id: account._id.toString(),
     userId: account.user.toString(),
@@ -231,6 +256,11 @@ export function toGameAccountJson(account: GameAccountDocument): GameAccountJson
     ...(pendingBlocks !== undefined && pendingBlocks.length > 0
       ? { pendingBlocks: [...pendingBlocks] }
       : {}),
+    ...(premier === "unrated" || premier === "unavailable"
+      ? { premierStatus: premier }
+      : premier === undefined && account.gameId === "cs2" && verification?.source === "steam"
+        ? { premierStatus: "unavailable" as const } // sin migrar (RF-8, plan §12.2)
+        : {}),
   };
 }
 
@@ -246,8 +276,11 @@ const GameAccountSchema = new Schema<GameAccountFields>(
     region: { type: String, required: true },
     currentRank: {
       type: RankSnapshotSchema,
+      // Sin rango solo en cuentas verificadas con Riot (spec 014) y con Steam sin rating (spec 015).
       required(this: GameAccountFields) {
-        return this.verification?.source !== "riot";
+        const source = this.verification?.source;
+        if (source === "riot") return false;
+        return !(source === "steam" && (this.premier === "unrated" || this.premier === "unavailable"));
       },
       default: null,
     },
@@ -270,6 +303,7 @@ const GameAccountSchema = new Schema<GameAccountFields>(
     },
     lastSuccessfulSyncAt: { type: Date, default: undefined },
     riotLpBaseline: { type: RiotLpBaselineSchema, default: undefined },
+    premier: { type: String, enum: PREMIER_STATUSES, default: undefined },
   },
   {
     optimisticConcurrency: true,

@@ -82,6 +82,13 @@ export default function ProfilePage() {
         </p>
       ) : null}
 
+      {steamNotice?.extra ? (
+        <p className="notice notice--error" role="alert">
+          <Icon as={AlertCircle} size={15} />
+          {steamNotice.extra}
+        </p>
+      ) : null}
+
       {riotNotice ? (
         <p
           className={riotNotice.tone === 'error' ? 'notice notice--error' : 'notice notice--pen'}

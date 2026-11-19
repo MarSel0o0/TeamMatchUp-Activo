@@ -61,7 +61,11 @@ export default function SteamReturnPage() {
       (result) =>
         finish(
           result.outcome === 'verified'
-            ? { tone: 'ok', text: STEAM_NOTICES.verified }
+            ? {
+                tone: 'ok',
+                text: STEAM_NOTICES.verified,
+                ...(result.notice ? { extra: result.notice } : {}),
+              }
             : { tone: 'ok', text: STEAM_NOTICES.cancelled },
         ),
       (error: unknown) => {

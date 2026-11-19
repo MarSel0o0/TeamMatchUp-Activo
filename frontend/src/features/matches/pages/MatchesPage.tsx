@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/app/routes';
 import type { Proposal } from '@/domain/proposal';
-import type { GameId, MatchFilters } from '@/domain/types';
+import type { GameId, MatchFilters, Origin } from '@/domain/types';
 import { useAccounts, useAvailability } from '@/features/profile/hooks';
 import { ApiError } from '@/services/api';
 import { GameTabs } from '@/shared/components/GameTabs';
@@ -56,7 +56,14 @@ export default function MatchesPage() {
   const matchesQuery = useMatches(appliedFilters, activeGame !== null);
   const candidates = matchesQuery.isError ? [] : (matchesQuery.data ?? []);
   const viewerBlocks = availabilityQuery.data ?? [];
+  // Spec 015, RF-25: origen del rango propio en el juego activo, para ocultar la distancia si es
+  // de Leetify. Sin cuenta propia del juego la lista no se pinta (sin cuentas sale el aviso de
+  // vincular y sin juego activo la consulta no corre); el valor por defecto solo cubre ese caso,
+  // y el origen del candidato se sigue comprobando en cada fila.
+  const ownRankOrigin: Origin =
+    accounts.find((account) => account.gameId === activeGame)?.origins.rank ?? 'simulated';
   // Spec 014, RF-33 y RF-44: cuenta de LoL verificada sin clasificar o con rango pendiente.
+  // Spec 015, RF-10: en CS2 el mismo 409 dice que la cuenta no tiene rango Premier.
   const conflictMessage =
     matchesQuery.isError &&
     matchesQuery.error instanceof ApiError &&
@@ -65,6 +72,7 @@ export default function MatchesPage() {
     matchesQuery.error.message
       ? matchesQuery.error.message
       : null;
+  const premierConflict = conflictMessage !== null && activeGame === 'cs2';
 
   // Una sola navegación por visita a la página: dos pulsaciones seguidas de "Proponer" no
   // dejan dos entradas en el historial (RF-29).
@@ -127,6 +135,7 @@ export default function MatchesPage() {
           onChange={setFilters}
           resultCount={candidates.length}
           onReset={() => setFilters({ gameId: filters.gameId, ...DEFAULT_FILTERS })}
+          disabled={premierConflict}
         />
 
         <section className="sheet sheet--punched">
@@ -144,6 +153,12 @@ export default function MatchesPage() {
               <p className="notice notice--pen" role="status">
                 <Icon as={AlertCircle} size={15} />
                 {conflictMessage}
+                {premierConflict ? (
+                  <>
+                    {' '}
+                    <Link to={ROUTES.profile}>Ir a tu perfil</Link>
+                  </>
+                ) : null}
               </p>
             </div>
           ) : matchesQuery.isError ? (
@@ -182,6 +197,7 @@ export default function MatchesPage() {
                     candidate={candidate}
                     viewerBlocks={viewerBlocks}
                     viewerLoaded={availabilityQuery.isSuccess}
+                    ownRankOrigin={ownRankOrigin}
                     onPropose={proposeSession}
                   />
                 ))}

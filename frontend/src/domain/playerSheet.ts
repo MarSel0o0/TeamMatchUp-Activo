@@ -10,7 +10,8 @@ import { GAME_IDS } from './games';
 import { rankDistance } from './matching';
 import { blockReason, buildProposal } from './proposal';
 import type { BlockReason, Proposal } from './proposal';
-import type { GameId, Origin, TimeBlock } from './types';
+import { premierStatusText, showsRankDistance } from './premierDisplay';
+import type { GameId, Origin, PremierStatus, TimeBlock } from './types';
 
 /** Estado de un dato ya traducido desde la consulta (la traducción vive en los hooks). */
 export type Loadable<T> = { state: 'loading' } | { state: 'failed' } | { state: 'ready'; value: T };
@@ -99,13 +100,20 @@ export function readWinRate(summary: { winRate?: unknown } | null | undefined): 
   return finiteOrNull(summary?.winRate);
 }
 
-/** RF-6, RF-13, RF-17, RF-27, P19, P33: qué se muestra en el lugar de la distancia. */
+/**
+ * RF-6, RF-13, RF-17, RF-27, P19, P33: qué se muestra en el lugar de la distancia. Spec 015 (RF-6,
+ * RF-7, RF-8): con `handle` la etiqueta de origen puede enlazar al perfil de Leetify, y una cuenta
+ * de CS2 sin rating muestra su texto de estado en lugar de «Sin datos». Spec 015 (RF-25, D31): si
+ * cualquiera de los dos rangos es de Leetify, en lugar de la cifra va `leetifyHidden`.
+ */
 export type DistanceView =
   | { kind: 'loading' }
   | { kind: 'failed'; source: 'ownAccounts' | 'summary' }
   | { kind: 'noOwnAccount'; gameId: GameId }
   | { kind: 'noData' }
-  | { kind: 'value'; points: number; origin: Origin };
+  | { kind: 'noPremier'; text: string; origin: Origin; handle: string }
+  | { kind: 'leetifyHidden'; origin: Origin; handle: string }
+  | { kind: 'value'; points: number; origin: Origin; handle: string };
 
 /**
  * Primero las cuentas propias (RF-13 prevalece sobre RF-17 y sobre el estado del resumen,
@@ -114,9 +122,18 @@ export type DistanceView =
 export function distanceView(input: {
   gameId: GameId;
   myAccounts: Loadable<
-    readonly { gameId: GameId; currentRank?: { normalized?: unknown } | null }[]
+    readonly {
+      gameId: GameId;
+      currentRank?: { normalized?: unknown } | null;
+      origins: { rank: Origin };
+    }[]
   >;
-  theirAccount: Loadable<{ currentRank?: { normalized?: unknown } | null; origins: { rank: Origin } }>;
+  theirAccount: Loadable<{
+    currentRank?: { normalized?: unknown } | null;
+    origins: { rank: Origin };
+    handle: string;
+    premierStatus?: PremierStatus;
+  }>;
 }): DistanceView {
   const mine = input.myAccounts;
   if (mine.state === 'loading') return { kind: 'loading' };
@@ -130,11 +147,21 @@ export function distanceView(input: {
 
   const myNormalized = readNormalized(own);
   const theirNormalized = readNormalized(theirs.value);
-  if (myNormalized === null || theirNormalized === null) return { kind: 'noData' };
+  if (myNormalized === null) return { kind: 'noData' };
+  const { handle, origins } = theirs.value;
+  if (theirNormalized === null) {
+    const text = premierStatusText(theirs.value);
+    return text === null ? { kind: 'noData' } : { kind: 'noPremier', text, origin: origins.rank, handle };
+  }
+  // RF-25, D31: con un rango de Leetify en cualquiera de los dos lados no se muestra la cifra.
+  if (!showsRankDistance(own.origins.rank, origins.rank)) {
+    return { kind: 'leetifyHidden', origin: origins.rank, handle };
+  }
   return {
     kind: 'value',
     points: rankDistance({ normalized: myNormalized }, { normalized: theirNormalized }),
-    origin: theirs.value.origins.rank,
+    origin: origins.rank,
+    handle,
   };
 }
 

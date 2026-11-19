@@ -6,6 +6,7 @@
 // utilizable), el mensaje va por el logger (callado en prueba, D10) y el código es 1.
 import { createApp } from "./app.ts";
 import { startServer } from "./server.ts";
+import { createLeetifyClient } from "./services/leetifyClient.ts";
 import { createRiotClient } from "./services/riotClient.ts";
 import { createSteamClient } from "./services/steamClient.ts";
 import { formatConfigErrors, loadConfig } from "./utils/config.ts";
@@ -20,10 +21,12 @@ if (!result.ok) {
 try {
   // Spec 013 (RF-22, RNF-2) y spec 014 (RF-38, RNF-4): las claves solo construyen sus clientes;
   // sin ellas no hay integración y `/api/steam` o `/api/riot` responden que no están disponibles.
-  const { jwtSecret, nodeEnv, steam, riot } = result.config;
+  // Spec 015 (D24, P15-9): Leetify funciona sin clave, así que su cliente se construye siempre.
+  const { jwtSecret, nodeEnv, steam, riot, leetify } = result.config;
   const app = createApp({
     jwtSecret,
     nodeEnv,
+    leetifyClient: createLeetifyClient({ apiKey: leetify.apiKey }),
     ...(steam === null
       ? {}
       : { steamIntegration: { publicUrl: steam.publicUrl, client: createSteamClient({ apiKey: steam.apiKey }) } }),

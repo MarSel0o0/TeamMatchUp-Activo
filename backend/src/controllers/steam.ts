@@ -5,8 +5,11 @@
 // T6: `POST /complete` (la vuelta de Steam, RF-4 a RF-9, RF-12).
 // - Sin Steam configurado (`steam` indefinido) la ruta responde igual: disponible `false` y 503.
 // - La clave de Steam no llega aquí: vive solo en el cliente (`steamClient.ts`, RNF-2).
+// Spec 015, T4 (plan, §4.3, P15-5, P15-9): tras la confirmación, perfil de Steam y rango Premier de
+// Leetify en paralelo; sin cliente de Leetify la lectura es un fallo. RF-1, RF-2, RF-3, RF-15.
 import { Router } from "express";
 import { ACCOUNT_ERRORS } from "../domain/accountRules.ts";
+import { LEETIFY_NOTICES } from "../domain/leetify.ts";
 import { SOURCE_NAMES } from "../domain/sources.ts";
 import { attemptStatus } from "../domain/steamAttempt.ts";
 import {
@@ -17,7 +20,8 @@ import {
 } from "../domain/steamOpenId.ts";
 import { STEAM_ERRORS, parseCompleteBody } from "../domain/steamRules.ts";
 import { GameAccount } from "../models/gameAccount.ts";
-import { SOURCE_TIMEOUT_MS, readWithTimeout } from "../services/realSources.ts";
+import type { LeetifyClient } from "../services/leetifyClient.ts";
+import { SOURCE_TIMEOUT_MS, readPremierWithTimeout, readWithTimeout } from "../services/realSources.ts";
 import { consumeAttempt, discardAttempt, findAttempt, openAttempt } from "../services/steamAttempts.ts";
 import type { AssertionResult, SteamClient } from "../services/steamClient.ts";
 import { createSteamSource } from "../services/steamSource.ts";
@@ -36,8 +40,10 @@ export interface SteamRouterOptions {
   jwtSecret: string;
   now: () => number; // segundos Unix (reloj de las credenciales)
   steam?: SteamIntegration | undefined;
-  /** Plazo de cada consulta a Steam en ms; por defecto 8 s (RNF-5 de la 012). */
+  /** Plazo de cada consulta a Steam y a Leetify en ms; por defecto 8 s (RNF-5 de la 012, RNF-4). */
   sourceTimeoutMs?: number | undefined;
+  /** Spec 015: cliente de Leetify; sin él, toda lectura del rango Premier es un fallo (P15-9). */
+  leetify?: LeetifyClient | undefined;
 }
 
 // Confirma la respuesta con Steam con plazo (RF-9). Un plazo vencido o cualquier fallo es
@@ -66,6 +72,7 @@ export function createSteamRouter({
   now,
   steam,
   sourceTimeoutMs = SOURCE_TIMEOUT_MS,
+  leetify,
 }: SteamRouterOptions): Router {
   const router = Router();
   const source = steam === undefined ? undefined : createSteamSource(steam.client);
@@ -103,7 +110,8 @@ export function createSteamRouter({
   // RF-4 a RF-9, RF-12 (plan, 4.2). Orden: sesión (`withUser`) → configurado → cuerpo →
   // cancelación (RF-5) → intento (existe, es del usuario, vigente) y se consume → respuesta de
   // Steam (validación local) → sin cuenta de CS2 verificada → confirmación con Steam (RF-9) →
-  // perfil (si falla, sin perfil: RF-12) → `verifyAccount` de la spec 012 (RF-8).
+  // perfil (si falla, sin perfil: RF-12) y Leetify en paralelo (015, P15-5) → `verifyAccount` de
+  // la spec 012 (RF-8).
   router.post("/complete", async (request, response) => {
     if (steam === undefined || source === undefined) {
       response.status(503).json({ error: STEAM_ERRORS.notConfigured });
@@ -182,11 +190,12 @@ export function createSteamRouter({
     }
 
     // RF-10, RF-12: perfil y horas. Si la lectura falla, la cuenta se verifica igual, sin perfil.
-    const read = await readWithTimeout(
-      source,
-      { gameId: "cs2", handle: parsed.steamId, externalId: parsed.steamId },
-      sourceTimeoutMs,
-    );
+    // Spec 015, RF-1, D20, P15-5: el rango Premier de Leetify se lee a la vez y aunque el perfil
+    // falle; un fallo de Leetify tampoco impide verificar (RF-15).
+    const [read, premier] = await Promise.all([
+      readWithTimeout(source, { gameId: "cs2", handle: parsed.steamId, externalId: parsed.steamId }, sourceTimeoutMs),
+      readPremierWithTimeout(leetify, parsed.steamId, sourceTimeoutMs),
+    ]);
     const real = read.ok ? { ...read.data, handle: parsed.steamId } : { handle: parsed.steamId };
 
     // RF-4, RF-8, RF-13: spec 012. Sin región: la cuenta propia conserva la suya y una nueva toma
@@ -197,13 +206,19 @@ export function createSteamRouter({
       handle: parsed.steamId,
       verification: { source: "steam", externalId: parsed.steamId },
       real,
+      premier, // spec 015, RF-3: reemplaza el rango simulado
       now: at,
     });
     if (!result.ok) {
+      // 409/404: la lectura de Leetify se descarta sin escribir nada (plan, §4.3).
       response.status(result.status).json({ error: result.error });
       return;
     }
-    response.status(200).json({ outcome: "verified", account: result.account });
+    response.status(200).json({
+      outcome: "verified",
+      account: result.account,
+      ...(premier.kind === "failed" ? { notice: LEETIFY_NOTICES.verifyFailed } : {}), // RF-15
+    });
   });
 
   return router;

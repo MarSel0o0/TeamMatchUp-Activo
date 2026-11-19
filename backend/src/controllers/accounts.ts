@@ -10,6 +10,9 @@
 // Spec 012, T6: resincronizar una cuenta verificada consulta su fuente real (RF-15) con la
 // espera mínima (RF-16), sin cambiar nada si la fuente falla (RF-19, RF-21); la cuenta sin
 // verificar sigue como en la 004 (RF-18).
+// Spec 015, T5: una cuenta de CS2 verificada con Steam, con Steam configurado, se resincroniza
+// con `syncSteamAccount` (perfil de Steam + rango Premier de Leetify, bloqueo por cuenta; RF-16,
+// RF-17, RF-19). Sin `steamIntegration` sigue el camino genérico de la 012.
 // - Guardias sin ruta antes de todas las rutas (P-15): (1) `withUser` (pasos 1 a 5
 //   de la spec 002; si el usuario ya no existe, 401 "token inválido", RF-44); (2) primer
 //   segmento no decodificable → 400 "id con formato inválido", antes de que Express 5
@@ -32,8 +35,12 @@ import type { RealData } from "../domain/verification.ts";
 import { canonicalHandle } from "../domain/rankSimulator.ts";
 import { GameAccount } from "../models/gameAccount.ts";
 import type { GameAccountDocument } from "../models/gameAccount.ts";
+import { createAccountLock } from "../services/accountLock.ts";
+import type { AccountLock } from "../services/accountLock.ts";
 import { isVerifiedByOtherUser, ownerExists, withExistingOwners } from "../services/accountReads.ts";
 import { linkAccount, toAccountState, toMatchRecord, updateOwnedAccount } from "../services/accountWrites.ts";
+import { syncSteamAccount } from "../services/cs2Sync.ts";
+import type { LeetifyClient } from "../services/leetifyClient.ts";
 import { simulatedRankProvider } from "../services/rankProvider.ts";
 import { SOURCE_TIMEOUT_MS, readWithTimeout } from "../services/realSources.ts";
 import type { SourceRegistry } from "../services/realSources.ts";
@@ -43,11 +50,13 @@ import type { RiotLimiter } from "../services/riotLimiter.ts";
 import { syncRiotAccount } from "../services/riotSync.ts";
 import { createRiotUserLock } from "../services/riotUserLock.ts";
 import type { RiotUserLock } from "../services/riotUserLock.ts";
+import { createSteamSource } from "../services/steamSource.ts";
 import { decodeSegment } from "../services/userTarget.ts";
 import { clock } from "../utils/clock.ts";
 import { MESSAGES } from "../utils/errors.ts";
 import { createWithUser } from "../utils/middleware.ts";
 import type { RiotIntegration } from "./riot.ts";
+import type { SteamIntegration } from "./steam.ts";
 
 // Aplica una lectura real a la cuenta en memoria (spec 012, RF-9, RF-15). Rango, historial y
 // partidas por `applyRealSync`; el identificador visible y el perfil, tal como los entrega la
@@ -72,6 +81,12 @@ export interface AccountsRouterOptions {
   riotLimiter?: RiotLimiter | undefined;
   riotUserLock?: RiotUserLock | undefined;
   operationTimeoutMs?: number | undefined;
+  /** Spec 015: con Steam configurado, CS2 verificada se resincroniza con Steam y Leetify (§4.2). */
+  steamIntegration?: SteamIntegration | undefined;
+  /** Spec 015: sin cliente, la lectura de Leetify es un fallo (P15-9). */
+  leetify?: LeetifyClient | undefined;
+  /** Spec 015: bloqueo por cuenta, uno por instancia (RF-19, P15-6). */
+  accountLock?: AccountLock | undefined;
 }
 
 export function createAccountsRouter({
@@ -83,8 +98,12 @@ export function createAccountsRouter({
   riotLimiter = riotIntegration?.limiter ?? createRiotLimiter(),
   riotUserLock = createRiotUserLock(),
   operationTimeoutMs,
+  steamIntegration,
+  leetify,
+  accountLock = createAccountLock(),
 }: AccountsRouterOptions): Router {
   const router = Router();
+  const steamSource = steamIntegration === undefined ? undefined : createSteamSource(steamIntegration.client);
 
   router.use(createWithUser({ jwtSecret, now }));
 
@@ -320,6 +339,31 @@ export function createAccountsRouter({
           syncResult.syncNotice === undefined
             ? syncResult.account
             : { ...syncResult.account, syncNotice: syncResult.syncNotice },
+        );
+      return;
+    }
+
+    // Spec 015 (§4.2): CS2 verificada con Steam, con Steam configurado → Steam y luego Leetify.
+    if (verification.source === "steam" && steamSource !== undefined) {
+      const syncResult = await syncSteamAccount({
+        accountId: id,
+        userId: sessionUserId,
+        steamSource,
+        leetify,
+        lock: accountLock,
+        timeouts: { steamMs: sourceTimeoutMs, leetifyMs: sourceTimeoutMs },
+        at,
+      });
+      if (!syncResult.ok) {
+        response.status(syncResult.status).json({ error: syncResult.error });
+        return;
+      }
+      response
+        .status(200)
+        .json(
+          syncResult.syncNotice === undefined
+            ? syncResult.account
+            : { ...syncResult.account, syncNotice: syncResult.syncNotice }, // RF-16, P15-8
         );
       return;
     }

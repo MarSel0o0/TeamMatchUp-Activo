@@ -14,6 +14,8 @@ export function originLabel(origin: Origin): string {
       return 'Datos de Steam';
     case 'riot':
       return 'Datos de Riot Games';
+    case 'leetify':
+      return 'Datos de Leetify';
   }
 }
 

@@ -50,6 +50,9 @@ export const STEAM_NOTICES = {
   cancelled: 'verificación con Steam cancelada',
 } as const;
 
+/** RF-21 (spec 015): nota bajo «Verificar con Steam» sobre de dónde sale el rango Premier. */
+export const LEETIFY_PRIVACY_TEXT = 'Tu rango Premier se obtiene de Leetify con tu SteamID64';
+
 /** Verificación con Riot Games (spec 014, RF-2, RF-7, RF-13, RF-27, RF-39 a RF-42, RF-53, RF-54). */
 export const RIOT_VERIFY_LABEL = 'Verificar con Riot Games';
 /** RF-42: en modo simulado el botón se ve desactivado con este texto. */

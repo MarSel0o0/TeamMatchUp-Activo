@@ -4,9 +4,13 @@
 //   "no disponible" al resincronizar y las demás no cambian (RF-20).
 // - Las pruebas inyectan fuentes falsas y nunca tocan la red (RNF-1).
 // - Este módulo no lee `process.env` ni conoce ninguna fuente concreta.
+// - Spec 015 (plan, sección 2): `withTimeout` es el plazo común; `readWithTimeout` lo aplica a una
+//   fuente de la 012 y `readPremierWithTimeout` a Leetify, que no es una `RealSource` (P15-4).
 import type { GameId } from "../domain/games.ts";
+import type { LeetifyReading } from "../domain/leetify.ts";
 import type { SourceId } from "../domain/sources.ts";
 import type { RealData } from "../domain/verification.ts";
+import type { LeetifyClient } from "./leetifyClient.ts";
 
 /** Plazo máximo de una consulta a una fuente real (RNF-5). */
 export const SOURCE_TIMEOUT_MS = 8000;
@@ -36,32 +40,58 @@ export interface RealSource {
 export type SourceRegistry = Partial<Record<GameId, RealSource>>;
 
 const UNAVAILABLE: RealResult = { ok: false, reason: "unavailable" };
+const PREMIER_FAILED: LeetifyReading = { kind: "failed" };
+
+/**
+ * Ejecuta `run` con plazo (RNF-5; spec 015, RNF-4). Cualquier fallo —excepción o plazo vencido—
+ * devuelve `fallback`. El plazo vale aunque `run` ignore la señal de cancelación: la respuesta se
+ * corta por su cuenta y la señal se cancela para que `run` suelte sus recursos.
+ */
+export async function withTimeout<T>(
+  run: (signal: AbortSignal) => Promise<T>,
+  fallback: T,
+  timeoutMs: number = SOURCE_TIMEOUT_MS,
+): Promise<T> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  const expired = new Promise<T>((resolve) => {
+    controller.signal.addEventListener("abort", () => resolve(fallback), { once: true });
+  });
+  const result = (async (): Promise<T> => {
+    try {
+      return await run(controller.signal);
+    } catch {
+      return fallback;
+    }
+  })();
+  try {
+    return await Promise.race([result, expired]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 /**
  * Consulta la fuente con plazo (RNF-5). Cualquier fallo —excepción, rechazo o plazo vencido—
- * es `unavailable` (RF-19). El plazo vale aunque la fuente ignore la señal de cancelación: la
- * respuesta se corta por su cuenta y la señal se cancela para que la fuente suelte sus recursos.
+ * es `unavailable` (RF-19).
  */
-export async function readWithTimeout(
+export function readWithTimeout(
   source: RealSource,
   account: RealSourceAccount,
   timeoutMs: number = SOURCE_TIMEOUT_MS,
 ): Promise<RealResult> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  const expired = new Promise<RealResult>((resolve) => {
-    controller.signal.addEventListener("abort", () => resolve(UNAVAILABLE), { once: true });
-  });
-  const read = (async (): Promise<RealResult> => {
-    try {
-      return await source.read(account, controller.signal);
-    } catch {
-      return UNAVAILABLE;
-    }
-  })();
-  try {
-    return await Promise.race([read, expired]);
-  } finally {
-    clearTimeout(timer);
-  }
+  return withTimeout((signal) => source.read(account, signal), UNAVAILABLE, timeoutMs);
+}
+
+/**
+ * Lectura de Leetify con plazo (spec 015, RF-14, RNF-4): plazo vencido, excepción o ausencia de
+ * cliente son `failed`. Sin cliente nunca hay red, que es lo que necesitan las pruebas (P15-9).
+ */
+export function readPremierWithTimeout(
+  client: LeetifyClient | undefined,
+  steamId: string,
+  timeoutMs: number = SOURCE_TIMEOUT_MS,
+): Promise<LeetifyReading> {
+  if (client === undefined) return Promise.resolve(PREMIER_FAILED);
+  return withTimeout((signal) => client.readPremier(steamId, signal), PREMIER_FAILED, timeoutMs);
 }

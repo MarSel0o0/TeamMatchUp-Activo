@@ -1,7 +1,9 @@
 // Utilidades de las pruebas de las rutas de Steam (spec 013). No es un archivo de prueba.
 // Steam se simula con un `SteamClient` falso: ninguna prueba toca la red (RNF-3).
 import type { Server } from "node:http";
+import type { LeetifyReading } from "../../src/domain/leetify.ts";
 import { STEAM_OPENID_URL } from "../../src/domain/steamOpenId.ts";
+import type { LeetifyClient } from "../../src/services/leetifyClient.ts";
 import type { RealResult } from "../../src/services/realSources.ts";
 import type { AssertionResult, SteamClient } from "../../src/services/steamClient.ts";
 import { authApp } from "./helpers.ts";
@@ -49,9 +51,34 @@ export function fakeSteamClient(overrides: Partial<Pick<FakeSteamState, "asserti
   return { client, state };
 }
 
-/** Aplicación con Steam configurado (`PUBLIC_URL` de desarrollo) y el cliente falso dado. */
-export function steamApp(client: SteamClient): Promise<Server> {
-  return authApp({ steamIntegration: { publicUrl: PUBLIC_URL, client } });
+export interface FakeLeetifyState {
+  /** Lo que "responde Leetify" (spec 015, RF-2, RF-14). */
+  reading: LeetifyReading;
+  /** SteamID64 de cada consulta, en orden. */
+  calls: string[];
+}
+
+/** Cliente de Leetify falso (spec 015, RNF-1); cambiar `state` cambia lo que responde. */
+export function fakeLeetifyClient(reading: LeetifyReading = { kind: "rated", rating: 19309 }) {
+  const state: FakeLeetifyState = { reading, calls: [] };
+  const client: LeetifyClient = {
+    readPremier: async (steamId) => {
+      state.calls.push(steamId);
+      return state.reading;
+    },
+  };
+  return { client, state };
+}
+
+/**
+ * Aplicación con Steam configurado (`PUBLIC_URL` de desarrollo) y el cliente falso dado. Sin
+ * cliente de Leetify, toda lectura de Leetify es un fallo (spec 015, P15-9).
+ */
+export function steamApp(client: SteamClient, leetifyClient?: LeetifyClient): Promise<Server> {
+  return authApp({
+    steamIntegration: { publicUrl: PUBLIC_URL, client },
+    ...(leetifyClient === undefined ? {} : { leetifyClient }),
+  });
 }
 
 /** Token del intento dentro de la URL de Steam que devuelve `POST /api/steam/start`. */

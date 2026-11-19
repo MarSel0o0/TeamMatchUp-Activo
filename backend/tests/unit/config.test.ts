@@ -108,6 +108,7 @@ describe("parseConfig", () => {
       jwtSecret: SECRET,
       steam: null, // spec 013, RF-22: sin STEAM_API_KEY, Steam no está configurado
       riot: null, // spec 014, RF-38: sin RIOT_API_KEY, Riot no está configurado
+      leetify: { apiKey: null }, // spec 015, D24: Leetify siempre existe, con o sin clave
     });
     const otra = expectConfig(
       parseConfig(
@@ -128,6 +129,7 @@ describe("parseConfig", () => {
       jwtSecret: "otro-secreto",
       steam: null,
       riot: null,
+      leetify: { apiKey: null },
     });
   });
 
@@ -565,6 +567,99 @@ describe("parseConfig — Riot (014, RF-17, RF-38, RNF-4)", () => {
 
     await writeFile(envFilePath, [...baseLines, `RIOT_API_KEY=${KEY_TWO}`, ""].join("\n"));
     assert.deepStrictEqual(expectConfig(loadConfig({ envFilePath, processEnv: {} })).riot, { apiKey: KEY_TWO });
+  });
+});
+
+// Spec 015 (T2): LEETIFY_API_KEY opcional (D24). Sin clave se consulta igual, así que Leetify nunca
+// es «no configurado»: `leetify` siempre existe y solo cambia su clave. La clave es un secreto que
+// nunca sale en errores ni registros (RNF-2).
+describe("parseConfig — Leetify (015, D24, RNF-2)", () => {
+  const KEY = "LEETIFY-CLAVE-FALSA-000000000000001";
+  const KEY_TWO = "LEETIFY-CLAVE-FALSA-000000000000002";
+
+  test("D24: sin LEETIFY_API_KEY → leetify existe y su clave es null en los tres entornos", () => {
+    for (const env of [devEnv(), prodEnv(), testEnv()]) {
+      assert.deepStrictEqual(expectConfig(parseConfig(env)).leetify, { apiKey: null });
+    }
+  });
+
+  test("D24: LEETIFY_API_KEY vacía o solo espacios → sin clave", () => {
+    for (const blank of ["", " ", "   ", "\t "]) {
+      for (const env of [
+        devEnv({ LEETIFY_API_KEY: blank }),
+        prodEnv({ LEETIFY_API_KEY: blank }),
+        testEnv({ LEETIFY_API_KEY: blank }),
+      ]) {
+        assert.deepStrictEqual(expectConfig(parseConfig(env)).leetify, { apiKey: null }, JSON.stringify(blank));
+      }
+    }
+  });
+
+  test("con LEETIFY_API_KEY presente → apiKey tal cual, sin recortar y sin exigir PUBLIC_URL", () => {
+    for (const env of [devEnv({ LEETIFY_API_KEY: KEY }), prodEnv({ LEETIFY_API_KEY: KEY }), testEnv({ LEETIFY_API_KEY: KEY })]) {
+      const config = expectConfig(parseConfig(env));
+      assert.deepStrictEqual(config.leetify, { apiKey: KEY });
+      assert.equal(config.steam, null);
+      assert.equal(config.riot, null);
+    }
+    assert.deepStrictEqual(expectConfig(parseConfig(devEnv({ LEETIFY_API_KEY: ` ${KEY} ` }))).leetify, {
+      apiKey: ` ${KEY} `,
+    });
+  });
+
+  test("convive con las claves de Steam y de Riot sin interferencias", () => {
+    const steamKey = "0123456789ABCDEF0123456789ABCDEF";
+    const localUrl = "http://localhost:5173";
+    const config = expectConfig(
+      parseConfig(
+        devEnv({ STEAM_API_KEY: steamKey, PUBLIC_URL: localUrl, RIOT_API_KEY: "RGAPI-1", LEETIFY_API_KEY: KEY }),
+      ),
+    );
+    assert.deepStrictEqual(config.steam, { apiKey: steamKey, publicUrl: localUrl });
+    assert.deepStrictEqual(config.riot, { apiKey: "RGAPI-1" });
+    assert.deepStrictEqual(config.leetify, { apiKey: KEY });
+  });
+
+  test("RNF-2: ningún mensaje de error contiene la clave de Leetify", () => {
+    const secreta = "LEETIFY-SECRETO-NO-FILTRAR-999999";
+    const casos: EnvSource[] = [
+      devEnv({ LEETIFY_API_KEY: secreta, PORT: "abc" }),
+      devEnv({ LEETIFY_API_KEY: secreta, MONGODB_URI: "" }),
+      devEnv({ LEETIFY_API_KEY: secreta, STEAM_API_KEY: "0123456789ABCDEF0123456789ABCDEF" }),
+      prodEnv({ LEETIFY_API_KEY: secreta, JWT_SECRET: DEV_JWT_SECRET, PORT: "0" }),
+    ];
+    for (const env of casos) {
+      assert.doesNotMatch(allErrors(parseConfig(env)), /LEETIFY-SECRETO/);
+      assert.doesNotMatch(formatConfigErrors(expectErrors(parseConfig(env))), /LEETIFY-SECRETO/);
+    }
+  });
+
+  test("loadConfig lee LEETIFY_API_KEY desde .env, el proceso prevalece y renovarla carga la nueva", async (t) => {
+    const dir = await mkdtemp(join(tmpdir(), "tmu-leetify-"));
+    t.after(() => rm(dir, { recursive: true, force: true }));
+    const envFilePath = join(dir, ".env");
+    const baseLines = [
+      "NODE_ENV=development",
+      "PORT=3001",
+      `JWT_SECRET=${SECRET}`,
+      `MONGODB_URI=${DEV_URI}`,
+      "MONGODB_DBNAME=teammatchup",
+    ];
+
+    await writeFile(envFilePath, [...baseLines, ""].join("\n"));
+    assert.deepStrictEqual(expectConfig(loadConfig({ envFilePath, processEnv: {} })).leetify, { apiKey: null });
+
+    await writeFile(envFilePath, [...baseLines, `LEETIFY_API_KEY=${KEY}`, ""].join("\n"));
+    assert.deepStrictEqual(expectConfig(loadConfig({ envFilePath, processEnv: {} })).leetify, { apiKey: KEY });
+
+    const delProceso = expectConfig(loadConfig({ envFilePath, processEnv: { LEETIFY_API_KEY: "desde-proceso" } }));
+    assert.deepStrictEqual(delProceso.leetify, { apiKey: "desde-proceso" });
+
+    const vaciaEnProceso = expectConfig(loadConfig({ envFilePath, processEnv: { LEETIFY_API_KEY: "" } }));
+    assert.deepStrictEqual(vaciaEnProceso.leetify, { apiKey: null });
+
+    await writeFile(envFilePath, [...baseLines, `LEETIFY_API_KEY=${KEY_TWO}`, ""].join("\n"));
+    assert.deepStrictEqual(expectConfig(loadConfig({ envFilePath, processEnv: {} })).leetify, { apiKey: KEY_TWO });
   });
 });
 

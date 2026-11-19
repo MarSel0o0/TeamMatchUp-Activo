@@ -37,6 +37,15 @@ export interface RiotConfig {
   apiKey: string;
 }
 
+/**
+ * Spec 015: Leetify. A diferencia de Steam y Riot, siempre existe: sin clave se consulta igual
+ * (D24), así que nunca es una «fuente no configurada».
+ */
+export interface LeetifyConfig {
+  /** Secreto opcional de la instancia: nunca en respuestas, mensajes ni registros (RNF-2). */
+  apiKey: string | null;
+}
+
 export interface Config {
   nodeEnv: NodeEnv;
   port: number;
@@ -45,6 +54,7 @@ export interface Config {
   jwtSecret: string; // tal como viene, sin recortar (D18 de la 001)
   steam: SteamConfig | null; // spec 013: null = Steam no configurado (RF-22)
   riot: RiotConfig | null; // spec 014: null = Riot no configurado (RF-38)
+  leetify: LeetifyConfig; // spec 015: siempre presente; su clave es opcional (D24)
 }
 
 export type ConfigResult = { ok: true; config: Config } | { ok: false; errors: string[] };
@@ -195,11 +205,18 @@ export function parseConfig(env: EnvSource): ConfigResult {
   const riot: RiotConfig | null =
     rawRiotKey !== undefined && !isBlank(rawRiotKey) ? { apiKey: rawRiotKey } : null;
 
+  // Spec 015, D24 y RNF-2: la clave de Leetify es opcional y no requiere PUBLIC_URL. Vacía o solo
+  // espacios cuenta como no definida; ningún mensaje ni registro incluye la clave.
+  const rawLeetifyKey = env.LEETIFY_API_KEY;
+  const leetify: LeetifyConfig = {
+    apiKey: rawLeetifyKey !== undefined && !isBlank(rawLeetifyKey) ? rawLeetifyKey : null,
+  };
+
   if (missing.length > 0) errors.unshift(MESSAGES.missing(missing));
   if (errors.length > 0 || nodeEnv === null || port === null || db === null || jwtSecret === null) {
     return { ok: false, errors };
   }
-  return { ok: true, config: { nodeEnv, port, host, db, jwtSecret, steam, riot } };
+  return { ok: true, config: { nodeEnv, port, host, db, jwtSecret, steam, riot, leetify } };
 }
 
 export function formatConfigErrors(errors: readonly string[]): string {
