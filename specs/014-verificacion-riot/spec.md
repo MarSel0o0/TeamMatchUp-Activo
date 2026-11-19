@@ -1,5 +1,7 @@
 # Spec 014 — Verificación de cuentas de League of Legends con Riot ID
-Estado: aprobada (2026-11-18), tras la clarificación
+Estado: implementada (2026-11-19), tras su validación (`validation.md`: revisión visual del
+reviewer aprobada tras una corrección y recorrido manual con cuenta real de LoL OK); aprobada el
+2026-11-18, tras la clarificación
 Historial: pedida el 2026-11-04; primera clarificación (D3 a D24) y respuestas a sus dudas
 (D25 a D36) el 2026-11-18; segunda revisión del QA (bloqueantes B1 a B5 y hallazgos menores)
 resuelta el 2026-11-18 con D37 a D66; las dudas que dejó esa pasada se cerraron el
@@ -1239,10 +1241,10 @@ cuerpo y la sesión, como en la spec 004 (RF-29).
 - Traducir al español los textos de Riot (RF-36; ver "Conflicto con la constitución").
 
 ## Criterios de finalización
-- [ ] RF de backend (RF-1, RF-3 a RF-11, RF-13, RF-14, RF-16, RF-18 a RF-38, RF-43 a RF-45 y
+- [x] RF de backend (RF-1, RF-3 a RF-11, RF-13, RF-14, RF-16, RF-18 a RF-38, RF-43 a RF-45 y
       RF-48 a RF-53 en su parte de API) cubiertos por pruebas con node:test en verde, sin
       red ni clave real, simulando Riot con dobles de prueba (RNF-2; D23, D88).
-- [ ] RF-12 en su parte de backend: pruebas con node:test de la duración redondeada (29 min
+- [x] RF-12 en su parte de backend: pruebas con node:test de la duración redondeada (29 min
       29 s → 29; 29 min 30 s → 30) y de que una partida sin variación llega sin ella (la
       interfaz muestra "—"), incluida la que conserva su variación en lecturas posteriores
       (D65); y de RF-30 con lecturas parciales: la lectura anterior es la última completa de
@@ -1252,46 +1254,46 @@ cuerpo y la sesión, como en la spec 004 (RF-29).
       división, mientras que una variación ya asignada no cambia (D81); y de que una lectura
       con alguna partida omitida deja sus partidas nuevas con "—" y no sirve de lectura
       anterior (D102).
-- [ ] RF-27 y RF-44 con el perfil pendiente: pruebas con node:test de que un perfil con
+- [x] RF-27 y RF-44 con el perfil pendiente: pruebas con node:test de que un perfil con
       datos que no se pueden interpretar deja solo ese bloque pendiente, con el aviso de
       "algunos de sus datos", y la cuenta sigue en las coincidencias; y de que con el rango y
       las partidas pendientes el aviso es "no pudimos leer sus datos" falte o no el perfil
       (D80).
-- [ ] RF-15: una prueba con node:test verifica una cuenta, la resincroniza con Riot simulado
+- [x] RF-15: una prueba con node:test verifica una cuenta, la resincroniza con Riot simulado
       devolviendo otro ícono y comprueba que sigue verificada (D65).
-- [ ] RF-45: pruebas con node:test de la recuperación del desafío (con desafío abierto, sin
+- [x] RF-45: pruebas con node:test de la recuperación del desafío (con desafío abierto, sin
       ninguno, con uno vencido o anulado y sin clave de Riot), sin ninguna consulta al doble
       de Riot, que comprueban que la respuesta trae los segundos que le quedan, el Riot ID
       del desafío en la forma que devolvió Riot (no el texto escrito) y la región, y no el
       identificador interno de Riot (D65, D76, D86, D100).
-- [ ] RF-49: pruebas con node:test de que, con una operación en curso (pedir, confirmar o
+- [x] RF-49: pruebas con node:test de que, con una operación en curso (pedir, confirmar o
       resincronizar), otra de ellas del mismo usuario recibe 409 sin consultar a Riot y sin
       contar para ningún límite, incluidas dos resincronizaciones simultáneas, y de que la
       recuperación del desafío no se ve afectada (D90).
-- [ ] RF-26 (paso 3) y RF-29: una prueba con node:test anula el desafío (por ejemplo,
+- [x] RF-26 (paso 3) y RF-29: una prueba con node:test anula el desafío (por ejemplo,
       desvinculando el LoL manual) mientras su confirmación espera al doble de Riot con el
       ícono coincidente, y comprueba el 400 de RF-9, que ninguna cuenta queda verificada y
       que la confirmación cuenta como intento (D104).
-- [ ] RNF-1: una prueba con Riot simulado recorre una verificación completa (pedido, 9
+- [x] RNF-1: una prueba con Riot simulado recorre una verificación completa (pedido, 9
       confirmaciones fallidas y una con éxito) y cuenta como máximo 35 consultas al doble de
       Riot; y pruebas del limitador con el instante controlado por la prueba: reservas de 2,
       24 y 24 y ventanas deslizantes de 1 segundo y de 2 minutos (D65, D84, D85).
-- [ ] RNF-3: una prueba recorre todas las respuestas de esta spec (pedir, recuperar,
+- [x] RNF-3: una prueba recorre todas las respuestas de esta spec (pedir, recuperar,
       confirmar, resincronizar, cuentas y coincidencias) y comprueba que el identificador
       interno de Riot del doble no aparece en ninguna (D65).
-- [ ] RNF-4: una prueba con una clave de prueba falsa provoca errores de Riot y comprueba que
+- [x] RNF-4: una prueba con una clave de prueba falsa provoca errores de Riot y comprueba que
       la clave no aparece en los registros ni en los mensajes de error (D65).
-- [ ] RNF-6: una prueba con un doble de Riot que no responde comprueba el 503 a los 8
+- [x] RNF-6: una prueba con un doble de Riot que no responde comprueba el 503 a los 8
       segundos (con el instante controlado por la prueba) (D65).
-- [ ] RNF-7: pruebas con un doble de Riot lento y el instante controlado por la prueba: al
+- [x] RNF-7: pruebas con un doble de Riot lento y el instante controlado por la prueba: al
       pedir y al resincronizar, 503 a los 60 segundos sin cambios; al confirmar, 503 si el
       ícono aún no se había confirmado y verificación con datos pendientes (RF-27) si ya se
       había confirmado (D98).
-- [ ] RNF-5: las dependencias de los `package.json` del backend y del frontend no cambian
+- [x] RNF-5: las dependencias de los `package.json` del backend y del frontend no cambian
       (D88).
-- [ ] RF-17 cubierto por una prueba que arranca el servidor dos veces con claves de prueba
+- [x] RF-17 cubierto por una prueba que arranca el servidor dos veces con claves de prueba
       falsas distintas (D23).
-- [ ] RF de interfaz (RF-2, RF-7 y RF-27 en su aviso, RF-12, RF-13 y RF-33 en su aviso,
+- [x] RF de interfaz (RF-2, RF-7 y RF-27 en su aviso, RF-12, RF-13 y RF-33 en su aviso,
       RF-35 en su aviso, RF-36, RF-38 en el botón oculto, RF-39 a RF-42, RF-45 al recargar la
       página, RF-46, RF-47, RF-53 en su aviso y RF-54; en RF-2, también la cuenta atrás con
       los segundos de la API, el botón "Volver" y "Pedir otro desafío" tras una respuesta que
@@ -1299,9 +1301,9 @@ cuerpo y la sesión, como en la spec 004 (RF-29).
       del desafío abierto al volver a elegir "Verificar con Riot Games" tras "Volver"):
       build, typecheck y lint del frontend en verde y comprobación manual en Chrome DevTools
       durante la validación (D23, D99, D100, D101, D103).
-- [ ] Recorrido manual con una cuenta de LoL real: pedir el ícono, ponérselo, confirmar, ver
+- [x] Recorrido manual con una cuenta de LoL real: pedir el ícono, ponérselo, confirmar, ver
       rango y partidas, resincronizar, volver al ícono propio, desvincular.
-- [ ] Procedimiento de renovación de la clave en `.env` documentado para el servidor del
+- [x] Procedimiento de renovación de la clave en `.env` documentado para el servidor del
       curso.
 
 ## Impacto en otras specs y documentos

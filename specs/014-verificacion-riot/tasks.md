@@ -1,5 +1,6 @@
 # Tareas 014 — Verificación de cuentas de League of Legends con Riot ID
-Estado: aprobado (2026-11-19).
+Estado: implementado (2026-11-19); aprobado el 2026-11-19. Validación completa en
+`specs/014-verificacion-riot/validation.md`.
 Plan: `specs/014-verificacion-riot/plan.md` (aprobado el 2026-11-19, con O-1 a O-5 confirmadas).
 Spec: `specs/014-verificacion-riot/spec.md` (aprobada el 2026-11-18, D1–D104).
 
@@ -375,3 +376,7 @@ en cuanto el contrato esté estable, aunque se recomienda cerrar Bloque A (T1–
   `validation.md` completados; la inspección visual en Chrome DevTools [Fase 5, `reviewer`] y el
   recorrido manual con cuenta real de LoL [equipo] quedan abiertos en `validation.md` y sin marcar
   en `spec.md`.)*
+  *(Validación completada el 2026-11-19: la revisión visual del `reviewer` pidió cambios por un
+  defecto de RF-7/RF-27 [aviso perdido al volver a `/perfil`], corregido en
+  `RiotVerifyPage.tsx` sin tarea nueva y aprobado en la revalidación; recorrido manual con cuenta
+  real de LoL OK en los pasos 0 a 9. Casillas de `spec.md` marcadas.)*

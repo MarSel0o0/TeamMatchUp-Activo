@@ -4,7 +4,7 @@ Registro dinámico. Se actualiza al cerrar cada fase SDD.
 
 ## Última actualización
 
-2026-11-19 (spec 015 implementada: T1–T22 y validación del `reviewer` APROBADA; recorridos con cuentas reales pospuestos, ver «Próximo paso»)
+2026-11-19 (cierre de la spec 014: `reviewer` APROBADO tras 1 vuelta de corrección y recorrido con cuenta real de LoL OK. Antes, ese mismo día: spec 015 implementada, con los recorridos con cuentas reales pospuestos, ver «Próximo paso»)
 
 ## Fase actual
 
@@ -202,9 +202,13 @@ hacer la 008.
     pruebas totales en esos 82 archivos; salvedades de entorno ya conocidas: `ui.test.ts` de la 010
     con 8/16 fallos y `process.test.ts` con 26/26 fallos por `NODE_OPTIONS` bajo Node `v22.14.0`),
     `tsc --noEmit` (`src/`) y `npm run lint` del backend en verde (`tsc -p tests` solo falla en el
-    preexistente `ui.test.ts`), y `typecheck`, `lint` y `build` del frontend en verde. Pendiente de
-    validación visual de `reviewer` en Chrome DevTools y recorrido manual con cuenta real de LoL
-    (`specs/014-verificacion-riot/validation.md`).
+    preexistente `ui.test.ts`), y `typecheck`, `lint` y `build` del frontend en verde. Corrección
+    de la validación (2026-11-19): `features/riot/pages/RiotVerifyPage.tsx` guarda el desafío
+    confirmado (`confirmedChallenge`) para que la redirección de RF-6 no reemplace la navegación
+    a `/perfil` durante la animación de salida y no borre el aviso de RF-7/RF-27
+    (`state.riotNotice`). Validada por `reviewer` y con recorrido real de LoL
+    (`specs/014-verificacion-riot/validation.md`); suite del backend 2963/2971 (solo los 8 de
+    `ui.test.ts`).
 
 ## Estado de las specs
 
@@ -222,7 +226,7 @@ hacer la 008.
 | `010-despliegue` | Borrador | Servirá la interfaz desde el servidor (rutas fuera de `/api`). |
 | `012-origen-real-de-datos` | Implementada y validada (2026-11-18). T1–T11 hechas y commiteadas (`0ba0f99` T8–T10, `ad58178` T11). 1ª validación (2026-11-18): dos puntos (RF-6 identidad sin etiqueta; RF-14 sin prueba del endpoint), cerrados con la T11. 2ª validación (2026-11-18, Opus): cumplida; 706 tests de la 012 y suite completa 2379/2379 en verde, typecheck y lint del backend y build, typecheck y lint del frontend sin errores; interfaz por Chrome headless (CDP) a 1280 y 375 px con verificación escrita directo en una base temporal (no hay rutas de verificación hasta la 013/014). Observaciones sin bloquear: la aclaración de RF-6 es una línea sin número en `spec.md`; el bloque de perfil (avatar, nivel, horas) no se muestra en ninguna parte (para la 013) | Base común: cuenta verificada solo por verificación real (revoca RF-41 de la 004 y la decisión «Todo simulado» del 2026-10-17), origen por bloque de datos, exclusividad (primera verificación gana y desvincula las no verificadas de otros), resincronización bajo demanda con espera de 5 min, 503 si la fuente cae. Propone texto para el principio 5 de la constitución. Dudas D1–D3 cerradas el 2026-11-04 (visible para todos, «1 minuto», filtro «Solo cuentas verificadas»). Rama `feature/vinculacion-steam-riot`. |
 | `013-vinculacion-steam` | Spec aprobada (2026-11-04) y revisada tras la clarificación (2026-11-18, aprobada por el usuario) | Verificar CS2 con el inicio de sesión de Steam; perfil y horas reales; rango CS2 sigue simulado. Depende de la 012. Clarificación del 2026-11-18: 29 hallazgos resueltos como D3–D12 y RF-18 a RF-26. Bloqueante resuelto con D3: la vuelta de Steam llega a una página de la app, que completa la verificación con la sesión y el comprobante anti-CSRF del usuario (la cookie `SameSite=Strict` no viaja en la navegación desde Steam); sin cambiar la spec 002. Absorbe los tres pendientes de la validación de la 012: aviso global solo en modo simulado (RF-24), texto de «Resincronizar» (RF-25) y bloque de perfil visible con «Datos de Steam» (RF-15). Sin clave de Steam no se ofrece verificar (D4, revoca el RNF-2 anterior). Sin dependencias nuevas (RNF-5). Los ajustes a las specs 002, 007 y 012 quedan en su sección «Impacto», sin editar esos archivos. **Plan redactado el 2026-11-18** (`plan.md`, borrador pendiente de aprobación): OpenID 2.0 de Steam con intento en MongoDB (TTL, hash del token, uno por usuario), `POST /api/steam/{start,complete}` y `GET /api/steam`, página de vuelta fuera de las rutas protegidas (RF-7), `STEAM_API_KEY` y `PUBLIC_URL` opcionales, `syncCooldown(null)` para RF-12; 11 tareas previstas. Observaciones O-1 a O-4 por confirmar (región de la cuenta nueva, texto «sin perfil», texto del rechazo de RF-3, 11 tareas). Plan aprobado el 2026-11-18 (O-1 a O-4 con los valores por defecto). **Tareas aprobadas el 2026-11-18** (`tasks.md`, T1 a T11). **T1 hecha** (`Config.steam`, `STEAM_API_KEY` y `PUBLIC_URL` opcionales y comentadas en `.env.example`; sin commitear). Salvedad: `tests/controllers/ui.test.ts` (spec 010) falla porque `uiDir` no está en `app.ts` de esta rama. **T2 hecha** (dominio puro: `steamAttempt`, `steamOpenId`, `steamProfile`, `steamRules` y `syncCooldown(null)`; 71 pruebas nuevas, sin commitear). **T1 a T7 hechas; backend de la 013 cerrado** (`/api/steam` con `GET /`, `POST /start` y `POST /complete`; cliente de Steam con `fetch` inyectable; `AppOptions.steamIntegration`; espera sin perfil; suite 2592/2600, los 8 fallos son de `ui.test.ts` de la spec 010; sin commitear). Detalle T3: modelo `SteamAttempt` con índice único por usuario y TTL, servicio `steamAttempts`, `SteamAttempt.init()` en `prepareDatabase` y C5 en la cascada; 28 pruebas nuevas, sin commitear). **T8 hecha.** T9 a T11 con el código y la documentación hechos (página de vuelta, botón, bloque de datos de Steam, aviso global solo en modo simulado; `typecheck`, `lint` y `build` del frontend sin errores) pero **sin verificar en un navegador ni con la cuenta real de Steam**: casillas abiertas, pendientes en `specs/013-vinculacion-steam/validation.md`. Siguiente: recorridos manuales del equipo (necesitan `STEAM_API_KEY` y `PUBLIC_URL`) y cerrar T9 a T11. |
-| `014-verificacion-riot` | Implementada (T1–T12, 2026-11-19); pendiente validación de `reviewer` y recorrido real | Verificar LoL con ícono de inicio (0–28, distinto del actual, 10 min, máx. 10 confirmaciones); rango Solo/Dúo, partidas y perfil reales. Development key aceptada por el equipo pese a los términos de Riot. Depende de la 012. Spec aprobada el 2026-11-18 (D1–D104); plan y tareas (T1–T12) aprobados el 2026-11-19. **T1–T8 (backend) y T9–T12 (frontend, docs y cierre) hechas** (sin commitear): 82 archivos de prueba del backend en verde sin red ni clave real (0 fallos; 217/217 nuevos de Riot + 249/249 modificados/clave; ~2,786 pruebas; salvedades preexistentes/entorno: `ui.test.ts` de la 010 y `process.test.ts` bajo Node `v22.14.0`), `tsc --noEmit` (`src/`) y `lint` del backend en verde, y `typecheck`, `lint` y `build` del frontend en verde; auditoría estática limpia (sin dependencias nuevas, sin fugas de clave, sin `.only`/`any`). `README.md`, `AGENTS.md`, `PRODUCT.md` y `specs/014-verificacion-riot/validation.md` actualizados. `spec.md` sigue en «aprobada» (sin marcar casillas manuales) hasta completar la validación de `reviewer` en Chrome DevTools (1280 y 375 px) y el recorrido manual del equipo con cuenta real de LoL y `RIOT_API_KEY`. |
+| `014-verificacion-riot` | Implementada y validada (2026-11-19): `reviewer` APROBADO tras 1 vuelta de corrección (aviso de RF-7/RF-27 en `/perfil`, corregido en `RiotVerifyPage.tsx`); recorrido real con cuenta de LoL OK (pasos 0–9 de `validation.md` §3) | Verificar LoL con ícono de inicio (0–28, distinto del actual, 10 min, máx. 10 confirmaciones); rango Solo/Dúo, partidas y perfil reales. Development key aceptada por el equipo pese a los términos de Riot. Depende de la 012. Spec aprobada el 2026-11-18 (D1–D104); plan y tareas (T1–T12) aprobados el 2026-11-19. **T1–T8 (backend) y T9–T12 (frontend, docs y cierre) hechas** (sin commitear): 82 archivos de prueba del backend en verde sin red ni clave real (0 fallos; 217/217 nuevos de Riot + 249/249 modificados/clave; ~2,786 pruebas; salvedades preexistentes/entorno: `ui.test.ts` de la 010 y `process.test.ts` bajo Node `v22.14.0`), `tsc --noEmit` (`src/`) y `lint` del backend en verde, y `typecheck`, `lint` y `build` del frontend en verde; auditoría estática limpia (sin dependencias nuevas, sin fugas de clave, sin `.only`/`any`). `README.md`, `AGENTS.md`, `PRODUCT.md` y `specs/014-verificacion-riot/validation.md` actualizados. `spec.md` en «implementada (2026-11-19)» con todas las casillas marcadas; suite del backend 2963/2971 (solo los 8 de `ui.test.ts`). Opcionales en «Deuda conocida — spec 014». |
 | `015-rango-premier` | Spec aprobada (2026-11-18); revisión tras la clarificación aprobada por el usuario (2026-11-19). Plan aprobado (2026-11-19). Tareas T1–T10 aprobadas (2026-11-19); cambio de requisitos D26–D30 y T11–T16 aprobadas (2026-11-19); T1–T16 hechas (2026-11-19, sin commitear): backend con la suite completa en verde salvo los 8 fallos conocidos de `ui.test.ts`; frontend con typecheck, lint y build en verde; T16 documentos, `leetify.rest` y comprobación (ver «Spec 015 (implementación T11–T16)»). Términos de Leetify leídos: la pauta de métricas no se cumplía; cambio D31–D32 (sin escala ni distancia con rangos de Leetify; RF-5 y RF-12 modificados, RF-25 nuevo), plan §13 y T17–T20 aprobados y hechos (2026-11-19, solo frontend). Validación del `reviewer` con navegador: CAMBIOS NECESARIOS (etiqueta del anillo de afinidad); cambio D33–D34 (RF-26, logo a 24 px), T21–T22 hechos y **validación APROBADA** (2026-11-19). **Implementada (2026-11-19).** **Pendiente (pospuesto por el usuario):** los dos recorridos manuales con cuentas reales; ver «Próximo paso» y `specs/015-rango-premier/validation.md` §2.2. | Rango Premier real de CS2 verificadas desde la API pública de Leetify. RF-1 a RF-26, RNF-1 a RNF-8. Clarificación: 31 hallazgos resueltos como D6–D25 (más D1–D5 de la entrevista); sin dudas abiertas. Claves: principio 5 de la constitución ampliado (terceros nombrados por una spec, atribuidos a quien entrega; aplicado en docs/constitution.md); tener rango = rating entero 1–99999 (0/vacío/sin perfil = «sin rango Premier», excepción a RF-21 de la 012); respuesta inválida o rechazo = fallo; «rango no disponible» = bloque de origen Leetify vacío; fuera de coincidencias sin rango (mensaje en Coincidencias CS2); resync: Steam primero, Leetify solo si Steam responde, máx. 16 s, 200 con indicador si Leetify falla (excepción a RF-19 de la 012), espera corre; concurrentes: solo una, la otra 429; historial: punto por cada cambio de rating; migración al arrancar: verificadas con rango simulado → «rango no disponible»; aviso junto a «Verificar con Steam»; «Datos de Leetify» enlaza al perfil en Leetify; clave opcional. Las excepciones a otras specs son RF propios (no se editan las otras specs). Depende de la 013. |
 
 ## Deuda conocida
@@ -340,6 +344,14 @@ hacer la 008.
 - La base de desarrollo `teammatchup` no existía al validar: la verificación de «las
   pruebas no tocan la base de desarrollo» fue débil (reviewer lo confirmó revisando el código).
 
+- Spec 014 (2026-11-19), opcionales de la validación; ninguno bloquea:
+  - `/perfil` desborda a 375 px por `.rank-scale__rail` (preexistente, specs 007/008; ver
+    «Spec 007»). Para una spec aparte.
+  - Sin prueba automática del aviso tras el fundido de salida (RF-7/RF-27): el frontend no tiene
+    runner de pruebas; se comprobó con navegador y en el recorrido real.
+  - RNF-7: el temporizador de 60 s arranca tras las comprobaciones en base (`riot.ts:174`,
+    `riot.ts:362`, `riotSync.ts:372`); si el plazo vence a mitad de las partidas, el bloque se lee
+    con omisiones (`riotSync.ts:169-177`, defendible por D83).
 - Spec 005 (2026-10-19):
   - Hecha con 1427 tests (cifra histórica, anterior al rework de la 004 y a los cambios A y
     B de la 005): el usuario corrió la suite completa sin conexión a Internet y pasó (cubre la
@@ -355,6 +367,16 @@ hacer la 008.
     servidor).
 
 ## Decisiones recientes
+
+- Spec 014 (validación y cierre, 2026-11-19):
+  - 1ª validación de `reviewer`: CAMBIOS NECESARIOS por un defecto (RF-7/RF-27): el aviso tras
+    confirmar no llegaba a `/perfil` porque el `<Navigate replace>` de `RiotVerifyPage` se
+    ejecutaba durante la animación de salida de `AuthLayout` y borraba `state.riotNotice`.
+    Vuelta 1: estado `confirmedChallenge` solo en `RiotVerifyPage.tsx`. Revalidación APROBADA.
+  - Recorrido manual con cuenta real de LoL (pasos 0–9 de `validation.md` §3): todo OK según el
+    usuario. `spec.md` pasa a «implementada (2026-11-19)».
+  - Opcionales sin bloquear en «Deuda conocida — spec 014» (desborde de `/perfil` a 375 px, sin
+    prueba automática del aviso, dos matices de RNF-7).
 
 - Spec 015 (T21–T22, cambio D33–D34, 2026-11-19):
   - T21 (solo frontend): `scoreOriginLabel` (`premierDisplay.ts`): el anillo de afinidad nunca
@@ -673,12 +695,16 @@ contra Steam ni Leetify reales, solo con dobles. Requisitos: `STEAM_API_KEY` (la
 en `backend/.env`; nunca pedirla ni escribirla) y `PUBLIC_URL=http://localhost:5173`. Anotar
 resultados en §2.2 y marcar los dos criterios pospuestos de `spec.md`.
 
+**Pendiente de la spec 013:** verificación en navegador y con Steam real de T9–T11
+(`specs/013-vinculacion-steam/validation.md`). La spec 014 (Riot) está cerrada: implementada,
+validada y con recorrido real (2026-11-19).
+
 Hecho: la 007 implementada (T1–T31, 2026-10-19), con recorrido manual (T29), capturas (T28) y
 defectos D-A2 y D-A1 corregidos. Antes: la 006 implementada y validada; el paso del cuerpo antes del
 401 adoptado en las specs 004 y 005 (DP-43, DP5-18; 2276 tests en verde); la laguna de RF-16
 resuelta (DP6-40).
 
-Spec 012 (2026-11-18): T1–T10 commiteadas (`0ba0f99`); implementada y validada (T1–T11; 2ª validación cumplida). Siguiente: planificar la 013 (Steam, con sus dos pendientes de la tabla) y la 014 (Riot), que solo tienen `spec.md`.
+Spec 012 (2026-11-18): T1–T10 commiteadas (`0ba0f99`); implementada y validada (T1–T11; 2ª validación cumplida). Siguiente: planificar la 013 (Steam, con sus dos pendientes de la tabla) y la 014 (Riot), que solo tenían `spec.md` (la 014 ya está cerrada).
 
 Antes de lo anterior: (1) decidir lo pendiente de «Deuda conocida — spec 007»; (2) validar la 007 con
 `reviewer` (`/sdd-validate 007-integrar-frontend`); (3) commitear (hoy nada de la 007 está
