@@ -152,3 +152,6 @@ vite.config.ts.timestamp-*
 # Claude Code: configuración local por desarrollador (hooks de graphify, etc.)
 .claude/settings.local.json
 .claude/*.graphify-bak
+
+# macOS
+.DS_Store
