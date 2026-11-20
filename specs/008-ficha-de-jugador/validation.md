@@ -4,6 +4,7 @@
 - Commit de partida: `d08b393` (rama `marselo`)
 - Node: v24.19.0 (el plan 6 citaba 24.13.0, la versión de la 007; la máquina tiene ahora 24.19.0)
 - Estado: T1 a T10 hechas (2026-10-20). T10: registro hecho, con defectos abiertos D10-1 y D10-2 (contraste, RNF-5) y D10-3, el posible cambio C10-1 y NVDA pendiente (usuario); ver 4.7 y 4.8
+- **2026-11-20:** validación del `reviewer` APROBADA; D10-1 y D10-2 cerrados en `2ec44a4`; C10-1 resuelto por el cambio B de la spec; solo queda NVDA (usuario). Ver la sección 6.
 
 ## 1. Comprobaciones con Node
 
@@ -5584,3 +5585,43 @@ están sin versionar desde T1–T10) toca solo los 12 archivos de la lista más 
 (P67): literales, imports, constantes y `rankDistanceText` en `copy.ts` y el comentario de O-1.
 (5) `npm run typecheck` 0, `npm run lint` 0, `npm run build` 0; modo simulado sin errores de
 consola. **D10-3 y O-1 resueltos** (4.8).
+
+## 6. Validación del `reviewer` y cierre del contraste (2026-11-20) — APROBADO
+
+Contra el código actual (las specs 012 a 015 cambiaron piezas de la ficha; donde lo dicen de
+forma explícita se validó la versión vigente). Servidor real (base temporal `teammatchup_rev008`,
+borrada; sin claves ni red externa) y modo simulado; 1280 y 360 px; tema claro y oscuro; Chrome
+headless por CDP. `lint`, `typecheck` (`tsc -b`) y `build` del frontend en verde; suite del backend
+2979/2980 (1 omitida).
+
+**RF y RNF:** todos cumplen. RF-17 no es reproducible (regla defensiva; revisión de código en 4.A).
+RNF-2: teclado OK; **NVDA pendiente del usuario** (pasos de 4.8). RF-16 y RF-27 en su versión
+vigente (012 RF-6/RF-22, 013 RF-15/RF-24, 014, 015 RF-6/RF-12/RF-25).
+
+**Contraste (RNF-5).** Medición de todos los textos con el color efectivo (opacidad y filtros de los
+ancestros) y el fondo real (composición de fondos y píxeles de captura), en reposo, en el hover de
+las filas de partidas y en el peor caso de la luz ambiental.
+
+- **Corrección de D10-1:** el título del juego y el rango en el color del juego **nunca fallaron**:
+  la medición de T10 no tenía en cuenta el filtro `brightness(0.68) saturate(1.35)` del tema claro
+  (`global.css`). Medidos ahora: título 5,06–5,58; rango 4,64–5,06. «▲ +0 pts…» 4,61.
+- **Lo que sí fallaba** (primera vuelta): tema claro «Sin verificar» 4,03; partida «V» 3,88 (hover
+  3,72), «D» 4,26 (hover 4,09) y «+N» 4,39 (hover 4,21); pie con la luz ambiental 4,26; marcador de
+  posición 3,93. Tema oscuro «hace N · M min» en hover 4,33 (D10-2) y marcador 3,54. **Nuevo:** las
+  iniciales del avatar (`Monogram`) usaban el color puro del jugador: 3,2:1 con el color por
+  defecto y hasta 2,17:1 con otros.
+- **Corrección (`2ec44a4`):** tokens del tema claro `--warn` `#985c0b`, `--ok` `#147542`, `--danger`
+  `#bb3629`, `--ink-3` `#606670` y `--placeholder` `#696f78`; del oscuro, `--ink-3` `#818994` y
+  `--placeholder` `#78808c`. Las iniciales usan `color-mix(in srgb, <color> 35%, var(--ink))`.
+- **Segunda vuelta:** 108 vistas y 8190 textos sin ningún fallo fuera de los botones
+  deshabilitados (exentos por el cambio B: «Proponer sesión» 2,61/1,74). «Sin verificar» 4,70; «V»
+  en hover 4,65; «D» en hover 4,61; «+N» en hover 5,27; D10-2 en hover 4,61; marcador 4,59. Monograma
+  con nueve colores extremos (blanco, negro, amarillo, rojo, verde, azul, gris…): mínimo 5,29 en sm
+  y 5,66 en lg.
+- También en `2ec44a4`: el correo y la zona de Configuración desbordaban a 360 px (380/360); ahora
+  360/360, y 320/320 a 320 px.
+
+**Opcional, no incumple la spec:** a 360 px, la pestaña elegida (p. ej. CS2 con `?juego=cs2`) queda
+fuera de la vista dentro de la tira de pestañas; los acentos de juego son hex en `domain/games.ts`;
+el borde de `.stamp--warn` es un `rgba` escrito a mano.
+

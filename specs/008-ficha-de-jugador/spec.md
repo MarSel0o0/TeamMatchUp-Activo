@@ -11,6 +11,9 @@ la corrección de los textos de interfaz de la ficha que no están en la fuente 
 (D10-3, P66; solo del plan y de las tareas, sin cambio visible; su alcance quedó fijado por el
 usuario el 2026-10-20 y la tarea está lista para empezar). Esta spec **no pasa a
 "implementada"** mientras D10-1 y D10-2 sigan abiertos.
+**2026-11-20:** D10-1 y D10-2 cerrados (`2ec44a4`, ver `validation.md`, sección 6) y validación del
+`reviewer` APROBADA contra el código actual. Implementada salvo el recorrido con NVDA (RNF-2), que
+hace el usuario.
 Cambio A (2026-10-20): la revisión de coherencia del reviewer contra el código vigente (007
 implementada, T1–T31; 004, 005 y 006 implementadas el 2026-10-19, con DP6-37, DP6-40 y los
 cambios A y B de la 005) dio CAMBIOS NECESARIOS. En esta spec solo cambian los textos de error
