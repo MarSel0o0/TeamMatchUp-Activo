@@ -1,8 +1,9 @@
 // Composición de Express (spec 001: RF-4, RF-5, RF-7, RF-16, RF-17; spec 002: RF-26;
-// spec 004: RF-1; spec 005: RF-1).
+// spec 004: RF-1; spec 005: RF-1; spec 010: RF-1, RF-2, RF-3).
 // No conecta a la base: la conexión vive en src/server.ts. No lee `process.env`: el secreto,
 // el entorno y el reloj llegan como opciones (D11), así las pruebas pueden fijarlos.
 
+import { join } from "node:path";
 import cookieParser from "cookie-parser";
 import express from "express";
 import type { Express } from "express";
@@ -52,6 +53,12 @@ export interface AppOptions {
    * lectura es un fallo y nunca hay red (P15-9, RNF-1); `index.ts` siempre lo construye.
    */
   leetifyClient?: LeetifyClient;
+  /**
+   * Spec 010 (D-1): carpeta de la interfaz compilada. Con ella, la app sirve sus archivos y
+   * entrega `index.html` en cualquier GET/HEAD fuera de `/api` (RF-1, RF-2, RF-3). Sin ella,
+   * nada cambia: las rutas desconocidas responden 404 JSON. La calcula `index.ts`.
+   */
+  uiDir?: string;
 }
 
 // Reloj real en segundos Unix (el de las credenciales).
@@ -69,6 +76,7 @@ export function createApp(options: AppOptions): Express {
     riotIntegration,
     operationTimeoutMs,
     leetifyClient,
+    uiDir,
   } = options;
   const riotLimiter = riotIntegration?.limiter ?? createRiotLimiter();
   const riotUserLock = createRiotUserLock();
@@ -130,6 +138,20 @@ export function createApp(options: AppOptions): Express {
   );
   app.use("/api/matches", createMatchesRouter({ jwtSecret, now })); // spec 005: con sesión (RF-1)
   app.use("/api/sessions", createSessionsRouter({ jwtSecret, now })); // spec 006: con sesión (RF-1)
+
+  // Spec 010 (plan §2): la interfaz va DESPUÉS de la API, así ningún archivo tapa una ruta de
+  // `/api` (RF-3). `/api` y `/api/...` no entran al fallback y llegan a `unknownEndpoint`; los
+  // métodos que no son GET/HEAD tampoco (`app.get` atiende HEAD). Un fallo de `sendFile` va a
+  // `errorHandler`.
+  if (uiDir !== undefined) {
+    const indexHtml = join(uiDir, "index.html");
+    app.use(express.static(uiDir));
+    app.get(/^\/(?!api(\/|$)).*/, (_request, response, next) => {
+      response.sendFile(indexHtml, (error) => {
+        if (error) next(error);
+      });
+    });
+  }
 
   app.use(unknownEndpoint);
   app.use(errorHandler); // siempre el último
