@@ -1,6 +1,7 @@
 // Rutas de Steam: `/api/steam` (spec 013; plan, secciones 4.1 y 4.2). Todas exigen sesión y el
 // comprobante anti-CSRF con `withUser`, como cualquier operación protegida (RNF-6, spec 002): la
-// vuelta de Steam no relaja ninguna regla (D3).
+// vuelta de Steam no relaja ninguna regla (D3). Si la vuelta llega sin sesión, antes del 401 se
+// descarta el intento que trae (RF-7, D11).
 // T5: `GET /` (¿está disponible?, RF-22) y `POST /start` (abrir el intento, RF-1, RF-3).
 // T6: `POST /complete` (la vuelta de Steam, RF-4 a RF-9, RF-12).
 // - Sin Steam configurado (`steam` indefinido) la ruta responde igual: disponible `false` y 503.
@@ -8,6 +9,8 @@
 // Spec 015, T4 (plan, §4.3, P15-5, P15-9): tras la confirmación, perfil de Steam y rango Premier de
 // Leetify en paralelo; sin cliente de Leetify la lectura es un fallo. RF-1, RF-2, RF-3, RF-15.
 import { Router } from "express";
+import type { Request } from "express";
+import { isPlainObject } from "../domain/sessionRules.ts";
 import { ACCOUNT_ERRORS } from "../domain/accountRules.ts";
 import { LEETIFY_NOTICES } from "../domain/leetify.ts";
 import { SOURCE_NAMES } from "../domain/sources.ts";
@@ -22,7 +25,13 @@ import { STEAM_ERRORS, parseCompleteBody } from "../domain/steamRules.ts";
 import { GameAccount } from "../models/gameAccount.ts";
 import type { LeetifyClient } from "../services/leetifyClient.ts";
 import { SOURCE_TIMEOUT_MS, readPremierWithTimeout, readWithTimeout } from "../services/realSources.ts";
-import { consumeAttempt, discardAttempt, findAttempt, openAttempt } from "../services/steamAttempts.ts";
+import {
+  consumeAttempt,
+  discardAttempt,
+  discardAttemptByToken,
+  findAttempt,
+  openAttempt,
+} from "../services/steamAttempts.ts";
 import type { AssertionResult, SteamClient } from "../services/steamClient.ts";
 import { createSteamSource } from "../services/steamSource.ts";
 import { verifyAccount } from "../services/verifyAccount.ts";
@@ -67,6 +76,15 @@ async function confirmWithTimeout(
   }
 }
 
+// RF-7, D11: la vuelta llegó sin sesión (cualquier 401 de `withUser`). Se descarta el intento cuyo
+// token trae `query.attempt`, antes de responder; la respuesta es el mismo 401 exista o no.
+async function discardReturnedAttempt(request: Request): Promise<void> {
+  const body: unknown = request.body;
+  const query: unknown = isPlainObject(body) ? body["query"] : undefined;
+  if (!isPlainObject(query)) return;
+  await discardAttemptByToken(query["attempt"]);
+}
+
 export function createSteamRouter({
   jwtSecret,
   now,
@@ -77,16 +95,19 @@ export function createSteamRouter({
   const router = Router();
   const source = steam === undefined ? undefined : createSteamSource(steam.client);
 
-  router.use(createWithUser({ jwtSecret, now }));
+  // Cada ruta lleva su guardia; `/complete` la suya, que descarta el intento si no hay sesión
+  // (RF-7, D11). Cualquier otra dirección bajo `/api/steam` sigue exigiendo sesión (al final).
+  const withUser = createWithUser({ jwtSecret, now });
+  const withUserOrDiscard = createWithUser({ jwtSecret, now, onRejected: discardReturnedAttempt });
 
   // RF-22: la interfaz pregunta si ofrecer «Verificar con Steam».
-  router.get("/", (_request, response) => {
+  router.get("/", withUser, (_request, response) => {
     response.status(200).json({ available: steam !== undefined });
   });
 
   // RF-1, RF-3, RF-22, D11: sesión → configurado → sin cuenta de CS2 verificada → abrir el
   // intento (reemplaza el anterior) y devolver la página de inicio de sesión de Steam.
-  router.post("/start", async (request, response) => {
+  router.post("/start", withUser, async (request, response) => {
     if (steam === undefined) {
       response.status(503).json({ error: STEAM_ERRORS.notConfigured });
       return;
@@ -112,7 +133,7 @@ export function createSteamRouter({
   // Steam (validación local) → sin cuenta de CS2 verificada → confirmación con Steam (RF-9) →
   // perfil (si falla, sin perfil: RF-12) y Leetify en paralelo (015, P15-5) → `verifyAccount` de
   // la spec 012 (RF-8).
-  router.post("/complete", async (request, response) => {
+  router.post("/complete", withUserOrDiscard, async (request, response) => {
     if (steam === undefined || source === undefined) {
       response.status(503).json({ error: STEAM_ERRORS.notConfigured });
       return;
@@ -220,6 +241,8 @@ export function createSteamRouter({
       ...(premier.kind === "failed" ? { notice: LEETIFY_NOTICES.verifyFailed } : {}), // RF-15
     });
   });
+
+  router.use(withUser);
 
   return router;
 }

@@ -126,6 +126,22 @@ export const httpApi: ApiContract = {
     // viajan como en cualquier operación protegida (spec 013, D3, RNF-6).
     complete: (query: Record<string, string>) =>
       request<SteamCompleteResult>('/steam/complete', { method: 'POST', body: { query } }),
+
+    // RF-7, D11: sin sesión el servidor responde 401 tras descartar el intento. Va como operación
+    // pública (`protectedCall: false`) para que ese 401 no cuente como sesión vencida y no recuerde
+    // esta dirección. Solo viaja el token: si hubiera sesión, sería una cancelación (RF-5), nunca
+    // una verificación.
+    abandon: async (attempt: string) => {
+      try {
+        await request<unknown>('/steam/complete', {
+          method: 'POST',
+          body: { query: { attempt } },
+          protectedCall: false,
+        });
+      } catch {
+        // 401 esperado; cualquier otro fallo tampoco cambia lo que se muestra.
+      }
+    },
   },
 
   riot: {

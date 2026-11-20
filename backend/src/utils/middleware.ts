@@ -2,7 +2,7 @@
 // (RF-5, RF-6, RF-7, RF-16, RF-17) de la spec 001, `withUser` de la spec 002 y la guardia
 // de las rutas de usuario de la spec 003.
 
-import type { RequestHandler } from "express";
+import type { Request, RequestHandler } from "express";
 import { User } from "../models/user.ts";
 import { CSRF_HEADER, SESSION_COOKIE, SESSION_MESSAGES, checkSession } from "../services/sessionToken.ts";
 import { USER_TARGET_MESSAGES, decodeSegment, matchUserRoute, resolveUserTarget } from "../services/userTarget.ts";
@@ -73,9 +73,14 @@ export const errorHandler = createErrorHandler(logger);
 export interface SessionGuardOptions {
   jwtSecret: string;
   now: () => number; // segundos Unix
+  /**
+   * Se ejecuta antes de responder cualquier 401 (spec 013, RF-7: la vuelta de Steam sin sesión
+   * descarta su intento). No cambia la respuesta. Por defecto no hace nada.
+   */
+  onRejected?: ((request: Request) => Promise<void>) | undefined;
 }
 
-export function createWithUser({ jwtSecret, now }: SessionGuardOptions): RequestHandler {
+export function createWithUser({ jwtSecret, now, onRejected }: SessionGuardOptions): RequestHandler {
   return async function withUser(request, response, next): Promise<void> {
     // `request.cookies` viene tipado con `any` por cookie-parser: se pasa por `unknown` (§1.2, D13).
     const cookies: unknown = request.cookies;
@@ -88,11 +93,13 @@ export function createWithUser({ jwtSecret, now }: SessionGuardOptions): Request
       nowSeconds: now(),
     });
     if (!check.ok) {
+      if (onRejected !== undefined) await onRejected(request);
       response.status(401).json({ error: check.error });
       return;
     }
     // (5) El identificador ya tiene formato de ObjectId (paso 4, D16): no hay CastError.
     if ((await User.exists({ _id: check.userId })) === null) {
+      if (onRejected !== undefined) await onRejected(request);
       response.status(401).json({ error: SESSION_MESSAGES.invalidToken });
       return;
     }

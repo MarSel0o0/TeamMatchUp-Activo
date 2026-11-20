@@ -121,6 +121,12 @@ export interface ApiContract {
     start(): Promise<{ url: string }>;
     /** `POST /api/steam/complete`: completa la verificación con lo que trajo la dirección de vuelta (RF-4). */
     complete(query: Record<string, string>): Promise<SteamCompleteResult>;
+    /**
+     * Vuelta de Steam **sin sesión** (RF-7, D11): pide al servidor que descarte el intento de ese
+     * token (`POST /api/steam/complete` con solo `{ attempt }`). Nunca rechaza ni avisa de sesión
+     * vencida: su resultado no cambia lo que se muestra.
+     */
+    abandon(attempt: string): Promise<void>;
   };
   /** Verificación de la cuenta de LoL con Riot Games (spec 014): `/api/riot`. */
   riot: {

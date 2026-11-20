@@ -1130,6 +1130,8 @@ export const mockApi: ApiContract = {
     status: () => protectedOperation<{ available: boolean }>(() => reply(200, { available: false })),
     start: () => protectedOperation<{ url: string }>(() => fail(503, STEAM_MOCK_DISABLED_TEXT)),
     complete: () => protectedOperation<SteamCompleteResult>(() => fail(503, STEAM_MOCK_DISABLED_TEXT)),
+    // Sin intentos simulados no hay nada que descartar (RF-7).
+    abandon: () => Promise.resolve(),
   },
 
   // Spec 014, RF-42: en modo simulado nunca se simula una verificación con Riot ni datos de Riot

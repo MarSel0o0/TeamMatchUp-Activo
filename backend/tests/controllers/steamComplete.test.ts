@@ -13,7 +13,16 @@ import { findAttempt, openAttempt } from "../../src/services/steamAttempts.ts";
 import { verifyAccount } from "../../src/services/verifyAccount.ts";
 import { clock } from "../../src/utils/clock.ts";
 import { testConfig } from "../server/helpers.ts";
-import { FIXED_NOW, authApp, closeTestServers, linkOk, signUp, withSession } from "./helpers.ts";
+import {
+  FIXED_NOW,
+  VALID_REGISTRATION,
+  authApp,
+  closeTestServers,
+  linkOk,
+  loginAs,
+  signUp,
+  withSession,
+} from "./helpers.ts";
 import type { SignedUp } from "./helpers.ts";
 import { PUBLIC_URL, STEAM_ID, fakeSteamClient, steamApp, steamLoginQuery, tokenOf } from "./steamHelpers.ts";
 
@@ -83,7 +92,8 @@ async function assertNoCs2(session: SignedUp): Promise<void> {
 }
 
 describe("sesión y comprobante (RNF-6, RF-7)", () => {
-  test("sin sesión → 401, ninguna cuenta cambia y el intento no se consume", async () => {
+  // RF-7, D11: sin sesión al volver, el intento se descarta y hay que empezar de nuevo.
+  test("sin sesión → 401, ninguna cuenta cambia y el intento se descarta", async () => {
     const ana = await signUp(app, ANA);
     const token = await openToken(ana);
     const response = await supertest(app)
@@ -92,15 +102,58 @@ describe("sesión y comprobante (RNF-6, RF-7)", () => {
     assert.equal(response.status, 401);
     await assertNoCs2(ana);
     assert.equal(fake.state.assertionCalls.length, 0);
-    assert.ok(await findAttempt(token));
+    assert.equal(await findAttempt(token), null);
   });
 
-  test("con la cookie pero sin comprobante anti-CSRF → 401 y nada cambia", async () => {
+  test("con la cookie pero sin comprobante anti-CSRF → 401, nada cambia y el intento se descarta", async () => {
     const ana = await signUp(app, ANA);
     const token = await openToken(ana);
     const response = await ana.agent.post("/api/steam/complete").send({ query: steamLoginQuery(token) });
     assert.equal(response.status, 401);
     await assertNoCs2(ana);
+    assert.equal(fake.state.assertionCalls.length, 0);
+    assert.equal(await findAttempt(token), null);
+  });
+
+  test("RF-7 → RF-6: tras volver sin sesión e iniciar sesión, reabrir la misma vuelta no verifica", async () => {
+    const ana = await signUp(app, ANA);
+    const token = await openToken(ana);
+    const query = steamLoginQuery(token);
+    const anonymous = await supertest(app).post("/api/steam/complete").send({ query });
+    assert.equal(anonymous.status, 401);
+    // Inicia sesión de nuevo (otra credencial) y reabre la misma dirección antes de 10 minutos.
+    nowMs = FIXED_NOW + ATTEMPT_TTL_MS / 2;
+    const again = await loginAs(app, ana.email, VALID_REGISTRATION.password);
+    const response = await withSession(again.agent.post("/api/steam/complete"), again.csrf).send({ query });
+    assertFailed(response);
+    await assertNoCs2(ana);
+    assert.equal(fake.state.assertionCalls.length, 0);
+  });
+
+  test("sin sesión con un token desconocido: el mismo 401 y los intentos de otros no se tocan", async () => {
+    const ana = await signUp(app, ANA);
+    const beto = await signUp(app, BETO);
+    const anaToken = await openToken(ana);
+    const betoToken = await openToken(beto);
+    const known = await supertest(app).post("/api/steam/complete").send({ query: steamLoginQuery(anaToken) });
+    const unknown = await supertest(app)
+      .post("/api/steam/complete")
+      .send({ query: steamLoginQuery("token-que-no-existe") });
+    assert.equal(unknown.status, 401);
+    assert.deepEqual(unknown.body, known.body); // no revela si el intento existía
+    assert.equal(await findAttempt(anaToken), null);
+    assert.ok(await findAttempt(betoToken));
+  });
+
+  test("sin sesión y sin intento en el cuerpo (o cuerpo no válido) → 401 y nada se borra", async () => {
+    const ana = await signUp(app, ANA);
+    const token = await openToken(ana);
+    for (const body of [{}, { query: {} }, { query: "x" }, { query: { attempt: 7 } }, { query: { attempt: "" } }]) {
+      const response = await supertest(app).post("/api/steam/complete").send(body);
+      assert.equal(response.status, 401);
+    }
+    const noBody = await supertest(app).post("/api/steam/complete");
+    assert.equal(noBody.status, 401);
     assert.ok(await findAttempt(token));
   });
 

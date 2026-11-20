@@ -86,3 +86,13 @@ export async function consumeAttempt(attempt: AttemptRecord): Promise<boolean> {
 export async function discardAttempt(userId: string, token: string): Promise<void> {
   await SteamAttempt.deleteOne({ user: userId, tokenHash: hashToken(token) });
 }
+
+/**
+ * Descarta el intento con ese token sin saber de quién es (RF-7, D11): la vuelta de Steam llegó
+ * sin sesión. Solo quien tiene la dirección de vuelta conoce el token (32 bytes al azar), así que
+ * no permite borrar intentos ajenos a ciegas; no devuelve nada para no revelar si existía.
+ */
+export async function discardAttemptByToken(token: unknown): Promise<void> {
+  if (typeof token !== "string" || token === "" || token.length > MAX_TOKEN_LENGTH) return;
+  await SteamAttempt.deleteOne({ tokenHash: hashToken(token) });
+}
