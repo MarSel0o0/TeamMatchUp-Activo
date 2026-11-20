@@ -1844,3 +1844,37 @@ Decisiones y salvedades que el reviewer debe conocer: NVDA y Lighthouse no se ej
 página al salir) se corrigieron por decisión del usuario; `npm run typecheck` no comprueba nada en este proyecto (`tsconfig.json` solo
 tiene `references`), los tipos los comprueba `tsc -b` dentro de `npm run build`. **Aviso al coordinador:** actualizar `MEMORY.md` al cerrar
 la fase (el planner y el implementer de la 009 no escriben fuera de lo que indica cada tarea).
+
+## Validación del reviewer (2026-11-20) — APROBADO, salvo C4 (decisión del usuario)
+
+Contra el código actual. Servidor real (base temporal `teammatchup_rev009`, borrada; sin claves ni
+red externa; tres usuarios y hasta dos pestañas por usuario) y modo simulado; 1280 y 360 px; tema
+claro y oscuro; Chrome headless por CDP. Backend 2979/2980 (1 omitida); `lint`, `typecheck` y
+`build` del frontend en verde.
+
+**RF:** RF-1 a RF-24 cumplen. RF-14 se probó con respuestas inyectadas (el servidor no produce el
+caso). RF-16 en su versión vigente: la spec 013, RF-24, quitó el aviso global con el servidor real.
+**RNF:** RNF-1, RNF-3, RNF-4 y RNF-6 OK; RNF-2 teclado OK y **NVDA pendiente del usuario**; RNF-5 sin
+desborde a 360 px en 24 vistas, también con títulos de 60 caracteres sin espacios.
+
+**Contraste (RNF-5), tres vueltas:**
+- C1, «LoL» en la cabecera, tema claro: 4,11. La marca va sobre el fondo de la página, más oscuro
+  que una hoja. Corrección en `ecf12d2`: filtro propio de `.game-mark` (`brightness(0.62)`). Ahora LoL
+  4,75, R6 5,06, CS2 5,16.
+- C3, regresión de toda la aplicación: el `:not([aria-disabled])` que añadió la 009 a `.btn:hover`
+  le ganaba a los hover de cada variante («Unirme» o «Anotar sesión» en hover, oscuro: 1,17).
+  Corrección en `ecf12d2`: `:where()`. Ahora 15,62 claro / 16,56 oscuro, y los botones con
+  `aria-disabled` no cambian con el puntero.
+- C2, «Cancelar sesión» en hover, tema claro: 3,99, y 4,06 tras `ecf12d2`. Corrección en `7852a67`:
+  `--danger` claro `#a83025`. Ahora 4,79 en hover y 5,42 en reposo; «Sí, cancelar sesión» 5,72 en
+  hover; «D» de las partidas 5,26 en el hover de fila.
+- **C4, decisión del usuario:** los botones deshabilitados y bloqueados (`opacity: .4`,
+  `global.css`) quedan entre 1,47 y 3,41 («Sin cupos» 2,43 / 1,69, «Enviando…», «Descartar»,
+  «Volver» y «Editar sesión» bloqueados). La 009 no tiene la excepción del cambio B de la 008.
+  Opciones: (a) cambiar el estilo de esos estados hasta 4,5:1, o (b) aprobar la misma excepción
+  (WCAG 1.4.3) con `/sdd-change`. Recomendación: (b), por coherencia con la 008.
+
+Fuera de la 009 (anotado, sin corregir): en la agenda, `.week__session-meta` da 4,19 en oscuro y
+los bloques `.week__session` dan 1,1–1,85 en hover (fondo con degradado del acento escrito inline
+en `WeekCalendar.tsx`). El indicador de foco usa `--volt` también en tema claro y no llega a 3:1.
+

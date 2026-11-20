@@ -1,5 +1,9 @@
 # Spec 009 — Vista nueva: detalle de sesión
-Estado: aprobada (2026-10-18)
+Estado: aprobada (2026-10-18). Implementada (T0–T16) y validada por el `reviewer` el 2026-11-20
+(`validation.md`, «Validación del reviewer»): todos los RF cumplen. Quedan dos cosas del usuario:
+decidir C4 (contraste de los botones deshabilitados, RNF-5) y el recorrido con NVDA (RNF-2).
+Nota: RF-16, Q16 y el paso 2 del recorrido dicen que el aviso global se ve con el servidor real; la
+versión vigente es la de la spec 013, RF-24 (solo en modo simulado).
 
 ## Contexto y objetivo
 Es la segunda de las dos vistas nuevas que exige el enunciado del Hito 2. La propuso la

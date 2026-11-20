@@ -5611,7 +5611,7 @@ las filas de partidas y en el peor caso de la luz ambiental.
   iniciales del avatar (`Monogram`) usaban el color puro del jugador: 3,2:1 con el color por
   defecto y hasta 2,17:1 con otros.
 - **Corrección (`2ec44a4`):** tokens del tema claro `--warn` `#985c0b`, `--ok` `#147542`, `--danger`
-  `#bb3629`, `--ink-3` `#606670` y `--placeholder` `#696f78`; del oscuro, `--ink-3` `#818994` y
+  `#bb3629` (después `#a83025`, spec 009), `--ink-3` `#606670` y `--placeholder` `#696f78`; del oscuro, `--ink-3` `#818994` y
   `--placeholder` `#78808c`. Las iniciales usan `color-mix(in srgb, <color> 35%, var(--ink))`.
 - **Segunda vuelta:** 108 vistas y 8190 textos sin ningún fallo fuera de los botones
   deshabilitados (exentos por el cambio B: «Proponer sesión» 2,61/1,74). «Sin verificar» 4,70; «V»
