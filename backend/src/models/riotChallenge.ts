@@ -11,6 +11,7 @@ import { Schema, model } from "mongoose";
 import type { HydratedDocument, Types } from "mongoose";
 import { GAMES } from "../domain/games.ts";
 import { remainingSeconds } from "../domain/riotChallenge.ts";
+import { COLLECTIONS } from "./collections.ts";
 
 export type RiotChallengeStatus = "open" | "completed" | "cancelled";
 
@@ -104,4 +105,4 @@ RiotChallengeSchema.index({ puuid: 1, status: 1, expiresAt: 1 });
 // P14-1 / RF-28 / D87: borrado automático 24 h después de vencer, anularse o cerrarse, lo que ocurra primero.
 RiotChallengeSchema.index({ deleteAt: 1 }, { expireAfterSeconds: 0 });
 
-export const RiotChallenge = model<RiotChallengeFields>("RiotChallenge", RiotChallengeSchema);
+export const RiotChallenge = model<RiotChallengeFields>("RiotChallenge", RiotChallengeSchema, COLLECTIONS.riotChallenges);

@@ -9,6 +9,7 @@
 //   (`attemptStatus`), no la existencia del documento.
 import { Schema, model } from "mongoose";
 import type { HydratedDocument, Types } from "mongoose";
+import { COLLECTIONS } from "./collections.ts";
 
 export interface SteamAttemptFields {
   user: Types.ObjectId;
@@ -28,4 +29,4 @@ const SteamAttemptSchema = new Schema<SteamAttemptFields>({
 // RNF-7: expireAfterSeconds 0 = se borra cuando `expiresAt` pasa.
 SteamAttemptSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
-export const SteamAttempt = model<SteamAttemptFields>("SteamAttempt", SteamAttemptSchema);
+export const SteamAttempt = model<SteamAttemptFields>("SteamAttempt", SteamAttemptSchema, COLLECTIONS.steamAttempts);
