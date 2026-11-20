@@ -7,7 +7,9 @@ recorrido con la cuenta real de Steam**. Esta spec no está validada hasta cerra
 Backend (`npm test --script-shell=bash`): 2592 de 2600 en verde. Los 8 fallos son de
 `tests/controllers/ui.test.ts`, archivo de la spec 010 sin commitear cuyo código (`uiDir` en `app.ts`)
 no está en esta rama; no pertenecen a la 013. `npm run lint` sin errores; `npm run typecheck`
-solo falla en ese mismo archivo.
+solo falla en ese mismo archivo. **Actualización 2026-11-20:** con la 010 ya en la rama
+(`6307b9a`) y la corrección de RF-7 (`c7afc2f`), la suite completa da 2978 pruebas, 2977 en verde,
+1 omitida (de la 010) y 0 fallos; `typecheck` y `lint` sin errores.
 
 | RF / RNF | Dónde se prueba |
 |---|---|
@@ -16,7 +18,7 @@ solo falla en ese mismo archivo.
 | RF-4, RF-8, RF-9 | `steamComplete.test.ts` (éxito, conversión, 409, 503 y plazo) |
 | RF-5 | `steamComplete.test.ts` (cancelar, volver vacío, token ajeno) |
 | RF-6 | `steamComplete.test.ts` (cada causa), `steamOpenId.test.ts` (campos firmados, `return_to`) |
-| RF-7 | `steamComplete.test.ts` (401 sin sesión, el intento no se consume); la página no recuerda su dirección: **sin verificar en navegador** |
+| RF-7 | `steamComplete.test.ts` (401 sin sesión, la cuenta no cambia y el intento de ese token se descarta; reabrir la vuelta tras entrar da RF-6; corrección `c7afc2f`); la página pide `api.steam.abandon` y no recuerda su dirección: **sin verificar en navegador** |
 | RF-10, RF-11, RF-17 | `steamProfile.test.ts`, `steamClient.test.ts`, `steamComplete.test.ts` |
 | RF-12 | `steamComplete.test.ts` (verificada sin perfil), `steamResync.test.ts` (sin espera) |
 | RF-13 | `steamComplete.test.ts`, `steamResync.test.ts` (rango simulado, origen) |

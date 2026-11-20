@@ -74,7 +74,7 @@ anti-CSRF. Ninguna regla de la spec 002 se relaja (RNF-6).
 | Archivo | Responsabilidad | RF |
 |---|---|---|
 | `models/steamAttempt.ts` (nuevo) | `{ user, tokenHash, expiresAt }`; índice único en `user` (un intento abierto por usuario, D11); índice TTL en `expiresAt` (`expireAfterSeconds: 0`: Mongo los borra solo, RNF-7) | RF-1, RF-6, RNF-7 |
-| `services/steamAttempts.ts` (nuevo) | `openAttempt(userId, now)` (reemplaza el anterior con `findOneAndUpdate … upsert`; devuelve el token en claro, en base solo su hash SHA-256); `findAttempt(token)`; `consumeAttempt(attempt)` (`findOneAndDelete` por `_id`, usuario y hash: solo uno gana); `discardAttempt(userId, token)` | RF-1, RF-5, RF-6, RF-7 |
+| `services/steamAttempts.ts` (nuevo) | `openAttempt(userId, now)` (reemplaza el anterior con `findOneAndUpdate … upsert`; devuelve el token en claro, en base solo su hash SHA-256); `findAttempt(token)`; `consumeAttempt(attempt)` (`findOneAndDelete` por `_id`, usuario y hash: solo uno gana); `discardAttempt(userId, token)`; `discardAttemptByToken(token)` (sin sesión, RF-7; añadida en `c7afc2f`) | RF-1, RF-5, RF-6, RF-7 |
 | `services/steamClient.ts` (nuevo) | `SteamClient { verifyAssertion(params, signal): "valid"\|"invalid"\|"unavailable"; readProfile(steamId, signal): RealResult }` y `createSteamClient({ apiKey, fetchFn = fetch })`. Única pieza con red y con la clave; cualquier fallo se vuelve `unavailable`, sin registrar la URL ni el error (RNF-2) | RF-4, RF-9, RF-10, RF-11, RF-12, RF-23, RNF-2 |
 | `services/steamSource.ts` (nuevo) | `createSteamSource(client): RealSource` (`id: "steam"`) para el registro de la 012: `read` llama a `readProfile` y entrega `RealData { handle: steamId, profile }`; sin jugador → `gone` | RF-14, RF-23 |
 | `controllers/steam.ts` (nuevo) | `createSteamRouter({ jwtSecret, now, steam? })`: `GET /` (¿disponible?), `POST /start`, `POST /complete`. Todas con `withUser` (sesión y comprobante, RNF-6) | RF-1 a RF-9, RF-12, RF-22 |
@@ -155,7 +155,10 @@ url = STEAM_OPENID_URL + "?" + buildLoginParams(returnTo, realm = PUBLIC_URL)
 ### 4.2 Completar (`POST /api/steam/complete`, cuerpo `{ query }`) — RF-4 a RF-9, RF-12, RF-26
 `query` son los parámetros de la dirección de la página de vuelta (`attempt` y `openid.*`).
 ```
-sesión (withUser)                                    → 401 (RF-7: la página manda a iniciar sesión)
+sesión (withUser con onRejected)                     → descarta el intento de query.attempt
+                                                       (discardAttemptByToken) y 401
+                                                       (RF-7, D11: la página pide además
+                                                       api.steam.abandon y manda a iniciar sesión)
 si steam no configurado                              → 503 notConfigured
 b = parseCompleteBody(body); si no es válido         → 400 RF-6
 token = query.attempt
@@ -371,7 +374,8 @@ intento residual es inservible (`withUser` da 401 al usuario inexistente) y el T
     reemplaza); cancelar y volver sin respuesta (RF-5, el intento queda descartado); una por una
     las causas de RF-6 (firma inválida, sin intento, de otro usuario —y el intento ajeno
     sigue—, ya usado, vencido, anulado, `return_to` de otra dirección, ya verificada); sin
-    sesión → 401 y la cuenta no cambia (RF-7); SteamID64 verificado por otro → 409 (RF-8);
+    sesión → 401, la cuenta no cambia y el intento de ese token queda descartado, así que
+    reabrir la misma vuelta tras entrar da RF-6 (RF-7; corrección `c7afc2f`); SteamID64 verificado por otro → 409 (RF-8);
     Steam caído → 503 (RF-9); perfil que falla o `gone` tras verificar → cuenta verificada sin
     perfil y `POST /accounts/:id/sync` inmediato **no** da 429 (RF-12); perfil privado y lista
     de juegos vacía (RF-11, RF-17); los textos literales de RF-6, RF-8, RF-9; la respuesta no
