@@ -8,7 +8,7 @@ export default defineConfig(({ mode }) => {
   // Prefijo '' para incluir VITE_PROXY_TARGET aunque no se exponga al cliente.
   const fileEnv = loadEnv(mode, process.cwd(), '');
   const proxyTarget =
-    process.env.VITE_PROXY_TARGET ?? fileEnv.VITE_PROXY_TARGET ?? 'http://localhost:3000';
+    process.env.VITE_PROXY_TARGET ?? fileEnv.VITE_PROXY_TARGET ?? 'http://localhost:3001'; // PORT de backend/.env.example
 
   return {
     plugins: [react()],
