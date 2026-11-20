@@ -1845,7 +1845,7 @@ página al salir) se corrigieron por decisión del usuario; `npm run typecheck` 
 tiene `references`), los tipos los comprueba `tsc -b` dentro de `npm run build`. **Aviso al coordinador:** actualizar `MEMORY.md` al cerrar
 la fase (el planner y el implementer de la 009 no escriben fuera de lo que indica cada tarea).
 
-## Validación del reviewer (2026-11-20) — APROBADO, salvo C4 (decisión del usuario)
+## Validación del reviewer (2026-11-20) — APROBADO (C4 resuelta por el cambio VC4)
 
 Contra el código actual. Servidor real (base temporal `teammatchup_rev009`, borrada; sin claves ni
 red externa; tres usuarios y hasta dos pestañas por usuario) y modo simulado; 1280 y 360 px; tema
@@ -1873,6 +1873,8 @@ desborde a 360 px en 24 vistas, también con títulos de 60 caracteres sin espac
   «Volver» y «Editar sesión» bloqueados). La 009 no tiene la excepción del cambio B de la 008.
   Opciones: (a) cambiar el estilo de esos estados hasta 4,5:1, o (b) aprobar la misma excepción
   (WCAG 1.4.3) con `/sdd-change`. Recomendación: (b), por coherencia con la 008.
+  **Resuelta (2026-11-20):** el usuario eligió (b) y aprobó el cambio VC4 en `spec.md` (excepción
+  de RNF-5, Casos límite, Fuera de alcance y Criterios). Sin cambios de código; RNF-5 cumple.
 
 Fuera de la 009 (anotado, sin corregir): en la agenda, `.week__session-meta` da 4,19 en oscuro y
 los bloques `.week__session` dan 1,1–1,85 en hover (fondo con degradado del acento escrito inline

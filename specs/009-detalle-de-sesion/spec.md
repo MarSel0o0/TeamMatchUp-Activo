@@ -1,7 +1,8 @@
 # Spec 009 — Vista nueva: detalle de sesión
 Estado: aprobada (2026-10-18). Implementada (T0–T16) y validada por el `reviewer` el 2026-11-20
-(`validation.md`, «Validación del reviewer»): todos los RF cumplen. Quedan dos cosas del usuario:
-decidir C4 (contraste de los botones deshabilitados, RNF-5) y el recorrido con NVDA (RNF-2).
+(`validation.md`, «Validación del reviewer»): todos los RF cumplen. El hallazgo C4 de esa
+validación (contraste de los botones deshabilitados y bloqueados) se resolvió con el cambio VC4
+(RNF-5, aprobado por el usuario el 2026-11-20). Queda del usuario el recorrido con NVDA (RNF-2).
 Nota: RF-16, Q16 y el paso 2 del recorrido dicen que el aviso global se ve con el servidor real; la
 versión vigente es la de la spec 013, RF-24 (solo en modo simulado).
 
@@ -734,7 +735,14 @@ usuaria, Q18), y cuenta sus notas en caracteres Unicode, como la edición y el s
   (decisión recomendada, R14). Todo
   texto del detalle y de la ventana tiene un contraste de al menos 4,5:1 (3:1 en texto
   grande) en el tema claro y en el oscuro (`PRODUCT.md`, accesibilidad; como la spec 008,
-  RNF-5) (deducción, D7).
+  RNF-5) (deducción, D7). Excepción: el texto de un botón deshabilitado o bloqueado
+  (Definiciones), como "Sin cupos" (RF-9), el botón en curso con "Enviando…" o "Editar
+  sesión", "Cancelar sesión", "Descartar", "Volver" y el botón de cerrar mientras RF-11 y
+  RF-23 los bloquean, está exento de ese mínimo, igual que en WCAG 2.x, criterio 1.4.3
+  ("Contraste (mínimo)"), que exime a los componentes de interfaz inactivos. Ese mismo
+  botón, habilitado y en cualquiera de sus estados (reposo, puntero encima, foco), sí debe
+  cumplir el mínimo, y también el texto que se ve fuera del botón, como los mensajes de
+  estado y de error (la misma excepción que la spec 008, RNF-5, P65; cambio VC4).
 - RNF-6: Son reglas puras del dominio, sin reloj ni interfaz (constitución, principio 3):
   el rol en el detalle y qué acciones se ofrecen, con el estado "Sin cupos" (RF-9); el
   rango horario mostrado; cuántos "cupo libre" se muestran según el estado (RF-3; Q21);
@@ -853,6 +861,11 @@ usuaria, Q18), y cuenta sus notas en caracteres Unicode, como la edición y el s
   termina la cascada; RF-6, RF-10, RF-21; Q22).
 - Sesión de juego llena y usuario no inscrito: "Sin cupos" bloqueado (Definiciones), con
   foco, anunciado como no disponible, y activarlo no envía nada (RF-9; P1, D30).
+- Contraste de un botón deshabilitado o bloqueado: su texto puede quedar por debajo de
+  4,5:1 en los dos temas (excepción de RNF-5; VC4). En cuanto vuelve a estar disponible,
+  en reposo, con el puntero encima o con el foco, cumple el mínimo. La excepción no alcanza
+  a lo que el usuario lee fuera del botón: "Cambios guardados.", los errores y el estado
+  vacío siguen midiéndose (RNF-5).
 - Sumarse a una sesión de juego de un juego en el que el usuario de la sesión no tiene
   cuenta: se permite (RF-9; spec 006, RF-11).
 - Doble clic o dos acciones seguidas: mientras hay una acción en curso, o su nueva
@@ -1003,6 +1016,9 @@ usuaria, Q18), y cuenta sus notas en caracteres Unicode, como la edición y el s
 - Resolver ediciones simultáneas: gana la última guardada (limitación declarada).
 - Conservar una edición sin guardar al ir a login (spec 007, P11).
 - Cambios en el servidor (Contexto).
+- Cambiar el aspecto atenuado de los botones deshabilitados o bloqueados para que su texto
+  llegue a 4,5:1: es un estilo compartido con el resto de la aplicación (excepción de RNF-5;
+  VC4).
 
 ## Criterios de finalización
 - [ ] Construcción, comprobación de tipos y lint de la interfaz en verde (RNF-4).
@@ -1227,7 +1243,9 @@ usuaria, Q18), y cuenta sus notas en caracteres Unicode, como la edición y el s
       los dos temas, la auditoría de accesibilidad
       de Lighthouse no da fallos de contraste, y los textos de estados que no ve (estado
       vacío, errores, "Cambios guardados.", ventana) se miden con el selector de color de
-      Chrome, sin ninguno por debajo de 4,5:1 (3:1 en texto grande) (RNF-5).
+      Chrome, sin ninguno por debajo de 4,5:1 (3:1 en texto grande) (RNF-5). El texto de
+      los botones deshabilitados o bloqueados no cuenta para este mínimo (excepción de
+      RNF-5, VC4); esos mismos botones habilitados, también con el puntero encima, sí.
 - [ ] Una revisión del código nuevo no encuentra colores escritos a mano (RNF-1), ni
       llamadas a la red fuera del contrato único, y encuentra las reglas de RNF-6 en el
       dominio, sin duplicar en los componentes, incluidas el ajuste de cupos al nuevo
@@ -1642,6 +1660,20 @@ usuaria, Q18), y cuenta sus notas en caracteres Unicode, como la edición y el s
   regla del título y su conteo Unicode sí cambian); CR5-5 (hallazgo 8; Contexto,
   RF-16, Casos límite, Decisiones y Dudas abiertas: las correcciones de la cuarta
   revisión pasan a la serie CR4-n y D22 aclara que su C5 es de la segunda revisión).
+- **Cambio VC4 — excepción de contraste de los botones deshabilitados y bloqueados
+  (2026-11-20), aprobado (2026-11-20, por el usuario: "apruebo").** Origen: el hallazgo C4 de la validación del
+  `reviewer` (2026-11-20, `validation.md`; no es la C4 de la segunda revisión). Los botones
+  deshabilitados y bloqueados se dibujan atenuados y su texto queda entre 1,47:1 y 3,41:1
+  ("Sin cupos" 2,43:1 en el tema claro y 1,69:1 en el oscuro; "Enviando…", "Descartar",
+  "Volver" y "Editar sesión" bloqueados). RNF-5 decía "todo texto del detalle y de la
+  ventana", sin excepción, a diferencia de la spec 008, que la tiene desde su cambio B.
+  - Decisión del usuario (2026-11-20): "Excepción (Recommended)". Se aplica la misma
+    excepción que la spec 008, RNF-5 (P65), por coherencia entre las dos vistas nuevas: el
+    texto de un componente de interfaz inactivo está exento del mínimo, como en WCAG 2.x,
+    criterio 1.4.3. Se descarta cambiar el aspecto de esos estados hasta 4,5:1 (es un
+    estilo compartido que afectaría también a las specs 007 y 008). Quedó en RNF-5, Casos
+    límite, Fuera de alcance y Criterios de finalización (360 px y contraste). Ningún RF
+    cambia de comportamiento y no hay cambios de código.
 
 ## Dudas abiertas
 - Validación (dependencia externa, no la resuelve la usuaria): la validación de esta spec
@@ -1652,7 +1684,7 @@ usuaria, Q18), y cuenta sus notas en caracteres Unicode, como la edición y el s
   "No estás inscrito en esta sesión.", que es el que esta spec usa (CR4-5). Corregirlo en la
   spec 007 corresponde a un cambio de esa spec.
 - Resueltas: P1–P13, Q1–Q27 (Q24 sin efecto), D1–D30, R1–R18, C3 y C4 (correcciones de
-  la segunda revisión), CR4-1 a CR4-5 y CR5-1 a CR5-5 (Decisiones de clarificación);
+  la segunda revisión), CR4-1 a CR4-5, CR5-1 a CR5-5 y VC4 (Decisiones de clarificación);
   R1–R14 ratificadas por el usuario tras la tercera revisión QA, R15–R18 ratificadas por
   el usuario el 2026-10-18 al aprobar el contenido de la spec (R15 queda sin efecto y D23
   acotada por Q17), Q16–Q23 y Q25 decididas por la usuaria en la cuarta revisión QA (Q17

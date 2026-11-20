@@ -4,7 +4,9 @@ Redactado el 2026-10-18; preguntas 1 a 4 de la sección 8 cerradas con las respu
 usuaria (decisiones D-26 a D-29). Ajuste final del 2026-10-18: confirmado el texto de D-27 y
 rediseñado el límite de escritura (D-29, D-30; R-10 resuelto).
 Spec: `specs/009-detalle-de-sesion/spec.md` (aprobada el 2026-10-18; decisiones P1–P13,
-Q1–Q27, D1–D30, R1–R18, C3, C4, CR4-1 a CR4-5 y CR5-1 a CR5-5).
+Q1–Q27, D1–D30, R1–R18, C3, C4, CR4-1 a CR4-5 y CR5-1 a CR5-5; cambio VC4 del 2026-11-20,
+excepción de contraste de RNF-5 para los botones deshabilitados y bloqueados, sin efecto en el
+código).
 
 Referencia aplicada: `specs/_referencia/001-crear-backend-original.md`, sección 6, punto 4
 (operaciones nuevas del contrato `sessions.get(id)` y `sessions.update(id, payload)`), y
@@ -695,6 +697,9 @@ de juego o "Detalle de sesión" mientras carga.
 - Contraste: textos de estado con `note` (`--ink-2`) o superior. "cupo libre" y "organiza"
   usan hoy `--ink-3`; si en algún tema no llegan a 4,5:1, en el detalle pasan a `--ink-2`
   (riesgo R-4). Se mide en la validación.
+- Botones deshabilitados y bloqueados: conservan el atenuado compartido (`opacity: .4` en
+  `global.css`); su texto queda exento del mínimo (excepción de RNF-5, cambio VC4) y no se
+  mide. Los mismos botones habilitados, también en hover y con foco, sí se miden.
 
 ### 5.8 Textos literales (en `copy.ts`)
 "Ver detalle" · "Ver detalle de <título>" · "La organizas" · "Estás dentro" · "organiza" ·
@@ -781,7 +786,8 @@ extensión `.ts` y con `@/`, así que no se ejecuta directo con `node --test` (`
    la API), modo simulado con la cuenta demo (`SESSION-3`, `abc`, `session-999999`,
    `SESSION-999999`, sin peticiones al servidor), **solo teclado y NVDA en Chrome**, **360 px**
    (60 caracteres sin espacios y 160 de notas, con formulario y ventana, y la agenda) y
-   **contraste** (Lighthouse en los dos temas y selector de color para los estados que no ve).
+   **contraste** (Lighthouse en los dos temas y selector de color para los estados que no ve;
+   sin contar los botones deshabilitados o bloqueados, excepción de RNF-5, VC4).
    Los casos que no se provocan desde la interfaz (sesión `full` en la cascada, fallo de la
    nueva lectura, 403) se comprueban con las tablas de 7.1 y la revisión de código.
    Las comprobaciones de "una sola petición" se hacen con `npm run build && npm run preview`,

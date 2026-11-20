@@ -2,6 +2,8 @@
 Estado: aprobado (2026-10-19, por el usuario); implementado (T1–T31, 2026-10-19).
 Borrador del 2026-10-18.
 Spec: `specs/007-integrar-frontend/spec.md` (aprobada el 2026-10-18, con las decisiones R19 y R20).
+Ajuste del 2026-11-20 (R23): RF-20 admite 65 s para resincronizar y las operaciones de Riot; el
+código ya lo hace desde la spec 014 (`timeoutMs` en `transport.ts`, P14-11), ver §3.3.
 Alineación del 2026-10-19 con la spec (RF-10, puntos 4, 5, 10, 12 y 13): textos de las specs 004
 y 005 en minúscula y sin punto final y 401 «token inválido» para el usuario eliminado; solo
 cambian la sección 3.9 de este plan y las tareas T6, T16, T17 y T23.
@@ -205,6 +207,8 @@ dos caminos (sección 5).
   caso aceptado de la spec (dos inicios casi simultáneos).
 
 ### 3.3 Transporte, plazo y errores (RF-5, RF-7, RF-9, RF-20)
+Nota (2026-11-20, R23): desde la spec 014 el plazo es `options.timeoutMs ?? 30_000`; `httpApi.ts`
+pasa 65 000 ms en `syncAccount`, `createChallenge` y `confirmChallenge` (P14-11).
 ```
 execute<T>(run, { protectedCall, signal? }):          // run(signal) → { status, body, headers? } ya leído
   epoch0 = epoch                                       // época de la sesión del cliente
