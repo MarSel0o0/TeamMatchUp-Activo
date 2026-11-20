@@ -71,6 +71,10 @@ npm run build       # compila el servidor en backend/out
 NODE_ENV=production JWT_SECRET=<secreto-propio> npm start
 ```
 
+Ojo: desde `backend/` el servidor también lee `backend/.env`, así que usa la base de
+desarrollo `teammatchup`. Si ese `.env` tiene `STEAM_API_KEY` con `PUBLIC_URL=http://…`, en
+producción no arranca (exige `https`): comenta esas líneas o pasa `MONGODB_DBNAME` y `PUBLIC_URL`
+en la misma línea del comando.
 Con `NODE_ENV=production` el servidor entrega la interfaz en cualquier ruta fuera de `/api`
 (recargar `/perfil` funciona) y una ruta de API inexistente responde 404 en JSON. Si falta
 `backend/dist/index.html`, no arranca: termina con código 1 y pide ejecutar `npm run build:ui`.
@@ -151,8 +155,10 @@ variable opcional, que `backend/.env.example` trae comentada y sin valor (no req
 
 #### Renovación manual de `RIOT_API_KEY` cada 24 horas (local y servidor del curso)
 
-La clave de desarrollo de Riot Games vence a las 24 horas; mientras está caducada las operaciones
-que consultan a Riot responden `503` sin perder datos ni cuentas verificadas. Para renovarla:
+La clave de desarrollo de Riot Games vence a las 24 horas. Mientras está caducada, las operaciones
+que consultan a Riot (verificar y resincronizar cuentas de LoL) responden `503` con el mensaje
+«Riot Games no está disponible por ahora, intenta más tarde», sin cerrar la sesión y sin perder
+datos ni cuentas verificadas: cada cuenta conserva su último rango. Para renovarla:
 
 1. Entra al [portal de desarrolladores de Riot Games](https://developer.riotgames.com/) y genera
    una clave de desarrollo nueva (`RGAPI-...`).

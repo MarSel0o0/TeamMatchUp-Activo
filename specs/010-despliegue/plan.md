@@ -77,18 +77,18 @@ createApp({ ..., uiDir })
 - Construcción: `cd backend && npm run build:ui` (instala/usa el frontend, compila, copia a
   `backend/dist`) y `npm run build` (`tsc`, a `backend/out`). Arranque: `npm start` →
   `NODE_ENV=production node out/index.js`.
-- Variables de producción (archivo `.env` creado a mano en la carpeta `teammatchup` del
+- Variables de producción (archivo `.env` creado a mano en la carpeta `reactivoActivo` del
   servidor, nunca en el repositorio): `NODE_ENV=production`, `PORT=7041`, `HOST=0.0.0.0`,
-  `MONGODB_URI`, `MONGODB_DBNAME=teammatchup_7041`, `JWT_SECRET` (`openssl rand -hex 32`; el
+  `MONGODB_URI`, `MONGODB_DBNAME=fullstack` (R-2 ocurrió, ver D-6), `JWT_SECRET` (`openssl rand -hex 32`; el
   servidor rechaza el valor de desarrollo, spec 001 RF-28).
 - `start` es `node out/index.js`; `NODE_ENV` sale del `.env` (D-3), así funciona igual en
   Windows y en Linux.
-- Subida por SSH (puerto 219) a `teammatchup/`: `out/`, `dist/`, `package.json` y
-  `package-lock.json`. **Nunca `node_modules`** (se instala en el servidor con
+- Subida por SSH (puerto 219) a `~/reactivoActivo` con `tar` (el servidor no tiene `rsync`):
+  la carpeta `backend/` compilada, sin `node_modules`, `.env`, `tests` ni `requests`. **Nunca `node_modules`** (se instala en el servidor con
   `npm ci --omit=dev`: `bcrypt` trae binario por plataforma). Si npm bloquea el script de
   instalación de `bcrypt`, `npm install-scripts approve bcrypt` (nota de `MEMORY.md`).
-- Proceso: `pm2 start out/index.js --name teammatchup-7041 --cwd <carpeta>` y `pm2 save`;
-  actualizar = subir `out/` y `dist/` y `pm2 restart teammatchup-7041`. Solo ese nombre
+- Proceso: `pm2 start npm --name reactivoActivo-7041 -- run start` y `pm2 save`; actualizar =
+  subir de nuevo, `npm ci --omit=dev` y `pm2 restart reactivoActivo-7041`. Solo ese nombre
   (RNF-5): nunca `pm2 restart all`, `pm2 delete all` ni `pm2 kill`.
 - El servidor del curso termina TLS delante de Node (el usuario confirmó HTTPS). La cookie lleva
   `Secure` por `NODE_ENV=production`, sin `trust proxy`: Express no la decide por la conexión.
@@ -122,6 +122,9 @@ createApp({ ..., uiDir })
   desplegar (T9) si el usuario de MongoDB puede crear `teammatchup_7041`. Si no puede, se
   abre la **T10** (cambio acotado, con test). Hasta entonces RF-6 se cumple en su rama
   principal.
+  **Resultado (2026-11-20):** R-2 ocurrió (código 13). T10 hecha con el prefijo **fijo** en todos
+  los entornos (`src/models/collections.ts`), no por variable: es como ya lo usaba el servidor
+  (rama `origin/deploy`) y no hace falta tocar el arranque.
 
 ## 5. Pruebas
 

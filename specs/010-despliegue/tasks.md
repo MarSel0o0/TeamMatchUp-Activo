@@ -1,5 +1,5 @@
 # Tareas 010 — Producción, despliegue y documentación
-Estado: en implementación (2026-10-21). Plan: `specs/010-despliegue/plan.md`.
+Estado: T1–T8 y T10 hechas (2026-11-20); falta T9 (el usuario). Plan: `specs/010-despliegue/plan.md`.
 Spec: `specs/010-despliegue/spec.md`. Diez tareas: T1 a T8 las hace el agente; T9 (despliegue
 real) la hace el usuario con sus credenciales; T10 es condicional.
 

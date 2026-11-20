@@ -1,6 +1,7 @@
 # Spec 010 — Producción, despliegue y documentación
-Estado: en implementación (2026-11-20). T1–T8 y T10 hechos; falta la validación del `reviewer` y
-el despliegue real (T9, lo hace el usuario).
+Estado: aprobada (de hecho: su plan y tareas se implementan desde el 2026-10-21; nunca se cambió
+el «borrador»). Implementación local validada por el `reviewer` (2026-11-20); falta el
+despliegue real (T9, lo hace el usuario) para pasar a implementada.
 Ajustada el 2026-11-20 al servidor real y a las specs 013 a 015 (ver «Cambios»).
 
 ## Contexto y objetivo
