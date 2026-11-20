@@ -553,7 +553,9 @@ a.btn--pen:hover {
   color: var(--volt-ink);
 }
 
-.btn:hover:not(:disabled):not([aria-disabled='true']) {
+/* `:where()` deja esta regla con el peso de `.btn:hover`: si no, ganaba a los hover de cada
+   variante (volt, peligro, discreto) y el texto quedaba sin contraste (spec 009, RNF-5). */
+.btn:hover:where(:not(:disabled):not([aria-disabled='true'])) {
   background: var(--fill-3);
   border-color: var(--line-strong);
 }
@@ -585,7 +587,7 @@ a.btn--pen:hover {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 8px 24px -12px rgba(205, 242, 75, 0.6);
 }
 
-.btn--pen:hover:not(:disabled) {
+.btn--pen:hover:not(:disabled):not([aria-disabled='true']) {
   background: var(--volt-bright);
   border-color: var(--accent-text-hover);
   box-shadow: var(--volt-glow);
@@ -597,7 +599,7 @@ a.btn--pen:hover {
   color: var(--ink-2);
 }
 
-.btn--quiet:hover:not(:disabled) {
+.btn--quiet:hover:not(:disabled):not([aria-disabled='true']) {
   color: var(--ink);
   background: var(--fill-2);
   border-color: transparent;
@@ -609,7 +611,7 @@ a.btn--pen:hover {
   background: transparent;
 }
 
-.btn--danger:hover:not(:disabled) {
+.btn--danger:hover:not(:disabled):not([aria-disabled='true']) {
   background: var(--danger-wash);
   border-color: rgba(255, 107, 94, 0.4);
 }
@@ -1075,9 +1077,14 @@ a.btn--pen:hover {
 :root[data-theme='light'] .entry__rank,
 :root[data-theme='light'] .account .sheet-title,
 :root[data-theme='light'] .account__entries dd,
-:root[data-theme='light'] .game-mark,
 :root[data-theme='light'] .preview__game {
   filter: brightness(0.68) saturate(1.35);
+}
+
+/* La marca de juego también va sobre el fondo de la página (cabecera del detalle de sesión),
+   más oscuro que una hoja: con 0.68 «LoL» quedaba en 4,1:1 (spec 009, RNF-5). */
+:root[data-theme='light'] .game-mark {
+  filter: brightness(0.62) saturate(1.35);
 }
 
 /* El volt sobre blanco necesita un canto para no perderse. */
