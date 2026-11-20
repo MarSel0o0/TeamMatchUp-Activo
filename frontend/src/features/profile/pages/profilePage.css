@@ -85,6 +85,10 @@
   gap: var(--s3);
   padding: var(--s5);
   border-top: 1px solid var(--line);
+  /* El riel del marcador mide lo que la pista y se desplaza con `transform`: su caja vacía
+     sobresalía a la derecha (a 375 px la página medía más de 500). El relleno deja ver el
+     marcador entero en los extremos. */
+  overflow-x: clip;
 }
 
 .ficha__matches {
