@@ -1,5 +1,6 @@
 # Spec 007 — Conectar la interfaz al servidor real
 Estado: implementada (2026-10-19; T1–T31 hechas, recorrido manual T29 en `validation.md`). Aprobada el 2026-10-18.
+Validada por el `reviewer` contra el código del 2026-11-20 (`validation.md`, sección 7): APROBADO.
 Alineación posterior a la implementación de las specs 004 y 005 (2026-10-19, aprobada por el
 usuario; commits `9b5cc87` y `88af4cd`): solo cambia RF-10 (puntos 4, 5 y 10, y puntos nuevos
 12 y 13), para que los textos que imita el modo simulado coincidan con los de las specs 004
@@ -18,6 +19,13 @@ el backend (caso límite de las credenciales incorrectas); (3) el estado de «De
 actualiza (004 y 005 implementadas el 2026-10-19). No cambia ningún otro requisito.
 
 Cambio por la spec 012 (2026-11-04, aprobado): la etiqueta «Datos de demostración» pasa a ser por bloque de datos y cada bloque de origen real muestra el nombre de su fuente (spec 012, RF-5 a RF-7). El modo simulado deja todas las cuentas sin verificar (RF-2).
+
+Cambios por specs posteriores (sin editar los RF de esta spec; ver la sección «Impacto» o los RF
+propios de cada una): spec 013 (RF-21, RF-24, RF-25: botón de Steam, aviso global solo en modo
+simulado y texto de «Resincronizar» de las cuentas de Steam); spec 014 (RF-38, RF-42 y P14-11:
+botón de Riot y plazo de 65 s para resincronizar, que hoy alcanza a todas las cuentas, ver RF-20 en
+`validation.md`, sección 7); spec 015 (RF-12: sin historial ni diferencia en las cuentas de CS2 con
+rango de Leetify).
 
 ## Contexto y objetivo
 Las vistas del Hito 1 funcionan contra un backend simulado en el navegador. El cliente HTTP
@@ -235,7 +243,7 @@ muestra rango", que dejaron de existir con la spec 004 vigente.)
   6. Ninguna operación de la spec 004 responde 409 (spec 004, casos límite): R6 se vincula
      y se resincroniza como los demás juegos.
   7. Ningún candidato de coincidencias trae correo (spec 005, RF-3 y RNF-2).
-  8. Salir de una sesión sin estar inscrito: 409 con "no estás inscrito en esta sesión"
+  8. Salir de una sesión sin estar inscrito: 409 con "No estás inscrito en esta sesión."
      (spec 006, RF-17), no 200.
   9. Actualizar el perfil: guarda el color de avatar, y nombre visible vacío o solo con
      espacios, zona horaria no IANA, nombre visible de más de 40, biografía de más de 200

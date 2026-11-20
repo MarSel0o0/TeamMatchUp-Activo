@@ -705,3 +705,40 @@ A 1280 px todas las vistas dan 1280 salvo Entrada (1502, también en el código 
 Resultado de `cd frontend && npm run typecheck && npm run lint && npm run build` al terminar T28: los tres en verde
 (`tsc --noEmit` sin errores, `eslint .` sin avisos, `tsc -b && vite build` compila en unos 4 s). Procesos propios (Vite
 en el 5207 en sus tres arranques, el de la línea base y Chrome en el 9407) cerrados por PID.
+
+## 7. Validación del `reviewer` (2026-11-20) — APROBADO
+
+Contra el código de `4b29c75` (rama `feature/vinculacion-steam-riot`), no contra el del 2026-10-19:
+las specs 008 a 015 tocaron muchas piezas de esta. Donde una spec posterior cambió un RF de forma
+explícita, se validó la versión vigente. Entorno: backend en :3317 con base temporal
+`teammatchup_rev007` (borrada), sin claves de Steam, Riot ni Leetify y sin red fuera de localhost;
+Vite real en :5317 y simulado en :5318; Chrome headless por CDP a 1280 y 360 px. Frontend: `lint`,
+`typecheck` (`tsc -b`) y `build` en verde.
+
+- **Todos los RF y RNF cumplen.** Modificados por specs posteriores, validados en su versión
+  vigente: RF-11 (012 RF-6, 013 RF-24), RF-14 (015 RF-12), RF-15 (012 a 015), RF-18 (013, 014),
+  RF-21 (012 RF-2), RF-22 (013 RF-24).
+- **Medidas destacadas:** RF-5 error de sesión a los 30,3 s; RF-20 guardar horas y registro a los
+  30,0 y 30,1 s, **resincronizar a los 64,9 s** (ver decisiones); RF-24 las otras pestañas van a login
+  en unos 110 ms; RNF-6 sin diferencias en 17.069 combinaciones de puntaje.
+- **D1 cerrado:** tras `4b29c75`, a 360 px todas las vistas miden 360 en los dos modos y la portada
+  a 1280 mide 1280. Coincidencias mide 361: es la fila de pestañas, con desplazamiento propio, y no
+  desplaza la página (excepción aceptada).
+- **D3 cerrado** por la spec 012 (RF-6): la etiqueta va por bloque, así que la ficha «Fuente» ya no
+  tiene sentido.
+- **O-A1 corregido** en `spec.md` (RF-10, punto 8, con el texto de la 006).
+
+Decisiones del usuario, abiertas (no bloquean):
+- **RF-20, plazo de resincronizar.** Hoy 65 s para todas las cuentas (`httpApi.ts`,
+  `RIOT_REQUEST_TIMEOUT_MS`). Recomendación del `reviewer`: 65 s solo para LoL y 30 s para R6 y CS2
+  (CS2 no pasa de 16 s según la 015; R6 es simulado). Cambio de unas 15 líneas que añade el juego a
+  `syncAccount`; antes hay que ajustar P14-11 del plan de la 014.
+- **O1** (`tu-nombre-ubisoft`, `domain/games.ts:61`): aceptarlo («no atribuye datos») o cambiarlo
+  por `tu-nombre` (una línea).
+- **O2** (barra en mayúsculas por CSS): hoy solo se ve en modo simulado (013 RF-24). Recomendación:
+  aceptarlo.
+
+Opcional, fuera de la 007: `mockApi.ts` escribe la base simulada en `localStorage` también con el
+servidor real (O6 conocida); `frontend/package.json` usa `^` y la constitución pide versiones
+exactas.
+
