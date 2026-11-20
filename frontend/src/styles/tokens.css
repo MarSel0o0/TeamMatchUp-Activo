@@ -36,7 +36,7 @@
   /* --- Texto ------------------------------------------------------------- */
   --ink: #eef0f2;
   --ink-2: #a2a9b3;
-  --ink-3: #7c848f;
+  --ink-3: #818994;
 
   /* --- Acento volt: lo que el jugador hace ------------------------------- */
   --volt: #cdf24b;
@@ -64,7 +64,7 @@
   --well: rgba(0, 0, 0, 0.25);
   --well-soft: rgba(0, 0, 0, 0.2);
   --inset: inset 0 1px 2px rgba(0, 0, 0, 0.4);
-  --placeholder: #646b75;
+  --placeholder: #78808c;
   --spot: rgba(205, 242, 75, 0.55);
   --grain: 0.045;
   --ambient-a: rgba(205, 242, 75, 0.07);
@@ -162,7 +162,7 @@
 
   --ink: #101216;
   --ink-2: #474e58;
-  --ink-3: #656c76;
+  --ink-3: #606670;
 
   --volt: #c6ee35;
   --volt-bright: #d2f55a;
@@ -173,11 +173,12 @@
   --accent-text: #4a6800;
   --accent-text-hover: #3a5300;
 
-  --danger: #c93a2c;
+  /* Texto de estado con al menos 4,5:1 sobre su wash y sobre el hover de fila (spec 008, RNF-5). */
+  --danger: #bb3629;
   --danger-wash: rgba(201, 58, 44, 0.09);
-  --ok: #17864c;
+  --ok: #147542;
   --ok-wash: rgba(23, 134, 76, 0.1);
-  --warn: #a8660c;
+  --warn: #985c0b;
   --warn-wash: rgba(168, 102, 12, 0.1);
 
   --fill-1: rgba(14, 17, 22, 0.025);
@@ -192,7 +193,7 @@
   --well: rgba(14, 17, 22, 0.035);
   --well-soft: rgba(255, 255, 255, 0.55);
   --inset: inset 0 1px 2px rgba(14, 17, 22, 0.08);
-  --placeholder: #737a84;
+  --placeholder: #696f78;
   --spot: rgba(110, 150, 0, 0.55);
   --grain: 0.03;
   --ambient-a: rgba(170, 215, 20, 0.14);

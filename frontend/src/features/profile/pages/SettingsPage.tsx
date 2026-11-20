@@ -158,7 +158,7 @@ export default function SettingsPage() {
               {updateProfile.isPending ? <span className="btn__spin" /> : <Icon as={Save} size={14} />}
               {updateProfile.isPending ? SENDING_TEXT : 'Guardar ficha'}
             </button>
-            <span className="note note--faint">
+            <span className="note note--faint settings__ident">
               {user.email} · {user.timezone}
             </span>
           </div>

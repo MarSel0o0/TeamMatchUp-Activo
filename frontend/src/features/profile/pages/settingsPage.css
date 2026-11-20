@@ -56,3 +56,10 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Correo y zona junto a «Guardar ficha»: un correo y una zona largos («America/Argentina/…»)
+   desbordaban a 360 px. */
+.settings__ident {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
