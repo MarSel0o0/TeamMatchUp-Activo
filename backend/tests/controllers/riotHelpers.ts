@@ -190,6 +190,13 @@ export function fakeRiotClient(
   return { client, state, reset, totalCalls };
 }
 
+/**
+ * Plazo global corto para las pruebas de RNF-7 (D98), en lugar de los 60 s reales. Era de 40 ms y
+ * fallaba con la máquina cargada: el trabajo con la base antes de la llamada colgada, o una
+ * petición que debía terminar a tiempo, superaba el plazo. 1 s deja margen de sobra.
+ */
+export const SHORT_OPERATION_TIMEOUT_MS = 1000;
+
 /** Aplicación con Riot configurado y el cliente falso dado. */
 export function riotApp(
   riotIntegration: RiotIntegration,

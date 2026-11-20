@@ -48,6 +48,7 @@ import {
   currentChallenge,
   fakeRiotClient,
   riotApp,
+  SHORT_OPERATION_TIMEOUT_MS,
 } from "./riotHelpers.ts";
 
 const ANA = { email: "ana@example.com", username: "Ana" } as const;
@@ -981,7 +982,7 @@ describe("RNF-7 / D98 — plazo máximo de 60 s antes y después de confirmar el
   test("plazo superado ANTES de confirmar el ícono → 503 RF-16, cuenta intento, sin cambios en cuentas", async () => {
     const shortTimeoutApp = await riotApp(
       { client: fake.client },
-      { operationTimeoutMs: 40 },
+      { operationTimeoutMs: SHORT_OPERATION_TIMEOUT_MS },
     );
     const ana = await signUp(shortTimeoutApp, ANA);
     const ch = await openChallengeFor(ana.id, { iconId: 7 });
@@ -1004,7 +1005,7 @@ describe("RNF-7 / D98 — plazo máximo de 60 s antes y después de confirmar el
   test("plazo superado DESPUÉS de confirmar el ícono (al leer rango) → RF-27 con rango y partidas pendientes", async () => {
     const shortTimeoutApp = await riotApp(
       { client: fake.client },
-      { operationTimeoutMs: 40 },
+      { operationTimeoutMs: SHORT_OPERATION_TIMEOUT_MS },
     );
     const ana = await signUp(shortTimeoutApp, ANA);
     const ch = await openChallengeFor(ana.id, { iconId: 7 });
@@ -1031,7 +1032,7 @@ describe("RNF-7 / D98 — plazo máximo de 60 s antes y después de confirmar el
   test("plazo superado DESPUÉS de confirmar el ícono (al leer lista de partidas) → RF-27 con solo partidas pendientes", async () => {
     const shortTimeoutApp = await riotApp(
       { client: fake.client },
-      { operationTimeoutMs: 40 },
+      { operationTimeoutMs: SHORT_OPERATION_TIMEOUT_MS },
     );
     const ana = await signUp(shortTimeoutApp, ANA);
     const ch = await openChallengeFor(ana.id, { iconId: 7 });

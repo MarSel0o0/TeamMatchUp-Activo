@@ -43,6 +43,7 @@ import {
   currentChallenge,
   fakeRiotClient,
   riotApp,
+  SHORT_OPERATION_TIMEOUT_MS,
 } from "./riotHelpers.ts";
 
 const ANA = { email: "ana@example.com", username: "Ana" } as const;
@@ -379,7 +380,7 @@ describe("POST /api/accounts/:id/sync (Riot): orden de errores RF-51 y RF-35", (
 
   test("503 si se supera el tiempo máximo de operación (60 s, RNF-7/D98), incluso tras leer cuenta y perfil, sin cambiar nada", async () => {
     const slowFake = fakeRiotClient();
-    const shortTimeoutApp = await riotApp({ client: slowFake.client }, { operationTimeoutMs: 40 });
+    const shortTimeoutApp = await riotApp({ client: slowFake.client }, { operationTimeoutMs: SHORT_OPERATION_TIMEOUT_MS });
     const ana = await signUp(shortTimeoutApp, ANA);
     const created = await GameAccount.create({
       user: ana.id,

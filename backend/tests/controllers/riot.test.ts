@@ -41,6 +41,7 @@ import {
   currentChallenge,
   fakeRiotClient,
   riotApp,
+  SHORT_OPERATION_TIMEOUT_MS,
   riotStatus,
 } from "./riotHelpers.ts";
 
@@ -746,7 +747,7 @@ describe("POST /api/riot/challenges — orden exacto de RF-22 (paso 2 consultand
           signal?.addEventListener("abort", () => resolve({ kind: "unavailable" }), { once: true });
         }),
     });
-    const slowApp = await riotApp({ client: slowFake.client }, { operationTimeoutMs: 40 });
+    const slowApp = await riotApp({ client: slowFake.client }, { operationTimeoutMs: SHORT_OPERATION_TIMEOUT_MS });
     const ana = await signUp(slowApp, ANA);
 
     const timedOut = await createChallenge(ana, { riotId: RIOT_ID, region: "LAS" });
@@ -781,7 +782,7 @@ describe("POST /api/riot/challenges — orden exacto de RF-22 (paso 2 consultand
     const waitingFake = fakeRiotClient();
     const waitingApp = await riotApp(
       { client: waitingFake.client, limiter: busyLimiter },
-      { operationTimeoutMs: 40 },
+      { operationTimeoutMs: SHORT_OPERATION_TIMEOUT_MS },
     );
     const beto = await signUp(waitingApp, BETO);
     const waitTimedOut = await createChallenge(beto, { riotId: RIOT_ID, region: "LAS" });
