@@ -51,9 +51,10 @@ pasos 15 y 16 de `backend/requests/users.rest`, `AGENTS.md` y la fila de la 010 
   `AGENTS.md` (comandos `build`, `build:ui`, `start`) y marcar T1 a T8. RF: —.
   Hecho cuando: `MEMORY.md` y `AGENTS.md` coinciden con el código.
 - [ ] **T9. Despliegue en el servidor del curso (lo hace el usuario).** Seguir el README: verificar
-  `node --version` (R-1) y si MongoDB deja crear `teammatchup_7041` (R-2); subir `out/`, `dist/`,
-  `package.json` y `package-lock.json`; crear el `.env`; `npm ci --omit=dev`; `pm2 start` con
-  el nombre `teammatchup-7041`; `pm2 save`; reiniciar y comprobar. Anotar el resultado en
+  `node --version` (R-1) y si MongoDB deja crear `teammatchup_7041` (R-2; ya se sabe que no:
+  T10); subir la carpeta `backend/` compilada con `tar` por `ssh` a `~/reactivoActivo`; crear el
+  `.env`; `npm ci --omit=dev`; `pm2 start` (o `pm2 restart`) con el nombre `reactivoActivo-7041`;
+  `pm2 save`; reiniciar y comprobar. Anotar el resultado en
   `validation.md`. RF: RF-5, RF-6, RF-9; RNF-5.
   Hecho cuando: en `https://fullstack.dcc.uchile.cl:7041/` se completa registro, login (cookie
   `Secure`), recarga y cierre de sesión, y el proceso sobrevive a un reinicio.

@@ -2,7 +2,10 @@
 Estado: en implementación (2026-10-21). El usuario pidió hacer la spec; las decisiones D-1 a D-6
 son del coordinador y quedan para su revisión (sección 6).
 Spec: `specs/010-despliegue/spec.md` (ajustada el 2026-10-21 a las specs 004 a 009: caen HU-4 y
-RF-10, y se limpian RF-7, RF-9, RF-11, RNF-4 y los casos límite).
+RF-10, y se limpian RF-7, RF-9, RF-11, RNF-4 y los casos límite). **2026-11-20:** HU-4 y RF-10
+vuelven con la spec 014 (Riot) y el servidor real usa la carpeta `reactivoActivo` y el proceso
+`reactivoActivo-7041` con la base `fullstack` y prefijo `tmu_` (ver «Cambios» de la spec; el
+procedimiento vigente es el del README raíz).
 Referencia aplicada: `specs/_referencia/001-crear-backend-original.md`, secciones 2 (CORS),
 5.2 (`build:ui`, `start`), 5.5 (estáticos y fallback) y T22 a T24.
 

@@ -16,7 +16,7 @@ quién habla) antes de ensayar.
 
 ## Antes de la demostración (24 h antes y 15 min antes)
 
-- [ ] URL desplegada responde; `pm2 list` muestra `teammatchup-7041` en línea.
+- [ ] URL desplegada responde; `pm2 list` muestra `reactivoActivo-7041` en línea.
 - [ ] Dos cuentas de equipo creadas en el servidor (A y B), con **mismo juego, rangos cercanos y
       al menos 2 horas en común** en la grilla. El rango sale del identificador de juego, así que
       es el mismo en cada ensayo: anota qué identificadores dan buenas coincidencias.
