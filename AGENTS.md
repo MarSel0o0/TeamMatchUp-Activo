@@ -61,6 +61,7 @@ flujo termina en una sesión agendada, no en una lista de perfiles. Detalle en
 
 - Frontend (`cd frontend`): `npm run dev | build | preview | typecheck | lint`. No tiene script de test. Por defecto habla con el servidor real (`VITE_API_URL=/api`, proxy de Vite a `VITE_PROXY_TARGET`, puerto de `backend/.env`); modo simulado: `VITE_USE_MOCK_API=true npm run dev` (en PowerShell: `$env:VITE_USE_MOCK_API="true"; npm run dev`). Cuenta demo del modo simulado: `demo@teammatchup.gg` / `demo1234`. Si `node_modules` no coincide con el lock, `npm ci`.
 - Backend (`cd backend`): `npm run dev | test | typecheck | lint`. `npm test` fija `NODE_ENV=test`, corre en serie y necesita MongoDB y `backend/.env`.
+- Producción (`cd backend`, spec 010): `npm run build:ui` (compila la interfaz y la copia a `backend/dist`), `npm run build` (servidor en `backend/out`) y `npm start` (`node out/index.js`; con `NODE_ENV=production` sirve `backend/dist` y termina con código 1 si falta `dist/index.html`). Todas las colecciones llevan el prefijo `tmu_` (`src/models/collections.ts`). Despliegue en el servidor del curso: README raíz, «Despliegue».
 - Gestor: npm. Toda dependencia se instala con `--save-exact`.
 
 ## Flujo SDD

@@ -3,6 +3,12 @@ Estado: en implementación (2026-10-21). Plan: `specs/010-despliegue/plan.md`.
 Spec: `specs/010-despliegue/spec.md`. Diez tareas: T1 a T8 las hace el agente; T9 (despliegue
 real) la hace el usuario con sus credenciales; T10 es condicional.
 
+**2026-11-20:** T4 a T8 estaban marcadas, pero su trabajo se había perdido con el código de T2 y
+T3 (recuperado en `6307b9a`). Se rehicieron ese día: recorrido y comprobaciones en
+`validation.md` (secciones 2 y 4), README raíz con producción y despliegue, `backend/.env.example`
+con los valores del servidor comentados, `frontend/README.md` con las vistas y rutas actuales,
+pasos 15 y 16 de `backend/requests/users.rest`, `AGENTS.md` y la fila de la 010 en `MEMORY.md`.
+
 - [x] **T1. Pruebas del fallback (rojas).** Crear `backend/tests/controllers/ui.test.ts` con una
   carpeta temporal (`index.html`, `assets/app.js`) y los casos de la sección 5 del plan.
   RF: RF-1, RF-2, RF-3.
@@ -51,8 +57,17 @@ real) la hace el usuario con sus credenciales; T10 es condicional.
   `validation.md`. RF: RF-5, RF-6, RF-9; RNF-5.
   Hecho cuando: en `https://fullstack.dcc.uchile.cl:7041/` se completa registro, login (cookie
   `Secure`), recarga y cierre de sesión, y el proceso sobrevive a un reinicio.
-- [ ] **T10. (Solo si R-2 ocurre) Prefijo `tmu_` en la base `fullstack`.** Cambio acotado del arranque
+- [x] **T10. (Solo si R-2 ocurre) Prefijo `tmu_` en la base `fullstack`.** Cambio acotado del arranque
   (D-6), con test primero. RF: RF-6.
   Hecho cuando: con la variable del prefijo definida, ninguna colección sin prefijo se escribe
   en `fullstack`, probado con una base temporal. Si R-2 no ocurre, se marca como «no
   necesaria» con la comprobación de T9.
+  **Resultado (2026-11-20):** R-2 ocurrió en el servidor (`not authorized on teammatchup_7041`,
+  código 13; visto en la rama `origin/deploy`). Se trae de esa rama `src/models/collections.ts`
+  con los mismos nombres (`tmu_users`, `tmu_gameaccounts`, `tmu_playsessions`) y se amplía a
+  `tmu_steamattempts` y `tmu_riotchallenges`. **Desviación de D-6:** el prefijo es fijo en todos
+  los entornos, no una variable (así lo usa ya el servidor y no hace falta tocar el arranque).
+  `tests/unit/collections.test.ts`: rojo sin el módulo, verde después; comprueba también que
+  ningún modelo registrado queda sin prefijo. Suite 2978 (2977 en verde, 1 omitida, 0 fallos);
+  `typecheck` y `lint` sin errores. Pendiente de confirmar con el equipo qué colecciones `tmu_*`
+  tienen datos hoy en `fullstack`.
