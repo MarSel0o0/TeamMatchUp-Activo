@@ -155,7 +155,7 @@ No se editan las specs 002, 007 ni 012 (decisión del 2026-11-18).
   `origins.ts`) y no en `copy.ts`; `domain/steamLogin.ts` (nuevo) comprueba que la URL de Steam sea la
   oficial antes de redirigir.
 
-- [ ] **T9. Página de vuelta, botón y avisos.** `features/steam/pages/SteamReturnPage.tsx`
+- [x] **T9. Página de vuelta, botón y avisos.** `features/steam/pages/SteamReturnPage.tsx`
   (sin sesión → login sin `from`; con sesión, una sola llamada, «Verificando con Steam…», y
   `navigate(perfil, { replace, state: { steamNotice } })`), ruta en `app/router.tsx` fuera de
   `ProtectedRoute` y `PublicOnlyRoute`, `features/steam/hooks.ts`
@@ -175,8 +175,10 @@ No se editan las specs 002, 007 ni 012 (decisión del 2026-11-18).
   `ProfilePage`, botón en `AccountRow` (perfil y Configuración) y sobre el formulario de CS2
   (`LinkAccountForm.aboveCs2`). `typecheck`, `lint` y `build` sin errores. Falta ver el recorrido en un
   navegador (no hay herramienta de navegador en esta sesión); ver `validation.md`, sección 3.
+  **Cerrada (2026-11-20):** recorrido en el navegador con un Steam falso, `reviewer` APROBADO
+  (`validation.md`, sección 2), incluido RF-7 tras la corrección `c7afc2f`.
 
-- [ ] **T10. Datos de Steam en la cuenta, texto de «Resincronizar» y aviso global.**
+- [x] **T10. Datos de Steam en la cuenta, texto de «Resincronizar» y aviso global.**
   `features/steam/components/SteamProfileBlock.tsx` (avatar con respaldo `onError` al monograma
   del dueño, nombre recortado con CSS, país y horas, «perfil de Steam privado» por dato, texto
   de RF-12 sin perfil y etiqueta «Datos de Steam»), `AccountRow` con `owner`, `onVerify` y
@@ -196,6 +198,9 @@ No se editan las specs 002, 007 ni 012 (decisión del 2026-11-18).
   «Datos de Steam»), `AccountRow`/`GameSummaryPanel`/`PlayerGamesSection` con `owner` y el texto
   `STEAM_RESYNC_NOTE`, y `DemoTag` global solo con `env.useMockApi` (barra, pie y portada). `typecheck`,
   `lint` y `build` sin errores. Faltan las capturas a 1280 y 375 px y los casos de privacidad.
+  **Cerrada (2026-11-20):** vista en el navegador a 1280 y 375 px con los casos de privacidad, 0 h
+  y avatar que falla (`validation.md`, sección 2). Corrección: `.ficha__game > * { min-width: 0; }`
+  en `profilePage.css` (el perfil desbordaba a 375 px).
 
 - [ ] **T11. Cierre y recorridos manuales.** Suite completa del backend sin conexión a Internet,
   `typecheck`, `lint` y `build` de ambos lados; `AGENTS.md`, `PRODUCT.md` («Evidence on Hand» y
