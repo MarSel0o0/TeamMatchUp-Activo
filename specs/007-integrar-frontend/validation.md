@@ -505,8 +505,6 @@ finalización» de la spec. Cada paso con fecha y resultado.
   (el módulo del backend simulado escribe su base al importarse aunque el modo no esté activo).
   No es credencial: `session` es `null` y no contiene el comprobante.
 
-(pendiente: 5.B, la mitad B de T29)
-
 ### 5.B Datos, presentación y proponer sesión
 
 Mitad B de T29 (RF-11 a RF-16, RF-18, RF-21 a RF-23, RF-26, RF-27, RF-29 a RF-32; RNF-6 y RNF-4/RNF-8 por remisión).
