@@ -174,7 +174,7 @@
   --accent-text-hover: #3a5300;
 
   /* Texto de estado con al menos 4,5:1 sobre su wash y sobre el hover de fila (spec 008, RNF-5). */
-  --danger: #bb3629;
+  --danger: #a83025;
   --danger-wash: rgba(201, 58, 44, 0.09);
   --ok: #147542;
   --ok-wash: rgba(23, 134, 76, 0.1);
