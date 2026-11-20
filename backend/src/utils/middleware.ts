@@ -75,9 +75,20 @@ export interface SessionGuardOptions {
   now: () => number; // segundos Unix
   /**
    * Se ejecuta antes de responder cualquier 401 (spec 013, RF-7: la vuelta de Steam sin sesión
-   * descarta su intento). No cambia la respuesta. Por defecto no hace nada.
+   * descarta su intento). No cambia la respuesta, ni siquiera si falla: el error se registra y
+   * se responde el mismo 401. Por defecto no hace nada.
    */
   onRejected?: ((request: Request) => Promise<void>) | undefined;
+}
+
+// Ejecuta `onRejected` sin dejar que su fallo convierta el 401 en un 500.
+async function runOnRejected(onRejected: SessionGuardOptions["onRejected"], request: Request): Promise<void> {
+  if (onRejected === undefined) return;
+  try {
+    await onRejected(request);
+  } catch (error) {
+    logger.error(error instanceof Error ? error.message : String(error));
+  }
 }
 
 export function createWithUser({ jwtSecret, now, onRejected }: SessionGuardOptions): RequestHandler {
@@ -93,13 +104,13 @@ export function createWithUser({ jwtSecret, now, onRejected }: SessionGuardOptio
       nowSeconds: now(),
     });
     if (!check.ok) {
-      if (onRejected !== undefined) await onRejected(request);
+      await runOnRejected(onRejected, request);
       response.status(401).json({ error: check.error });
       return;
     }
     // (5) El identificador ya tiene formato de ObjectId (paso 4, D16): no hay CastError.
     if ((await User.exists({ _id: check.userId })) === null) {
-      if (onRejected !== undefined) await onRejected(request);
+      await runOnRejected(onRejected, request);
       response.status(401).json({ error: SESSION_MESSAGES.invalidToken });
       return;
     }
