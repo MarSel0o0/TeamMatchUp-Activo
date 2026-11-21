@@ -1,13 +1,13 @@
 # Constitución de TeamMatchUp
 
-1. **Stack cerrado.** Frontend: React 18 + TypeScript + Vite. Backend: Express 5 + Mongoose + TypeScript. Tests: node:test.
+1. **Stack cerrado.** Frontend: React 18 + TypeScript + Vite. Backend: Express 5 + Mongoose + TypeScript. Tests: node:test en el backend; Vitest en el frontend (spec 016); Playwright para las pruebas E2E de `e2etests/`.
    Una dependencia nueva solo entra si una spec aprobada la justifica, y con versión exacta.
 2. **La spec manda.** No se escribe código sin un RF de una spec aprobada.
    Un cambio de requisitos sigue el orden spec → plan → tasks → código, y cada tarea cita sus RF.
 3. **Lógica separada de la interfaz.** Las reglas viven en domain/ como funciones puras, sin React, HTTP ni reloj ("hoy" llega como parámetro).
    Los componentes acceden a los datos solo a través de ApiContract y nunca llaman a fetch.
 4. **Tests primero en el backend.** Toda función de dominio y todo endpoint del backend tiene un test con node:test, escrito antes que el código (rojo → verde).
-   Ninguna tarea se cierra con tests, typecheck o lint en rojo, ni con un .only en el código. En el frontend bastan build, typecheck y lint en verde, hasta que una spec diga otra cosa.
+   Ninguna tarea se cierra con tests, typecheck o lint en rojo, ni con un .only en el código. En el frontend bastan build, typecheck y lint en verde, hasta que una spec diga otra cosa. Cuando una spec exige pruebas en el frontend, se escriben con Vitest y también antes que el código (rojo -> verde). Las pruebas E2E con Playwright comprueban comportamiento ya especificado e implementado: no se escriben antes que el código, pero cada una se ve fallar al romper a propósito lo que comprueba y ninguna tarea se cierra con ellas en rojo.
 5. **Los datos del usuario son suyos.** Toda escritura usa el usuario de la sesión, nunca un id enviado por el cliente.
    Contraseñas con bcrypt, JWT solo en cookie HttpOnly, ninguna respuesta con el hash ni el correo de otro, secretos solo en .env, nada de datos reales inventados. Los datos que la plataforma simula (rango, historial, partidas y marca de verificada) no cuentan como datos reales inventados siempre que vayan marcados y se muestren etiquetados como simulados y nunca se atribuyan a una fuente real, aunque estén asociados a un identificador de juego real.
    Los datos de una cuenta verificada que la plataforma obtiene de la fuente oficial del juego, o de un tercero que los obtiene de ella y que una spec aprobada nombra expresamente (spec 015: Leetify), son reales y se muestran atribuidos a quien los entrega (spec 012), nunca a la fuente oficial si los entregó un tercero; nunca se atribuye a una fuente real un dato simulado.
