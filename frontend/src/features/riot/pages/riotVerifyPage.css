@@ -161,8 +161,8 @@
     gap: var(--s4);
   }
 
-  .riot-verify__action-group .btn,
-  .riot-verify__footer .btn {
+  .riot-verify__action-group .tmu-btn,
+  .riot-verify__footer .tmu-btn {
     width: 100%;
   }
 }

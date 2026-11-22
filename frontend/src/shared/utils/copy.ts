@@ -166,6 +166,14 @@ export const CANCEL_DIALOG_BODY =
 export const CANCEL_DIALOG_CONFIRM = 'Sí, cancelar sesión';
 export const CANCEL_DIALOG_BACK = 'Volver';
 
+/**
+ * Ventana de desvincular una cuenta (spec 017, RF-23): el texto de la confirmación de hoy, partido en el título
+ * (`unlinkDialogTitle`, «¿Desvincular <identificador>?») y este mensaje, sin cambiar ninguna palabra.
+ */
+export const UNLINK_DIALOG_BODY = 'Dejarás de aparecer en las coincidencias de ese juego.';
+export const UNLINK_DIALOG_CONFIRM = 'Desvincular';
+export const UNLINK_DIALOG_BACK = 'Volver';
+
 /** Detalle de una sesión (spec 009, RF-3, RF-12). */
 export const SESSION_DETAIL_TITLE = 'Detalle de sesión';
 export const SESSION_GONE_TITLE = 'Esta sesión no existe';

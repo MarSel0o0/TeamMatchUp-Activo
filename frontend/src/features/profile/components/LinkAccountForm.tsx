@@ -2,6 +2,10 @@ import { AlertCircle, Link2 } from 'lucide-react';
 import { useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { GAME_LIST, getGame } from '@/domain/games';
 import type { GameId } from '@/domain/types';
+import { AppButton } from '@/shared/components/AppButton';
+import { Notice } from '@/shared/components/Notice';
+import { SelectField } from '@/shared/components/SelectField';
+import { Spinner } from '@/shared/components/Spinner';
 import { Icon } from '@/shared/components/Icon';
 import { MutationNotice } from '@/shared/components/MutationNotice';
 import { TextField } from '@/shared/components/TextField';
@@ -84,30 +88,20 @@ export function LinkAccountForm({ linkedGames, onLinked, aboveLol, aboveCs2 }: L
   return (
     <form className="stack" onSubmit={handleSubmit} noValidate>
       {error ? (
-        <p className="notice notice--error" role="alert">
+        <Notice tone="error" role="alert">
           <Icon as={AlertCircle} size={15} />
           {error}
-        </p>
+        </Notice>
       ) : null}
       <MutationNotice error={linkAccount.error} />
 
-      <div className="field">
-        <label className="label" htmlFor="link-game">
-          Juego
-        </label>
-        <select
-          id="link-game"
-          className="select"
-          value={gameId}
-          onChange={(event) => changeGame(event.target.value as GameId)}
-        >
-          {available.map((option) => (
-            <option key={option.id} value={option.id}>
-              {option.name}
-            </option>
-          ))}
-        </select>
-      </div>
+      <SelectField
+        id="link-game"
+        label="Juego"
+        value={gameId}
+        onChange={(value) => changeGame(value as GameId)}
+        options={available.map((option) => ({ value: option.id, label: option.name }))}
+      />
 
       {gameId === 'lol' ? aboveLol : null}
       {gameId === 'cs2' ? aboveCs2 : null}
@@ -119,28 +113,18 @@ export function LinkAccountForm({ linkedGames, onLinked, aboveLol, aboveCs2 }: L
         onChange={(event) => setHandle(event.target.value)}
       />
 
-      <div className="field">
-        <label className="label" htmlFor="link-region">
-          Región
-        </label>
-        <select
-          id="link-region"
-          className="select"
-          value={region}
-          onChange={(event) => setRegion(event.target.value)}
-        >
-          {game.regions.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
-      </div>
+      <SelectField
+        id="link-region"
+        label="Región"
+        value={region}
+        onChange={(value) => setRegion(value)}
+        options={game.regions.map((option) => ({ value: option, label: option }))}
+      />
 
-      <button type="submit" className="btn btn--pen" disabled={linkAccount.isPending}>
-        {linkAccount.isPending ? <span className="btn__spin" /> : <Icon as={Link2} size={14} />}
+      <AppButton type="submit" tone="pen" disabled={linkAccount.isPending}>
+        {linkAccount.isPending ? <Spinner /> : <Icon as={Link2} size={14} />}
         {linkAccount.isPending ? SENDING_TEXT : 'Vincular cuenta'}
-      </button>
+      </AppButton>
     </form>
   );
 }

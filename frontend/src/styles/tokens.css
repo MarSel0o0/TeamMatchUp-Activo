@@ -90,6 +90,25 @@
   --ink-r6: #5fc2d8;
   --ink-cs2: #e08a4f;
 
+  /* --- Componentes migrados a la librería (spec 017, plan 3.2) -------------
+     Valores de siempre: antes eran literales en global.css y en los CSS de
+     los componentes. Los dos temas llevan el mismo valor salvo el foco. ---- */
+  --btn-pen-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 8px 24px -12px rgba(205, 242, 75, 0.6);
+  --danger-edge: rgba(255, 107, 94, 0.4);
+  --btn-orb-bg: rgba(12, 15, 2, 0.12);
+  --ok-edge: rgba(86, 214, 143, 0.35);
+  --warn-edge: rgba(241, 178, 74, 0.35);
+  --tab-ink: #0d0e10;
+  --tab-pill-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 6px 18px -8px rgba(0, 0, 0, 0.8);
+  /* Tinta de cada juego del catálogo (`GameDefinition.inkVar`): pestañas, puntos y chips. */
+  --game-ink-lol: #c8963e;
+  --game-ink-r6: #3ea0c8;
+  --game-ink-cs2: #d97a45;
+  /* Indicador de foco: el contorno de los controles y el borde y halo de un campo. */
+  --focus-ring: var(--accent-text);
+  --focus-edge: var(--volt-edge);
+  --focus-halo: var(--volt-wash);
+
   /* --- Espaciado --------------------------------------------------------- */
   --s1: 0.25rem;
   --s2: 0.5rem;
@@ -206,6 +225,11 @@
 
   --lift: 0 1px 2px rgba(30, 40, 60, 0.06), 0 12px 30px -14px rgba(30, 40, 60, 0.2);
   --lift-high: 0 2px 4px rgba(30, 40, 60, 0.06), 0 30px 60px -24px rgba(30, 40, 60, 0.3);
+
+  /* Foco de un campo en claro: el volt no llega a 3:1 sobre blanco, así que borde y halo toman el
+     tono del acento (--focus-ring ya vale --accent-text, #4a6800). */
+  --focus-edge: var(--focus-ring);
+  --focus-halo: color-mix(in srgb, var(--focus-ring) 75%, transparent);
 
   color-scheme: light;
 }

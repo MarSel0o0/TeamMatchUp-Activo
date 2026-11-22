@@ -13,6 +13,11 @@ export interface GameDefinition {
   name: string;
   shortName: string;
   accent: string;
+  /**
+   * La misma tinta como referencia a un token de `tokens.css` (`var(--game-ink-<id>)`): la usan los
+   * componentes migrados (pestañas, puntos y chips). `games.test.ts` exige que valga lo mismo que `accent`.
+   */
+  inkVar: string;
   /** Cómo se llama el identificador de cuenta dentro del juego. */
   handleLabel: string;
   handlePlaceholder: string;
@@ -33,6 +38,7 @@ export const GAMES: Record<GameId, GameDefinition> = {
     name: 'League of Legends',
     shortName: 'LoL',
     accent: '#c8963e',
+    inkVar: 'var(--game-ink-lol)',
     handleLabel: 'Riot ID',
     handlePlaceholder: 'Nombre#TAG',
     handlePattern: /^.{3,16}#[A-Za-z0-9]{2,5}$/,
@@ -57,6 +63,7 @@ export const GAMES: Record<GameId, GameDefinition> = {
     name: 'Rainbow Six Siege',
     shortName: 'R6',
     accent: '#3ea0c8',
+    inkVar: 'var(--game-ink-r6)',
     handleLabel: 'Ubisoft ID',
     handlePlaceholder: 'tu-nombre-ubisoft',
     handlePattern: /^[A-Za-z0-9._-]{3,20}$/,
@@ -79,6 +86,7 @@ export const GAMES: Record<GameId, GameDefinition> = {
     name: 'Counter-Strike 2',
     shortName: 'CS2',
     accent: '#d97a45',
+    inkVar: 'var(--game-ink-cs2)',
     handleLabel: 'SteamID64',
     handlePlaceholder: '7656119xxxxxxxxxx',
     handlePattern: /^7656119\d{10}$/,

@@ -138,7 +138,7 @@
     padding: var(--s5);
   }
 
-  .ficha__head .btn {
+  .ficha__head .tmu-btn {
     width: 100%;
   }
 

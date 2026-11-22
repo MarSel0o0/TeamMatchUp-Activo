@@ -1,4 +1,5 @@
 import { isMockEnabled } from './mockFlag';
+import { THEME_STORAGE_KEY } from './themeKey';
 
 /**
  * Lectura centralizada de la configuración de entorno.
@@ -18,5 +19,5 @@ export const STORAGE_KEYS = {
   csrf: 'tmu.csrf',
   sessionSignal: 'tmu.session-signal',
   mockDb: 'tmu.mock-db.v4',
-  theme: 'tmu.theme',
+  theme: THEME_STORAGE_KEY,
 } as const;

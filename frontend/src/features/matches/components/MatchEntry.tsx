@@ -11,6 +11,7 @@ import { isLeetifyRank, scoreOriginLabel, showsRankDistance } from '@/domain/pre
 import { blockReason, buildProposal, type Proposal } from '@/domain/proposal';
 import type { MatchCandidate, Origin, RankSnapshot } from '@/domain/types';
 import { useAvailabilityOf } from '@/features/profile/hooks';
+import { AppButton } from '@/shared/components/AppButton';
 import { LeetifyAttribution } from '@/shared/components/LeetifyAttribution';
 import { OriginTag } from '@/shared/components/OriginTag';
 import { HoursSheet } from '@/shared/components/HoursSheet';
@@ -146,9 +147,9 @@ export const MatchEntry = forwardRef<HTMLElement, MatchEntryProps>(function Matc
 
         <div className="entry__actions">
           {onPropose ? (
-            <button
+            <AppButton
               type="button"
-              className="btn btn--pen btn--sm entry__propose"
+              tone="pen" size="sm" className="entry__propose"
               aria-disabled={proposal === null ? true : undefined}
               aria-describedby={reason !== null ? reasonId : undefined}
               onClick={() => {
@@ -157,18 +158,18 @@ export const MatchEntry = forwardRef<HTMLElement, MatchEntryProps>(function Matc
             >
               <Icon as={CalendarPlus} size={13} />
               Proponer
-            </button>
+            </AppButton>
           ) : null}
-          <button
+          <AppButton
             type="button"
-            className="btn btn--sm entry__toggle"
+            size="sm" className="entry__toggle"
             onClick={() => setOpen((value) => !value)}
             aria-expanded={open}
             aria-label={open ? 'Ocultar horas' : 'Ver horas en común'}
           >
             <Icon as={ChevronDown} size={14} />
             <span className="entry__toggle-text">{open ? 'Ocultar' : 'Horas'}</span>
-          </button>
+          </AppButton>
         </div>
 
         {reason !== null ? (

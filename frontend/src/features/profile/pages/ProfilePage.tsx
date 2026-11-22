@@ -1,15 +1,17 @@
 import { AlertCircle, CalendarClock, CheckCircle2, Link2, PenLine } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { ROUTES } from '@/app/routes';
 import { formatRange, groupBlocks } from '@/domain/availability';
 import type { GameId } from '@/domain/types';
 import { useAuth } from '@/features/auth/useAuth';
 import { readRiotNotice } from '@/features/riot/notice';
 import { readSteamNotice } from '@/features/steam/notice';
+import { ButtonLink } from '@/shared/components/AppButton';
 import { GameTabs } from '@/shared/components/GameTabs';
 import { Icon } from '@/shared/components/Icon';
 import { Monogram } from '@/shared/components/Monogram';
+import { Notice } from '@/shared/components/Notice';
 import { Blank, Failure, SheetSkeleton } from '@/shared/components/States';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { CountUp } from '@/shared/motion/CountUp';
@@ -73,30 +75,30 @@ export default function ProfilePage() {
   return (
     <>
       {steamNotice ? (
-        <p
-          className={steamNotice.tone === 'error' ? 'notice notice--error' : 'notice notice--pen'}
+        <Notice
+          tone={steamNotice.tone === 'error' ? 'error' : 'pen'}
           role={steamNotice.tone === 'error' ? 'alert' : 'status'}
         >
           <Icon as={steamNotice.tone === 'error' ? AlertCircle : CheckCircle2} size={15} />
           {steamNotice.text}
-        </p>
+        </Notice>
       ) : null}
 
       {steamNotice?.extra ? (
-        <p className="notice notice--error" role="alert">
+        <Notice tone="error" role="alert">
           <Icon as={AlertCircle} size={15} />
           {steamNotice.extra}
-        </p>
+        </Notice>
       ) : null}
 
       {riotNotice ? (
-        <p
-          className={riotNotice.tone === 'error' ? 'notice notice--error' : 'notice notice--pen'}
+        <Notice
+          tone={riotNotice.tone === 'error' ? 'error' : 'pen'}
           role={riotNotice.tone === 'error' ? 'alert' : 'status'}
         >
           <Icon as={riotNotice.tone === 'error' ? AlertCircle : CheckCircle2} size={15} />
           {riotNotice.text}
-        </p>
+        </Notice>
       ) : null}
 
       <header className="ficha sheet sheet--punched">
@@ -109,10 +111,10 @@ export default function ProfilePage() {
             </p>
             {user.bio ? <p className="ficha__bio">{user.bio}</p> : null}
           </div>
-          <Link className="btn" to={ROUTES.settings}>
+          <ButtonLink to={ROUTES.settings}>
             <Icon as={PenLine} size={14} />
             Editar ficha
-          </Link>
+          </ButtonLink>
         </div>
 
         <dl className="ficha__totals">
@@ -142,10 +144,10 @@ export default function ProfilePage() {
       <section className="sheet">
         <div className="sheet__head">
           <h2 className="sheet-title grow">Mis juegos</h2>
-          <Link className="btn btn--sm" to={ROUTES.settings}>
+          <ButtonLink size="sm" to={ROUTES.settings}>
             <Icon as={Link2} size={13} />
             Vincular otra cuenta
-          </Link>
+          </ButtonLink>
         </div>
 
         {accountsQuery.isPending ? (
@@ -160,22 +162,20 @@ export default function ProfilePage() {
             title="No has vinculado ninguna cuenta"
             description="Vincula al menos un juego para que podamos leer tu rango y cruzarlo con el de otros."
             action={
-              <Link className="btn btn--pen" to={ROUTES.settings}>
+              <ButtonLink tone="pen" to={ROUTES.settings}>
                 Vincular una cuenta
-              </Link>
+              </ButtonLink>
             }
           />
         ) : (
-          <>
-            <div className="ficha__tabs">
-              <GameTabs
-                games={accounts.map((account) => account.gameId)}
-                value={activeGame ?? accounts[0].gameId}
-                onChange={setActiveGame}
-                label="Juegos vinculados"
-              />
-            </div>
-
+          <GameTabs
+            games={accounts.map((account) => account.gameId)}
+            value={activeGame ?? accounts[0].gameId}
+            onChange={setActiveGame}
+            label="Juegos vinculados"
+            idBase="profile-games"
+            listWrapperClassName="ficha__tabs"
+          >
             {summaryQuery.isPending ? (
               <div className="sheet__body">
                 <SheetSkeleton rows={3} height={56} />
@@ -194,17 +194,17 @@ export default function ProfilePage() {
                 owner={user}
               />
             ) : null}
-          </>
+          </GameTabs>
         )}
       </section>
 
       <section className="sheet">
         <div className="sheet__head">
           <h2 className="sheet-title grow">Mis horas</h2>
-          <Link className="btn btn--sm" to={ROUTES.settings}>
+          <ButtonLink size="sm" to={ROUTES.settings}>
             <Icon as={CalendarClock} size={13} />
             Editar horas
-          </Link>
+          </ButtonLink>
         </div>
 
         {availabilityQuery.isPending ? (
@@ -217,9 +217,9 @@ export default function ProfilePage() {
             title="No has marcado horas"
             description="Sin horas declaradas no podemos cruzar tu disponibilidad con la de nadie."
             action={
-              <Link className="btn btn--pen" to={ROUTES.settings}>
+              <ButtonLink tone="pen" to={ROUTES.settings}>
                 Marcar mis horas
-              </Link>
+              </ButtonLink>
             }
           />
         ) : (

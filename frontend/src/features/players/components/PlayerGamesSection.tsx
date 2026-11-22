@@ -12,9 +12,8 @@ import {
 } from '@/shared/utils/copy';
 import type { SheetLoadable } from '../hooks';
 
-/** Ids fijos del patrón de pestañas: solo hay una sección de juegos por página (plan 4.3). */
+/** Base de los ids del patrón de pestañas: solo hay una sección de juegos por página (plan 4.3). */
 const TABS_ID_BASE = 'player-games';
-const PANEL_ID = 'player-games-panel';
 const TITLE_ID = 'player-games-title';
 
 interface PlayerGamesSectionProps {
@@ -110,34 +109,24 @@ function GamesBody({
   }
 
   return (
-    <>
-      <div className="ficha__tabs">
-        <GameTabs
-          games={tabs}
-          value={tab}
-          onChange={onSelectTab}
-          label={PLAYER_GAMES_TABS_LABEL}
-          idBase={TABS_ID_BASE}
-          panelId={PANEL_ID}
-        />
-      </div>
-      <div
-        role="tabpanel"
-        id={PANEL_ID}
-        aria-labelledby={`${TABS_ID_BASE}-tab-${tab}`}
-        tabIndex={0}
-        className="player-panel"
-      >
-        {rechecking || summary.state === 'loading' ? (
-          <div className="sheet__body" aria-busy="true">
-            <SheetSkeleton rows={3} height={56} />
-          </div>
-        ) : summary.state === 'failed' ? (
-          <Failure error={summaryError} onRetry={onRetrySummary} />
-        ) : (
-          <GameSummaryPanel summary={summary.value} showHandleLabel owner={owner} />
-        )}
-      </div>
-    </>
+    <GameTabs
+      games={tabs}
+      value={tab}
+      onChange={onSelectTab}
+      label={PLAYER_GAMES_TABS_LABEL}
+      idBase={TABS_ID_BASE}
+      listWrapperClassName="ficha__tabs"
+      panelClassName="player-panel"
+    >
+      {rechecking || summary.state === 'loading' ? (
+        <div className="sheet__body" aria-busy="true">
+          <SheetSkeleton rows={3} height={56} />
+        </div>
+      ) : summary.state === 'failed' ? (
+        <Failure error={summaryError} onRetry={onRetrySummary} />
+      ) : (
+        <GameSummaryPanel summary={summary.value} showHandleLabel owner={owner} />
+      )}
+    </GameTabs>
   );
 }

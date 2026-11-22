@@ -2,6 +2,9 @@ import { AlertCircle, Ban, LogOut, Pencil, UserPlus } from 'lucide-react';
 import type { Ref } from 'react';
 import { detailActions } from '@/domain/sessionDetail';
 import type { PlaySession } from '@/domain/types';
+import { AppButton } from '@/shared/components/AppButton';
+import { Notice } from '@/shared/components/Notice';
+import { Spinner } from '@/shared/components/Spinner';
 import { Icon } from '@/shared/components/Icon';
 import {
   CANCEL_SESSION_LABEL,
@@ -69,74 +72,72 @@ export function SessionActionsZone({
   return (
     <div className="session-detail__actions">
       {actions.kind === 'host' && !formOpen ? (
-        <button
+        <AppButton
           key="edit"
           ref={editRef}
           type="button"
-          className="btn"
           onClick={blocked ? undefined : onEdit}
           aria-disabled={blocked ? true : undefined}
         >
           <Icon as={Pencil} size={14} />
           {EDIT_SESSION_LABEL}
-        </button>
+        </AppButton>
       ) : null}
 
       {actions.kind === 'host' ? (
-        <button
+        <AppButton
           key="cancel"
           ref={cancelRef}
           type="button"
-          className="btn btn--danger"
+          tone="danger"
           onClick={blocked ? undefined : onCancel}
           aria-disabled={blocked ? true : undefined}
         >
           <Icon as={Ban} size={14} />
           {CANCEL_SESSION_LABEL}
-        </button>
+        </AppButton>
       ) : null}
 
       {actions.kind === 'join' ? (
-        <button
+        <AppButton
           key="join"
           ref={joinRef}
           type="button"
-          className="btn btn--pen"
+          tone="pen"
           onClick={joinBlocked || rereading ? undefined : onJoin}
           disabled={pending === 'join'}
           aria-disabled={joinBlocked || rereading ? true : undefined}
         >
-          {pending === 'join' ? <span className="btn__spin" /> : <Icon as={UserPlus} size={14} />}
+          {pending === 'join' ? <Spinner /> : <Icon as={UserPlus} size={14} />}
           {pending === 'join' ? SENDING_TEXT : joinBlocked ? NO_SLOTS_LABEL : JOIN_SESSION_LABEL}
-        </button>
+        </AppButton>
       ) : null}
 
       {actions.kind === 'leave' ? (
-        <button
+        <AppButton
           key="leave"
           ref={leaveRef}
           type="button"
-          className="btn"
           onClick={rereading ? undefined : onLeave}
           disabled={pending === 'leave'}
           aria-disabled={rereading ? true : undefined}
         >
-          {pending === 'leave' ? <span className="btn__spin" /> : <Icon as={LogOut} size={14} />}
+          {pending === 'leave' ? <Spinner /> : <Icon as={LogOut} size={14} />}
           {pending === 'leave' ? SENDING_TEXT : LEAVE_SESSION_LABEL}
-        </button>
+        </AppButton>
       ) : null}
 
       {savedNotice ? (
-        <p className="notice" role="status">
+        <Notice role="status">
           {SAVED_NOTICE_TEXT}
-        </p>
+        </Notice>
       ) : null}
 
       {message ? (
-        <p ref={messageRef} className="notice notice--error" role="alert" tabIndex={-1}>
+        <Notice ref={messageRef} tone="error" role="alert" tabIndex={-1}>
           <Icon as={AlertCircle} size={15} />
           {message}
-        </p>
+        </Notice>
       ) : null}
     </div>
   );

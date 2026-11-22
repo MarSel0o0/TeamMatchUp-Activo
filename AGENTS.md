@@ -21,7 +21,7 @@ flujo termina en una sesión agendada, no en una lista de perfiles. Detalle en
 
 ## Stack y estructura
 
-- `frontend/` — React 18 + TypeScript + Vite + React Router 6 + TanStack Query.
+- `frontend/` — React 18 + TypeScript + Vite + React Router 6 + TanStack Query + Mantine 8.3.18 (`@mantine/core` y `@mantine/hooks`, versión exacta; spec 017).
   - `src/app/` composición, enrutado, layouts y control de acceso.
   - `src/config/` lectura de variables de entorno.
   - `src/domain/` reglas puras: tipos, catálogo de juegos y escala de rango, bloques horarios, motor de coincidencias.
@@ -29,8 +29,9 @@ flujo termina en una sesión agendada, no en una lista de perfiles. Detalle en
   - `src/features/` una carpeta por dominio funcional (`auth`, `profile`, `matches`, `sessions`, `steam`, `riot`).
   - Estado global (spec 016, Zustand 5.0.16): dos almacenes. **Sesión iniciada**: `features/auth/createAuthStore.ts` (fábrica con dependencias inyectadas, probada) y `authStore.ts` (instancia real, devtools «TeamMatchUp · sesión iniciada»); `useAuth()` queda como fachada y `useSessionUserId` como selector; ya no existe `AuthProvider`. **Agenda** (solo estado de interfaz: filtro, sesión abierta, borrador, propuesta y visita; TanStack Query sigue siendo la caché del servidor): `features/sessions/createAgendaStore.ts` (fábrica, probada), `agendaStore.ts` (instancia real, devtools «TeamMatchUp · agenda») y `agendaResponses.ts`; reglas puras en `domain/agendaRules.ts`. `app/StoreBridge.tsx` conecta los almacenes con el router, el aviso de 401 y la caché. Las herramientas de depuración solo se activan en desarrollo.
   - `src/assets/leetify/` los dos logos oficiales «Data Provided by Leetify» (`leetify-badge-white.png` para el tema oscuro y `leetify-badge-black.png` para el claro), sin modificar. `LeetifyAttribution` (`src/shared/components/`) los pinta enlazados a leetify.com junto a «View on Leetify» (perfil del jugador) en todo rango que entrega Leetify (spec 015, RF-6).
-  - `src/shared/` componentes, hooks y utilidades reutilizables.
-  - `src/styles/` tokens de diseño (`tokens.css`) y estilos globales.
+  - `src/shared/` componentes, hooks y utilidades reutilizables. Los controles base son componentes propios sobre la librería (spec 017): `AppButton`/`ButtonLink`, `IconButton`, `Spinner`, `Notice`, `Stamp`, `TextField`, `TextAreaField`, `SearchField`, `SelectField` (lista nativa), `SwitchField`, `SliderField`, `FilterChip`, `GameTabs` (con su panel) y `Slip` (ventana modal); las vistas no usan `className="btn"`, `"chip"`, `"notice"`, etc. ni `window.confirm`.
+  - `src/styles/` tokens de diseño (`tokens.css`) y estilos globales (sin los controles migrados).
+  - `src/theme/` el tema de la librería hecho solo de referencias a los tokens: `mantineTheme.ts` (`createTheme` y los `components.*.extend`), `tokenPalettes.ts`, `cssVariablesResolver.ts`, `mantineCss.ts` (las hojas `*.layer.css` de Mantine usadas) y `componentCss.ts` + `components/*.css` (el CSS de cada familia de controles, sin capa, así que gana siempre a la de la librería); `colorLiterals.ts` detecta colores escritos a mano y `themeColors.test.ts` lo exige. El tema inicial lo fija un script del `<head>` que inyecta `themeBootPlugin` (`vite.config.ts`) con `domain/themeChoice.ts`; `ThemeProvider` usa `AppMantineProvider` (esquema forzado, gestor inerte: la única entrada de tema es `tmu.theme`).
 - `backend/` — Express 5 + Mongoose + TypeScript, Node ≥ 22.18 ejecutando `.ts` directo (ESM).
   Base definida en `specs/001-crear-backend`; autenticación en `specs/002-autenticacion`;
   usuarios y disponibilidad en `specs/003-usuarios-y-disponibilidad`; cuentas de juego y
@@ -80,7 +81,7 @@ Ninguna fase avanza sin aprobación explícita del usuario.
 ## Convenciones
 
 - Las de `docs/constitution.md` (stack, specs, dominio puro, tests, seguridad, idioma).
-- Estilos solo desde `styles/tokens.css`; ningún color escrito a mano.
+- Estilos solo desde `styles/tokens.css`; ningún color escrito a mano (también en el tema de la librería y en `theme/components/*.css`: lo comprueba `npm test`). Un componente de la librería no se usa suelto en una vista: se pasa por el componente propio de `shared/components/`, que fija sus clases, textos y roles.
 - Sin `any`, sin `@ts-ignore`, sin `dangerouslySetInnerHTML`.
 - Los datos de demostración se etiquetan siempre como tales en la interfaz.
 

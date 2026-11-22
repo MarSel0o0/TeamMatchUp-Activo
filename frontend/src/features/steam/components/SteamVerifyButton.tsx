@@ -1,6 +1,8 @@
 import { ShieldCheck } from 'lucide-react';
 import { useRef } from 'react';
 import { env } from '@/config/env';
+import { AppButton } from '@/shared/components/AppButton';
+import { Spinner } from '@/shared/components/Spinner';
 import { Icon } from '@/shared/components/Icon';
 import { MutationNotice } from '@/shared/components/MutationNotice';
 import {
@@ -26,10 +28,10 @@ export function SteamVerifyButton() {
   if (env.useMockApi) {
     return (
       <div className="stack">
-        <button type="button" className="btn btn--sm" disabled aria-describedby="steam-mock-note">
+        <AppButton type="button" size="sm" disabled aria-describedby="steam-mock-note">
           <Icon as={ShieldCheck} size={13} />
           {STEAM_VERIFY_LABEL}
-        </button>
+        </AppButton>
         <span id="steam-mock-note" className="note note--faint">
           {STEAM_MOCK_DISABLED_TEXT}
         </span>
@@ -49,10 +51,10 @@ export function SteamVerifyButton() {
 
   return (
     <div className="stack">
-      <button type="button" className="btn btn--sm" onClick={handleClick} disabled={busy}>
-        {busy ? <span className="btn__spin" /> : <Icon as={ShieldCheck} size={13} />}
+      <AppButton type="button" size="sm" onClick={handleClick} disabled={busy}>
+        {busy ? <Spinner /> : <Icon as={ShieldCheck} size={13} />}
         {busy ? SENDING_TEXT : STEAM_VERIFY_LABEL}
-      </button>
+      </AppButton>
       <span className="note note--faint">{LEETIFY_PRIVACY_TEXT}</span>
       <MutationNotice error={start.error} />
     </div>

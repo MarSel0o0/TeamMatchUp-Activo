@@ -121,6 +121,7 @@ function Row({ hour, rowIndex, openHours, onSelectSlot }: RowProps) {
             key={`${day.value}-${hour}`}
             type="button"
             className="week__slot"
+            data-slot={`${day.value}-${hour}`}
             data-open={isOpen || undefined}
             style={{ gridColumn: day.value + 2, gridRow: rowIndex + 2 }}
             onClick={() => onSelectSlot(day.value, hour)}

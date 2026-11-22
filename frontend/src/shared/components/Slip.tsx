@@ -1,10 +1,7 @@
+import { Modal } from '@mantine/core';
 import { X } from 'lucide-react';
-import { AnimatePresence, motion } from 'motion/react';
-import { useEffect, useRef, type ReactNode, type Ref, type RefObject } from 'react';
-import { createPortal } from 'react-dom';
-import { EASE_FLUID } from '@/shared/motion/presets';
+import type { ReactNode, Ref } from 'react';
 import { Icon } from './Icon';
-import './slip.css';
 
 interface SlipProps {
   open: boolean;
@@ -13,27 +10,35 @@ interface SlipProps {
   onClose: () => void;
   children: ReactNode;
   footer?: ReactNode;
-  /** Elemento que recibe el foco al abrir (spec 009, RNF-2); sin él el foco no se mueve. */
-  initialFocusRef?: RefObject<HTMLElement>;
-  /** Título de la ventana como destino de foco (`tabIndex={-1}`). */
+  /** Título de la ventana como destino de foco por programa (`tabIndex={-1}`). */
   titleRef?: Ref<HTMLHeadingElement>;
-  /** Tab y Mayús+Tab recorren en círculo los botones de la ventana (RF-23). */
-  trapFocus?: boolean;
-  /** Mientras es verdadero, cerrar (Escape, fondo, botón) no hace nada. */
+  /** Mientras es verdadero, cerrar (Escape, fondo, botón) no hace nada y el botón de cerrar queda bloqueado. */
   closeLocked?: boolean;
+  /**
+   * Mensaje que se liga a la ventana como su descripción accesible (`aria-describedby`); solo la ventana de
+   * desvincular lo usa (RF-23). Las demás ventanas no tienen descripción accesible (RF-12).
+   */
+  description?: ReactNode;
 }
 
-/** Botones que recibe el recorrido de Tab: los bloqueados con `aria-disabled` cuentan. */
-function focusableButtons(root: HTMLElement): HTMLElement[] {
-  return Array.from(root.querySelectorAll<HTMLElement>('button:not(:disabled)'));
-}
+/** Curva de la entrada: el resorte de siempre (`--spring`), con la salida más corta. */
+const TRANSITION = {
+  in: { opacity: 1, transform: 'translateY(0) scale(1)' },
+  out: { opacity: 0, transform: 'translateY(20px) scale(0.98)' },
+  common: { transformOrigin: 'center' },
+  transitionProperty: 'transform, opacity',
+};
 
 /**
- * Panel modal.
- *
- * Se reserva para la única tarea que sí interrumpe (anotar una sesión nueva),
- * porque exige foco protegido sobre un bloque horario concreto. Entra con
- * resorte desde abajo y el fondo se desenfoca.
+ * Panel modal (M10, M16): el `Modal` de la librería (`Modal.Root` y sus piezas) con la superficie de panel con
+ * bisel y filo volt de siempre (`slip sheet sheet--punched`, `theme/components/modal.css`).
+ *  - Rol de ventana modal con el título como nombre; sin descripción salvo la de `description`.
+ *  - Tab y Mayús+Tab no salen de la ventana. El foco inicial lo recibe el control que lleve `data-autofocus`
+ *    («Volver», «Título»). La librería **no** devuelve el foco al cerrar (`returnFocus` apagado): lo hace cada vista
+ *    con sus reglas puras (`domain/draftFocus.ts`, `domain/unlinkDialog.ts`, `sessions/detail/focusRule.ts`).
+ *  - Escape, el botón de cerrar y pulsar fuera llaman a `onClose`, salvo con `closeLocked`. Pulsar fuera no deja el
+ *    foco en el cuerpo de la página.
+ *  - La página de detrás no se desplaza mientras está abierta (`lockScroll`) y vuelve a hacerlo al cerrarse.
  */
 export function Slip({
   open,
@@ -42,112 +47,57 @@ export function Slip({
   onClose,
   children,
   footer,
-  initialFocusRef,
   titleRef,
-  trapFocus = false,
   closeLocked = false,
+  description,
 }: SlipProps) {
-  const dialogRef = useRef<HTMLDivElement>(null);
+  return (
+    <Modal.Root
+      opened={open}
+      onClose={closeLocked ? () => {} : onClose}
+      closeOnEscape={!closeLocked}
+      closeOnClickOutside={!closeLocked}
+      trapFocus
+      returnFocus={false}
+      lockScroll
+      centered
+      zIndex="var(--z-modal)"
+      transitionProps={{ transition: TRANSITION, duration: 280, timingFunction: 'var(--spring)' }}
+      className="tmu-modal"
+    >
+      <Modal.Overlay
+        blur={8}
+        className="tmu-modal__overlay"
+        // Sin esto, pulsar el fondo lleva el foco al cuerpo y la ventana (si no se cierra) lo pierde (RNF-2).
+        onMouseDown={(event) => event.preventDefault()}
+      />
+      <Modal.Content classNames={{ content: 'slip sheet sheet--punched' }}>
+        <Modal.Header className="sheet__head">
+          <Modal.Title ref={titleRef} className="sheet-title grow" tabIndex={titleRef ? -1 : undefined}>
+            {title}
+          </Modal.Title>
+          <div className="line">
+            {reference ? <span className="slip__ref num">{reference}</span> : null}
+            <Modal.CloseButton
+              className="slip__close"
+              aria-label="Cerrar"
+              aria-disabled={closeLocked ? true : undefined}
+              icon={<Icon as={X} size={16} />}
+            />
+          </div>
+        </Modal.Header>
 
-  useEffect(() => {
-    if (open) initialFocusRef?.current?.focus();
-    // Solo al abrir: un cambio posterior de la referencia no mueve el foco.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+        <div className="slip__body">
+          {description !== undefined ? (
+            <Modal.Body className="slip__desc">
+              <p className="note">{description}</p>
+            </Modal.Body>
+          ) : null}
+          {children}
+        </div>
 
-  useEffect(() => {
-    if (!open) return;
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        if (!closeLocked) onClose();
-        return;
-      }
-      if (!trapFocus || event.key !== 'Tab' || dialogRef.current === null) return;
-      const buttons = focusableButtons(dialogRef.current);
-      const first = buttons[0];
-      const last = buttons[buttons.length - 1];
-      if (first === undefined || last === undefined) return;
-      const index = buttons.indexOf(document.activeElement as HTMLElement);
-      if (event.shiftKey) {
-        if (index <= 0) {
-          event.preventDefault();
-          last.focus();
-        }
-      } else if (index === -1 || index === buttons.length - 1) {
-        event.preventDefault();
-        first.focus();
-      }
-    };
-    document.addEventListener('keydown', onKeyDown);
-    document.body.style.overflow = 'hidden';
-
-    return () => {
-      document.removeEventListener('keydown', onKeyDown);
-      document.body.style.overflow = '';
-    };
-  }, [open, onClose, trapFocus, closeLocked]);
-
-  return createPortal(
-    <AnimatePresence>
-      {open ? (
-        <motion.div
-          className="slip__backdrop"
-          onMouseDown={
-            closeLocked
-              ? undefined
-              : (event) => {
-                  // Sin esto el clic en el fondo lleva el foco al cuerpo después de cerrar (RNF-2).
-                  event.preventDefault();
-                  onClose();
-                }
-          }
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3, ease: EASE_FLUID }}
-        >
-          <motion.div
-            ref={dialogRef}
-            className="slip sheet sheet--punched"
-            role="dialog"
-            aria-modal="true"
-            aria-label={title}
-            onMouseDown={(event) => event.stopPropagation()}
-            initial={{ opacity: 0, y: 40, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.98 }}
-            transition={{ type: 'spring', stiffness: 320, damping: 30 }}
-          >
-            <header className="sheet__head">
-              <h2
-                ref={titleRef}
-                className="sheet-title grow"
-                tabIndex={titleRef ? -1 : undefined}
-              >
-                {title}
-              </h2>
-              <div className="line">
-                {reference ? <span className="slip__ref num">{reference}</span> : null}
-                <button
-                  type="button"
-                  className="slip__close"
-                  onClick={closeLocked ? undefined : onClose}
-                  aria-disabled={closeLocked ? true : undefined}
-                  aria-label="Cerrar"
-                >
-                  <Icon as={X} size={16} />
-                </button>
-              </div>
-            </header>
-
-            <div className="slip__body">{children}</div>
-
-            {footer ? <footer className="slip__foot">{footer}</footer> : null}
-          </motion.div>
-        </motion.div>
-      ) : null}
-    </AnimatePresence>,
-    document.body,
+        {footer ? <footer className="slip__foot">{footer}</footer> : null}
+      </Modal.Content>
+    </Modal.Root>
   );
 }

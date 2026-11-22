@@ -1,0 +1,73 @@
+/*
+ * Botones de icono sin texto (spec 017, M3; RF-2, RF-3, RF-18; plan 4.1), sobre el `ActionIcon` de la
+ * librería: `mantineTheme.ts` le pone `tmu-icon-btn` y `tmu-icon-btn__icon`. Variantes (`data-variant`):
+ *   toggle: el de cambiar de tema (40 px, borde, hover volt);
+ *   bar:    el de cerrar sesión de la barra (36 px, sin borde, hover de peligro).
+ * El botón de cerrar de las ventanas lo añade la tarea de `Slip`.
+ */
+.tmu-icon-btn {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  overflow: visible;
+  padding: 0;
+  line-height: inherit;
+  user-select: auto;
+  cursor: pointer;
+}
+
+.tmu-icon-btn__icon {
+  display: contents;
+}
+
+/* El icono que gira al cambiar de tema (`ThemeToggle`). */
+.tmu-icon-btn__glyph {
+  display: grid;
+  place-items: center;
+}
+
+.tmu-icon-btn[data-variant='toggle'] {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  background: var(--fill-1);
+  color: var(--ink-2);
+  transition:
+    background var(--base) var(--ease),
+    color var(--base) var(--ease),
+    border-color var(--base) var(--ease),
+    transform var(--fast) var(--ease);
+}
+
+.tmu-icon-btn[data-variant='toggle']:hover {
+  color: var(--accent-text);
+  border-color: var(--volt-edge);
+  background: var(--volt-wash);
+}
+
+.tmu-icon-btn[data-variant='toggle']:active {
+  transform: scale(0.92);
+}
+
+.tmu-icon-btn[data-variant='bar'] {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink-2);
+  transition:
+    background var(--base) var(--ease),
+    color var(--base) var(--ease);
+}
+
+.tmu-icon-btn[data-variant='bar']:hover {
+  background: var(--danger-wash);
+  color: var(--danger);
+}

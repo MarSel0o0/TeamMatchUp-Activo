@@ -1,0 +1,153 @@
+- link "Saltar al contenido"
+- banner:
+  - navigation "Principal":
+    - link "TeamMatchUp, inicio": TeamMatchUp
+    - list:
+      - listitem:
+        - link "Mi ficha"
+      - listitem:
+        - link "Coincidencias"
+      - listitem:
+        - link "Agenda"
+      - listitem:
+        - link "Configuración"
+    - button "Cambiar a tema claro"
+    - text: Datos de demostración Jugador Demo
+    - button "Cerrar sesión":
+      - img "Cerrar sesión"
+- main:
+  - heading "Agenda de la semana" [level=1]
+  - paragraph: Publica un bloque para jugar o súmate al de otro. Tus horas declaradas aparecen iluminadas.
+  - button "Anotar sesión"
+  - button "Todos los juegos" [pressed]
+  - button "League of Legends"
+  - button "Rainbow Six Siege"
+  - button "Counter-Strike 2"
+  - heading "Semana" [level=2]
+  - text: Tus horas Estás anotado 9 sesiones publicadas Lun Mar Mié Jue Vie Sáb Dom 12:00
+  - button "Anotar una sesión el Lunes a las 12:00"
+  - button "Anotar una sesión el Martes a las 12:00"
+  - button "Anotar una sesión el Miércoles a las 12:00"
+  - button "Anotar una sesión el Jueves a las 12:00"
+  - button "Anotar una sesión el Viernes a las 12:00"
+  - button "Anotar una sesión el Sábado a las 12:00"
+  - button "Anotar una sesión el Domingo a las 12:00"
+  - text: 13:00
+  - button "Anotar una sesión el Lunes a las 13:00"
+  - button "Anotar una sesión el Martes a las 13:00"
+  - button "Anotar una sesión el Miércoles a las 13:00"
+  - button "Anotar una sesión el Jueves a las 13:00"
+  - button "Anotar una sesión el Viernes a las 13:00"
+  - button "Anotar una sesión el Sábado a las 13:00"
+  - button "Anotar una sesión el Domingo a las 13:00"
+  - text: 14:00
+  - button "Anotar una sesión el Lunes a las 14:00"
+  - button "Anotar una sesión el Martes a las 14:00"
+  - button "Anotar una sesión el Miércoles a las 14:00"
+  - button "Anotar una sesión el Jueves a las 14:00"
+  - button "Anotar una sesión el Viernes a las 14:00"
+  - button "Anotar una sesión el Sábado a las 14:00"
+  - button "Anotar una sesión el Domingo a las 14:00"
+  - text: 15:00
+  - button "Anotar una sesión el Lunes a las 15:00"
+  - button "Anotar una sesión el Martes a las 15:00"
+  - button "Anotar una sesión el Miércoles a las 15:00"
+  - button "Anotar una sesión el Jueves a las 15:00"
+  - button "Anotar una sesión el Viernes a las 15:00"
+  - button "Anotar una sesión el Sábado a las 15:00"
+  - button "Anotar una sesión el Domingo a las 15:00"
+  - text: 16:00
+  - button "Anotar una sesión el Lunes a las 16:00"
+  - button "Anotar una sesión el Martes a las 16:00"
+  - button "Anotar una sesión el Miércoles a las 16:00"
+  - button "Anotar una sesión el Jueves a las 16:00"
+  - button "Anotar una sesión el Viernes a las 16:00"
+  - button "Anotar una sesión el Sábado a las 16:00"
+  - button "Anotar una sesión el Domingo a las 16:00"
+  - text: 17:00
+  - button "Anotar una sesión el Lunes a las 17:00"
+  - button "Anotar una sesión el Martes a las 17:00"
+  - button "Anotar una sesión el Miércoles a las 17:00"
+  - button "Anotar una sesión el Jueves a las 17:00"
+  - button "Anotar una sesión el Viernes a las 17:00"
+  - button "Anotar una sesión el Sábado a las 17:00"
+  - button "Anotar una sesión el Domingo a las 17:00"
+  - text: 18:00
+  - button "Anotar una sesión el Lunes a las 18:00"
+  - button "Anotar una sesión el Martes a las 18:00"
+  - button "Anotar una sesión el Miércoles a las 18:00"
+  - button "Anotar una sesión el Jueves a las 18:00"
+  - button "Anotar una sesión el Viernes a las 18:00"
+  - button "Anotar una sesión el Sábado a las 18:00"
+  - button "Anotar una sesión el Domingo a las 18:00"
+  - text: 19:00
+  - button "Anotar una sesión el Lunes a las 19:00"
+  - button "Anotar una sesión el Martes a las 19:00"
+  - button "Anotar una sesión el Miércoles a las 19:00"
+  - button "Anotar una sesión el Jueves a las 19:00"
+  - button "Anotar una sesión el Viernes a las 19:00"
+  - button "Anotar una sesión el Sábado a las 19:00"
+  - button "Anotar una sesión el Domingo a las 19:00"
+  - text: 20:00
+  - button "Anotar una sesión el Lunes a las 20:00"
+  - button "Anotar una sesión el Martes a las 20:00"
+  - button "Anotar una sesión el Miércoles a las 20:00"
+  - button "Anotar una sesión el Jueves a las 20:00"
+  - button "Anotar una sesión el Viernes a las 20:00"
+  - button "Anotar una sesión el Sábado a las 20:00"
+  - button "Anotar una sesión el Domingo a las 20:00"
+  - text: 21:00
+  - button "Anotar una sesión el Lunes a las 21:00"
+  - button "Anotar una sesión el Martes a las 21:00"
+  - button "Anotar una sesión el Miércoles a las 21:00"
+  - button "Anotar una sesión el Jueves a las 21:00"
+  - button "Anotar una sesión el Viernes a las 21:00"
+  - button "Anotar una sesión el Sábado a las 21:00"
+  - button "Anotar una sesión el Domingo a las 21:00"
+  - text: 22:00
+  - button "Anotar una sesión el Lunes a las 22:00"
+  - button "Anotar una sesión el Martes a las 22:00"
+  - button "Anotar una sesión el Miércoles a las 22:00"
+  - button "Anotar una sesión el Jueves a las 22:00"
+  - button "Anotar una sesión el Viernes a las 22:00"
+  - button "Anotar una sesión el Sábado a las 22:00"
+  - button "Anotar una sesión el Domingo a las 22:00"
+  - text: 23:00
+  - button "Anotar una sesión el Lunes a las 23:00"
+  - button "Anotar una sesión el Martes a las 23:00"
+  - button "Anotar una sesión el Miércoles a las 23:00"
+  - button "Anotar una sesión el Jueves a las 23:00"
+  - button "Anotar una sesión el Viernes a las 23:00"
+  - button "Anotar una sesión el Sábado a las 23:00"
+  - button "Anotar una sesión el Domingo a las 23:00"
+  - text: 00:00
+  - button "Anotar una sesión el Lunes a las 00:00"
+  - button "Anotar una sesión el Martes a las 00:00"
+  - button "Anotar una sesión el Miércoles a las 00:00"
+  - button "Anotar una sesión el Jueves a las 00:00"
+  - button "Anotar una sesión el Viernes a las 00:00"
+  - button "Anotar una sesión el Sábado a las 00:00"
+  - button "Anotar una sesión el Domingo a las 00:00"
+  - text: 01:00
+  - button "Anotar una sesión el Lunes a las 01:00"
+  - button "Anotar una sesión el Martes a las 01:00"
+  - button "Anotar una sesión el Miércoles a las 01:00"
+  - button "Anotar una sesión el Jueves a las 01:00"
+  - button "Anotar una sesión el Viernes a las 01:00"
+  - button "Anotar una sesión el Sábado a las 01:00"
+  - button "Anotar una sesión el Domingo a las 01:00"
+  - button "Noche de clasificatorias, Lunes 16:00, 3 de 5 jugadores": Noche de clasificatorias LoL · 3/5
+  - button "Partidas hasta que aguante el sueño, Lunes 23:00, 5 de 5 jugadores": Partidas hasta que aguante el sueño R6 · 5/5
+  - button "Calentamiento y luego competitivo, Martes 23:00, 3 de 5 jugadores": Calentamiento y luego competitivo R6 · 3/5
+  - button "Ranked flex, 5 stack, Miércoles 21:00, 3 de 5 jugadores": Ranked flex, 5 stack LoL · 3/5
+  - button "Subida de rango sin presión, Jueves 17:00, 5 de 5 jugadores": Subida de rango sin presión R6 · 5/5
+  - button "Calentamiento y luego competitivo, Jueves 21:00, 2 de 5 jugadores": Calentamiento y luego competitivo LoL · 2/5
+  - button "Noche de clasificatorias, Jueves 21:00, 5 de 5 jugadores": Noche de clasificatorias R6 · 5/5
+  - button "Ranked flex, 5 stack, Sábado 23:00, 2 de 5 jugadores": Ranked flex, 5 stack R6 · 2/5
+  - button "Scrim casual, todos bienvenidos, Domingo 16:00, 5 de 5 jugadores": Scrim casual, todos bienvenidos CS2 · 5/5
+  - complementary:
+    - heading "Mis sesiones" [level=2]
+    - text: "0"
+    - strong: No estás en ninguna sesión
+    - text: Haz clic en un bloque de la semana para publicar la tuya, o abre una existente y súmate.
+- contentinfo: TeamMatchUp · 2026 Datos de demostración

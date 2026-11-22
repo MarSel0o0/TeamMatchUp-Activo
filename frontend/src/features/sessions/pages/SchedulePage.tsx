@@ -5,11 +5,11 @@ import {
   useLayoutEffect,
   useRef,
   useState,
-  type CSSProperties,
 } from 'react';
 import { useIsPresent } from 'motion/react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/app/routes';
+import { resolveAfterListFocus, resolveDraftFocus, type DraftOpener } from '@/domain/draftFocus';
 import { GAME_LIST } from '@/domain/games';
 import type { DraftAccounts, ProposalAccounts } from '@/domain/agendaRules';
 import type { GameId, WeekDay } from '@/domain/types';
@@ -17,8 +17,12 @@ import { classifyResponse } from '@/domain/sessionDetail';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/features/auth/useAuth';
 import { useAccounts, useAvailability } from '@/features/profile/hooks';
+import { AppButton } from '@/shared/components/AppButton';
 import { Icon } from '@/shared/components/Icon';
 import { MutationNotice } from '@/shared/components/MutationNotice';
+import { Notice } from '@/shared/components/Notice';
+import { Spinner } from '@/shared/components/Spinner';
+import { FilterChip } from '@/shared/components/FilterChip';
 import { Blank, Failure, SheetSkeleton, Working } from '@/shared/components/States';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { Magnetic } from '@/shared/motion/Magnetic';
@@ -112,6 +116,15 @@ export default function SchedulePage() {
   const dialogTitleRef = useRef<HTMLHeadingElement>(null);
   const dialogConfirmRef = useRef<HTMLButtonElement>(null);
   const cancelButtons = useRef(new Map<string, HTMLButtonElement>());
+  // Foco de «Anotar una sesión» (spec 017, RF-12, RF-22; plan 5.4): de dónde se abrió el borrador, el botón de la
+  // cabecera y el seguimiento de la primera respuesta de la lista tras volver el foco a un bloque. Reglas puras en
+  // `domain/draftFocus.ts`; nada de esto toca el almacén de la 016.
+  const headerButtonRef = useRef<HTMLButtonElement>(null);
+  const draftOpener = useRef<{ kind: DraftOpener; slot?: string } | null>(null);
+  const draftWasOpen = useRef(false);
+  const afterList = useRef<{ slot: string; dataAt: number; errorAt: number; lastFocused: EventTarget | null } | null>(
+    null,
+  );
   const [focusRequest, setFocusRequest] = useState<{
     target: 'panelTitle' | 'cancelButton' | 'dialogTitle' | 'dialogConfirm';
     sessionId?: string;
@@ -186,10 +199,73 @@ export default function SchedulePage() {
     session.participants.some((participant) => participant.id === user?.id),
   );
 
-  const openDraft = (day: WeekDay, startHour: number) => {
+  const openDraft = (day: WeekDay, startHour: number, kind: 'slot' | 'header' = 'slot') => {
     if (myGames.length === 0) return;
+    draftOpener.current = kind === 'slot' ? { kind, slot: `${day}-${startHour}` } : { kind };
     agendaStore.getState().openDraft({ day, startHour }, draftAccounts);
+    // Si la regla no lo abrió, no queda un origen que se le atribuya a otro borrador.
+    if (agendaStore.getState().draft === null) draftOpener.current = null;
   };
+
+  // Abrir y cerrar el borrador (RF-12, RF-22). Al cerrarlo, el foco vuelve al control que lo abrió, o a «Anotar
+  // sesión» si lo abrió una propuesta, o al título del panel si ya no existe; si se cierra porque la vista cambia
+  // (la página sale), no se devuelve a ningún control.
+  useLayoutEffect(() => {
+    const isOpen = draft !== null;
+    if (isOpen && !draftWasOpen.current) {
+      draftWasOpen.current = true;
+      if (draftOpener.current === null) draftOpener.current = { kind: 'proposal' };
+      return;
+    }
+    if (isOpen || !draftWasOpen.current) return;
+    draftWasOpen.current = false;
+    const opener = draftOpener.current;
+    draftOpener.current = null;
+    if (!isPresent) return;
+    const slotElement =
+      opener?.slot !== undefined ? document.querySelector<HTMLElement>(`[data-slot="${opener.slot}"]`) : null;
+    const headerElement = headerButtonRef.current;
+    const target = resolveDraftFocus('closed', {
+      opener: opener?.kind,
+      slotFocusable: slotElement !== null,
+      headerFocusable: headerElement !== null && !headerElement.disabled,
+    });
+    if (target === 'slotBlock' && slotElement !== null && opener?.slot !== undefined) {
+      slotElement.focus();
+      afterList.current = {
+        slot: opener.slot,
+        dataAt: sessionsQuery.dataUpdatedAt,
+        errorAt: sessionsQuery.errorUpdatedAt,
+        lastFocused: slotElement,
+      };
+    } else if (target === 'headerButton') headerElement?.focus();
+    else if (target === 'panelTitle') panelTitleRef.current?.focus();
+    // Solo al cerrar: las demás entradas se leen en ese momento.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draft, isPresent]);
+
+  // Primera respuesta de la lista tras volver el foco a un bloque: si el foco seguía en él y la semana ya no lo
+  // muestra (por ejemplo, por el error de la lista), el foco va al título del panel. Solo vale para esa primera
+  // respuesta, aunque no actúe (`resolveAfterListFocus`).
+  useEffect(() => {
+    const onFocusIn = (event: FocusEvent) => {
+      if (afterList.current !== null) afterList.current.lastFocused = event.target;
+    };
+    document.addEventListener('focusin', onFocusIn);
+    return () => document.removeEventListener('focusin', onFocusIn);
+  }, []);
+  useEffect(() => {
+    const tracking = afterList.current;
+    if (tracking === null) return;
+    if (sessionsQuery.dataUpdatedAt === tracking.dataAt && sessionsQuery.errorUpdatedAt === tracking.errorAt) return;
+    afterList.current = null;
+    const last = tracking.lastFocused;
+    const focusWasOnBlock = last instanceof HTMLElement && last.dataset.slot === tracking.slot;
+    const blockStillShown = document.querySelector(`[data-slot="${tracking.slot}"]`) !== null;
+    if (resolveAfterListFocus({ focusWasOnBlock, blockStillShown, alreadyEvaluated: false }) === 'panelTitle') {
+      panelTitleRef.current?.focus();
+    }
+  }, [sessionsQuery.dataUpdatedAt, sessionsQuery.errorUpdatedAt]);
 
   const busy = joinSession.isPending || leaveSession.isPending || cancelSession.isPending;
 
@@ -278,17 +354,18 @@ export default function SchedulePage() {
           </p>
         </div>
         <Magnetic>
-          <button
+          <AppButton
+            ref={headerButtonRef}
             type="button"
-            className="btn btn--pen btn--lg"
-            onClick={() => openDraft(0, 20)}
+            tone="pen" size="lg"
+            onClick={() => openDraft(0, 20, 'header')}
             disabled={myGames.length === 0}
           >
             Anotar sesión
-            <span className="btn__orb">
+            <span className="tmu-btn__orb">
               <Icon as={CalendarPlus} size={17} />
             </span>
-          </button>
+          </AppButton>
         </Magnetic>
       </header>
 
@@ -299,37 +376,30 @@ export default function SchedulePage() {
           role="alert"
         />
       ) : accountsQuery.isSuccess && myGames.length === 0 ? (
-        <p className="notice notice--pen">
+        <Notice tone="pen">
           <Icon as={Link2} size={15} />
           Necesitas al menos un juego vinculado para anotar sesiones.{' '}
           <Link to={ROUTES.settings}>Vincula una cuenta</Link>.
-        </p>
+        </Notice>
       ) : null}
 
       <div className="agenda__filters">
-        <button
-          type="button"
-          className="chip"
-          aria-pressed={gameFilter === 'all'}
-          onClick={() => agendaStore.getState().setFilter('all')}
-        >
+        <FilterChip pressed={gameFilter === 'all'} onClick={() => agendaStore.getState().setFilter('all')}>
           Todos los juegos
-        </button>
+        </FilterChip>
         {GAME_LIST.map((game) => (
-          <button
+          <FilterChip
             key={game.id}
-            type="button"
-            className="chip"
-            aria-pressed={gameFilter === game.id}
-            style={{ '--chip-ink': game.accent } as CSSProperties}
+            pressed={gameFilter === game.id}
+            inkVar={game.inkVar}
+            dot
             onClick={() => agendaStore.getState().setFilter(game.id)}
           >
-            <span className="chip__dot" />
             {game.name}
-          </button>
+          </FilterChip>
         ))}
         {sessionsQuery.fetchStatus !== 'idle' ? (
-          <span className="btn__spin" style={{ color: 'var(--pen)' }} aria-label="Actualizando" />
+          <Spinner label="Actualizando" />
         ) : null}
       </div>
 
@@ -377,13 +447,13 @@ export default function SchedulePage() {
                 {showOpen ? 'Sesión abierta' : 'Mis sesiones'}
               </h2>
               {showOpen ? (
-                <button
+                <AppButton
                   type="button"
-                  className="btn btn--quiet btn--sm"
+                  tone="quiet" size="sm"
                   onClick={() => agendaStore.getState().showMine()}
                 >
                   Ver las mías
-                </button>
+                </AppButton>
               ) : (
                 <span className="num label">{mine.length}</span>
               )}

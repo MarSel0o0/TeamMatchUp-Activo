@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import type { MouseEvent } from 'react';
 import { useTheme } from '@/app/providers/useTheme';
 import { Icon } from './Icon';
-import './themeToggle.css';
+import { IconButton } from './IconButton';
 
 /**
  * Cambia entre tema oscuro y claro. Muestra el tema al que se va a pasar, y el
@@ -20,11 +20,11 @@ export function ThemeToggle() {
   };
 
   return (
-    <button type="button" className="theme-toggle" onClick={handleClick} aria-label={label} title={label}>
+    <IconButton variant="toggle" label={label} onClick={handleClick} title={label}>
       <AnimatePresence mode="wait" initial={false}>
         <motion.span
           key={theme}
-          className="theme-toggle__icon"
+          className="tmu-icon-btn__glyph"
           initial={{ rotate: -90, scale: 0.4, opacity: 0 }}
           animate={{ rotate: 0, scale: 1, opacity: 1 }}
           exit={{ rotate: 90, scale: 0.4, opacity: 0 }}
@@ -33,6 +33,6 @@ export function ThemeToggle() {
           <Icon as={toLight ? Sun : Moon} size={17} />
         </motion.span>
       </AnimatePresence>
-    </button>
+    </IconButton>
   );
 }

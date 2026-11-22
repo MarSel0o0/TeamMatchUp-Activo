@@ -133,13 +133,13 @@
 }
 
 /* "Proponer" deshabilitado sigue recibiendo el foco (aria-disabled), así que replica el
-   aspecto de `.btn:disabled` y no el de la interacción. */
+   aspecto de `.tmu-btn:disabled` y no el de la interacción. */
 .entry__propose[aria-disabled='true'] {
   opacity: 0.4;
   cursor: not-allowed;
 }
 
-.btn.entry__propose[aria-disabled='true']:hover {
+.tmu-btn.entry__propose[aria-disabled='true']:hover {
   background: var(--volt);
   border-color: var(--volt);
   box-shadow: none;

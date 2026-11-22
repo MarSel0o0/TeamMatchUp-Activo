@@ -1,0 +1,34 @@
+/*
+ * Esqueleto de carga (spec 017, M15; RF-17; plan 4.6; DT-18), sobre el `Skeleton` de la librería con su pulso
+ * apagado (`animate={false}`): la luz que recorre la fila es la de siempre. `mantineTheme.ts` le pone la clase
+ * `tmu-skeleton`. El contenedor (`SheetSkeleton`) conserva `aria-hidden="true"`.
+ */
+.tmu-skeleton {
+  position: relative;
+  overflow: hidden;
+  width: auto;
+  background: var(--surface-2);
+  border-radius: var(--r-md);
+  transform: none;
+}
+
+/* La capa que tapa el contenido en la librería no se usa. */
+.tmu-skeleton::before {
+  content: none;
+}
+
+.tmu-skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: auto;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, var(--fill-2), transparent);
+  animation: tmu-sweep 1.4s var(--ease) infinite;
+}
+
+@keyframes tmu-sweep {
+  to {
+    transform: translateX(100%);
+  }
+}

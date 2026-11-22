@@ -1,4 +1,5 @@
 import { RefreshCw, Unlink } from 'lucide-react';
+import type { Ref } from 'react';
 import { formatRank, getGame } from '@/domain/games';
 import { verifiedLabel } from '@/domain/origins';
 import { isLeetifyRank, premierStatusText } from '@/domain/premierDisplay';
@@ -9,6 +10,8 @@ import { RiotVerifyButton } from '@/features/riot/components/RiotVerifyButton';
 import { SteamProfileBlock } from '@/features/steam/components/SteamProfileBlock';
 import type { SteamProfileOwner } from '@/features/steam/components/SteamProfileBlock';
 import { SteamVerifyButton } from '@/features/steam/components/SteamVerifyButton';
+import { AppButton } from '@/shared/components/AppButton';
+import { Spinner } from '@/shared/components/Spinner';
 import { Icon } from '@/shared/components/Icon';
 import { LeetifyAttribution } from '@/shared/components/LeetifyAttribution';
 import { OriginTag } from '@/shared/components/OriginTag';
@@ -30,6 +33,8 @@ interface AccountRowProps {
   account: GameAccount;
   onSync?: (accountId: string) => void;
   onUnlink?: (accountId: string) => void;
+  /** Referencia del botón «Desvincular», para devolverle el foco al cerrar la ventana (spec 017, RF-24). */
+  unlinkButtonRef?: Ref<HTMLButtonElement>;
   /** Esta cuenta se está resincronizando: su botón dice "Enviando…" (RF-20). */
   syncing?: boolean;
   /** Esta cuenta se está desvinculando: su botón dice "Enviando…" (RF-20). */
@@ -57,6 +62,7 @@ export function AccountRow({
   account,
   onSync,
   onUnlink,
+  unlinkButtonRef,
   syncing = false,
   unlinking = false,
   locked = false,
@@ -167,26 +173,27 @@ export function AccountRow({
       {onSync || onUnlink ? (
         <div className="account__actions">
           {onSync ? (
-            <button
+            <AppButton
               type="button"
-              className="btn btn--sm"
+              size="sm"
               onClick={() => onSync(account.id)}
               disabled={busy}
             >
-              {syncing ? <span className="btn__spin" /> : <Icon as={RefreshCw} size={13} />}
+              {syncing ? <Spinner /> : <Icon as={RefreshCw} size={13} />}
               {syncing ? SENDING_TEXT : RESYNC_LABEL}
-            </button>
+            </AppButton>
           ) : null}
           {onUnlink ? (
-            <button
+            <AppButton
+              ref={unlinkButtonRef}
               type="button"
-              className="btn btn--danger btn--sm"
+              tone="danger" size="sm"
               onClick={() => onUnlink(account.id)}
               disabled={busy}
             >
-              {unlinking ? <span className="btn__spin" /> : <Icon as={Unlink} size={13} />}
+              {unlinking ? <Spinner /> : <Icon as={Unlink} size={13} />}
               {unlinking ? SENDING_TEXT : 'Desvincular'}
-            </button>
+            </AppButton>
           ) : null}
         </div>
       ) : null}

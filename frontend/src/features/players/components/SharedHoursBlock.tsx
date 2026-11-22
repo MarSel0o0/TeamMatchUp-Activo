@@ -2,6 +2,7 @@ import { formatRange } from '@/domain/availability';
 import { sharedHours } from '@/domain/playerSheet';
 import type { TimeBlock } from '@/domain/types';
 import { HoursSheet } from '@/shared/components/HoursSheet';
+import { Notice } from '@/shared/components/Notice';
 import { Failure, SheetSkeleton } from '@/shared/components/States';
 import {
   HOUR_UNIT,
@@ -55,7 +56,7 @@ export function SharedHoursBlock({
       <h3 id={TITLE_ID} className="label">
         {SHARED_HOURS_TITLE}
       </h3>
-      {zonesDiffer ? <p className="notice">{ZONES_DIFFER_NOTE}</p> : null}
+      {zonesDiffer ? <Notice>{ZONES_DIFFER_NOTE}</Notice> : null}
       {mine.state === 'failed' ? <Failure error={mineError} onRetry={onRetryMine} /> : null}
       {theirs.state === 'failed' ? <Failure error={theirsError} onRetry={onRetryTheirs} /> : null}
       {loading ? (

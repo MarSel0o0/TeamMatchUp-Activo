@@ -1,0 +1,42 @@
+{
+ "dark": {
+  "actualizandoCoincidencias": {
+   "color": "rgb(238, 240, 242)",
+   "borderRightColor": "rgb(238, 240, 242)",
+   "hostClass": "page-head",
+   "hostColor": "rgb(238, 240, 242)"
+  },
+  "actualizandoAgenda": {
+   "color": "rgb(238, 240, 242)",
+   "borderRightColor": "rgb(238, 240, 242)",
+   "hostClass": "agenda__filters",
+   "hostColor": "rgb(238, 240, 242)"
+  },
+  "leyendo": {
+   "color": "rgb(162, 169, 179)",
+   "borderRightColor": "rgb(162, 169, 179)",
+   "hostClass": "blank",
+   "hostColor": "rgb(162, 169, 179)"
+  }
+ },
+ "light": {
+  "actualizandoCoincidencias": {
+   "color": "rgb(16, 18, 22)",
+   "borderRightColor": "rgb(16, 18, 22)",
+   "hostClass": "page-head",
+   "hostColor": "rgb(16, 18, 22)"
+  },
+  "actualizandoAgenda": {
+   "color": "rgb(16, 18, 22)",
+   "borderRightColor": "rgb(16, 18, 22)",
+   "hostClass": "agenda__filters",
+   "hostColor": "rgb(16, 18, 22)"
+  },
+  "leyendo": {
+   "color": "rgb(71, 78, 88)",
+   "borderRightColor": "rgb(71, 78, 88)",
+   "hostClass": "blank",
+   "hostColor": "rgb(71, 78, 88)"
+  }
+ }
+}

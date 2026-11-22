@@ -1,0 +1,68 @@
+- link "Saltar al contenido"
+- banner:
+  - navigation "Principal":
+    - link "TeamMatchUp, inicio": TeamMatchUp
+    - list:
+      - listitem:
+        - link "Mi ficha"
+      - listitem:
+        - link "Coincidencias"
+      - listitem:
+        - link "Agenda"
+      - listitem:
+        - link "Configuración"
+    - button "Cambiar a tema claro"
+    - text: Datos de demostración Jugador Demo
+    - button "Cerrar sesión":
+      - img "Cerrar sesión"
+- main:
+  - heading "Coincidencias" [level=1]
+  - paragraph: Jugadores con un rango cercano al tuyo cuyas horas se cruzan con las que declaraste.
+  - tablist "Juego":
+    - tab "League of Legends" [selected]
+    - tab "Rainbow Six Siege"
+    - tab "Counter-Strike 2"
+  - complementary:
+    - heading "Criterios" [level=2]
+    - text: 5 resultados Buscar jugador
+    - searchbox "Buscar jugador"
+    - text: Diferencia máxima de rango 25 pts
+    - slider "Diferencia máxima de rango 25 pts": "25"
+    - text: Sobre la escala normalizada 0-100 que permite comparar juegos con escalas distintas. Horas en común por semana 2 h
+    - slider "Horas en común por semana 2 h": "2"
+    - checkbox "Solo cuentas verificadas": "on"
+    - text: Solo cuentas verificadas
+    - button "Restablecer criterios"
+  - heading "Jugadores compatibles" [level=2]
+  - text: Por afinidad
+  - article:
+    - strong:
+      - link "Fernanda Soto"
+    - text: "@ignxcia · ADC. Juego tardes de fin de semana. Emerald II · 27 LP Δ 0 pts Datos de demostración 8 horas Lun 19:00–21:00 100 Excelente Datos de demostración"
+    - button "Proponer"
+    - button "Ver horas en común": Horas
+  - article:
+    - strong:
+      - link "Isidora Campos"
+    - text: "@nocturna · Juego después de las 22:00, sin excepción. Emerald III · 16 LP Δ 3 pts Datos de demostración 7 horas Mar 21:00–00:00 88 Excelente Datos de demostración"
+    - button "Proponer"
+    - button "Ver horas en común": Horas
+  - article:
+    - strong:
+      - link "Renata Bustos"
+    - text: "@zorro_azul · Top lane. Odio jugar sola. Diamond IV · 34 LP Δ 7 pts Datos de demostración 14 horas Lun 21:00–23:00 85 Excelente Datos de demostración"
+    - button "Proponer"
+    - button "Ver horas en común": Horas
+  - article:
+    - strong:
+      - link "Emilia Vargas"
+    - text: "@lunaticx · Support. Prefiero grupos con comunicación. Platinum I · 50 LP Δ 10 pts Datos de demostración 16 horas Vie 19:00–22:00 0 Buena Datos de demostración"
+    - button "Proponer"
+    - button "Ver horas en común": Horas
+  - article:
+    - strong:
+      - link "Cristóbal Lagos"
+    - text: "@ghost.pix · Jungla en LoL, IGL en CS2. Diamond III · 5 LP Δ 10 pts Datos de demostración 9 horas Vie 20:00–22:00 0 Buena Datos de demostración"
+    - button "Proponer"
+    - button "Ver horas en común": Horas
+- contentinfo: TeamMatchUp · 2026 Datos de demostración

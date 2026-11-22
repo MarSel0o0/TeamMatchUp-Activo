@@ -7,6 +7,7 @@ import { readNormalized, readWinRate } from '@/domain/playerSheet';
 import type { RankSnapshot } from '@/domain/types';
 import type { GameProfileSummary } from '@/services/api';
 import { Icon } from '@/shared/components/Icon';
+import { Notice } from '@/shared/components/Notice';
 import { OriginTag } from '@/shared/components/OriginTag';
 import { MutationNotice } from '@/shared/components/MutationNotice';
 import { RankScale } from '@/shared/components/RankScale';
@@ -84,10 +85,10 @@ export function GameSummaryPanel({
         {onSync ? <MutationNotice error={syncError} padded /> : null}
         {onSync && syncNotice ? (
           <div className="sheet__body">
-            <p className="notice notice--pen" role="status">
+            <Notice tone="pen" role="status">
               <Icon as={AlertCircle} size={15} />
               {syncNotice}
-            </p>
+            </Notice>
           </div>
         ) : null}
         <AccountRow

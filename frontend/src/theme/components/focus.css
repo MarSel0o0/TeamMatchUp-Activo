@@ -1,0 +1,10 @@
+/*
+ * Indicador de foco de los componentes de la librería (spec 017, RF-4, RF-20; plan 3.4).
+ * `focusClassName: 'tmu-focus'` (mantineTheme.ts) pone esta clase en los componentes que reciben el
+ * foco. Mismo grosor y misma separación que el indicador global de `styles/global.css`; el color sale de
+ * `--focus-ring` (en oscuro, el volt de siempre; en claro, el tono del acento con 3:1 o más).
+ */
+.tmu-focus:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 3px;
+}

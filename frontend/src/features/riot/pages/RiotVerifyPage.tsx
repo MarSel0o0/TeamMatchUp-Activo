@@ -11,6 +11,10 @@ import {
 import type { GameAccount, RiotChallenge } from '@/domain/types';
 import { useAccounts } from '@/features/profile/hooks';
 import { ApiError } from '@/services/api';
+import { AppButton } from '@/shared/components/AppButton';
+import { Notice } from '@/shared/components/Notice';
+import { SelectField } from '@/shared/components/SelectField';
+import { Spinner } from '@/shared/components/Spinner';
 import { Icon } from '@/shared/components/Icon';
 import { MutationNotice } from '@/shared/components/MutationNotice';
 import { Failure, SheetSkeleton } from '@/shared/components/States';
@@ -95,10 +99,10 @@ export default function RiotVerifyPage() {
           <>
             <Failure error={accountsQuery.error} onRetry={() => void accountsQuery.refetch()} />
             <div className="sheet__foot">
-              <button type="button" className="btn" onClick={goBack}>
+              <AppButton type="button" onClick={goBack}>
                 <Icon as={ArrowLeft} size={14} />
                 {RIOT_BACK_BUTTON}
-              </button>
+              </AppButton>
             </div>
           </>
         ) : currentChallengeQuery.isError && createdChallenge === null ? (
@@ -108,10 +112,10 @@ export default function RiotVerifyPage() {
               onRetry={() => void currentChallengeQuery.refetch()}
             />
             <div className="sheet__foot">
-              <button type="button" className="btn" onClick={goBack}>
+              <AppButton type="button" onClick={goBack}>
                 <Icon as={ArrowLeft} size={14} />
                 {RIOT_BACK_BUTTON}
-              </button>
+              </AppButton>
             </div>
           </>
         ) : activeChallenge !== null ? (
@@ -186,44 +190,33 @@ function RiotChallengeForm({ manualLol, onChallengeCreated, onBack }: RiotChalle
           autoComplete="off"
         />
 
-        <div className="field">
-          <label className="label" htmlFor="riot-verify-region">
-            Región
-          </label>
-          <select
-            id="riot-verify-region"
-            className="select"
-            value={region}
-            onChange={(event) => setRegion(event.target.value)}
-          >
-            {LOL_GAME.regions.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
-        </div>
+        <SelectField
+          id="riot-verify-region"
+          label="Región"
+          value={region}
+          onChange={(value) => setRegion(value)}
+          options={LOL_GAME.regions.map((option) => ({ value: option, label: option }))}
+        />
 
         <MutationNotice error={createChallenge.error} />
 
         <div className="riot-verify__footer">
-          <button type="submit" className="btn btn--pen" disabled={createChallenge.isPending}>
+          <AppButton type="submit" tone="pen" disabled={createChallenge.isPending}>
             {createChallenge.isPending ? (
-              <span className="btn__spin" />
+              <Spinner />
             ) : (
               <Icon as={ShieldCheck} size={14} />
             )}
             {createChallenge.isPending ? SENDING_TEXT : 'Pedir ícono de verificación'}
-          </button>
-          <button
+          </AppButton>
+          <AppButton
             type="button"
-            className="btn"
             onClick={onBack}
             disabled={createChallenge.isPending}
           >
             <Icon as={ArrowLeft} size={14} />
             {RIOT_BACK_BUTTON}
-          </button>
+          </AppButton>
         </div>
       </form>
     </>
@@ -372,10 +365,10 @@ function RiotChallengeView({
         </div>
 
         {expired ? (
-          <p className="notice riot-verify__expired" role="status">
+          <Notice className="riot-verify__expired" role="status">
             <Icon as={Clock} size={15} />
             {RIOT_CHALLENGE_EXPIRED_TITLE}
-          </p>
+          </Notice>
         ) : null}
 
         <div className="stack-sm">
@@ -391,37 +384,37 @@ function RiotChallengeView({
 
         <div className="riot-verify__actions">
           <div className="riot-verify__action-group">
-            <button
+            <AppButton
               type="button"
-              className={closed ? 'btn' : 'btn btn--pen'}
+              tone={closed ? 'default' : 'pen'}
               onClick={handleConfirm}
               disabled={closed || busy}
             >
               {confirmChallenge.isPending ? (
-                <span className="btn__spin" />
+                <Spinner />
               ) : (
                 <Icon as={CheckCircle2} size={14} />
               )}
               {confirmChallenge.isPending ? SENDING_TEXT : RIOT_CONFIRM_BUTTON}
-            </button>
+            </AppButton>
             <MutationNotice error={confirmChallenge.error} />
           </div>
 
           {closed ? (
             <div className="riot-verify__action-group">
-              <button
+              <AppButton
                 type="button"
-                className="btn btn--pen"
+                tone="pen"
                 onClick={handleRetryChallenge}
                 disabled={busy}
               >
                 {retryChallenge.isPending ? (
-                  <span className="btn__spin" />
+                  <Spinner />
                 ) : (
                   <Icon as={RefreshCw} size={14} />
                 )}
                 {retryChallenge.isPending ? SENDING_TEXT : RIOT_RETRY_CHALLENGE_BUTTON}
-              </button>
+              </AppButton>
               <MutationNotice error={retryChallenge.error} />
             </div>
           ) : null}
@@ -429,10 +422,10 @@ function RiotChallengeView({
       </div>
 
       <div className="sheet__foot">
-        <button type="button" className="btn" onClick={onBack}>
+        <AppButton type="button" onClick={onBack}>
           <Icon as={ArrowLeft} size={14} />
           {RIOT_BACK_BUTTON}
-        </button>
+        </AppButton>
       </div>
     </>
   );

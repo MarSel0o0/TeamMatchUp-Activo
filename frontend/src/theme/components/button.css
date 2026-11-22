@@ -1,0 +1,166 @@
+/*
+ * Botones y enlaces con aspecto de botón (spec 017, M1 y M2; RF-2, RF-3, RF-8; plan 4.1).
+ * Sobre el `Button` de la librería: `mantineTheme.ts` le pone las clases `tmu-btn`, `tmu-btn__inner` y
+ * `tmu-btn__label`, y este archivo (sin capa, así que gana siempre a `@layer mantine`) pinta todo con los
+ * tokens de `styles/tokens.css`. Variantes: `data-variant` = default | pen | quiet | danger. Tamaños:
+ * `data-size` = sm | md | lg. Deshabilitado = `:disabled`; bloqueado = `aria-disabled="true"` (sigue en el
+ * orden de Tab y conserva el foco). Los valores son los de siempre: píldora, relleno y letra de hoy.
+ */
+.tmu-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s2);
+  width: auto;
+  height: auto;
+  min-height: 38px;
+  padding: 0.5rem 1.05rem;
+  overflow: visible;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-pill);
+  background: var(--fill-1);
+  color: var(--ink);
+  font-size: var(--t-small);
+  font-weight: 540;
+  line-height: inherit;
+  letter-spacing: -0.005em;
+  text-align: center;
+  vertical-align: baseline;
+  user-select: auto;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+  transition:
+    background var(--base) var(--ease),
+    border-color var(--base) var(--ease),
+    color var(--base) var(--ease),
+    box-shadow var(--base) var(--ease),
+    transform var(--fast) var(--ease);
+}
+
+/* El destello del estado `loading` de la librería no se usa (DT-12): «Enviando…» lo pone cada vista. */
+.tmu-btn::before {
+  content: none;
+}
+
+/* La estructura interna de la librería (`inner` y `label`) no existe para la disposición: el icono, el
+   texto y el indicador son hijos directos del botón, como siempre. */
+.tmu-btn__inner,
+.tmu-btn__label {
+  display: contents;
+}
+
+/* Un enlace con aspecto de botón conserva el color de texto de siempre en todas sus variantes (también
+   «discreto» y «peligro»): `a.btn` ganaba a `.btn--quiet` y `.btn--danger`. */
+a.tmu-btn[data-variant],
+a.tmu-btn[data-variant]:hover {
+  color: var(--ink);
+  text-decoration: none;
+}
+
+a.tmu-btn[data-variant='pen'],
+a.tmu-btn[data-variant='pen']:hover {
+  color: var(--volt-ink);
+}
+
+/* `:where()` deja esta regla con el peso de `.tmu-btn:hover`: si no, ganaba a los hover de cada
+   variante (volt, peligro, discreto) y el texto quedaba sin contraste (spec 009, RNF-5). */
+.tmu-btn:hover:where(:not(:disabled):not([aria-disabled='true'])) {
+  background: var(--fill-3);
+  border-color: var(--line-strong);
+}
+
+.tmu-btn:active:not(:disabled):not([aria-disabled='true']) {
+  transform: scale(0.97);
+}
+
+.tmu-btn:disabled,
+.tmu-btn[aria-disabled='true'] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.tmu-btn svg {
+  transition: transform var(--base) var(--ease);
+}
+
+.tmu-btn:hover:not(:disabled) svg {
+  transform: translateX(2px);
+}
+
+/* Acción primaria: volt sólido. Negro encima, 14:1 de contraste. */
+.tmu-btn[data-variant='pen'] {
+  background: var(--volt);
+  border-color: var(--volt);
+  color: var(--volt-ink);
+  font-weight: 620;
+  box-shadow: var(--btn-pen-shadow);
+}
+
+.tmu-btn[data-variant='pen']:hover:not(:disabled):not([aria-disabled='true']) {
+  background: var(--volt-bright);
+  border-color: var(--accent-text-hover);
+  box-shadow: var(--volt-glow);
+}
+
+.tmu-btn[data-variant='quiet'] {
+  border-color: transparent;
+  background: transparent;
+  color: var(--ink-2);
+}
+
+.tmu-btn[data-variant='quiet']:hover:not(:disabled):not([aria-disabled='true']) {
+  color: var(--ink);
+  background: var(--fill-2);
+  border-color: transparent;
+}
+
+.tmu-btn[data-variant='danger'] {
+  color: var(--danger);
+  border-color: transparent;
+  background: transparent;
+}
+
+.tmu-btn[data-variant='danger']:hover:not(:disabled):not([aria-disabled='true']) {
+  background: var(--danger-wash);
+  border-color: var(--danger-edge);
+}
+
+.tmu-btn[data-size='sm'] {
+  min-height: 30px;
+  padding: 0.3rem 0.8rem;
+  font-size: var(--t-micro);
+  gap: 0.35rem;
+}
+
+.tmu-btn[data-size='lg'] {
+  min-height: 52px;
+  padding: 0.5rem 0.6rem 0.5rem 1.5rem;
+  font-size: var(--t-base);
+  gap: var(--s3);
+}
+
+.tmu-btn[data-block] {
+  display: inline-flex;
+  width: 100%;
+}
+
+/* Icono anidado: un círculo propio dentro del botón, con tensión al hover. */
+.tmu-btn__orb {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--btn-orb-bg);
+  transition: transform var(--base) var(--spring);
+}
+
+.tmu-btn:hover:not(:disabled) .tmu-btn__orb {
+  transform: translate(3px, -1px) scale(1.06);
+}
+
+.tmu-btn:hover:not(:disabled) .tmu-btn__orb svg {
+  transform: none;
+}

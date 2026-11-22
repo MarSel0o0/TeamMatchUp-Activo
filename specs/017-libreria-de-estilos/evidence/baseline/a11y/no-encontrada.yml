@@ -1,0 +1,4 @@
+- text: "404"
+- heading "No hay nadie en esta sala" [level=1]
+- paragraph: El enlace puede estar mal escrito, o la vista se movió a otra dirección.
+- link "Volver al inicio"

@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/app/routes';
 import { env } from '@/config/env';
 import { useAccounts } from '@/features/profile/hooks';
+import { AppButton } from '@/shared/components/AppButton';
 import { Icon } from '@/shared/components/Icon';
 import { RIOT_MOCK_DISABLED_TEXT, RIOT_VERIFY_LABEL } from '@/shared/utils/copy';
 import { useRiotAvailability } from '../hooks';
@@ -32,10 +33,10 @@ export function RiotVerifyButton() {
   if (env.useMockApi) {
     return (
       <div className="stack-sm">
-        <button type="button" className="btn btn--sm" disabled aria-describedby={mockNoteId}>
+        <AppButton type="button" size="sm" disabled aria-describedby={mockNoteId}>
           <Icon as={ShieldCheck} size={13} />
           {RIOT_VERIFY_LABEL}
-        </button>
+        </AppButton>
         <span id={mockNoteId} className="note note--faint">
           {RIOT_MOCK_DISABLED_TEXT}
         </span>
@@ -50,9 +51,9 @@ export function RiotVerifyButton() {
   };
 
   return (
-    <button type="button" className="btn btn--sm" onClick={handleClick}>
+    <AppButton type="button" size="sm" onClick={handleClick}>
       <Icon as={ShieldCheck} size={13} />
       {RIOT_VERIFY_LABEL}
-    </button>
+    </AppButton>
   );
 }

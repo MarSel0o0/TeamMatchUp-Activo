@@ -13,6 +13,7 @@ import {
   PROPOSE_LOADING_TEXT,
   PROPOSE_SESSION_LABEL,
 } from '@/shared/utils/copy';
+import { AppButton } from '@/shared/components/AppButton';
 
 /** Texto bajo el botón bloqueado: motivo de RF-12 o texto de RF-23 (plan 3.2 y 4.6; P57). */
 function reasonContent(state: Exclude<ProposeState, { kind: 'ready' }>): ReactNode {
@@ -53,9 +54,9 @@ export function ProposeSessionAction({ state }: { state: ProposeState }) {
     const { proposal } = state;
     return (
       <div className="player-propose">
-        <button
+        <AppButton
           type="button"
-          className="btn btn--pen"
+          tone="pen"
           onClick={() => {
             if (proposing.current) return;
             proposing.current = true;
@@ -65,21 +66,21 @@ export function ProposeSessionAction({ state }: { state: ProposeState }) {
           }}
         >
           {PROPOSE_SESSION_LABEL}
-        </button>
+        </AppButton>
       </div>
     );
   }
 
   return (
     <div className="player-propose">
-      <button
+      <AppButton
         type="button"
-        className="btn btn--pen"
+        tone="pen"
         aria-disabled="true"
         aria-describedby={reasonId}
       >
         {PROPOSE_SESSION_LABEL}
-      </button>
+      </AppButton>
       <p id={reasonId} className="note">
         {reasonContent(state)}
       </p>

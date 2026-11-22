@@ -3,7 +3,10 @@ import { useRef, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { ROUTES } from '@/app/routes';
 import { isSessionCleared } from '@/services/api';
+import { AppButton } from '@/shared/components/AppButton';
 import { Icon } from '@/shared/components/Icon';
+import { Notice } from '@/shared/components/Notice';
+import { Spinner } from '@/shared/components/Spinner';
 import { TextField } from '@/shared/components/TextField';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { NO_MESSAGE_TEXT, SENDING_TEXT } from '@/shared/utils/copy';
@@ -96,10 +99,10 @@ export default function RegisterPage() {
       </header>
 
       {submitError ? (
-        <p className="notice notice--error" role="alert">
+        <Notice tone="error" role="alert">
           <Icon as={AlertCircle} size={15} />
           {submitError}
-        </p>
+        </Notice>
       ) : null}
 
       <div className="access__fields">
@@ -149,10 +152,10 @@ export default function RegisterPage() {
         />
       </div>
 
-      <button type="submit" className="btn btn--pen btn--block access__submit" disabled={submitting}>
-        {submitting ? <span className="btn__spin" /> : <Icon as={ArrowRight} size={15} />}
+      <AppButton type="submit" tone="pen" block className="access__submit" disabled={submitting}>
+        {submitting ? <Spinner /> : <Icon as={ArrowRight} size={15} />}
         {submitting ? SENDING_TEXT : 'Crear cuenta'}
-      </button>
+      </AppButton>
 
       <p className="access__foot">
         ¿Ya tienes cuenta? <Link to={ROUTES.login}>Entrar</Link>

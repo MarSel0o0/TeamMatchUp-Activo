@@ -45,7 +45,8 @@
   gap: var(--s3);
 }
 
-.draft__pair > .field {
+.draft__pair > .field,
+.draft__pair > .tmu-field {
   flex: 1;
   min-width: 0;
 }
@@ -54,6 +55,6 @@
   margin-top: var(--s4);
 }
 
-#create-session-form > .notice {
+#create-session-form > .tmu-notice {
   margin-bottom: var(--s4);
 }

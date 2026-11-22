@@ -10,20 +10,9 @@
     />
     <meta name="theme-color" content="#0b0c0e" />
     <title>TeamMatchUp</title>
-    <!-- Fija el tema antes de la primera pintura: lo guardado o, si no hay,
-         la preferencia del sistema. Evita el destello del tema equivocado. -->
-    <script>
-      (function () {
-        var theme;
-        try {
-          theme = localStorage.getItem('tmu.theme');
-        } catch (e) {}
-        if (theme !== 'light' && theme !== 'dark') {
-          theme = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-        }
-        document.documentElement.dataset.theme = theme;
-      })();
-    </script>
+    <!-- El tema inicial (lo guardado o la preferencia del sistema) lo fija, antes de la primera
+         pintura, un script que inyecta `themeBootPlugin` (vite.config.ts) con la regla de
+         `src/domain/themeChoice.ts`. -->
   </head>
   <body>
     <div id="root"></div>

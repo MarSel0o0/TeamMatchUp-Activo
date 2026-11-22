@@ -1,0 +1,38 @@
+/*
+ * Chips de filtro (spec 017, M12; RF-2, RF-3, RF-14; plan 4.6): botones con estado pulsado (`aria-pressed`), de
+ * a uno a la vez (lo decide el almacén de la agenda). Sobre el `UnstyledButton` de la librería (`FilterChip.tsx`).
+ * La tinta del juego llega en `--chip-ink` (`GameDefinition.inkVar`); «Todos los juegos» no la fija y cae al volt.
+ */
+.tmu-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  min-height: 32px;
+  padding: 0.3rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--fill-1);
+  color: var(--ink-2);
+  font-size: var(--t-small);
+  font-weight: 520;
+  cursor: pointer;
+  transition: all var(--base) var(--ease);
+}
+
+.tmu-chip:hover {
+  color: var(--ink);
+  border-color: var(--line-strong);
+}
+
+.tmu-chip[aria-pressed='true'] {
+  color: var(--ink);
+  border-color: var(--chip-ink, var(--volt-edge));
+  background: color-mix(in srgb, var(--chip-ink, var(--volt)) 14%, transparent);
+}
+
+.tmu-chip__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--chip-ink, var(--volt));
+}

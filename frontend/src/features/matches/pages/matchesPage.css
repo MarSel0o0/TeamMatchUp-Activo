@@ -38,3 +38,12 @@
     padding-top: var(--s3);
   }
 }
+
+/* Panel de las pestañas de juego (spec 017, RF-13): contiene el aviso de horas, los criterios y los resultados; es
+   una caja propia (recibe el foco) con la misma separación que tenían entre sí dentro de la página. */
+.matches__panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s6);
+  min-width: 0;
+}

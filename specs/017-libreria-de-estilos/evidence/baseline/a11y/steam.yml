@@ -1,0 +1,35 @@
+- link "TeamMatchUp"
+- heading "El equipo no se arma preguntando «¿alguien juega?». Se arma tomando una hora." [level=1]:
+  - text: El equipo no se arma preguntando «¿alguien juega?».
+  - emphasis: Se arma tomando una hora.
+- figure "Muestra del formato. Ninguno de estos nombres es actividad real.":
+  - text: Jueves Salas abiertas
+  - list:
+    - listitem: 20:00 LoL FL GP HC
+    - listitem: 21:00 CS2 LV RP
+    - listitem: 22:00 R6 NC PH JR KM TF
+    - listitem: 23:00 LoL IS
+  - text: Muestra del formato. Ninguno de estos nombres es actividad real.
+- term: 01 Rango leído, no declarado
+- definition: El rango se vuelve a leer al pulsar "Resincronizar".
+- term: 02 Horas que se cruzan de verdad
+- definition: Marcas tu semana y buscamos los bloques que compartes con otros.
+- term: 03 Termina en una partida
+- definition: Alguien publica el bloque y el resto se anota. Ahí se acaba el trámite.
+- button "Cambiar a tema claro"
+- heading "Entrar" [level=2]
+- paragraph: Tus coincidencias y tu agenda te están esperando.
+- text: Correo
+- textbox "Correo"
+- text: Contraseña
+- textbox "Contraseña"
+- button "Entrar"
+- text: Esta copia corre con datos de demostración. Entra con
+- code: demo@teammatchup.gg
+- text: y contraseña
+- code: demo1234
+- text: .
+- button "Rellenar esos datos"
+- paragraph:
+  - text: ¿Todavía no tienes cuenta?
+  - link "Crear una"

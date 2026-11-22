@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import { playerPath, sessionPath } from '@/app/routes';
 import { formatSessionRange } from '@/domain/sessionDetail';
 import type { PlaySession } from '@/domain/types';
+import { AppButton, ButtonLink } from '@/shared/components/AppButton';
+import { Spinner } from '@/shared/components/Spinner';
 import { GameMark } from '@/shared/components/GameMark';
 import { Icon } from '@/shared/components/Icon';
 import { Monogram } from '@/shared/components/Monogram';
@@ -87,13 +89,13 @@ export function SessionSlip({
       </ul>
 
       <footer className="session__foot">
-        <Link
+        <ButtonLink
           to={sessionPath(session.id)}
-          className="btn btn--quiet btn--sm"
+          tone="quiet" size="sm"
           aria-label={viewDetailLabel(session.title)}
         >
           {VIEW_DETAIL_LABEL}
-        </Link>
+        </ButtonLink>
         {isSigned ? (
           <Stamp tone="pen" pressKey={`${session.id}-${session.participants.length}`} announce>
             {isHost ? 'La organizas' : 'Estás dentro'}
@@ -109,36 +111,36 @@ export function SessionSlip({
         )}
 
         {isHost ? (
-          <button
+          <AppButton
             ref={cancelButtonRef}
             type="button"
-            className="btn btn--danger btn--sm"
+            tone="danger" size="sm"
             onClick={() => onCancel(session.id)}
             disabled={busy}
           >
-            {pendingAction === 'cancel' ? <span className="btn__spin" /> : <Icon as={Ban} size={13} />}
+            {pendingAction === 'cancel' ? <Spinner /> : <Icon as={Ban} size={13} />}
             {pendingAction === 'cancel' ? SENDING_TEXT : 'Cancelar sesión'}
-          </button>
+          </AppButton>
         ) : isSigned ? (
-          <button
+          <AppButton
             type="button"
-            className="btn btn--sm"
+            size="sm"
             onClick={() => onLeave(session.id)}
             disabled={busy}
           >
-            {pendingAction === 'leave' ? <span className="btn__spin" /> : <Icon as={LogOut} size={13} />}
+            {pendingAction === 'leave' ? <Spinner /> : <Icon as={LogOut} size={13} />}
             {pendingAction === 'leave' ? SENDING_TEXT : 'Salir'}
-          </button>
+          </AppButton>
         ) : (
-          <button
+          <AppButton
             type="button"
-            className="btn btn--pen btn--sm"
+            tone="pen" size="sm"
             onClick={() => onJoin(session.id)}
             disabled={busy || openSlots === 0}
           >
-            {pendingAction === 'join' ? <span className="btn__spin" /> : <Icon as={UserPlus} size={13} />}
+            {pendingAction === 'join' ? <Spinner /> : <Icon as={UserPlus} size={13} />}
             {pendingAction === 'join' ? SENDING_TEXT : openSlots === 0 ? 'Sin cupos' : 'Unirme'}
-          </button>
+          </AppButton>
         )}
       </footer>
     </article>

@@ -1,6 +1,6 @@
 # Spec 017 — Librería de estilos (Mantine) en los componentes base
-Estado: aprobada (2026-11-21, usuario); plan y tareas pendientes (se implementa después de la 016 y
-antes de la 018).
+Estado: implementada (2026-11-22); pendiente de la revisión del usuario (aprobada el 2026-11-21; plan y tareas
+aprobados el 2026-11-22; registro en `validation.md`).
 Historial: borrador desde el 2026-11-21. Dudas Q1 a Q7 cerradas por el usuario el 2026-11-21 y
 aplicadas en toda la spec (ver «Decisiones»). Corregida el 2026-11-21 tras la primera revisión QA
 (hallazgos H1 a H22), con las decisiones H1, H2, H3 y H6 del usuario. Q8 cerrada por el usuario el

@@ -1,0 +1,85 @@
+/*
+ * Sellos (spec 017, M14; RF-2, RF-3, RF-16; plan 4.6), sobre el `Badge` de la librería
+ * (`mantineTheme.ts` le pone `tmu-stamp` y `tmu-stamp__label`; `Stamp.tsx` pone `data-variant` = pen | sealed |
+ * ok | warn, o ninguno para el neutro). Píldora, punto luminoso, mayúsculas monoespaciadas y la animación de
+ * «estampar» al aparecer (`tmu-stamp--pressing`; con movimiento reducido la apaga la regla global).
+ */
+.tmu-stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: auto;
+  height: auto;
+  padding: 0.24rem 0.65rem 0.24rem 0.55rem;
+  overflow: visible;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-pill);
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  font-weight: 500;
+  line-height: inherit;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--ink-2);
+  background: var(--surface-3);
+}
+
+/* La estructura interna de la librería no existe para la disposición. */
+.tmu-stamp__label {
+  display: contents;
+}
+
+.tmu-stamp::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 8px currentColor;
+  flex-shrink: 0;
+}
+
+.tmu-stamp svg {
+  display: none;
+}
+
+.tmu-stamp[data-variant='sealed'],
+.tmu-stamp[data-variant='pen'] {
+  color: var(--accent-text);
+  background: var(--volt-wash);
+  border-color: var(--volt-edge);
+}
+
+.tmu-stamp[data-variant='ok'] {
+  color: var(--ok);
+  background: var(--ok-wash);
+  border-color: var(--ok-edge);
+}
+
+.tmu-stamp[data-variant='warn'] {
+  color: var(--warn);
+  background: var(--warn-wash);
+  border-color: var(--warn-edge);
+}
+
+@keyframes tmu-press {
+  0% {
+    transform: scale(1.35);
+    opacity: 0;
+    filter: blur(4px);
+  }
+  60% {
+    transform: scale(0.96);
+    opacity: 1;
+    filter: blur(0);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.tmu-stamp--pressing {
+  animation: tmu-press 480ms var(--ease-out) both;
+}
