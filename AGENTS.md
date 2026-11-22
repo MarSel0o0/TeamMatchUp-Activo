@@ -17,7 +17,7 @@ flujo termina en una sesión agendada, no en una lista de perfiles. Detalle en
 2. `PRODUCT.md` — usuarios, propósito y principios de producto.
 3. `specs/NNN-nombre/{spec,plan,tasks}.md` — qué se construye, cómo y en qué orden.
 4. `MEMORY.md` — estado actual. Leerlo al empezar; actualizarlo al cerrar cada fase.
-5. `HITO2.md` — enunciado del hito vigente.
+5. Enunciado del hito vigente: `HITO2.md` no existe en el repositorio; el texto aportado por el usuario está en el apéndice A de `specs/016-estado-global/spec.md`.
 
 ## Stack y estructura
 
@@ -27,6 +27,7 @@ flujo termina en una sesión agendada, no en una lista de perfiles. Detalle en
   - `src/domain/` reglas puras: tipos, catálogo de juegos y escala de rango, bloques horarios, motor de coincidencias.
   - `src/services/` acceso a datos: `apiContract.ts` (contrato único), `ddragon.ts` (versión cacheada e íconos de Data Dragon de Riot), `http/` (`httpClient.ts` y `httpApi.ts` contra Express; `transport.ts` con plazo de 30 s, ampliable a 65 s en operaciones con Riot, y clasificación de errores; `csrfStorage.ts` con el comprobante `X-CSRF-Token`; `sessionEvents.ts` con el aviso de 401), `mock/` (backend simulado que responde como el servidor: `mockApi.ts`, `simulatedProvider.ts` y datos ficticios en `seed.ts`), `api.ts` (elige la implementación: servidor real por defecto, modo simulado solo con `VITE_USE_MOCK_API=true`). La sesión va en la cookie HttpOnly; la interfaz guarda solo el comprobante CSRF, nunca un JWT.
   - `src/features/` una carpeta por dominio funcional (`auth`, `profile`, `matches`, `sessions`, `steam`, `riot`).
+  - Estado global (spec 016, Zustand 5.0.16): dos almacenes. **Sesión iniciada**: `features/auth/createAuthStore.ts` (fábrica con dependencias inyectadas, probada) y `authStore.ts` (instancia real, devtools «TeamMatchUp · sesión iniciada»); `useAuth()` queda como fachada y `useSessionUserId` como selector; ya no existe `AuthProvider`. **Agenda** (solo estado de interfaz: filtro, sesión abierta, borrador, propuesta y visita; TanStack Query sigue siendo la caché del servidor): `features/sessions/createAgendaStore.ts` (fábrica, probada), `agendaStore.ts` (instancia real, devtools «TeamMatchUp · agenda») y `agendaResponses.ts`; reglas puras en `domain/agendaRules.ts`. `app/StoreBridge.tsx` conecta los almacenes con el router, el aviso de 401 y la caché. Las herramientas de depuración solo se activan en desarrollo.
   - `src/assets/leetify/` los dos logos oficiales «Data Provided by Leetify» (`leetify-badge-white.png` para el tema oscuro y `leetify-badge-black.png` para el claro), sin modificar. `LeetifyAttribution` (`src/shared/components/`) los pinta enlazados a leetify.com junto a «View on Leetify» (perfil del jugador) en todo rango que entrega Leetify (spec 015, RF-6).
   - `src/shared/` componentes, hooks y utilidades reutilizables.
   - `src/styles/` tokens de diseño (`tokens.css`) y estilos globales.
@@ -59,7 +60,7 @@ flujo termina en una sesión agendada, no en una lista de perfiles. Detalle en
   - Variables en `backend/.env` (no se sube); plantilla en `backend/.env.example`.
 ## Comandos
 
-- Frontend (`cd frontend`): `npm run dev | build | preview | typecheck | lint`. No tiene script de test. Por defecto habla con el servidor real (`VITE_API_URL=/api`, proxy de Vite a `VITE_PROXY_TARGET`, puerto de `backend/.env`); modo simulado: `VITE_USE_MOCK_API=true npm run dev` (en PowerShell: `$env:VITE_USE_MOCK_API="true"; npm run dev`). Cuenta demo del modo simulado: `demo@teammatchup.gg` / `demo1234`. Si `node_modules` no coincide con el lock, `npm ci`.
+- Frontend (`cd frontend`): `npm run dev | build | preview | typecheck | lint | test` (`npm test` corre Vitest, entorno node, sobre `src/**/*.test.ts`: reglas puras y fábricas de los almacenes; sin `.only`). Por defecto habla con el servidor real (`VITE_API_URL=/api`, proxy de Vite a `VITE_PROXY_TARGET`, puerto de `backend/.env`); modo simulado: `VITE_USE_MOCK_API=true npm run dev` (en PowerShell: `$env:VITE_USE_MOCK_API="true"; npm run dev`). Cuenta demo del modo simulado: `demo@teammatchup.gg` / `demo1234`. Si `node_modules` no coincide con el lock, `npm ci`.
 - Backend (`cd backend`): `npm run dev | test | typecheck | lint`. `npm test` fija `NODE_ENV=test`, corre en serie y necesita MongoDB y `backend/.env`.
 - Producción (`cd backend`, spec 010): `npm run build:ui` (compila la interfaz y la copia a `backend/dist`), `npm run build` (servidor en `backend/out`) y `npm start` (`node out/index.js`; con `NODE_ENV=production` sirve `backend/dist` y termina con código 1 si falta `dist/index.html`). Todas las colecciones llevan el prefijo `tmu_` (`src/models/collections.ts`). Despliegue en el servidor del curso: README raíz, «Despliegue».
 - Gestor: npm. Toda dependencia se instala con `--save-exact`.

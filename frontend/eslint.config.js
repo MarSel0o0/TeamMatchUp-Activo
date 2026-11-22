@@ -22,6 +22,12 @@ export default tseslint.config(
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
       '@typescript-eslint/consistent-type-imports': 'error',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      'no-restricted-properties': [
+        'error',
+        { object: 'describe', property: 'only', message: 'No dejes describe.only en el código.' },
+        { object: 'it', property: 'only', message: 'No dejes it.only en el código.' },
+        { object: 'test', property: 'only', message: 'No dejes test.only en el código.' },
+      ],
     },
   },
 );

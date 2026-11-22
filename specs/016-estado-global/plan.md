@@ -1,5 +1,5 @@
 # Plan 016 — Estado global de la sesión iniciada y de la agenda
-Estado: aprobado (2026-11-21, usuario). Preguntas P1 a P3 decididas por el usuario el 2026-11-21
+Estado: aprobado (2026-11-21, usuario); implementado y validado (2026-11-22; validado por el `reviewer` RF por RF; APROBADO; 105 pruebas en verde; declarados por el usuario: RF-21, RF-22, RNF-6 con la extensión real y T4, T6 y T7; T8, T9 y T9b, recorridos automatizados que el `reviewer` no reprodujo, ver `validation.md`). Preguntas P1 a P3 decididas por el usuario el 2026-11-21
 (§12).
 
 Spec: `specs/016-estado-global/spec.md` (aprobada el 2026-11-21, con D1 a D10, C1, C2, Q1, Q2, I-1,
@@ -201,7 +201,7 @@ interface AuthDeps {
   announce(kind: 'login' | 'logout'): void;
   startWatching(onChange: () => void): () => void;
   onUnauthorized(handler: (epoch: number) => void): () => void;
-  flushSync(update: () => void): void;
+  flushSync(update: () => void): void;                // D-A2 (limpiezas) y RF-3 (`enter`, D-016-1)
   resetAgenda(): void;                                // RF-16
 }
 ```
@@ -243,7 +243,9 @@ retry():  set(checking); check()
 
 enter(user, to):                                      // RF-3, en un solo paso
   deps.queryCache.clear(); deps.resetAgenda()         // RF-16 al entrar un usuario
-  set(authenticated(user)); deps.announce('login'); router.navigate(to, { replace: true })
+  deps.flushSync(() => {                              // una sola llamada (D-016-1), en este orden
+    set(authenticated(user)); deps.announce('login'); router.navigate(to, { replace: true })
+  })
 login(c, to):   user = await deps.api.login(c); enter(user, to)
 register(p):    await deps.api.register(p)            // su error llega al formulario
                 try user = await deps.api.login(p) catch: router.navigate(login, { replace, state: { email, notice: 'registered' } }); return
@@ -262,9 +264,21 @@ onOtherTab():                                         // RF-7
   clearClientSession({ deleteCsrf: false })
   if signedIn && isProtectedPath(path): router.navigate(login, { replace, state: { from: path, notice: 'otherTab' } })
 ```
-- **Sin vista intermedia (RF-3)**: `set` del almacén y `navigate` ocurren en la misma tarea; React 18
-  agrupa la actualización de `useSyncExternalStore` (carril síncrono, vaciado en una microtarea) con
-  la del router, igual que hoy agrupa `setSession` y `navigate`.
+- **Sin vista intermedia (RF-3)**: `enter` envuelve poner al usuario, `announce('login')` y
+  `router.navigate` en **una sola** llamada a `deps.flushSync`, en ese orden, para que el cambio del
+  almacén y la navegación se pinten juntos. El vaciado de la memoria y `resetAgenda` van antes, fuera
+  del `flushSync`. Afecta a `login` y a `register` (entran por `enter`). Motivo: la actualización de
+  `useSyncExternalStore` (Zustand) se pinta en el carril síncrono y la del router (`BrowserRouter`,
+  `setState` normal) llega después, así que React **no** las agrupa; sin `flushSync`, entre las dos
+  `PublicOnlyRoute` ve «autenticado» con la ruta aún en `/login`, pinta `<Navigate to="/inicio"
+  replace>` y pisa el destino de origen. Con `AuthProvider`, `setSession` y `navigate` eran `setState`
+  del mismo carril y sí se agrupaban.
+  - **Corrección posterior (2026-11-22, D-016-1):** el texto original suponía que React agrupaba ambas
+    actualizaciones; en T8 se comprobó que no (el login con ruta de origen acababa siempre en
+    `/inicio`; ver `validation.md`, «T8» y «Corrección de D-016-1»). Por decisión del usuario
+    (opción (a), «opción a») se corrige en `enter` con `flushSync`; la opción (b), que
+    `PublicOnlyRoute` respete `location.state.from`, queda descartada. Sin cambios en requisitos, RF
+    ni en las decisiones P1 a P3.
 - **D-A2 (RF-6)**: el `flushSync` inyectado fuerza a React a pintar «sin usuario» antes de vaciar la
   memoria; así ninguna consulta montada se relanza. En las pruebas, `flushSync` es `(fn) => fn()`
   que además anota su llamada, y la prueba comprueba que, cuando la memoria se vacía, el estado ya
@@ -442,6 +456,14 @@ visible   = retained && (sessionsQuery.isPending || sessionsQuery.isPlaceholderD
 ```
 Sin sesión por confirmar, la semana se comporta exactamente como hoy.
 
+> Nota (T9b, 2026-11-22; D-016-3, decisión del usuario «opción 1»): en `retained` y en el indicador
+> «Actualizando», `sessionsQuery.isFetching` pasa a `sessionsQuery.fetchStatus !== 'idle'`, para que
+> la pausa de TanStack con «Sin conexión» ya activado (`networkMode: 'online'`, sin cambiarlo) cuente
+> como reintento en curso. El resto de §5.3 no cambia. D-016-2: R4 se resuelve cerrando el borrador
+> al terminar la animación de salida. La pregunta Q1 de T9b se resolvió con (ii): copia local del
+> borrador en la vista (`SchedulePage`, con `useIsPresent` de `motion/react`) mientras dura la
+> salida; el almacén sigue poniendo `draft = null` al salir (RF-30) y no cambia.
+
 ### 5.4 Semana y panel
 ```
 semana:  listError ? <Failure error=listError onRetry=refetch />
@@ -483,8 +505,11 @@ borrador: draft ? <SessionDraftSlip draft=draft onClose=closeDraft … /> : null
 - **DT-3. `useAuth()` se mantiene como fachada** sobre el almacén (`useShallow`). Los consumidores no
   cambian: menos riesgo de regresión (RNF-2). Descartada: reescribir cada consumidor con selectores
   (más archivos tocados sin beneficio visible).
-- **DT-4. `flushSync` inyectado** para D-A2. Descartada: confiar en que Zustand pinte en el acto
-  (React agrupa la actualización y el vaciado de la memoria llegaría antes: vuelve D-A2).
+- **DT-4. `flushSync` inyectado** para D-A2 y, desde la corrección de D-016-1 (2026-11-22), también
+  para que `enter` aplique juntos el cambio del almacén y la navegación (§3). Descartada: confiar en
+  que Zustand pinte en el acto (React agrupa la actualización y el vaciado de la memoria llegaría
+  antes: vuelve D-A2). Para D-016-1 se descartó además que `PublicOnlyRoute` respete
+  `location.state.from` (opción (b)).
 - **DT-5. Consulta de sesión fuera de TanStack Query**, como hoy (sin reintentos ni caché).
 - **DT-6. Salir y volver se detectan por la ruta en `StoreBridge`**, no por el montaje de
   `SchedulePage`. Descartada: limpieza del efecto de la página (con `StrictMode` el desmontaje
@@ -574,8 +599,9 @@ borrador: draft ? <SessionDraftSlip draft=draft onClose=closeDraft … /> : null
 - **`createAuthStore.test.ts`** (T3). Los puntos de RNF-5 para RF-2 a RF-8: `checking` →
   `authenticated`/`anonymous`/`error`; respuesta de un intento viejo sin efecto (dos `start()` con la
   limpieza del primero, y `retry()` con la primera respuesta llegando tarde); consulta cancelada por
-  una limpieza (`isSessionCleared`) que se repite; login: `clear` → `resetAgenda` → usuario →
-  `announce('login')` → una sola `navigate(to, { replace: true })`, a la ruta de origen o a Inicio;
+  una limpieza (`isSessionCleared`) que se repite; login: `clear` → `resetAgenda` → `flushSync` que
+  contiene, en ese orden, usuario → `announce('login')` → una sola `navigate(to, { replace: true })`,
+  a la ruta de origen o a Inicio (igual en el registro; una sola llamada a `flushSync`, D-016-1);
   registro con login fallido → login con `{ email, notice: 'registered' }`; logout con `api.logout`
   rechazado: limpia igual, `clearCsrfIfOwn` antes de `announce('logout')`, `navigate(login,
   replace)`; 401: dos avisos con la misma época → un solo `navigate` y un solo aviso; época vieja →

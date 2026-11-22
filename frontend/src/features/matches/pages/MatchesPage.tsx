@@ -6,6 +6,7 @@ import { ROUTES } from '@/app/routes';
 import type { Proposal } from '@/domain/proposal';
 import type { GameId, MatchFilters, Origin } from '@/domain/types';
 import { useAccounts, useAvailability } from '@/features/profile/hooks';
+import { agendaStore } from '@/features/sessions/agendaStore';
 import { ApiError } from '@/services/api';
 import { GameTabs } from '@/shared/components/GameTabs';
 import { Icon } from '@/shared/components/Icon';
@@ -80,7 +81,9 @@ export default function MatchesPage() {
   const proposeSession = (proposal: Proposal) => {
     if (proposing.current) return;
     proposing.current = true;
-    navigate(ROUTES.schedule, { state: { proposal } });
+    const { gameId, day, startHour, durationHours, title } = proposal;
+    agendaStore.getState().propose({ gameId, day, startHour, durationHours, title });
+    navigate(ROUTES.schedule);
   };
 
   if (accountsQuery.isPending) {

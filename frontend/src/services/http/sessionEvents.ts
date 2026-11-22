@@ -1,7 +1,7 @@
 /**
  * Bus mínimo, sin React, para avisar de un 401 en una operación protegida (RF-7).
  * Lo emite el transporte con la época de la sesión del cliente en que salió la
- * petición; lo atiende `AuthProvider`, que ignora las épocas viejas.
+ * petición; lo atiende el almacén de la sesión, que ignora las épocas viejas.
  */
 export type UnauthorizedHandler = (epoch: number) => void;
 

@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/app/routes';
 import { GAMES } from '@/domain/games';
+import { agendaStore } from '@/features/sessions/agendaStore';
 import type { ProposeState } from '@/domain/playerSheet';
 import {
   linkAccountToProposeText,
@@ -58,7 +59,9 @@ export function ProposeSessionAction({ state }: { state: ProposeState }) {
           onClick={() => {
             if (proposing.current) return;
             proposing.current = true;
-            navigate(ROUTES.schedule, { state: { proposal } });
+            const { gameId, day, startHour, durationHours, title } = proposal;
+            agendaStore.getState().propose({ gameId, day, startHour, durationHours, title });
+            navigate(ROUTES.schedule);
           }}
         >
           {PROPOSE_SESSION_LABEL}

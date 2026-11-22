@@ -4,12 +4,15 @@ import { keepPreviousForUser, queryKeys } from '@/app/providers/queryKeys';
 import { api, type CreateSessionPayload, type SessionEditPayload } from '@/services/api';
 import { useSessionUserId } from '@/features/auth/useSessionUserId';
 import type { GameId, PlaySession } from '@/domain/types';
+import { agendaStore } from './agendaStore';
 import { applySessionToAgenda, markAgendaStale, removeSessionFromAgenda } from './agendaCache';
 
 export function useSessions(gameId: GameId | 'all') {
   const userId = useSessionUserId();
   return useQuery({
     queryKey: queryKeys.sessions(userId, gameId),
+    // No leer la señal de cancelación aquí (spec 016, R9): al salir de la agenda la petición en
+    // curso debe seguir y su respuesta quedar en la memoria; añadir `signal` la cancelaría.
     queryFn: () => api.sessions.list(gameId),
     enabled: userId !== null,
     placeholderData: keepPreviousForUser(userId),
@@ -68,8 +71,13 @@ function useSessionMutation<TVariables, TData>(
 
 export function useCreateSession() {
   return useSessionMutation(
-    (payload: CreateSessionPayload) => api.sessions.create(payload),
-    (queryClient, userId) => markAgendaStale(queryClient, userId),
+    (variables: { payload: CreateSessionPayload; agendaVisit: number | null }) =>
+      api.sessions.create(variables.payload),
+    (queryClient, userId, created, variables) => {
+      // Primero el hecho de la creación y después la lectura nueva (spec 016, RF-24, DT-9).
+      agendaStore.getState().creationConfirmed(created.id, variables.agendaVisit);
+      markAgendaStale(queryClient, userId);
+    },
   );
 }
 

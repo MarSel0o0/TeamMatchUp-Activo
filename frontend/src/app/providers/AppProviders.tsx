@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
-import { AuthProvider } from '@/features/auth/AuthProvider';
+import { StoreBridge } from '../StoreBridge';
 import { queryClient } from './queryClient';
 import { ThemeProvider } from './ThemeProvider';
 
@@ -11,7 +11,8 @@ export function AppProviders({ children }: { children: ReactNode }) {
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
-          <AuthProvider>{children}</AuthProvider>
+          <StoreBridge />
+          {children}
         </BrowserRouter>
       </QueryClientProvider>
     </ThemeProvider>

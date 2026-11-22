@@ -75,6 +75,8 @@ interface FailureProps {
   headingRef?: Ref<HTMLHeadingElement>;
   /** «Reintentar» con una lectura en curso: se ve bloqueado (`aria-disabled`) y no hace nada. */
   retryBusy?: boolean;
+  /** Nombre accesible del botón cuando debe distinguirse de otro «Reintentar»; el texto visible no cambia. */
+  retryLabel?: string;
 }
 
 export function Failure({
@@ -85,6 +87,7 @@ export function Failure({
   role,
   headingRef,
   retryBusy = false,
+  retryLabel,
 }: FailureProps) {
   const message = error instanceof Error ? error.message : 'Ocurrió un error inesperado.';
   const retryRef = useRef<HTMLButtonElement>(null);
@@ -117,6 +120,7 @@ export function Failure({
           className="btn btn--sm"
           onClick={retryBusy ? undefined : onRetry}
           aria-disabled={retryBusy ? true : undefined}
+          aria-label={retryLabel}
         >
           {retryBusy ? <span className="btn__spin" /> : <Icon as={RotateCw} size={13} />}
           Reintentar

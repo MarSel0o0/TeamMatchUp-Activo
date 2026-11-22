@@ -4,9 +4,11 @@ Registro dinámico. Se actualiza al cerrar cada fase SDD.
 
 ## Última actualización
 
-2026-11-21 (sesiones del 2026-11-20 y 2026-11-21: encargo del último hito analizado; constitución
-enmendada (Vitest y Playwright); specs 016, 017 y 018 aprobadas, con plan y tareas de la 016
-aprobados; nada implementado aún de ellas; ver «Próximo paso»)
+2026-11-22 (spec 016 implementada y validada por el `reviewer`, APROBADO; 017 y 018
+aprobadas, sin plan ni tareas; ver «Próximo paso»)
+
+Anterior: 2026-11-21 (encargo del último hito analizado; constitución enmendada con Vitest y
+Playwright; specs 016, 017 y 018 aprobadas).
 
 Anterior: 2026-11-20 (sesión nocturna: 010 recuperada y validada, prefijo `tmu_`, README de
 despliegue; 013 validada en navegador; 007, 008 y 009 validadas por el `reviewer`).
@@ -28,8 +30,8 @@ despliegue; 013 validada en navegador; 007, 008 y 009 validadas por el `reviewer
   fallar al romper a propósito lo que comprueba).
 - **010:** código hecho (`uiDir`, `build`, `build:ui`, `start`; T1–T8 y T10). Falta **T9: despliegue
   real, lo hace el usuario** (avisos en «Deuda conocida»).
-- **016 Estado global (Zustand):** spec APROBADA (2026-11-21) con el cambio CR-1; `plan.md` y
-  `tasks.md` APROBADOS (2026-11-21), T1–T10, ninguna hecha. Detalle en su fila de la tabla.
+- **016 Estado global (Zustand):** IMPLEMENTADA Y VALIDADA (2026-11-22), T1–T10 hechas (más T9b); `reviewer`
+  APROBADO RF por RF (105 pruebas). Detalle en su fila de la tabla y en `specs/016-estado-global/validation.md`.
 - **017 Librería de estilos (Mantine):** spec APROBADA (2026-11-21); plan y tareas pendientes.
 - **018 E2E con Playwright:** spec APROBADA (2026-11-21); plan y tareas pendientes.
 
@@ -127,8 +129,16 @@ commiteadas) → 006 (cambio de requisitos y T1–T10), todo hecho y validado �
   paridad comprobada en T27). Modo simulado: `mockApi.ts` responde como el servidor, con
   `simulatedProvider.ts` (mismo algoritmo que `backend/src/domain/rankSimulator.ts`) y datos ficticios en
   `seed.ts` (16 jugadores, 25 cuentas, base `tmu.mock-db.v4` desde la spec 012, cuenta `demo@teammatchup.gg`).
-  Sin runner de pruebas (RNF-3): lo probado vive en `specs/007-integrar-frontend/validation.md`
-  y `validation/{baseline,after}/`.
+  Lo probado de la 007 vive en `specs/007-integrar-frontend/validation.md` y `validation/{baseline,after}/`.
+  **Desde la spec 016 (2026-11-22):** estado global con Zustand 5.0.16 (exacta) en dos almacenes:
+  sesión iniciada (`features/auth/createAuthStore.ts` + `authStore.ts`; `useAuth()` es fachada;
+  `AuthProvider` y `AuthContext` ya no existen) y agenda (`features/sessions/createAgendaStore.ts`
+  + `agendaStore.ts` + `agendaResponses.ts`, con las reglas de `domain/agendaRules.ts`);
+  `app/StoreBridge.tsx` los conecta con el router, el aviso de 401 y la caché de TanStack Query;
+  devtools solo en desarrollo. Vitest 3.2.4 (exacta, entorno node; `npm test`, 105 pruebas; no hay
+  `jsdom`: las páginas no se prueban en Node). `SchedulePage` usa una copia local del borrador con
+  `useIsPresent` durante la animación de salida (D-016-2) y `fetchStatus !== 'idle'` para el error
+  retenido (D-016-3). D-016-1: `enter` va dentro de `flushSync`.
 - Backend (`backend/`): servidor base de la spec 001. Express 5.1.0 + Mongoose 8.24.5 +
   dotenv 17.2.3, TypeScript ejecutado directo con Node ≥ 22.18, ESM.
   - Configuración validada al arrancar (`src/utils/config.ts`): `NODE_ENV` obligatoria y
@@ -253,7 +263,7 @@ commiteadas) → 006 (cambio de requisitos y T1–T10), todo hecho y validado �
 | `013-vinculacion-steam` | Implementada; validada en el navegador con un Steam falso (`reviewer` APROBADO, 2026-11-20, tras corregir el desborde del perfil a 375 px en `5fb89c7`). RF-7 corregido en `c7afc2f` y `91511b1`. T9 y T10 cerradas; T11 abierta hasta el recorrido con Steam real (usuario) | Verificar CS2 con el inicio de sesión de Steam; perfil y horas reales; rango CS2 sigue simulado. Depende de la 012. Clarificación del 2026-11-18: 29 hallazgos resueltos como D3–D12 y RF-18 a RF-26. Bloqueante resuelto con D3: la vuelta de Steam llega a una página de la app, que completa la verificación con la sesión y el comprobante anti-CSRF del usuario (la cookie `SameSite=Strict` no viaja en la navegación desde Steam); sin cambiar la spec 002. Absorbe los tres pendientes de la validación de la 012: aviso global solo en modo simulado (RF-24), texto de «Resincronizar» (RF-25) y bloque de perfil visible con «Datos de Steam» (RF-15). Sin clave de Steam no se ofrece verificar (D4, revoca el RNF-2 anterior). Sin dependencias nuevas (RNF-5). Los ajustes a las specs 002, 007 y 012 quedan en su sección «Impacto», sin editar esos archivos. **Plan redactado el 2026-11-18** (`plan.md`, borrador pendiente de aprobación): OpenID 2.0 de Steam con intento en MongoDB (TTL, hash del token, uno por usuario), `POST /api/steam/{start,complete}` y `GET /api/steam`, página de vuelta fuera de las rutas protegidas (RF-7), `STEAM_API_KEY` y `PUBLIC_URL` opcionales, `syncCooldown(null)` para RF-12; 11 tareas previstas. Observaciones O-1 a O-4 por confirmar (región de la cuenta nueva, texto «sin perfil», texto del rechazo de RF-3, 11 tareas). Plan aprobado el 2026-11-18 (O-1 a O-4 con los valores por defecto). **Tareas aprobadas el 2026-11-18** (`tasks.md`, T1 a T11). **T1 hecha** (`Config.steam`, `STEAM_API_KEY` y `PUBLIC_URL` opcionales y comentadas en `.env.example`; sin commitear). Salvedad: `tests/controllers/ui.test.ts` (spec 010) falla porque `uiDir` no está en `app.ts` de esta rama. **T2 hecha** (dominio puro: `steamAttempt`, `steamOpenId`, `steamProfile`, `steamRules` y `syncCooldown(null)`; 71 pruebas nuevas, sin commitear). **T1 a T7 hechas; backend de la 013 cerrado** (`/api/steam` con `GET /`, `POST /start` y `POST /complete`; cliente de Steam con `fetch` inyectable; `AppOptions.steamIntegration`; espera sin perfil; suite 2592/2600, los 8 fallos son de `ui.test.ts` de la spec 010; sin commitear). Detalle T3: modelo `SteamAttempt` con índice único por usuario y TTL, servicio `steamAttempts`, `SteamAttempt.init()` en `prepareDatabase` y C5 en la cascada; 28 pruebas nuevas, sin commitear). **T8 hecha.** T9 a T11 con el código y la documentación hechos (página de vuelta, botón, bloque de datos de Steam, aviso global solo en modo simulado; `typecheck`, `lint` y `build` del frontend sin errores) pero **sin verificar en un navegador ni con la cuenta real de Steam**: casillas abiertas, pendientes en `specs/013-vinculacion-steam/validation.md`. Siguiente: recorridos manuales del equipo (necesitan `STEAM_API_KEY` y `PUBLIC_URL`) y cerrar T9 a T11. |
 | `014-verificacion-riot` | Implementada y validada (2026-11-19): `reviewer` APROBADO tras 1 vuelta de corrección (aviso de RF-7/RF-27 en `/perfil`, corregido en `RiotVerifyPage.tsx`); recorrido real con cuenta de LoL OK (pasos 0–9 de `validation.md` §3) | Verificar LoL con ícono de inicio (0–28, distinto del actual, 10 min, máx. 10 confirmaciones); rango Solo/Dúo, partidas y perfil reales. Development key aceptada por el equipo pese a los términos de Riot. Depende de la 012. Spec aprobada el 2026-11-18 (D1–D104); plan y tareas (T1–T12) aprobados el 2026-11-19. **T1–T8 (backend) y T9–T12 (frontend, docs y cierre) hechas** (sin commitear): 82 archivos de prueba del backend en verde sin red ni clave real (0 fallos; 217/217 nuevos de Riot + 249/249 modificados/clave; ~2,786 pruebas; salvedades preexistentes/entorno: `ui.test.ts` de la 010 y `process.test.ts` bajo Node `v22.14.0`), `tsc --noEmit` (`src/`) y `lint` del backend en verde, y `typecheck`, `lint` y `build` del frontend en verde; auditoría estática limpia (sin dependencias nuevas, sin fugas de clave, sin `.only`/`any`). `README.md`, `AGENTS.md`, `PRODUCT.md` y `specs/014-verificacion-riot/validation.md` actualizados. `spec.md` en «implementada (2026-11-19)» con todas las casillas marcadas; suite del backend 2963/2971 (solo los 8 de `ui.test.ts`). Opcionales en «Deuda conocida — spec 014». |
 | `015-rango-premier` | Spec aprobada (2026-11-18); revisión tras la clarificación aprobada por el usuario (2026-11-19). Plan aprobado (2026-11-19). Tareas T1–T10 aprobadas (2026-11-19); cambio de requisitos D26–D30 y T11–T16 aprobadas (2026-11-19); T1–T16 hechas (2026-11-19, sin commitear): backend con la suite completa en verde salvo los 8 fallos conocidos de `ui.test.ts`; frontend con typecheck, lint y build en verde; T16 documentos, `leetify.rest` y comprobación (ver «Spec 015 (implementación T11–T16)»). Términos de Leetify leídos: la pauta de métricas no se cumplía; cambio D31–D32 (sin escala ni distancia con rangos de Leetify; RF-5 y RF-12 modificados, RF-25 nuevo), plan §13 y T17–T20 aprobados y hechos (2026-11-19, solo frontend). Validación del `reviewer` con navegador: CAMBIOS NECESARIOS (etiqueta del anillo de afinidad); cambio D33–D34 (RF-26, logo a 24 px), T21–T22 hechos y **validación APROBADA** (2026-11-19). **Implementada (2026-11-19).** **Pendiente (pospuesto por el usuario):** los dos recorridos manuales con cuentas reales; ver «Próximo paso» y `specs/015-rango-premier/validation.md` §2.2. | Rango Premier real de CS2 verificadas desde la API pública de Leetify. RF-1 a RF-26, RNF-1 a RNF-8. Clarificación: 31 hallazgos resueltos como D6–D25 (más D1–D5 de la entrevista); sin dudas abiertas. Claves: principio 5 de la constitución ampliado (terceros nombrados por una spec, atribuidos a quien entrega; aplicado en docs/constitution.md); tener rango = rating entero 1–99999 (0/vacío/sin perfil = «sin rango Premier», excepción a RF-21 de la 012); respuesta inválida o rechazo = fallo; «rango no disponible» = bloque de origen Leetify vacío; fuera de coincidencias sin rango (mensaje en Coincidencias CS2); resync: Steam primero, Leetify solo si Steam responde, máx. 16 s, 200 con indicador si Leetify falla (excepción a RF-19 de la 012), espera corre; concurrentes: solo una, la otra 429; historial: punto por cada cambio de rating; migración al arrancar: verificadas con rango simulado → «rango no disponible»; aviso junto a «Verificar con Steam»; «Datos de Leetify» enlaza al perfil en Leetify; clave opcional. Las excepciones a otras specs son RF propios (no se editan las otras specs). Depende de la 013. |
-| `016-estado-global` | Spec APROBADA (2026-11-21) con CR-1 (origen 017 Q8). `plan.md` y `tasks.md` APROBADOS (2026-11-21): T1–T10, sin empezar. T9 la hace el usuario (recorrido de la agenda con red lenta y devtools) | Dos almacenes Zustand: **sesión iniciada** (reemplaza `AuthProvider`; `useAuth()` queda como fachada) y **agenda** (solo estado de interfaz; TanStack Query sigue como caché del servidor). Vitest con entorno node; devtools solo en desarrollo. Decisiones: D1 la agenda conserva filtro y sesión abierta al volver (sustituye 009 R7); D2 «Proponer» por el almacén; D3 Vitest; D4 devtools solo en desarrollo; D5 al aplicar una propuesta el filtro pasa a «Todos los juegos»; D6 la sesión creada queda abierta; D7/D10 sesión «por confirmar»: decide la primera respuesta correcta del servidor; I-1 fallos de red o de plazo = error; I-2 «lista que se ve» = datos en memoria; Q1 no se cambia el montaje del router; CR-1 nunca dos ventanas: la propuesta espera a que se cierre la abierta («esperar y reabrir»). Plan: P1 retener el error durante «Reintentar»; P2 campo `visit` en el almacén; P3 corregir en T10 la referencia de `AGENTS.md` a `HITO2.md`. Versiones propuestas `zustand@5.0.16` y `vitest@3.2.4` (Vitest 4 no admite Vite 5): T1 las comprueba con `npm view` antes de instalar. Comportamiento de RF-27 comprobado en TanStack Query 5.102.8 (riesgo R5 del plan). |
+| `016-estado-global` | **Implementada y validada (2026-11-22; `reviewer` APROBADO RF por RF, 105 pruebas; RF-21, RF-22, RNF-6, T4, T6 y T7 declarados por el usuario; T8, T9 y T9b automatizados, no reproducidos por el reviewer)**. Spec APROBADA (2026-11-21) con CR-1 (origen 017 Q8); `plan.md` y `tasks.md` aprobados. T1–T10 y T9b hechas, 105 pruebas en verde, typecheck, lint y build en verde, backend intacto. Defectos del recorrido D-016-1 (login con ruta de origen), D-016-2 (formulario al salir) y D-016-3 (error retenido con «Sin conexión») corregidos y cerrados; O-016-1 (solape de ~500 ms entre las dos ventanas) aceptada por el usuario. RF-21, RF-22 y RNF-6 con la extensión real en Firefox: declarado por el usuario (2026-11-22). `graphify update .` no se pudo correr (no instalado) | Dos almacenes Zustand: **sesión iniciada** (reemplaza `AuthProvider`; `useAuth()` queda como fachada) y **agenda** (solo estado de interfaz; TanStack Query sigue como caché del servidor). Vitest con entorno node; devtools solo en desarrollo. Decisiones: D1 la agenda conserva filtro y sesión abierta al volver (sustituye 009 R7); D2 «Proponer» por el almacén; D3 Vitest; D4 devtools solo en desarrollo; D5 al aplicar una propuesta el filtro pasa a «Todos los juegos»; D6 la sesión creada queda abierta; D7/D10 sesión «por confirmar»: decide la primera respuesta correcta del servidor; I-1 fallos de red o de plazo = error; I-2 «lista que se ve» = datos en memoria; Q1 no se cambia el montaje del router; CR-1 nunca dos ventanas: la propuesta espera a que se cierre la abierta («esperar y reabrir»). Plan: P1 retener el error durante «Reintentar»; P2 campo `visit` en el almacén; P3 corregir en T10 la referencia de `AGENTS.md` a `HITO2.md`. Versiones propuestas `zustand@5.0.16` y `vitest@3.2.4` (Vitest 4 no admite Vite 5): T1 las comprueba con `npm view` antes de instalar. Comportamiento de RF-27 comprobado en TanStack Query 5.102.8 (riesgo R5 del plan). |
 | `017-libreria-de-estilos` | Spec APROBADA (2026-11-21); plan y tareas pendientes. Se implementa después de la 016 | Mantine **8.3.x** (la 9.x exige React 19) + `@mantine/hooks` explícito. Componentes base con tema desde los tokens; mismo aspecto (caja dibujada ±2 px). Decisiones: Q1 «Anotar una sesión» como modal estándar con foco dentro (sustituye 009 R10); Q2 «Solo cuentas verificadas» como interruptor; Q3 pestañas con el patrón de la ficha en las tres vistas; Q4 desvincular cuenta en ventana de Mantine (no la recomendada); Q5/Q7 un único tono de foco ≥ 3:1 en el tema claro en toda la página; Q6 Vitest solo para reglas puras; H1 colores sueltos → tokens nuevos con los mismos valores; H2 campos con borde y halo reforzados; H3 el panel de pestañas es parada de Tab; H6 `DemoTag`/`OriginTag` se quedan; Q8 nunca dos ventanas (CR-1 de la 016). Propuestas P1–P11 aceptadas. Su línea base visual se toma con la 016 ya implementada. |
 | `018-pruebas-e2e` | Spec APROBADA (2026-11-21); plan y tareas pendientes. Se implementa después de la 016 y la 017 | `e2etests/` independiente; build de producción en un solo puerto (modo producción, secreto generado por ejecución); solo Chromium; backend real con base E2E propia (nombre con «e2e», ubicación local); datos por la API pública y login siempre por el formulario (U8); cada escenario borra su usuario por la API (fallo de limpieza = escenario fallido con aviso claro, U6); en serie; 7 escenarios: E1–E4 (login, acceso protegido, F5, Atrás) y C1–C3 (crear, editar y cancelar una sesión de juego con F5, Atrás y Adelante); sesión testigo como ancla; ESLint + typescript-eslint + tipos; README propio enlazado desde el raíz. Riesgo U7: se supone que Chromium acepta la cookie `Secure` sobre `http://127.0.0.1`; lo comprueba la primera tarea del plan y, si falla, se para y se vuelve a la spec. Limitación conocida Q8: no protege la build de un servidor de producción levantado a mano desde el mismo checkout. |
 
@@ -267,16 +277,13 @@ commiteadas) → 006 (cambio de requisitos y T1–T10), todo hecho y validado �
     - Recorridos con Steam real (013 T11) y con Steam y Leetify reales (015,
       `validation.md` §2.2), pospuestos.
     - NVDA (008 y 009, necesita Windows); que un compañero siga el README de despliegue.
-    - T9 de la 016 (cuando se llegue).
   - **Riesgos:**
     - 018 U7: si Chromium no acepta la cookie `Secure` sobre `http://127.0.0.1`, la 018 vuelve a la
       spec (lo comprueba su primera tarea).
-    - 016 T1: si `zustand@5.0.16` o `vitest@3.2.4` no existen o no resuelven con Vite 5.4.21, T1
-      se detiene y se pregunta al usuario (R1 del plan).
     - 016 R5: el plan depende de detalles internos de TanStack Query 5.102.8 (`manual`,
       `placeholderData`, orden de avisos), pero `package.json` dice `^5.62.7` (el lock fija
       5.102.8). Un `npm install` que suba la versión puede romperlo sin que lo detecten las pruebas
-      del almacén; solo los recorridos de T9.
+      del almacén; solo los recorridos de T9 (repetirlos si se sube la versión).
   - **Ramas:** `origin/deploy` tiene otra implementación de la 010 (`frontendDir`); lo útil ya se
     trajo. No fusionarla.
   - **Menores anotados (2026-11-20):** SteamID64 partido en la ficha a 375 px; pestaña elegida
@@ -378,8 +385,6 @@ commiteadas) → 006 (cambio de requisitos y T1–T10), todo hecho y validado �
     pruebas automáticas).
 - Resuelto en la 007 (RF-2): la interfaz ya no guarda el JWT (solo la cookie HttpOnly y el
   comprobante `tmu.csrf`).
-- El frontend no tiene runner de test todavía: lo instala la T1 de la 016 (Vitest; la
-  constitución enmendada el 2026-11-21 ya lo prevé). Quitar esta línea en la T10 de la 016.
 - `frontend/src/domain` importa sin extensión `.ts`, así que no se puede ejecutar directo
   con `node --test`.
 - Mejoras menores detectadas por reviewer en la spec 001 (opcionales, requieren cambio de spec):
@@ -745,18 +750,13 @@ commiteadas) → 006 (cambio de requisitos y T1–T10), todo hecho y validado �
 
 ## Próximo paso
 
-Actualizado el 2026-11-21, para el compañero que continúa. Flujo: skill `sdd` con los agentes
+Actualizado el 2026-11-22, para el compañero que continúa. Flujo: skill `sdd` con los agentes
 `planner` (spec, plan, tareas), `implementer` (una tarea) y `reviewer` (validación). **Ninguna
 fase se salta la aprobación explícita del usuario.** Rama `feature/vinculacion-steam-riot`.
 
-1. **Implementar la 016** (`specs/016-estado-global/tasks.md`) tarea por tarea con `implementer`:
-   una llamada por tarea, T1…T10 en orden (`/sdd-implement 016-estado-global Tn`). T1 primero
-   comprueba las versiones con `npm view` y se detiene si alguna no existe. Tras cada tarea,
-   comprobar en `frontend/` que `npm test`, `npm run typecheck`, `npm run lint` y `npm run build`
-   quedan en verde (y `git status --short backend/` vacío). **T9 la hace una persona** (recorrido
-   de la agenda con red lenta y devtools). Después, validación RF por RF con `reviewer`
-   (`/sdd-validate 016-estado-global`) y correcciones (máx. 2 vueltas).
-2. **Luego la 017:** `planner` redacta `plan.md` y `tasks.md` (`/sdd-plan`, `/sdd-tasks`) →
+1. **016 validada (2026-11-22, `reviewer` APROBADO).** Nada pendiente de validación. Correr `graphify update .` donde
+   `graphify` esté instalado (no lo estaba al cerrar T10).
+2. **Siguiente: la 017 (librería de estilos):** `planner` redacta `plan.md` y `tasks.md` (`/sdd-plan`, `/sdd-tasks`) →
    aprobación del usuario → implementación tarea por tarea → validación con `reviewer`. Su línea
    base visual se toma con la 016 ya hecha.
 3. **Luego la 018:** igual que la 017. Su primera tarea comprueba la cookie `Secure` sobre

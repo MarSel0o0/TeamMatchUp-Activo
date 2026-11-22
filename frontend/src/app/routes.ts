@@ -69,6 +69,15 @@ export function isProtectedPath(pathname: string): boolean {
   );
 }
 
+/**
+ * `true` solo para la agenda (`/agenda`, con o sin barra final). El detalle `/agenda/:id` es
+ * «salir de la agenda» (spec 016, RF-15, RF-30, Definiciones).
+ */
+export function isSchedulePath(pathname: string): boolean {
+  const normalized = pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname;
+  return normalized === ROUTES.schedule;
+}
+
 /** Índice del expediente: las secciones de la navegación principal. */
 export const NAV_ITEMS: { to: RoutePath; label: string; folio: string; icon: LucideIcon }[] = [
   { to: ROUTES.profile, label: 'Mi ficha', folio: '01', icon: FileUser },

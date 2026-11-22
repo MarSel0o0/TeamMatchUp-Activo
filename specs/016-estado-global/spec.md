@@ -1,5 +1,5 @@
 # Spec 016 — Estado global de la sesión iniciada y de la agenda
-Estado: aprobada (2026-11-21, usuario); plan.md y tasks.md aprobados (2026-11-21, usuario); implementación pendiente.
+Estado: implementada y validada (2026-11-22); validada por el `reviewer` RF por RF (T1–T10); APROBADO; 105 pruebas en verde, typecheck, lint y build sin errores, backend intacto. Declarados por el usuario: RF-21, RF-22 y RNF-6 con la extensión real y T4, T6 y T7; T8, T9 y T9b son recorridos automatizados por el `implementer` que el `reviewer` no reprodujo (ver `validation.md`, «Validación del reviewer»). Aprobada (2026-11-21, usuario), con plan.md y tasks.md aprobados el mismo día.
 Historial: borrador desde el 2026-11-20; dudas D1–D5 cerradas por el usuario el 2026-11-21; corregido el
 2026-11-21 tras la revisión QA, hallazgos H1 a H18, con las decisiones D6 a D9 del usuario;
 dudas Q1 y Q2 cerradas por el usuario el 2026-11-21; corregido de nuevo el 2026-11-21 tras la
@@ -575,6 +575,10 @@ mover las referencias de la revisión QA; se colocan en la sección que les corr
   7. RF-28 y RF-29 (CR-1): si la propuesta pasa a «aplicar» con «¿Cancelar esta sesión?» o
      «Anotar una sesión» abierta en la agenda, el formulario con la propuesta no se abre hasta que
      esa ventana se cierra; hoy la agenda lo abre en el acto, aunque haya una ventana abierta.
+  8. D-016-3 (opción 1, decidida por el usuario; añadida el 2026-11-22 tras la validación del
+     `reviewer`, observación 1 en `validation.md`): el indicador «Actualizando» también aparece
+     cuando TanStack Query deja en pausa la petición de una lista por «Sin conexión», no solo
+     mientras corre una petición.
   La línea base es el recorrido «Sesión y conexión» (5.A) del registro de validación de la spec
   007 y los pasos de agenda del registro de validación de la spec 009, repetidos tras el cambio
   con el mismo resultado salvo esos puntos.
@@ -840,26 +844,31 @@ mover las referencias de la revisión QA; se colocan en la sección que les corr
 - [x] **Condición previa a la aprobación de esta spec**: el usuario enmendó en
       `docs/constitution.md` los principios 1 y 4 el 2026-11-21 (D3, D9, Q2). El texto vigente,
       que es el que vale, se copia en «Impacto en otras specs y en la constitución».
-- [ ] Hay exactamente dos almacenes globales (sesión iniciada y agenda), hechos con Zustand en
+- [x] Hay exactamente dos almacenes globales (sesión iniciada y agenda), hechos con Zustand en
       versión exacta, y ya no existe el reparto por contexto del estado de la sesión iniciada
       (RF-1, RNF-1). Vitest está como dependencia de desarrollo en versión exacta, compatible con
       Vite 5.4, y no hay otra dependencia nueva sin justificar en el plan (RNF-1).
-- [ ] Repetido el recorrido 5.A de la spec 007 contra el servidor real, todo da el mismo
+      Evidencia (`validation.md`): T1 (`zustand` 5.0.16 y `vitest` 3.2.4 exactos, un solo `vite@5.4.21`, diff de `package.json` con solo esas dos y el script `test`; el resto del lock son dependencias de Vitest) y T4 (`AuthProvider` y `AuthContext` borrados, sin importaciones); T3 y T5 para los dos almacenes.
+- [x] Repetido el recorrido 5.A de la spec 007 contra el servidor real, todo da el mismo
       resultado: carga, recarga, error y «Reintentar», login con y sin ruta de origen, registro,
       cierre de sesión, 401 con un solo aviso, cambio de sesión en otra pestaña y almacenamiento
       bloqueado (RF-2 a RF-7, RF-9). Se repite con los pasos y el entorno que describe esa sección
       del registro de validación de la spec 007 (servidor real con una base temporal y
       navegador), y el registro de validación de esta spec anota cada paso con su resultado y si
       coincide con el original.
-- [ ] Guardar el perfil con otro nombre visible: la barra de navegación y toda vista que muestra
+      Evidencia: T8, tabla «Resultado por paso» (servidor real con base temporal; D-016-1 corregido y los tres pasos afectados repetidos con resultado coincidente).
+- [x] Guardar el perfil con otro nombre visible: la barra de navegación y toda vista que muestra
       al usuario de la sesión lo reflejan sin recargar (RF-8).
-- [ ] Repetidos los pasos de agenda de la spec 009 y «Proponer» desde coincidencias y desde la
+      Evidencia: T8, «RF-8» (de «Alfa Prueba» a «Nombre Nuevo» sin recargar; igual en modo simulado).
+- [x] Repetidos los pasos de agenda de la spec 009 y «Proponer» desde coincidencias y desde la
       ficha, todo da el mismo resultado salvo las diferencias que enumera RNF-2 (RF-10 a RF-18,
       RF-23 a RF-30).
-- [ ] Salir de la agenda y volver (por un enlace, por «Atrás» y desde el detalle) conserva el
+      Evidencia: T9, filas de los pasos de agenda de la 009 y de «Proponer» (`g7`, `g8`, `g9`, `g11`). No se repitieron los pasos del detalle de sesión (sumarse, editar, cupos, 360 px, contraste) porque esta spec no toca esa vista (anotado en T9).
+- [x] Salir de la agenda y volver (por un enlace, por «Atrás» y desde el detalle) conserva el
       filtro y la sesión abierta, cierra el borrador, no muestra «Enviando…» ni avisos de la
       visita anterior, y recargar devuelve el estado inicial (RF-15, RF-17, RF-19).
-- [ ] Volver a la agenda con una sesión abierta conservada que la lista guardada no contiene (o
+      Evidencia: T9, primera fila (`g1`, 24 OK, repetido tras T9b: 27 OK) y T9b «Regresión».
+- [x] Volver a la agenda con una sesión abierta conservada que la lista guardada no contiene (o
       sin lista guardada): el panel muestra «Sesión abierta», «Ver las mías» y «Cargando…», nunca
       «No estás en ninguna sesión», y al llegar la lista muestra la tarjeta o «Mis sesiones».
       Con la petición de la lista fallando de cada una de estas formas: servidor detenido, red
@@ -872,7 +881,8 @@ mover las referencias de la revisión QA; se colocan en la sección que les corr
       lista fallando, el panel muestra su tarjeta mientras la semana muestra el error (I-2).
       Cancelar en el detalle la sesión abierta: al volver, el foco está en el título del panel y
       sigue en él cuando pasa a «Mis sesiones» (RF-25, RF-26).
-- [ ] Crear una sesión de juego con «Todos los juegos»: tras la nueva lista, queda abierta en
+      Evidencia: T9, filas de servidor detenido (`g2 stopped`), «Sin conexión» (con el corte con la petición en vuelo, y con «Sin conexión» ya activado tras D-016-3), 30 s (`g2 slow`), I-2 (`g3`) y cancelar en el detalle (`g4`); T9b, rojo y verde de D-016-3 y regresión.
+- [x] Crear una sesión de juego con «Todos los juegos»: tras la nueva lista, queda abierta en
       «Sesión abierta» y, tras «Ver las mías», aparece en «Mis sesiones». Con el filtro de otro
       juego, se cierra al llegar la lista del filtro. Con «Todos los juegos» y sin sesión abierta,
       salir de la agenda con «Atrás» mientras el formulario dice «Enviando…» (para que la
@@ -881,46 +891,59 @@ mover las referencias de la revisión QA; se colocan en la sección que les corr
       esperando a que la pestaña de red la muestre terminada antes de volver): al volver, la
       sesión creada no está abierta y, al llegar la lista, aparece en la semana y en «Mis
       sesiones» (RF-24 a RF-26).
-- [ ] Con las cuentas del jugador cargando (red lenta en las herramientas del navegador) o con
+      Evidencia: T9, fila de RF-24 (`g5`).
+- [x] Con las cuentas del jugador cargando (red lenta en las herramientas del navegador) o con
       su carga fallida, «Anotar sesión» está deshabilitado y elegir un bloque no abre nada; con
       la carga fallida se ve el error con «Reintentar» y no el aviso «Necesitas al menos un juego
       vinculado…» (RF-13).
-- [ ] Con el filtro de un juego que el jugador no tiene vinculado (nunca y ya no), «Anotar una
+      Evidencia: T9, fila de RF-13 con cuentas cargando y fallidas (`g6`).
+- [x] Con el filtro de un juego que el jugador no tiene vinculado (nunca y ya no), «Anotar una
       sesión» se abre con el primer juego vinculado y crear no recibe 400 (RF-13).
-- [ ] Recargar o salir de la agenda mientras una propuesta espera las cuentas la descarta
+      Evidencia: T9, fila del filtro de un juego no vinculado (`g6`).
+- [x] Recargar o salir de la agenda mientras una propuesta espera las cuentas la descarta
       (RF-30).
-- [ ] Con el filtro de un juego conservado, «Proponer» de otro juego: durante la espera se ve el
+      Evidencia: T9, fila de recargar o salir con una propuesta esperando (`g7 a`).
+- [x] Con el filtro de un juego conservado, «Proponer» de otro juego: durante la espera se ve el
       filtro conservado; al abrirse el formulario solo «Todos los juegos» está pulsado y, al crear
       la sesión de juego, esta aparece abierta y, tras «Ver las mías», en «Mis sesiones». Con
       una propuesta descartada
       (sin cuenta en ese juego o carga de las cuentas fallida), el filtro conservado no cambia
       (RF-28, RF-29, D5).
-- [ ] «Proponer» con las cuentas lentas (red lenta en las herramientas del navegador) y, mientras
+      Evidencia: T9, fila de RF-28 y D5 (`g7 a`, `g7 b`).
+- [x] «Proponer» con las cuentas lentas (red lenta en las herramientas del navegador) y, mientras
       esperan, «¿Cancelar esta sesión?» abierta en la agenda: al llegar las cuentas no se abre
       «Anotar una sesión» y solo hay una ventana; al cerrarla con «Volver», se abre con la
       propuesta y el filtro «Todos los juegos»; lo mismo confirmando la cancelación con 204; y,
       saliendo de la agenda con «Atrás» o recargando con la ventana abierta, la propuesta se
       descarta (RF-28 a RF-30, CR-1).
-- [ ] Tras cerrar sesión, tras un 401 y tras un cambio de sesión en otra pestaña, el almacén de la
+      Evidencia: T9, fila de CR-1 (`g7 cr1`); la superposición de unos 500 ms de las animaciones de salida y entrada (O-016-1) la aceptó el usuario como admisible (T9b).
+- [x] Tras cerrar sesión, tras un 401 y tras un cambio de sesión en otra pestaña, el almacén de la
       agenda está en su estado inicial y no se ve nada de la cuenta anterior (RF-16).
-- [ ] Las herramientas del navegador no muestran claves nuevas en ningún almacenamiento tras usar
+      Evidencia: T8, «RF-16» (cierre de sesión, 401 y otra pestaña, en servidor real y en modo simulado).
+- [x] Las herramientas del navegador no muestran claves nuevas en ningún almacenamiento tras usar
       la agenda y la sesión iniciada (RF-19).
-- [ ] Lo mismo en modo simulado (RF-20).
-- [ ] En modo de desarrollo, la extensión de depuración muestra los dos almacenes con nombres
+      Evidencia: T8, «RF-19», y T9, primera fila (sin claves nuevas en `localStorage`, `sessionStorage` ni IndexedDB).
+- [x] Lo mismo en modo simulado (RF-20).
+      Evidencia: T8 (pasos de modo simulado) y T9, fila «Modo simulado (RF-20), lo que admite». Con las limitaciones anotadas allí: en modo simulado no hay servidor detenido, «Sin conexión», plazo de 30 s ni carga fallida, y «ya no vinculado» no se repitió; en esos puntos el criterio se cumple en servidor real.
+- [x] En modo de desarrollo, la extensión de depuración muestra los dos almacenes con nombres
       distintos y sus cambios; sin la extensión, en una carga completa sin recargas en caliente,
       tras entrar, salir y volver a la agenda varias veces, la consola no muestra errores de los
       almacenes y muestra como máximo un aviso sobre la extensión que falta del almacén de la
       sesión iniciada y uno del de la agenda (RF-21). En la construcción de producción, hecha
       sin variables nuevas, la extensión no muestra ningún almacén y no aparece ese aviso
       (RF-22, RNF-6).
-- [ ] `npm test` del frontend en verde y sin `.only` (RNF-5). Evidencia de que las pruebas se
+      Evidencia: T9, «RF-21, RF-22 y RNF-6»: sin la extensión, 0 errores y 0 avisos de los almacenes (`g10`); con la extensión real en Firefox, dos instancias con nombre y acciones con nombre, y en producción ninguna instancia y consola limpia: **declarado por el usuario el 2026-11-22**, sin salidas ni capturas.
+- [x] `npm test` del frontend en verde y sin `.only` (RNF-5). Evidencia de que las pruebas se
       escribieron antes que el código: el registro de validación de esta spec anota, por cada
       tarea con pruebas, la salida de la ejecución en rojo con el motivo del fallo, antes de
       escribir el código, y la salida en verde después.
-- [ ] Construcción, comprobación de tipos y lint del frontend en verde; sin `any` ni
+      Evidencia: `npm test` 105 pruebas en verde (T10); rojo con su motivo y verde de T2, T3, T5 y T9b/D-016-1 anotados en `validation.md`; regla `no-restricted-properties` contra `.only` probada en T1 y sin `.only` en `src/`.
+- [x] Construcción, comprobación de tipos y lint del frontend en verde; sin `any` ni
       `@ts-ignore` nuevos (RNF-3).
-- [ ] `AGENTS.md` y `MEMORY.md` describen los dos almacenes y el script `test` del frontend
+      Evidencia: `npm run build`, `npm run typecheck` y `npm run lint` en verde (T10); sin `any`, `@ts-ignore` ni `.only` en `src/`.
+- [x] `AGENTS.md` y `MEMORY.md` describen los dos almacenes y el script `test` del frontend
       (estructura, comandos y estado del código).
+      Evidencia: `AGENTS.md` (estructura del frontend y «Comandos») y `MEMORY.md` actualizados en T10.
 
 ## Decisiones
 Decididas por el usuario el 2026-11-21, a partir de las dudas D1–D4 del borrador del 2026-11-20

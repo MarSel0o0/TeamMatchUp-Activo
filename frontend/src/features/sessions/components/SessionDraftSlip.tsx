@@ -16,6 +16,7 @@ import { MutationNotice } from '@/shared/components/MutationNotice';
 import { TextField } from '@/shared/components/TextField';
 import { useCodePointLimit } from '@/shared/hooks/useCodePointLimit';
 import { SENDING_TEXT } from '@/shared/utils/copy';
+import { agendaStore } from '../agendaStore';
 import { useCreateSession } from '../hooks';
 import './sessionDraftSlip.css';
 
@@ -33,8 +34,6 @@ const DEFAULT_DURATION_HOURS = 2;
 interface SessionDraftSlipProps {
   open: boolean;
   draft: SessionDraft;
-  /** La agenda abre la sesión recién anotada para que el sello caiga sobre ella. */
-  onCreated?: (sessionId: string) => void;
   /** Juegos que el usuario tiene vinculados; no se publica en otros. */
   availableGames: GameId[];
   onClose: () => void;
@@ -46,7 +45,6 @@ export function SessionDraftSlip({
   draft,
   availableGames,
   onClose,
-  onCreated,
 }: SessionDraftSlipProps) {
   const createSession = useCreateSession();
 
@@ -91,17 +89,14 @@ export function SessionDraftSlip({
     }
 
     sending.current = true;
+    // La visita a la agenda se lee al enviar (spec 016, RF-24): si al responder ya es otra, no vale.
+    const agendaVisit = agendaStore.getState().visit;
     try {
-      const created = await createSession.mutateAsync({
-        gameId,
-        title,
-        notes,
-        day,
-        startHour,
-        durationHours,
-        slots,
+      // Abrir la sesión creada lo hace el almacén desde el `onSuccess` (RF-24, DT-9).
+      await createSession.mutateAsync({
+        payload: { gameId, title, notes, day, startHour, durationHours, slots },
+        agendaVisit,
       });
-      onCreated?.(created.id);
       onClose();
     } catch {
       // El error se muestra con `MutationNotice` desde el estado de la escritura (RF-9).
