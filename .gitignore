@@ -155,3 +155,9 @@ vite.config.ts.timestamp-*
 
 # macOS
 .DS_Store
+
+# Pruebas E2E (spec 018): informes, trazas y capturas de Playwright.
+e2etests/playwright-report/
+e2etests/playwright-report-json/
+e2etests/test-results/
+e2etests/blob-report/
