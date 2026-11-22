@@ -1,5 +1,7 @@
 # Spec 018 — Pruebas E2E con Playwright
-Estado: aprobada (2026-11-21, usuario); plan y tareas pendientes (se implementa después de la 016 y la 017).
+Estado: aprobada (2026-11-21, usuario), con el cambio de requisitos CR-1 (U13) aprobado por el
+usuario el 2026-11-22; plan y tareas redactados y ajustados al CR-1, pendientes de aprobación del
+usuario (se implementa después de la 016 y la 017).
 Historial: borrador del 2026-11-21. Dudas Q1 a Q7 cerradas por el usuario el 2026-11-21. Corregida el
 2026-11-21 tras la primera revisión QA (hallazgos 1 a 20), con las decisiones U6 a U9 del usuario
 (sección «Decisiones»). La enmienda de los principios 1 y 4 de la constitución la hizo el usuario
@@ -10,6 +12,13 @@ EARS de RF-14, RF-18 y RF-20, y estado de la spec 016). Sin dudas abiertas. Apro
 usuario el 2026-11-21, con las propuestas P1 a P6, P8 y P9 (P7 ya era la decisión U6).
 Corrección de redacción del 2026-11-21, sin cambio de requisitos: el «Contexto» dice que la 017
 tiene Q1 a Q8 cerradas y menciona el CR-1 de la 016, que no afecta a esta spec.
+Cambio de requisitos CR-1 del 2026-11-22 (U13), aprobado por el usuario el 2026-11-22: E1 empieza
+en una dirección sin vista, que muestra la vista «no encontrada», en lugar de la página de
+entrada, que con sesión iniciada lleva a Inicio. Cambian las Definiciones, el párrafo previo a
+los escenarios, RF-14, RF-21, los casos límite, «Decisiones», «Dudas abiertas», «Impacto» y
+«Notas para el plan». En la misma fecha, el usuario fijó la versión de Playwright del plan (su
+P2) y decidió dejar sin cambio, por ahora, la observación sobre la spec 007 («Impacto»); ninguna
+de las dos cosas cambia requisitos.
 
 ## Contexto y objetivo
 El punto 3 del enunciado del último hito pide pruebas E2E con Playwright, con dos casos
@@ -50,8 +59,8 @@ Esta spec define una suite E2E que:
   - spec 006 (crear, listar, editar y cancelar sesiones de juego; RF-16: la eliminación del
     usuario borra en cascada sus sesiones de juego; RF-27: crear exige una cuenta vinculada en el
     juego);
-  - spec 007 (página de entrada pública, rutas protegidas y solo públicas, ruta de origen y
-    «llevar a una ruta por una regla de sesión»: RF-6, RF-8, RF-25, RF-33);
+  - spec 007 (vista «no encontrada», rutas protegidas y solo públicas, ruta de origen y
+    «llevar a una ruta por una regla de sesión»: RF-6, RF-8, RF-25, RF-28, RF-33);
   - spec 009 (enlace «Ver detalle de <título>», detalle, edición y cancelación con
     confirmación; RF-2, RF-3, RF-6 a RF-8, RF-12, RF-15, RF-23);
   - spec 010 (construcción de producción servida por el servidor; recarga de rutas: RF-1, RF-2);
@@ -69,7 +78,8 @@ Esta spec define una suite E2E que:
   depende de ellos («Impacto»). **Condición previa a la implementación**: 016 y 017
   implementadas.
 - Origen: enunciado del último hito, puntos 2, 3 y 5 (apéndice A de la spec 016). Decisiones del
-  usuario del 2026-11-21 (sección «Decisiones», U1 a U12 y Q1 a Q8).
+  usuario del 2026-11-21 (sección «Decisiones», U1 a U12 y Q1 a Q8) y del 2026-11-22 (U13,
+  cambio de requisitos CR-1).
 - Esta spec no cambia el comportamiento de la aplicación: no toca la interfaz ni el servidor
   (RNF-8).
 
@@ -149,10 +159,17 @@ Esta spec define una suite E2E que:
   (Q4, ajustada por U8).
 - **Servicio externo**: cualquier servicio fuera del sistema bajo prueba: Steam, Riot Games,
   Data Dragon y Leetify.
-- **Ruta protegida**, **ruta de origen**, **Inicio**, **login**, **página de entrada** y
+- **Ruta protegida**, **ruta de origen**, **Inicio**, **login**, **vista «no encontrada»** y
   **llevar a una ruta por una regla de sesión** (sustituye la entrada actual del historial): los
-  de la spec 007. La página de entrada es pública y se muestra con o sin sesión iniciada: la spec
-  007, RF-33, solo lleva a Inicio desde login y registro.
+  de la spec 007. La vista «no encontrada» se muestra con o sin sesión iniciada, sin llevar a
+  login ni a Inicio y sin recordar ruta de origen (spec 007, RF-28). Ningún escenario usa la
+  página de entrada (la raíz): con sesión iniciada, la interfaz lleva de ella a Inicio (U13).
+- **Dirección sin vista**: `/e2e-sin-vista`, una dirección que no corresponde a ninguna vista de
+  la aplicación y que por eso muestra la vista «no encontrada» (U13). Tiene un solo tramo, no
+  está bajo `/api` y no empieza por ninguna ruta de la aplicación ni por sus prefijos
+  (`/agenda/`, `/jugadores/`, `/verificar/`): el servidor entrega la interfaz (spec 010, RF-2) y
+  ninguna regla de sesión la lleva a otra ruta. Si una spec le diera alguna vez una vista, E1
+  cambiaría de dirección con un cambio de esta spec.
 
 ## Requisitos funcionales
 
@@ -348,15 +365,17 @@ localizados por su etiqueta, con los del usuario de prueba, y pulsar el botón d
 formulario («Entrar»). «Abrir una dirección» es escribirla en el navegador, lo que añade una
 entrada al historial. «La semana muestra», «el panel se titula», «el panel muestra la tarjeta» y
 «no aparece en la agenda» tienen el sentido de las Definiciones. Los pasos «Atrás» y «Adelante» se hacen entre entradas del historial de un
-mismo documento (navegación dentro de la aplicación), salvo el de E1, que vuelve a la página de
-entrada, pública, que se ve igual se recargue o la restaure el navegador.
+mismo documento (navegación dentro de la aplicación), salvo el de E1, que vuelve a la dirección
+sin vista, cuya vista «no encontrada» se ve igual con o sin sesión iniciada, se recargue o la
+restaure el navegador (spec 007, RF-28).
 
 #### Inicio de sesión y acceso protegido
 - RF-14 (E1, ruta protegida sin sesión y vuelta a la ruta de origen): CUANDO se ejecuta E1,
   partiendo de un navegador sin sesión iniciada (condición previa: el paso 3 la inicia), EL
   SISTEMA:
-  1. abre la página de entrada (la raíz) y comprueba que se ve: su dirección y un texto propio de
-     esa página (RF-21). Es la entrada del historial a la que debe volver «Atrás» en el paso 4;
+  1. abre la dirección sin vista (Definiciones) y comprueba que se ve la vista «no encontrada»:
+     la dirección sin vista y el encabezado «No hay nadie en esta sala» (RF-21). Es la entrada
+     del historial a la que debe volver «Atrás» en el paso 4;
   2. abre la dirección de la agenda y comprueba que la dirección pasa a la de login, que se ven
      los campos de correo y contraseña y, con ellos a la vista, que no se ve el título de la
      agenda (spec 007, RF-25);
@@ -364,14 +383,17 @@ entrada, pública, que se ve igual se recargue o la restaure el navegador.
      ruta de origen (spec 007, RF-8 y RF-25), y que se ve su contenido: el título de la agenda y
      el panel titulado «Mis sesiones». No comprueba el estado vacío del panel, que la interfaz
      muestra también mientras la lista carga y no prueba nada (Definiciones, «Sesión testigo»);
-  4. pulsa «Atrás» y comprueba que la dirección es la de la página de entrada y que se ve su
-     texto propio del paso 1; con eso a la vista, que no se ven los campos de login.
+  4. pulsa «Atrás» y comprueba que la dirección es la dirección sin vista y que se ve el
+     encabezado «No hay nadie en esta sala» del paso 1, aunque ya hay sesión iniciada (spec 007,
+     RF-28); con eso a la vista, que no se ven los campos de login.
 
   El paso 4 falla si cualquiera de las dos redirecciones no sustituyó su entrada del historial
   (spec 007, «Llevar a una ruta por una regla de sesión»): si la de la agenda a login hubiera
   añadido una entrada, «Atrás» volvería a la agenda; si la de login a la agenda la hubiera
   añadido, «Atrás» volvería a login, que con sesión lleva a Inicio (spec 007, RF-33). En los dos
-  casos la dirección no sería la de la página de entrada (RNF-11).
+  casos la dirección no sería la dirección sin vista (RNF-11). Si las dos la sustituyeron, nada
+  tapa el resultado: la vista «no encontrada» no lleva a ninguna otra ruta, con o sin sesión
+  (U13).
 - RF-15 (E2, credenciales incorrectas): MIENTRAS el navegador no tiene sesión iniciada, EL
   SISTEMA:
   1. abre la dirección de login e intenta iniciar sesión por la interfaz con el correo del
@@ -493,7 +515,7 @@ En RF-18 a RF-20, el escenario ya inició sesión por la interfaz (RF-11) antes 
   clases de estilo, selectores de la estructura de la página ni atributos añadidos solo para las
   pruebas (P1). Los textos que comprueba son los que fijan las specs 002, 006, 007, 009 y 016;
   si un texto que usa un escenario no lo fija ninguna spec (por ejemplo, el título de la agenda,
-  el texto propio de la página de entrada o de Inicio, el nombre del enlace de la agenda de la
+  el encabezado de la vista «no encontrada», el texto propio de Inicio, el nombre del enlace de la agenda de la
   barra o el nombre accesible de los bloques de la semana, «<título>, …»), el que muestra hoy la
   interfaz, que la spec 017 no cambia (su RF-19). Qué cuenta como «la semana muestra» y «el panel
   muestra» lo fijan las Definiciones, sin acotar a la sección de la semana, que no tiene nombre
@@ -633,8 +655,12 @@ En RF-18 a RF-20, el escenario ya inició sesión por la interfaz (RF-11) antes 
   en la semana: la suite las prepara en un día y una hora que la semana muestra (RF-11).
 - «Atrás» entre documentos distintos: el navegador puede restaurar la página anterior de su
   memoria en lugar de cargarla. Por eso los pasos de «Atrás» y «Adelante» van entre entradas de
-  un mismo documento, salvo el de E1, cuya página de destino es pública y se ve igual en los dos
-  casos (Escenarios).
+  un mismo documento, salvo el de E1, cuyo destino es la vista «no encontrada», que se ve igual
+  en los dos casos y con o sin sesión iniciada (Escenarios).
+- La página de entrada (la raíz) con sesión iniciada lleva a Inicio, como login y registro. Si E1
+  empezara en ella, «Atrás» en el paso 4 llevaría a Inicio aunque las dos redirecciones hubieran
+  sustituido su entrada, y el escenario fallaría sin que hubiera un defecto. Por eso E1 empieza
+  en la dirección sin vista (U13).
 - La spec 017 cambia un texto o un rol que un escenario usa: el escenario se escribe contra la
   interfaz ya migrada, porque esta spec se implementa después (Contexto). Si el cambio llega
   después, se actualiza el escenario y no la interfaz.
@@ -845,6 +871,24 @@ Tomadas por el usuario en la clarificación final (2026-11-21, transmitidas por 
   de la barra) son los que muestra hoy la interfaz, que la spec 017 no cambia (su RF-19). El plan
   lista cada uno con su origen.
 
+Tomada por el usuario en el cambio de requisitos CR-1 (2026-11-22, transmitida por el
+coordinador; el texto de este cambio lo aprobó el usuario el 2026-11-22):
+- **U13. E1 empieza en una dirección sin vista** (opción A de la pregunta P1 del planificador;
+  Definiciones, RF-14, RF-21, casos límite). Motivo: al redactar el plan se vio que la página de
+  entrada (la raíz) no se muestra con sesión iniciada: la interfaz la trata como login y registro
+  y lleva a Inicio. En el paso 4 de E1, «Atrás» volvía a la página de entrada, la interfaz veía la
+  sesión y llevaba a Inicio, así que E1 fallaba aunque las redirecciones fueran correctas. Ahora
+  E1 empieza en la dirección sin vista (`/e2e-sin-vista`, Definiciones), cuya vista «no
+  encontrada» se muestra con o sin sesión y no lleva a ninguna otra ruta (spec 007, RF-28). El
+  paso 4 sigue detectando los dos fallos posibles (que cualquiera de las dos redirecciones haya
+  añadido una entrada al historial) y la aplicación no cambia (RNF-8). En U12, «el texto propio
+  de la página de entrada» pasa a ser el encabezado de la vista «no encontrada», «No hay nadie
+  en esta sala», que tampoco fija ninguna spec. Descartadas, tal como se presentaron al usuario:
+  - «B: esperar /inicio tras Atrás — E1 sigue empezando en `/` y el paso 4 espera llegar a
+    /inicio. Deja de detectar uno de los dos fallos de historial.»
+  - «C: cambiar la app — Cambiar la spec 007 y el frontend para que `/` no redirija con
+    sesión.»
+
 Propuestas del planificador, aplicadas en el texto. P1 a P6, P8 y P9 **aceptadas por el usuario
 al aprobar la spec el 2026-11-21**:
 - **P1 (aceptada por el usuario, 2026-11-21). Localizar por rol, nombre accesible, etiqueta o texto, sin atributos solo para pruebas**
@@ -888,7 +932,8 @@ al aprobar la spec el 2026-11-21**:
   aparece igual en la semana y en la tarjeta del panel.
 
 ## Dudas abiertas
-Ninguna. Q8 cerrada por el usuario el 2026-11-21 (sección «Decisiones»).
+Ninguna. Q8 cerrada por el usuario el 2026-11-21 y P1 del plan cerrada por el usuario el
+2026-11-22 con U13 (sección «Decisiones»).
 
 ## Impacto en otras specs y en la constitución (sin editarlas desde esta spec)
 - **Constitución, principios 1 y 4** (Q5 = A). Enmienda hecha por el usuario en
@@ -920,6 +965,11 @@ Ninguna. Q8 cerrada por el usuario el 2026-11-21 (sección «Decisiones»).
   C2 elige los cupos en la lista «Cupos», que la 017 conserva con el comportamiento de lista
   nativa (su RF-10). Si la 017 cambia algo que usan los escenarios, la 018 se escribe contra lo
   nuevo, porque se implementa después.
+- **Spec 007, RF-33** (observación, sin editarla): su texto solo lleva a Inicio desde login y
+  registro, pero la interfaz implementada también lleva desde la página de entrada (la raíz)
+  cuando hay sesión iniciada. Esta spec ya no depende de esa diferencia (U13). El usuario decidió
+  el 2026-11-22 dejar la observación anotada aquí, sin abrir por ahora un cambio de requisitos de
+  la 007.
 - **Spec 010**: la suite compila la interfaz en las mismas carpetas que su procedimiento de
   producción, compila el servidor y lo arranca en modo producción en un puerto local (Q1 = A); no
   cambia nada de la spec 010.
@@ -973,3 +1023,8 @@ Ninguna. Q8 cerrada por el usuario el 2026-11-21 (sección «Decisiones»).
   para las sesiones de juego preparadas por la API un día y una hora dentro de ella (RF-11).
 - Los criterios cuentan documentos con mongosh, herramienta opcional que documenta el README
   (RF-3); no es una dependencia de la suite.
+- Dirección sin vista de E1 (U13): hoy el servidor en producción entrega la interfaz en cualquier
+  GET fuera de `/api` y la interfaz la resuelve con su ruta comodín, fuera de las reglas de
+  sesión; la vista «no encontrada» tiene el encabezado de nivel 1 «No hay nadie en esta sala» y
+  el título de documento «Página no encontrada». El plan lo confirma con el código y localiza el
+  encabezado por su rol y su nombre (RF-21).
