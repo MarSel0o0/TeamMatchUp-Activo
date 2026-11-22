@@ -4,9 +4,34 @@ Registro dinámico. Se actualiza al cerrar cada fase SDD.
 
 ## Última actualización
 
-2026-11-20 (sesión nocturna: 010 recuperada y validada, prefijo `tmu_`, README de despliegue; 013 validada en navegador; 007, 008 y 009 validadas por el `reviewer` con correcciones de contraste y desbordes; ver «Próximo paso»)
+2026-11-21 (sesiones del 2026-11-20 y 2026-11-21: encargo del último hito analizado; constitución
+enmendada (Vitest y Playwright); specs 016, 017 y 018 aprobadas, con plan y tareas de la 016
+aprobados; nada implementado aún de ellas; ver «Próximo paso»)
+
+Anterior: 2026-11-20 (sesión nocturna: 010 recuperada y validada, prefijo `tmu_`, README de
+despliegue; 013 validada en navegador; 007, 008 y 009 validadas por el `reviewer`).
 
 ## Fase actual
+
+### Último hito (2026-11-21)
+- **Encargo del profesor:** SPA de producción con estado global (Zustand o Redux, ≥ 2 stores),
+  React Router (rutas públicas y protegidas, Atrás/Adelante y F5), E2E con Playwright en
+  `e2etests/` (login + acceso protegido y un CRUD) con instrucciones en el README, librería de
+  estilos, TS estricto sin `any`, errores JSON con códigos HTTP y secretos en `.env`; desplegada en
+  fullstack.dcc.uchile.cl. Texto íntegro: apéndice A de `specs/016-estado-global/spec.md`.
+- **Cumplimiento:** ya se cumplen ruteo (React Router v6; F5 en producción con la 010), TS estricto,
+  errores JSON y `.env`. Faltaban estado global, E2E y librería de estilos → specs 016, 017 y 018.
+  Orden de implementación aprobado: **016 → 017 → 018**.
+- **Constitución enmendada por el usuario** (`docs/constitution.md`, principios 1 y 4, 2026-11-21):
+  Vitest en el frontend (cuando una spec exige pruebas, también tests primero, rojo → verde) y
+  Playwright para E2E en `e2etests/` (no se escriben antes que el código, pero cada una se ve
+  fallar al romper a propósito lo que comprueba).
+- **010:** código hecho (`uiDir`, `build`, `build:ui`, `start`; T1–T8 y T10). Falta **T9: despliegue
+  real, lo hace el usuario** (avisos en «Deuda conocida»).
+- **016 Estado global (Zustand):** spec APROBADA (2026-11-21) con el cambio CR-1; `plan.md` y
+  `tasks.md` APROBADOS (2026-11-21), T1–T10, ninguna hecha. Detalle en su fila de la tabla.
+- **017 Librería de estilos (Mantine):** spec APROBADA (2026-11-21); plan y tareas pendientes.
+- **018 E2E con Playwright:** spec APROBADA (2026-11-21); plan y tareas pendientes.
 
 Specs 001 (`001-crear-backend`), 002 (`002-autenticacion`) y 003
 (`003-usuarios-y-disponibilidad`) implementadas y validadas (reviewer: APROBADO).
@@ -66,8 +91,8 @@ validación del `reviewer` (`/sdd-validate 007-integrar-frontend`) y decidir lo 
 «Deuda conocida — spec 007». `spec.md`, `plan.md` y `tasks.md` pasan a «implementada».
 
 Orden global de implementación: 005 T9 → 004 T11…T25 → 005 T10 (hechas, validadas y
-commiteadas) → 006 (cambio de requisitos y T1–T10), todo hecho y validado → 007 (T1–T31, hecha) → siguiente: validarla con `reviewer` y
-hacer la 008.
+commiteadas) → 006 (cambio de requisitos y T1–T10), todo hecho y validado → 007 (T1–T31, hecha) → 008, 009,
+010 (local), 012–015 (ver la tabla) → siguiente (2026-11-21): 016 → 017 → 018.
 
 ## Spec 008 — ficha de jugador (estado 2026-10-20)
 - Estado: T1–T11 hechas y en verde (typecheck, lint, build; comprobaciones con Node y con
@@ -223,13 +248,42 @@ hacer la 008.
 | `007-integrar-frontend` | Implementada y validada (`reviewer` APROBADO, 2026-11-20, contra el código actual; `validation.md` §7). D1 y D3 cerrados. Decisiones del usuario cerradas el 2026-11-20: RF-20 → R23 (la spec admite 65 s para resincronizar y Riot; sin código), O1 y O2 → R24 (aceptadas) | Interfaz conectada al servidor real (cookie HttpOnly + comprobante CSRF, plazo de 30 s, aviso entre pestañas, «Proponer»), con modo simulado alineado a 004–006 y datos ficticios. Recorrido manual T29 (5.A y 5.B) y capturas T28 en `validation.md`; defectos D-A2 y D-A1 corregidos en la T31. Excepción aprobada al RF-16: el simulado reproduce el literal «rango verificado» del servidor y la interfaz nunca lo muestra. Sin decisiones abiertas. Commiteada. |
 | `008-ficha-de-jugador` | Implementada y validada (`reviewer` APROBADO, 2026-11-20; `validation.md` §6). D10-1 y D10-2 cerrados en `2ec44a4` (tokens de estado, `--ink-3`, `--placeholder`, iniciales del avatar con `color-mix`); C10-1 resuelto por el cambio B. Pendiente solo NVDA (usuario) | Precondición cumplida: la 007 está implementada (T1–T31). Los enlaces de RF-2 son su T9. |
 | `009-detalle-de-sesion` | Implementada y validada (`reviewer` APROBADO, 2026-11-20; C4 resuelta por el cambio VC4, aprobado el 2026-11-20: excepción de contraste de RNF-5 para botones deshabilitados y bloqueados, como el P65 de la 008, sin código). Contraste corregido en `ecf12d2` y `7852a67` (hover de variantes de botón con `:where()`, marca de juego, `--danger` claro `#a83025`). Pendiente del usuario: solo NVDA | 18 tareas (T0–T17), sin dividir la spec por decisión de la usuaria. T0 exige plan de la 007 aprobado, 007 hecha (cumplido) y la tarea de enlaces de la 008 hecha (pendiente). La validación de reviewer espera a que estén implementadas la 006, la 007 y la 008. No cambia el backend. |
-| `010-despliegue` | Aprobada; implementación local validada por el `reviewer` (2026-11-20, tras 1 vuelta de correcciones de documentación). Commits: `6307b9a` (T2, T3: sirve `backend/dist` en producción; código 1 sin `index.html`), `fbb3314` (T10: prefijo `tmu_` fijo en las 5 colecciones, traído de `origin/deploy`; en el servidor no hay permiso para una base propia, código 13), `f63fd37` (T4–T8: README raíz con producción y despliegue en `~/reactivoActivo` / PM2 `reactivoActivo-7041`, `.env.example`, `frontend/README.md`, recorrido local), `f844a4d` (spec al día; HU-4 y RF-10 se mantienen por la 014). Pendiente solo T9 (despliegue real, lo hace el usuario) y que un compañero siga el README. `origin/deploy` tiene otra implementación de la 010 (`frontendDir`): no se fusiona; lo útil ya se trajo. | Sirve la interfaz desde el servidor (rutas fuera de `/api`) y documenta el despliegue. |
+| `010-despliegue` | Aprobada; implementación local validada por el `reviewer` (2026-11-20, tras 1 vuelta de correcciones de documentación). Commits: `6307b9a` (T2, T3: sirve `backend/dist` en producción; código 1 sin `index.html`), `fbb3314` (T10: prefijo `tmu_` fijo en las 5 colecciones, traído de `origin/deploy`; en el servidor no hay permiso para una base propia, código 13), `f63fd37` (T4–T8: README raíz con producción y despliegue en `~/reactivoActivo` / PM2 `reactivoActivo-7041`, `.env.example`, `frontend/README.md`, recorrido local), `f844a4d` (spec al día; HU-4 y RF-10 se mantienen por la 014). Pendiente solo T9 (despliegue real, lo hace el usuario) y que un compañero siga el README. `origin/deploy` tiene otra implementación de la 010 (`frontendDir`): no se fusiona; lo útil ya se trajo. Avisos para T9 (2026-11-21): según `origin/deploy` el servidor tiene Node 20 (el plan pide ≥ 22; lo compilado debería correr con aviso `EBADENGINE`, ver `validation.md` R-1); confirmar con el equipo qué colecciones `tmu_*` tienen datos en `fullstack`. | Sirve la interfaz desde el servidor (rutas fuera de `/api`) y documenta el despliegue. |
 | `012-origen-real-de-datos` | Implementada y validada (2026-11-18). T1–T11 hechas y commiteadas (`0ba0f99` T8–T10, `ad58178` T11). 1ª validación (2026-11-18): dos puntos (RF-6 identidad sin etiqueta; RF-14 sin prueba del endpoint), cerrados con la T11. 2ª validación (2026-11-18, Opus): cumplida; 706 tests de la 012 y suite completa 2379/2379 en verde, typecheck y lint del backend y build, typecheck y lint del frontend sin errores; interfaz por Chrome headless (CDP) a 1280 y 375 px con verificación escrita directo en una base temporal (no hay rutas de verificación hasta la 013/014). Observaciones sin bloquear: la aclaración de RF-6 es una línea sin número en `spec.md`; el bloque de perfil (avatar, nivel, horas) no se muestra en ninguna parte (para la 013) | Base común: cuenta verificada solo por verificación real (revoca RF-41 de la 004 y la decisión «Todo simulado» del 2026-10-17), origen por bloque de datos, exclusividad (primera verificación gana y desvincula las no verificadas de otros), resincronización bajo demanda con espera de 5 min, 503 si la fuente cae. Propone texto para el principio 5 de la constitución. Dudas D1–D3 cerradas el 2026-11-04 (visible para todos, «1 minuto», filtro «Solo cuentas verificadas»). Rama `feature/vinculacion-steam-riot`. |
 | `013-vinculacion-steam` | Implementada; validada en el navegador con un Steam falso (`reviewer` APROBADO, 2026-11-20, tras corregir el desborde del perfil a 375 px en `5fb89c7`). RF-7 corregido en `c7afc2f` y `91511b1`. T9 y T10 cerradas; T11 abierta hasta el recorrido con Steam real (usuario) | Verificar CS2 con el inicio de sesión de Steam; perfil y horas reales; rango CS2 sigue simulado. Depende de la 012. Clarificación del 2026-11-18: 29 hallazgos resueltos como D3–D12 y RF-18 a RF-26. Bloqueante resuelto con D3: la vuelta de Steam llega a una página de la app, que completa la verificación con la sesión y el comprobante anti-CSRF del usuario (la cookie `SameSite=Strict` no viaja en la navegación desde Steam); sin cambiar la spec 002. Absorbe los tres pendientes de la validación de la 012: aviso global solo en modo simulado (RF-24), texto de «Resincronizar» (RF-25) y bloque de perfil visible con «Datos de Steam» (RF-15). Sin clave de Steam no se ofrece verificar (D4, revoca el RNF-2 anterior). Sin dependencias nuevas (RNF-5). Los ajustes a las specs 002, 007 y 012 quedan en su sección «Impacto», sin editar esos archivos. **Plan redactado el 2026-11-18** (`plan.md`, borrador pendiente de aprobación): OpenID 2.0 de Steam con intento en MongoDB (TTL, hash del token, uno por usuario), `POST /api/steam/{start,complete}` y `GET /api/steam`, página de vuelta fuera de las rutas protegidas (RF-7), `STEAM_API_KEY` y `PUBLIC_URL` opcionales, `syncCooldown(null)` para RF-12; 11 tareas previstas. Observaciones O-1 a O-4 por confirmar (región de la cuenta nueva, texto «sin perfil», texto del rechazo de RF-3, 11 tareas). Plan aprobado el 2026-11-18 (O-1 a O-4 con los valores por defecto). **Tareas aprobadas el 2026-11-18** (`tasks.md`, T1 a T11). **T1 hecha** (`Config.steam`, `STEAM_API_KEY` y `PUBLIC_URL` opcionales y comentadas en `.env.example`; sin commitear). Salvedad: `tests/controllers/ui.test.ts` (spec 010) falla porque `uiDir` no está en `app.ts` de esta rama. **T2 hecha** (dominio puro: `steamAttempt`, `steamOpenId`, `steamProfile`, `steamRules` y `syncCooldown(null)`; 71 pruebas nuevas, sin commitear). **T1 a T7 hechas; backend de la 013 cerrado** (`/api/steam` con `GET /`, `POST /start` y `POST /complete`; cliente de Steam con `fetch` inyectable; `AppOptions.steamIntegration`; espera sin perfil; suite 2592/2600, los 8 fallos son de `ui.test.ts` de la spec 010; sin commitear). Detalle T3: modelo `SteamAttempt` con índice único por usuario y TTL, servicio `steamAttempts`, `SteamAttempt.init()` en `prepareDatabase` y C5 en la cascada; 28 pruebas nuevas, sin commitear). **T8 hecha.** T9 a T11 con el código y la documentación hechos (página de vuelta, botón, bloque de datos de Steam, aviso global solo en modo simulado; `typecheck`, `lint` y `build` del frontend sin errores) pero **sin verificar en un navegador ni con la cuenta real de Steam**: casillas abiertas, pendientes en `specs/013-vinculacion-steam/validation.md`. Siguiente: recorridos manuales del equipo (necesitan `STEAM_API_KEY` y `PUBLIC_URL`) y cerrar T9 a T11. |
 | `014-verificacion-riot` | Implementada y validada (2026-11-19): `reviewer` APROBADO tras 1 vuelta de corrección (aviso de RF-7/RF-27 en `/perfil`, corregido en `RiotVerifyPage.tsx`); recorrido real con cuenta de LoL OK (pasos 0–9 de `validation.md` §3) | Verificar LoL con ícono de inicio (0–28, distinto del actual, 10 min, máx. 10 confirmaciones); rango Solo/Dúo, partidas y perfil reales. Development key aceptada por el equipo pese a los términos de Riot. Depende de la 012. Spec aprobada el 2026-11-18 (D1–D104); plan y tareas (T1–T12) aprobados el 2026-11-19. **T1–T8 (backend) y T9–T12 (frontend, docs y cierre) hechas** (sin commitear): 82 archivos de prueba del backend en verde sin red ni clave real (0 fallos; 217/217 nuevos de Riot + 249/249 modificados/clave; ~2,786 pruebas; salvedades preexistentes/entorno: `ui.test.ts` de la 010 y `process.test.ts` bajo Node `v22.14.0`), `tsc --noEmit` (`src/`) y `lint` del backend en verde, y `typecheck`, `lint` y `build` del frontend en verde; auditoría estática limpia (sin dependencias nuevas, sin fugas de clave, sin `.only`/`any`). `README.md`, `AGENTS.md`, `PRODUCT.md` y `specs/014-verificacion-riot/validation.md` actualizados. `spec.md` en «implementada (2026-11-19)» con todas las casillas marcadas; suite del backend 2963/2971 (solo los 8 de `ui.test.ts`). Opcionales en «Deuda conocida — spec 014». |
 | `015-rango-premier` | Spec aprobada (2026-11-18); revisión tras la clarificación aprobada por el usuario (2026-11-19). Plan aprobado (2026-11-19). Tareas T1–T10 aprobadas (2026-11-19); cambio de requisitos D26–D30 y T11–T16 aprobadas (2026-11-19); T1–T16 hechas (2026-11-19, sin commitear): backend con la suite completa en verde salvo los 8 fallos conocidos de `ui.test.ts`; frontend con typecheck, lint y build en verde; T16 documentos, `leetify.rest` y comprobación (ver «Spec 015 (implementación T11–T16)»). Términos de Leetify leídos: la pauta de métricas no se cumplía; cambio D31–D32 (sin escala ni distancia con rangos de Leetify; RF-5 y RF-12 modificados, RF-25 nuevo), plan §13 y T17–T20 aprobados y hechos (2026-11-19, solo frontend). Validación del `reviewer` con navegador: CAMBIOS NECESARIOS (etiqueta del anillo de afinidad); cambio D33–D34 (RF-26, logo a 24 px), T21–T22 hechos y **validación APROBADA** (2026-11-19). **Implementada (2026-11-19).** **Pendiente (pospuesto por el usuario):** los dos recorridos manuales con cuentas reales; ver «Próximo paso» y `specs/015-rango-premier/validation.md` §2.2. | Rango Premier real de CS2 verificadas desde la API pública de Leetify. RF-1 a RF-26, RNF-1 a RNF-8. Clarificación: 31 hallazgos resueltos como D6–D25 (más D1–D5 de la entrevista); sin dudas abiertas. Claves: principio 5 de la constitución ampliado (terceros nombrados por una spec, atribuidos a quien entrega; aplicado en docs/constitution.md); tener rango = rating entero 1–99999 (0/vacío/sin perfil = «sin rango Premier», excepción a RF-21 de la 012); respuesta inválida o rechazo = fallo; «rango no disponible» = bloque de origen Leetify vacío; fuera de coincidencias sin rango (mensaje en Coincidencias CS2); resync: Steam primero, Leetify solo si Steam responde, máx. 16 s, 200 con indicador si Leetify falla (excepción a RF-19 de la 012), espera corre; concurrentes: solo una, la otra 429; historial: punto por cada cambio de rating; migración al arrancar: verificadas con rango simulado → «rango no disponible»; aviso junto a «Verificar con Steam»; «Datos de Leetify» enlaza al perfil en Leetify; clave opcional. Las excepciones a otras specs son RF propios (no se editan las otras specs). Depende de la 013. |
+| `016-estado-global` | Spec APROBADA (2026-11-21) con CR-1 (origen 017 Q8). `plan.md` y `tasks.md` APROBADOS (2026-11-21): T1–T10, sin empezar. T9 la hace el usuario (recorrido de la agenda con red lenta y devtools) | Dos almacenes Zustand: **sesión iniciada** (reemplaza `AuthProvider`; `useAuth()` queda como fachada) y **agenda** (solo estado de interfaz; TanStack Query sigue como caché del servidor). Vitest con entorno node; devtools solo en desarrollo. Decisiones: D1 la agenda conserva filtro y sesión abierta al volver (sustituye 009 R7); D2 «Proponer» por el almacén; D3 Vitest; D4 devtools solo en desarrollo; D5 al aplicar una propuesta el filtro pasa a «Todos los juegos»; D6 la sesión creada queda abierta; D7/D10 sesión «por confirmar»: decide la primera respuesta correcta del servidor; I-1 fallos de red o de plazo = error; I-2 «lista que se ve» = datos en memoria; Q1 no se cambia el montaje del router; CR-1 nunca dos ventanas: la propuesta espera a que se cierre la abierta («esperar y reabrir»). Plan: P1 retener el error durante «Reintentar»; P2 campo `visit` en el almacén; P3 corregir en T10 la referencia de `AGENTS.md` a `HITO2.md`. Versiones propuestas `zustand@5.0.16` y `vitest@3.2.4` (Vitest 4 no admite Vite 5): T1 las comprueba con `npm view` antes de instalar. Comportamiento de RF-27 comprobado en TanStack Query 5.102.8 (riesgo R5 del plan). |
+| `017-libreria-de-estilos` | Spec APROBADA (2026-11-21); plan y tareas pendientes. Se implementa después de la 016 | Mantine **8.3.x** (la 9.x exige React 19) + `@mantine/hooks` explícito. Componentes base con tema desde los tokens; mismo aspecto (caja dibujada ±2 px). Decisiones: Q1 «Anotar una sesión» como modal estándar con foco dentro (sustituye 009 R10); Q2 «Solo cuentas verificadas» como interruptor; Q3 pestañas con el patrón de la ficha en las tres vistas; Q4 desvincular cuenta en ventana de Mantine (no la recomendada); Q5/Q7 un único tono de foco ≥ 3:1 en el tema claro en toda la página; Q6 Vitest solo para reglas puras; H1 colores sueltos → tokens nuevos con los mismos valores; H2 campos con borde y halo reforzados; H3 el panel de pestañas es parada de Tab; H6 `DemoTag`/`OriginTag` se quedan; Q8 nunca dos ventanas (CR-1 de la 016). Propuestas P1–P11 aceptadas. Su línea base visual se toma con la 016 ya implementada. |
+| `018-pruebas-e2e` | Spec APROBADA (2026-11-21); plan y tareas pendientes. Se implementa después de la 016 y la 017 | `e2etests/` independiente; build de producción en un solo puerto (modo producción, secreto generado por ejecución); solo Chromium; backend real con base E2E propia (nombre con «e2e», ubicación local); datos por la API pública y login siempre por el formulario (U8); cada escenario borra su usuario por la API (fallo de limpieza = escenario fallido con aviso claro, U6); en serie; 7 escenarios: E1–E4 (login, acceso protegido, F5, Atrás) y C1–C3 (crear, editar y cancelar una sesión de juego con F5, Atrás y Adelante); sesión testigo como ancla; ESLint + typescript-eslint + tipos; README propio enlazado desde el raíz. Riesgo U7: se supone que Chromium acepta la cookie `Secure` sobre `http://127.0.0.1`; lo comprueba la primera tarea del plan y, si falla, se para y se vuelve a la spec. Limitación conocida Q8: no protege la build de un servidor de producción levantado a mano desde el mismo checkout. |
 
 ## Deuda conocida
+
+- Pendiente del usuario y riesgos conocidos (2026-11-21):
+  - **Solo el usuario:**
+    - T9 de la 010 (despliegue real en `fullstack`: carpeta `~/reactivoActivo`, PM2
+      `reactivoActivo-7041`, puerto 7041). Antes: confirmar con el equipo qué colecciones `tmu_*`
+      tienen datos; el servidor tendría Node 20 (el plan pide ≥ 22; aviso `EBADENGINE` esperado).
+    - Recorridos con Steam real (013 T11) y con Steam y Leetify reales (015,
+      `validation.md` §2.2), pospuestos.
+    - NVDA (008 y 009, necesita Windows); que un compañero siga el README de despliegue.
+    - T9 de la 016 (cuando se llegue).
+  - **Riesgos:**
+    - 018 U7: si Chromium no acepta la cookie `Secure` sobre `http://127.0.0.1`, la 018 vuelve a la
+      spec (lo comprueba su primera tarea).
+    - 016 T1: si `zustand@5.0.16` o `vitest@3.2.4` no existen o no resuelven con Vite 5.4.21, T1
+      se detiene y se pregunta al usuario (R1 del plan).
+    - 016 R5: el plan depende de detalles internos de TanStack Query 5.102.8 (`manual`,
+      `placeholderData`, orden de avisos), pero `package.json` dice `^5.62.7` (el lock fija
+      5.102.8). Un `npm install` que suba la versión puede romperlo sin que lo detecten las pruebas
+      del almacén; solo los recorridos de T9.
+  - **Ramas:** `origin/deploy` tiene otra implementación de la 010 (`frontendDir`); lo útil ya se
+    trajo. No fusionarla.
+  - **Menores anotados (2026-11-20):** SteamID64 partido en la ficha a 375 px; pestaña elegida
+    fuera de vista a 360 px en la ficha; contraste de la agenda (`.week__session-meta` 4,19 en
+    oscuro, bloques en hover 1,1–1,85); foco con `--volt` en tema claro (< 3:1; lo resuelve la 017
+    Q5/Q7); `frontend/package.json` con `^` (la constitución pide versiones exactas);
+    `productionUi.test.ts` solo prueba uno de sus dos casos por ejecución; spec 011 en borrador.
 
 - Spec 004 (2026-10-19):
   - En Windows, `npm test` necesita `npm test --script-shell=bash` (el script usa sintaxis
@@ -324,8 +378,8 @@ hacer la 008.
     pruebas automáticas).
 - Resuelto en la 007 (RF-2): la interfaz ya no guarda el JWT (solo la cookie HttpOnly y el
   comprobante `tmu.csrf`).
-- El frontend no tiene runner de test (el principio 4 aplica solo al backend por decisión
-  del usuario).
+- El frontend no tiene runner de test todavía: lo instala la T1 de la 016 (Vitest; la
+  constitución enmendada el 2026-11-21 ya lo prevé). Quitar esta línea en la T10 de la 016.
 - `frontend/src/domain` importa sin extensión `.ts`, así que no se puede ejecutar directo
   con `node --test`.
 - Mejoras menores detectadas por reviewer en la spec 001 (opcionales, requieren cambio de spec):
@@ -635,7 +689,9 @@ hacer la 008.
 - Spec 001: `HITO2.md` no está en el repositorio; la spec no se contrastó con el enunciado.
 - Las dependencias se justifican en el `plan.md` de cada spec aprobada (principio 1).
 - Los 6 principios de la constitución quedan aprobados.
-- Principio 4 (tests primero) aplica solo al backend por ahora.
+- Principio 4 (tests primero) aplicaba solo al backend; enmendado por el usuario el 2026-11-21
+  (principios 1 y 4): Vitest en el frontend cuando una spec exige pruebas (tests primero) y
+  Playwright para E2E en `e2etests/`.
 - implementer escribe los archivos fuera de `specs/**`; planner solo escribe en `specs/**`.
 
 ## Notas técnicas para las specs siguientes
@@ -689,25 +745,28 @@ hacer la 008.
 
 ## Próximo paso
 
-Actualizado el 2026-11-20. Todo lo de esa noche está en commits locales de
-`feature/vinculacion-steam-riot` (sin push). Pendiente:
+Actualizado el 2026-11-21, para el compañero que continúa. Flujo: skill `sdd` con los agentes
+`planner` (spec, plan, tareas), `implementer` (una tarea) y `reviewer` (validación). **Ninguna
+fase se salta la aprobación explícita del usuario.** Rama `feature/vinculacion-steam-riot`.
 
-1. **Decisiones del usuario: cerradas (2026-11-20).** 009 C4 → cambio VC4 (excepción de contraste
-   de RNF-5, como el P65 de la 008); 007 RF-20 → R23 (RF-20 admite 65 s para resincronizar y las
-   operaciones de Riot; se descartó 65 s solo LoL); 007 O1 y O2 → R24 (aceptadas). Solo
-   documentación, sin código.
-2. **Solo el usuario:** despliegue de la 010 (T9; confirmar antes qué colecciones `tmu_*` tienen
-   datos en `fullstack`); recorridos con Steam real (013 T11) y con Steam y Leetify reales (015);
-   NVDA (008 y 009, necesita Windows); que un compañero siga el README.
-3. **Ramas:** `origin/deploy` tiene otra implementación de la 010 (`frontendDir`); lo útil (prefijo
-   y pasos del servidor) ya se trajo. No fusionarla: descartarla al fusionar esta rama.
-4. **Menores anotados:** SteamID64 partido en la ficha de jugador a 375 px; pestaña elegida fuera de
-   vista a 360 px en la ficha; contraste de la agenda (`.week__session-meta` 4,19 en oscuro, bloques
-   en hover 1,1–1,85); indicador de foco con `--volt` en tema claro (< 3:1); `frontend/package.json`
-   con `^` (la constitución pide versiones exactas); `productionUi.test.ts` solo prueba uno de sus
-   dos casos por ejecución; spec 011 en borrador.
-5. **graphify** no está instalado y `graphify-out/` no existe: instalarlo o quitar la regla de
-   `CLAUDE.md`.
+1. **Implementar la 016** (`specs/016-estado-global/tasks.md`) tarea por tarea con `implementer`:
+   una llamada por tarea, T1…T10 en orden (`/sdd-implement 016-estado-global Tn`). T1 primero
+   comprueba las versiones con `npm view` y se detiene si alguna no existe. Tras cada tarea,
+   comprobar en `frontend/` que `npm test`, `npm run typecheck`, `npm run lint` y `npm run build`
+   quedan en verde (y `git status --short backend/` vacío). **T9 la hace una persona** (recorrido
+   de la agenda con red lenta y devtools). Después, validación RF por RF con `reviewer`
+   (`/sdd-validate 016-estado-global`) y correcciones (máx. 2 vueltas).
+2. **Luego la 017:** `planner` redacta `plan.md` y `tasks.md` (`/sdd-plan`, `/sdd-tasks`) →
+   aprobación del usuario → implementación tarea por tarea → validación con `reviewer`. Su línea
+   base visual se toma con la 016 ya hecha.
+3. **Luego la 018:** igual que la 017. Su primera tarea comprueba la cookie `Secure` sobre
+   `http://127.0.0.1` (U7); si falla, parar y volver a la spec.
+4. **En paralelo, cuando el usuario pueda:** T9 de la 010 (despliegue; avisos en «Deuda
+   conocida»). El resto de lo que solo puede hacer el usuario también está allí.
+
+Decisiones del 2026-11-20 (009 C4 → VC4; 007 RF-20 → R23; 007 O1 y O2 → R24): cerradas, sin
+código. `graphify` ya está instalado (`graphify-out/` existe): tras modificar código, `graphify
+update .`.
 
 ## Notas de la spec 004 (2026-10-19)
 

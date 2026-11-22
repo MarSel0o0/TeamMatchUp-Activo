@@ -1,12 +1,14 @@
 # Spec 016 — Estado global de la sesión iniciada y de la agenda
-Estado: borrador (2026-11-20; dudas D1–D5 cerradas por el usuario el 2026-11-21; corregido el
+Estado: aprobada (2026-11-21, usuario); plan.md y tasks.md aprobados (2026-11-21, usuario); implementación pendiente.
+Historial: borrador desde el 2026-11-20; dudas D1–D5 cerradas por el usuario el 2026-11-21; corregido el
 2026-11-21 tras la revisión QA, hallazgos H1 a H18, con las decisiones D6 a D9 del usuario;
 dudas Q1 y Q2 cerradas por el usuario el 2026-11-21; corregido de nuevo el 2026-11-21 tras la
 segunda revisión QA, hallazgos N1 a N8, con la decisión D10 del usuario; corregido otra vez el
 2026-11-21 tras la tercera revisión QA, hallazgos I-1, I-2 y M-1 a M-7, con las decisiones I-1 e
-I-2 del usuario; ver «Decisiones»). Sin dudas abiertas. La enmienda de los principios 1 y 4 de la
-constitución la hizo el usuario el 2026-11-21 (D9, Q2). Pendiente solo de la aprobación del
-usuario. No pasa a plan hasta entonces.
+I-2 del usuario; ver «Decisiones». Sin dudas abiertas. La enmienda de los principios 1 y 4 de la
+constitución la hizo el usuario el 2026-11-21 (D9, Q2). Aprobada por el usuario el 2026-11-21.
+CR-1 (origen spec 017 Q8) aprobado por el usuario el 2026-11-21 («Decisiones», CR-1): toca RF-28,
+RF-29, RNF-2 (punto 7, nuevo), RNF-5, casos límite y criterios de finalización.
 
 ## Contexto y objetivo
 El enunciado del último hito pide completar la aplicación como una SPA de producción. Su punto 1
@@ -36,8 +38,10 @@ Esta spec mueve dos estados a dos almacenes globales:
    abierta mientras navega por la aplicación (RF-15), con un estado de carga en el panel mientras
    no puede decidir si la sesión abierta sigue existiendo (RF-25); la sesión de juego recién
    creada queda abierta (RF-24); una propuesta de «Proponer» se descarta si recarga o sale de la
-   agenda antes de que se abra el formulario (RF-30); y «Anotar una sesión» ya no se abre con un
-   juego que el jugador no tiene vinculado (RF-13).
+   agenda antes de que se abra el formulario (RF-30); «Anotar una sesión» ya no se abre con un
+   juego que el jugador no tiene vinculado (RF-13); y una propuesta que debe aplicarse con una
+   ventana abierta en la agenda («¿Cancelar esta sesión?» o «Anotar una sesión») espera a que esa
+   ventana se cierre, de modo que nunca hay dos ventanas abiertas a la vez (RF-28 y RF-29, CR-1).
 
 Además, los almacenes y sus reglas puras se prueban con pruebas automáticas en el frontend
 (RNF-5) y los almacenes se pueden inspeccionar con las herramientas de depuración del navegador
@@ -52,8 +56,8 @@ solo en desarrollo (RF-21).
   el apéndice A para la trazabilidad. Decisiones del usuario del 2026-11-20: Zustand; dos
   almacenes (sesión iniciada y estado de interfaz de la agenda); TanStack Query se mantiene como
   caché de los datos del servidor; Mantine y Playwright van en las specs 017 y 018. Decisiones del
-  usuario del 2026-11-21: D1 a D9, dos confirmaciones y las respuestas a Q1 y Q2 (sección
-  «Decisiones»).
+  usuario del 2026-11-21: D1 a D9, dos confirmaciones y las respuestas a Q1 y Q2, y el cambio de
+  requisitos CR-1 (origen spec 017 Q8, aprobado el 2026-11-21) (sección «Decisiones»).
 - Esta spec no cambia el servidor ni el contrato de datos.
 - Exige enmendar los principios 1 y 4 de la constitución (D3, D9). La enmienda la hizo el
   usuario en `docs/constitution.md` el 2026-11-21, antes de aprobar esta spec. El texto vigente de
@@ -405,39 +409,50 @@ mover las referencias de la revisión QA; se colocan en la sección que les corr
   desde la interfaz no se pueden tener dos propuestas pendientes, porque pulsar «Proponer» lleva a
   la agenda y salir de ella antes de aplicarla la descarta (RF-30).
 - RF-28: MIENTRAS hay una propuesta pendiente y la pestaña está en la agenda, EL SISTEMA aplica la
-  regla de RF-29 al llegar a la agenda y cada vez que cambia una de sus entradas, y actúa según su
-  resultado:
-  - CUANDO la regla da «esperar», EL SISTEMA no abre el formulario: la agenda se ve como al
-    volver a ella (RF-15), con el filtro conservado pulsado y pidiendo su lista (diferencia
-    visible declarada en RNF-2, H15).
+  regla de RF-29 al llegar a la agenda y cada vez que cambia una de sus entradas (también cuando
+  se abre o se cierra una ventana de la agenda), y actúa según su resultado:
+  - CUANDO la regla da «esperar», EL SISTEMA no abre el formulario y la propuesta sigue
+    pendiente. Si espera las cuentas, la agenda se ve como al volver a ella (RF-15), con el
+    filtro conservado pulsado y pidiendo su lista (diferencia visible declarada en RNF-2, H15).
+    Si espera a que se cierre una ventana de la agenda (RF-29, caso 5), esa ventana sigue
+    abierta y nada de la agenda cambia: nunca hay dos ventanas abiertas a la vez (CR-1).
   - CUANDO la regla da «aplicar», EL SISTEMA, en un solo paso, abre «Anotar una sesión» con los
     datos que da la regla, pone el filtro en «Todos los juegos», que pide su lista como en RF-11
     (D5), y quita la propuesta pendiente. La sesión abierta, si la hay, sigue RF-11 y RF-25 a
     RF-27: si está en la lista de «Todos los juegos», sigue abierta.
   - CUANDO la regla da «descartar», EL SISTEMA quita la propuesta pendiente sin abrir el
-    formulario y sin cambiar el filtro, la sesión abierta ni nada más de la agenda: queda como si
-    se hubiera abierto directamente (D5).
+    formulario y sin cambiar el filtro, la sesión abierta ni nada más de la agenda (una ventana
+    abierta sigue abierta): queda como si se hubiera abierto directamente (D5).
+
+  Así, una propuesta que da «aplicar» con una ventana abierta en la agenda se aplica en cuanto
+  esa ventana se cierra, por cualquier camino (también al confirmar la cancelación con 204),
+  salvo que antes se descarte: por salir de la agenda o recargar (RF-30, también por un 401,
+  RF-16), o porque la regla, con las entradas de ese momento, dé «descartar» (CR-1).
 
   Una propuesta quitada no vuelve: ni «Atrás», ni «Adelante», ni volver a la agenda la reabren
   (un solo uso, spec 007, RF-30). Cerrar el formulario sin crear la sesión de juego no devuelve el
   filtro anterior: queda en «Todos los juegos».
 - RF-29: EL SISTEMA decide qué hacer con la propuesta pendiente con una única regla pura (RNF-4)
   (D8). Entradas: la propuesta (juego, día, hora de inicio, duración y título); si hay usuario de
-  sesión; y el estado de la carga de las cuentas del usuario de la sesión: «cargando» (también si
-  se están volviendo a pedir), «fallida» o «cargada», con los juegos de sus cuentas. Salida: una
-  sola de «esperar», «aplicar» o «descartar», según el primero de estos casos que se cumpla:
+  sesión; el estado de la carga de las cuentas del usuario de la sesión: «cargando» (también si
+  se están volviendo a pedir), «fallida» o «cargada», con los juegos de sus cuentas; y si hay una
+  ventana abierta en la agenda («¿Cancelar esta sesión?» o «Anotar una sesión»; CR-1). Salida:
+  una sola de «esperar», «aplicar» o «descartar», según el primero de estos casos que se cumpla:
   1. Sin usuario de sesión (por ejemplo, tras un 401): «descartar».
   2. Cuentas «cargando»: «esperar».
   3. Cuentas «fallida»: «descartar». El error de la carga se muestra como hoy (spec 007, RF-9) y
      la propuesta no vuelve aunque después se reintente.
   4. Cuentas «cargada» sin ninguna cuenta en el juego propuesto: «descartar».
-  5. Cuentas «cargada» con cuenta en el juego propuesto: «aplicar», con este borrador: juego, día,
-     hora de inicio, duración y título de la propuesta; cupos y notas con sus valores por
-     defecto; y, junto a él, el filtro «Todos los juegos».
+  5. Cuentas «cargada» con cuenta en el juego propuesto y una ventana abierta en la agenda:
+     «esperar» (CR-1).
+  6. Cuentas «cargada» con cuenta en el juego propuesto y ninguna ventana abierta en la agenda:
+     «aplicar», con este borrador: juego, día, hora de inicio, duración y título de la propuesta;
+     cupos y notas con sus valores por defecto; y, junto a él, el filtro «Todos los juegos».
 
   Es la regla que aplica hoy la agenda (spec 007, RF-30; spec 008, RF-21), salvo que ya no lee ni
   valida un dato sin tipo del estado de la navegación: la propuesta llega con su forma desde
-  «Proponer» (D2, D8).
+  «Proponer» (D2, D8); y salvo el caso 5: hoy la agenda abre el formulario aunque haya una
+  ventana abierta (CR-1).
 - RF-30: SI hay una propuesta pendiente y la pestaña pasa a una ruta distinta de la agenda (por un
   enlace, por «Atrás» o «Adelante» o por una regla de sesión, también antes de que la agenda
   llegue a pintarse tras pulsar «Proponer»), o se recarga, ENTONCES EL SISTEMA la descarta y no la
@@ -557,6 +572,9 @@ mover las referencias de la revisión QA; se colocan en la sección que les corr
      ese filtro pulsado y se pide su lista mientras se esperan las cuentas; al aplicarse la
      propuesta, el filtro pasa a «Todos los juegos» y se pide otra lista. Hoy se llega siempre con
      «Todos los juegos». Si la propuesta se descarta, el filtro conservado no cambia.
+  7. RF-28 y RF-29 (CR-1): si la propuesta pasa a «aplicar» con «¿Cancelar esta sesión?» o
+     «Anotar una sesión» abierta en la agenda, el formulario con la propuesta no se abre hasta que
+     esa ventana se cierra; hoy la agenda lo abre en el acto, aunque haya una ventana abierta.
   La línea base es el recorrido «Sesión y conexión» (5.A) del registro de validación de la spec
   007 y los pasos de agenda del registro de validación de la spec 009, repetidos tras el cambio
   con el mismo resultado salvo esos puntos.
@@ -612,13 +630,17 @@ mover las referencias de la revisión QA; se colocan en la sección que les corr
     - «aplicar»: borrador con los datos, filtro «Todos los juegos» y propuesta quitada;
       «descartar»: filtro, sesión abierta y borrador intactos y propuesta quitada; «esperar»: nada
       cambia;
+    - una propuesta que espera por una ventana abierta en la agenda sigue pendiente; al cerrarse
+      la ventana se aplica; si antes se sale de la agenda, se descarta (CR-1);
     - salir de la agenda con una propuesta pendiente: descartada; un almacén recién creado (como
       tras recargar) está en el estado inicial;
     - salir de la agenda: el borrador se cierra y el filtro y la sesión abierta siguen;
     - reinicio al limpiar la sesión del cliente o al entrar un usuario (RF-16).
-  - Reglas puras (RNF-4; C2): RF-29, los cinco casos y su prioridad (sin usuario con cuentas
-    cargando da «descartar»; carga fallida da «descartar» aunque haya cuenta en el juego); RF-13,
-    filtro vinculado, «Todos los juegos», filtro de un juego nunca vinculado, filtro de un juego
+  - Reglas puras (RNF-4; C2): RF-29, los seis casos y su prioridad (sin usuario con cuentas
+    cargando da «descartar»; carga fallida da «descartar» aunque haya cuenta en el juego; con una
+    ventana abierta en la agenda, «esperar» solo donde sin ella saldría «aplicar», y sin usuario,
+    carga fallida o sin cuenta en el juego dan «descartar» aunque haya una ventana abierta;
+    CR-1); RF-13, filtro vinculado, «Todos los juegos», filtro de un juego nunca vinculado, filtro de un juego
     ya desvinculado, orden de la lista de cuentas, sin cuentas recibidas (primera carga en curso
     o fallida) y cuentas recibidas sin ningún juego vinculado (estos dos, «no se abre»).
 
@@ -628,7 +650,8 @@ mover las referencias de la revisión QA; se colocan en la sección que les corr
   panel, su título y su foco de RF-25 y RF-26; ninguna vista intermedia en RF-3); el montaje doble
   del modo de desarrollo (RF-2); que la ruta de origen sea la de la vista en pantalla (RF-6); la
   vigilancia real entre pestañas, en 5 s, con la pestaña oculta y sin almacenamiento (RF-7);
-  «Atrás», «Adelante» y recarga (RF-15, RF-30); y RF-21 y RF-22.
+  «Atrás», «Adelante» y recarga (RF-15, RF-30); que el formulario de la propuesta se abra al
+  cerrarse la ventana de la agenda (RF-28, CR-1); y RF-21 y RF-22.
 
   **Riesgos para el plan (H13)**: (a) si alguna transición solo se puede probar con un entorno de
   navegador simulado, hace falta otra dependencia de desarrollo (RNF-1); el plan debe intentar
@@ -763,6 +786,22 @@ mover las referencias de la revisión QA; se colocan en la sección que les corr
   RF-29).
 - Llegar con una propuesta teniendo el filtro ya en «Todos los juegos»: el filtro sigue igual y
   el formulario se abre como hoy (RF-28).
+- Propuesta que espera las cuentas y, mientras tanto, el jugador abre «¿Cancelar esta sesión?» en
+  la agenda; las cuentas llegan con la ventana abierta y la propuesta tiene cuenta en su juego: no
+  se abre nada encima y la propuesta sigue pendiente. Al cerrarse la ventana por cualquier camino
+  («Volver», el botón de cerrar, Escape, pulsar fuera o la confirmación de la cancelación con
+  204), se aplica: se abre «Anotar una sesión» con la propuesta y el filtro pasa a «Todos los
+  juegos». Si la cancelación falla, la ventana sigue abierta (spec 009, RF-23) y la propuesta
+  sigue esperando (RF-28, RF-29, CR-1).
+- Mismo caso, y con la ventana abierta el jugador sale de la agenda (por «Atrás» o por un 401,
+  que cierran la ventana) o recarga: la propuesta se descarta y no se abre en ninguna visita
+  posterior (RF-16, RF-30, CR-1). Si, con la ventana abierta, la regla pasa a «descartar» (RF-29,
+  casos 1, 3 y 4), la propuesta se quita en el acto y la ventana sigue abierta (RF-28).
+- Propuesta que espera mientras las cuentas se vuelven a pedir, y el jugador abre «Anotar una
+  sesión» con las cuentas ya recibidas (RF-13.a): cuando la regla pasaría a «aplicar», el
+  formulario abierto no cambia; al cerrarse (con «Cancelar», el botón de cerrar, Escape, pulsar
+  fuera o al crear la sesión de juego), se abre otra vez «Anotar una sesión», ahora con la
+  propuesta (RF-28, RF-29, CR-1).
 - Modo de desarrollo sin la extensión de depuración: todo funciona igual y la consola no muestra
   errores de los almacenes. En una carga completa, sin recargas en caliente, sale como máximo un
   aviso de la biblioteca sobre la extensión que falta por cada almacén creado: el de la agenda
@@ -856,6 +895,12 @@ mover las referencias de la revisión QA; se colocan en la sección que les corr
       una propuesta descartada
       (sin cuenta en ese juego o carga de las cuentas fallida), el filtro conservado no cambia
       (RF-28, RF-29, D5).
+- [ ] «Proponer» con las cuentas lentas (red lenta en las herramientas del navegador) y, mientras
+      esperan, «¿Cancelar esta sesión?» abierta en la agenda: al llegar las cuentas no se abre
+      «Anotar una sesión» y solo hay una ventana; al cerrarla con «Volver», se abre con la
+      propuesta y el filtro «Todos los juegos»; lo mismo confirmando la cancelación con 204; y,
+      saliendo de la agenda con «Atrás» o recargando con la ventana abierta, la propuesta se
+      descarta (RF-28 a RF-30, CR-1).
 - [ ] Tras cerrar sesión, tras un 401 y tras un cambio de sesión en otra pestaña, el almacén de la
       agenda está en su estado inicial y no se ve nada de la cuenta anterior (RF-16).
 - [ ] Las herramientas del navegador no muestran claves nuevas en ningún almacenamiento tras usar
@@ -1083,6 +1128,28 @@ comportamiento decidido (I-1 e I-2 los decidió el usuario):
 - Opcionales: D6 lleva una precisión que la alinea con D10; el nombre accesible del «Reintentar»
   del panel queda para el plan (RF-25); se arreglan los saltos de línea de RF-21, RNF-5 y un
   criterio.
+
+Cambio de requisitos sobre la versión aprobada:
+
+- **CR-1. Cambio de requisitos 2026-11-21, origen: spec 017 Q8, usuario. Aprobado por el usuario
+  el 2026-11-21.** La spec 017 (Q8) vio que una propuesta pendiente puede pasar a
+  «aplicar» (por ejemplo, al llegar las cuentas) con «¿Cancelar esta sesión?» abierta en la
+  agenda, y que esta spec abriría entonces «Anotar una sesión» encima: dos ventanas a la vez, con
+  dos retenciones del foco y Escape cerrando las dos. El usuario eligió la opción A: la propuesta
+  que debe aplicarse espera a que no haya ninguna ventana abierta en la agenda y se aplica cuando
+  esa ventana se cierra, por cualquier camino (también al confirmar la cancelación con 204); si
+  mientras espera se dan las condiciones de descarte de esta spec (salir de la agenda, recargar,
+  401, o que la regla dé «descartar»), se descarta. Nunca hay dos ventanas abiertas a la vez en
+  la agenda. Descartadas: B (descartar la propuesta si llega a «aplicar» con una ventana abierta,
+  que la pierde sin aviso) y C (abrir «Anotar una sesión» y cerrar la otra ventana, que hace
+  perder al jugador la ventana que estaba usando). El foco al abrirse y al cerrarse el formulario
+  lo fija la spec 017 (RF-12). «Anotar una sesión» abierta cuenta entre las ventanas que hacen
+  esperar (lectura literal de «ninguna ventana abierta», del planificador, **confirmada por el
+  usuario el 2026-11-21**: «esperar y reabrir»): si la propuesta pasa a «aplicar» con «Anotar una
+  sesión» abierta por el propio jugador, el formulario abierto no cambia y, al cerrarse por
+  cualquier camino (también tras crear una sesión de juego), se abre otra vez «Anotar una sesión»
+  con la propuesta. Reflejado en RF-28,
+  RF-29, RNF-2 (punto 7), RNF-5, casos límite y criterios de finalización.
 
 ## Dudas abiertas
 Ninguna. Q1 y Q2 se cerraron el 2026-11-21, N2 lo decidió el usuario como D10, e I-1 e I-2 los
