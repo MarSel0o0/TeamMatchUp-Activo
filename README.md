@@ -13,6 +13,7 @@ bloques horarios**.
 | --- | --- | --- |
 | `frontend/` | Aplicación React + TypeScript (Vite) | Implementada |
 | `backend/` | Servidor Express 5 + MongoDB (Mongoose), TypeScript | Implementado |
+| `e2etests/` | Pruebas E2E con Playwright (Chromium) contra el servidor real compilado | Implementadas (spec 018) |
 
 En producción el backend sirve también la interfaz compilada: interfaz y API comparten
 origen y puerto, así que no hay CORS y la cookie de sesión funciona con `SameSite=Strict`.
@@ -79,6 +80,24 @@ Con `NODE_ENV=production` el servidor entrega la interfaz en cualquier ruta fuer
 (recargar `/perfil` funciona) y una ruta de API inexistente responde 404 en JSON. Si falta
 `backend/dist/index.html`, no arranca: termina con código 1 y pide ejecutar `npm run build:ui`.
 En producción no se admite el `JWT_SECRET` de desarrollo.
+
+## Pruebas E2E
+
+La carpeta `e2etests/` tiene la suite de pruebas de extremo a extremo con Playwright: compila la
+interfaz y el servidor, arranca el servidor en modo producción en `http://127.0.0.1:3901` con una
+base MongoDB propia (`teammatchup_e2e`) y recorre en Chromium el inicio de sesión, el acceso
+protegido y crear, editar y cancelar una sesión de juego. Con MongoDB local en marcha y las
+dependencias de `frontend/` y `backend/` instaladas (`npm ci` en cada una):
+
+```bash
+cd e2etests
+npm ci
+npm run browser:install
+npm test
+```
+
+Condiciones previas, variables, base de datos, informes y limitaciones (por ejemplo, que cada
+ejecución sustituye `backend/dist` y `backend/out`) en [`e2etests/README.md`](e2etests/README.md).
 
 ## Variables de entorno
 
