@@ -2,6 +2,7 @@ import { AlertCircle } from 'lucide-react';
 import { formatRank } from '@/domain/games';
 import { LEETIFY_NO_HISTORY_TEXT, isLeetifyRank } from '@/domain/premierDisplay';
 import { showsLeetifyMatches } from '@/domain/leetifyMatches';
+import { showModeTabs } from '@/domain/matchModes';
 import { isBlockPending } from '@/domain/riotDisplay';
 import type { SteamProfileOwner } from '@/features/steam/components/SteamProfileBlock';
 import { readNormalized, readWinRate } from '@/domain/playerSheet';
@@ -27,6 +28,7 @@ import { pluralize } from '@/shared/utils/format';
 import { AccountRow } from './AccountRow';
 import { LeetifyMatchList } from './LeetifyMatchList';
 import { MatchLedger } from './MatchLedger';
+import { ModeMatchLedger } from './ModeMatchLedger';
 
 interface GameSummaryPanelProps {
   summary: GameProfileSummary;
@@ -171,6 +173,14 @@ export function GameSummaryPanel({
             ownerId={summary.account.userId}
             gameId={summary.account.gameId}
             handle={summary.account.handle}
+          />
+        ) : !matchesPending && showModeTabs(summary.account.origins.matches, summary.recentMatches) ? (
+          // Spec 020 (RF-5, RF-6): LoL con datos de Riot, por modo; `key` por cuenta reinicia la pestaña al cambiar de
+          // cuenta o de juego (RF-6). Simuladas, CS2, R6, pendiente y vacío siguen con la lista de siempre (RF-16, RF-17).
+          <ModeMatchLedger
+            key={summary.account.id}
+            matches={summary.recentMatches}
+            origin={summary.account.origins.matches}
           />
         ) : (
           <MatchLedger

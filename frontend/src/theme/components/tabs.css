@@ -94,3 +94,17 @@
   outline: 2px solid var(--focus-ring);
   outline-offset: -2px;
 }
+
+/*
+ * Pestañas de partidas por modo (spec 020, RF-5, RF-11, RNF-3), `PillTabs`: la misma píldora, más baja y con menos
+ * relleno para que las seis quepan en una ficha estrecha; si aun así no caben, la lista se desplaza (ya lo hace
+ * `.tmu-tabs__list`) sin desbordar. Separación respecto de la lista de partidas con un token.
+ */
+.tmu-tabs__list--compact {
+  margin-block-end: var(--s3);
+}
+
+.tmu-tabs__list--compact .tmu-tabs__tab {
+  height: 34px;
+  padding: 0 var(--s3);
+}

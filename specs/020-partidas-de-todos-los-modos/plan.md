@@ -1,5 +1,5 @@
 # Plan 020 — Partidas de todos los modos en la ficha de LoL
-Estado: aprobado (2026-11-22, usuario)
+Estado: aprobado (2026-11-22, usuario); implementado
 
 Spec: `specs/020-partidas-de-todos-los-modos/spec.md` (aprobada el 2026-11-22). Constitución y `AGENTS.md` leídos.
 Este plan no contiene código: solo firmas, pseudocódigo y decisiones. Ninguna regla usa el reloj, así que ninguna

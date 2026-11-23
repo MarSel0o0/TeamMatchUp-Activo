@@ -140,6 +140,9 @@ export interface RiotConfirmResult {
 
 export type MatchResult = 'win' | 'loss';
 
+/** Modo de una partida de LoL con datos de Riot (spec 020, RF-2). */
+export type MatchMode = 'solo' | 'flex' | 'normal' | 'aram' | 'other';
+
 export interface MatchRecord {
   id: string;
   gameId: GameId;
@@ -148,6 +151,8 @@ export interface MatchRecord {
   /** Resumen corto y agnóstico del juego, ej. `Ahri · 8/2/11`. */
   summary: string;
   durationMinutes: number;
+  /** Solo en las partidas de LoL con datos de Riot; las simuladas no lo tienen (spec 020, RF-2, RF-16). */
+  mode?: MatchMode;
   /** Variación de puntos; opcional en partidas reales de Riot sin variación fiable (spec 014, RF-12, RF-30). */
   rankDelta?: number;
 }

@@ -155,6 +155,17 @@ export const FIRST_READING_LABEL = 'Primera lectura:';
 export const RECENT_MATCHES_TITLE = 'Últimas partidas';
 export const WIN_RATE_SUFFIX = 'ganadas';
 
+/** Pestañas de las partidas de LoL por modo (spec 020, RF-5, RF-11). */
+export const MATCH_MODE_TABS_LABEL = 'Modo de partida';
+export const MATCH_MODE_LABELS = {
+  all: 'Todas',
+  solo: 'Solo/Dúo',
+  flex: 'Flex',
+  normal: 'Normales',
+  aram: 'ARAM',
+  other: 'Otros',
+} as const;
+
 /** Partidas de CS2 desde Leetify (spec 019, RF-5, RF-7, RF-8, RF-10). */
 export const LEETIFY_MATCHES_LABEL = 'Datos de Leetify';
 export const LEETIFY_MATCHES_LOADING = 'Cargando partidas de Leetify…';

@@ -1,5 +1,5 @@
 # Tareas 020 — Partidas de todos los modos en la ficha de LoL
-Estado: aprobado por el usuario (2026-11-22); T1–T7 (backend) hechas el 2026-11-22; parado en el punto de control tras T7, a la espera del usuario para seguir con T8
+Estado: aprobado por el usuario (2026-11-22); implementadas las 12 tareas (2026-11-22); pendiente de la revisión del usuario
 
 `spec.md` y `plan.md` aprobados el 2026-11-22. Salen **12 tareas**, más de las 10 que sugiere el flujo SDD. Propuesta:
 **no dividir la spec**, porque es una sola rebanada vertical (el modo que se lee en el backend es lo que pintan las
@@ -95,7 +95,7 @@ Reglas para todas las tareas:
 
 ## Bloque B — Frontend y cierre
 
-- [ ] **T8. Reglas de las pestañas de partidas.** RF-5, RF-7, RF-10, RF-16, RF-17, RNF-4
+- [x] **T8. Reglas de las pestañas de partidas.** RF-5, RF-7, RF-10, RF-16, RF-17, RNF-4
   - Tipos: `MatchMode` y `MatchRecord.mode?` en `domain/types.ts`; `GameProfileSummary.winRate: number | null` y la nota de
     `recentMatches` en `apiContract.ts`; ajuste de tipo en `mockApi.ts` (el mock sigue sin datos de Riot ni modos).
   - Pruebas Vitest primero en `domain/matchModes.test.ts` y módulo con firmas «sin implementar»: `showModeTabs` (origen
@@ -105,7 +105,7 @@ Reglas para todas las tareas:
   - Hecho cuando: las pruebas pasan de rojo a verde; verde en el frontend; `git status --short backend/` sin cambios de esta
     tarea.
 
-- [ ] **T9. Pestañas genéricas con píldora.** RF-11, RNF-3
+- [x] **T9. Pestañas genéricas con píldora.** RF-11, RNF-3
   - Componente `shared/components/PillTabs.tsx` sobre el `Tabs` de la librería, con el patrón de `GameTabs` (una parada de
     Tab, flechas circulares, Inicio y Fin que eligen, panel asociado con foco visible, píldora con resorte y `useId`); píldora
     con `--volt` y texto `--tab-ink`; `GameTabs` no se toca. Modificador compacto en `theme/components/tabs.css` (altura 34 px,
@@ -114,7 +114,7 @@ Reglas para todas las tareas:
   - Hecho cuando: el componente compila y se usa solo desde T10; la prueba de colores del tema (`npm test`) sigue en
     verde sin literales nuevos; `GameTabs` queda sin diferencias en `git diff`; verde en el frontend.
 
-- [ ] **T10. La ficha enseña las partidas por modo.** RF-5, RF-6, RF-7, RF-8, RF-9, RF-10, RF-16, RF-17, RF-18
+- [x] **T10. La ficha enseña las partidas por modo.** RF-5, RF-6, RF-7, RF-8, RF-9, RF-10, RF-16, RF-17, RF-18
   - `features/profile/components/ModeMatchLedger.tsx`: estado de la pestaña elegida (inicio `all`), reinicio a `all` al pintar
     si el modo desaparece, `PillTabs` con las disponibles y `MatchLedger` con las partidas de `matchesForTab`.
   - `MatchLedger.tsx`: prop `showMode`; en «Todas» la línea secundaria de cada fila añade el modo; el formato de fila y la
@@ -124,7 +124,7 @@ Reglas para todas las tareas:
   - Hecho cuando: verde en el frontend; el cambio de pestaña no hace peticiones (solo estado local, comprobado leyendo el
     código); el panel de una cuenta simulada, de CS2 y de R6 no cambia (mismo árbol de elementos que antes).
 
-- [ ] **T11. Validación en el navegador con modos mezclados.** RF-5 a RF-12, RF-16, RF-17, RNF-3
+- [x] **T11. Validación en el navegador con modos mezclados.** RF-5 a RF-12, RF-16, RF-17, RNF-3
   - Con el servidor real y MongoDB, un usuario con una cuenta de LoL y el navegador interceptando la respuesta del resumen
     para devolver el contrato de plan §5 con modos mezclados (script en `specs/020-partidas-de-todos-los-modos/evidence/`),
     en tema oscuro y claro y a 1280, 375 y 360 px. Comprobar: pestañas presentes y en orden, solo con partidas; tope de 8
@@ -135,7 +135,7 @@ Reglas para todas las tareas:
     comprobado» (con clave real de Riot: formato de `queueId` y cuenta real; lector de pantalla), y los defectos hallados
     están corregidos o listados.
 
-- [ ] **T12. Cierre de la spec.** Todos los RF y RNF
+- [x] **T12. Cierre de la spec.** Todos los RF y RNF
   - Actualizar `AGENTS.md` (línea de la 014: partidas de todos los modos; `domain/` del backend con `matchMode`) y
     `MEMORY.md` (estado, tabla de specs, próximo paso); marcar `spec.md` como «implementada, pendiente de la revisión del
     usuario»; ejecutar `graphify update .`.

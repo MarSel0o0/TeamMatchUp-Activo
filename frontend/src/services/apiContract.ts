@@ -58,9 +58,16 @@ export interface UpdateProfilePayload {
 /** Resumen que alimenta la vista de perfil para un juego concreto. */
 export interface GameProfileSummary {
   account: GameAccount;
+  /**
+   * Las 8 primeras partidas guardadas; en una cuenta de LoL con datos de Riot, todas las guardadas (hasta 20), cada
+   * una con su `mode` (spec 020, RF-12; plan, §5).
+   */
   recentMatches: MatchRecord[];
-  /** Ausente cuando las partidas las entrega Leetify (spec 019, RF-4). */
-  winRate?: number;
+  /**
+   * Ausente cuando las partidas las entrega Leetify (spec 019, RF-4). En LoL con datos de Riot es solo el de las 8
+   * últimas de Solo/Dúo, o `null` si no hay ninguna (spec 020, RF-12).
+   */
+  winRate?: number | null;
   /** Variación del rango normalizado en los últimos 30 días. */
   trend: number;
 }

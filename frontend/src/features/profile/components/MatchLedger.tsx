@@ -1,8 +1,9 @@
 import type { CSSProperties } from 'react';
+import { modeOf } from '@/domain/matchModes';
 import { formatMatchDate, formatMatchDelta } from '@/domain/riotDisplay';
 import type { MatchRecord, Origin } from '@/domain/types';
 import { OriginTag } from '@/shared/components/OriginTag';
-import { RIOT_PENDING_LABEL } from '@/shared/utils/copy';
+import { MATCH_MODE_LABELS, RIOT_PENDING_LABEL } from '@/shared/utils/copy';
 import { timeAgo } from '@/shared/utils/format';
 import './matchLedger.css';
 
@@ -12,10 +13,12 @@ interface MatchLedgerProps {
   origin: Origin;
   /** Bloque de partidas pendiente de lectura tras verificación parcial con Riot (spec 014, RF-27). */
   pending?: boolean;
+  /** Añade el modo de cada partida a su línea secundaria: solo en la pestaña «Todas» (spec 020, RF-8). */
+  showMode?: boolean;
 }
 
 /** Historial de partidas: una fila por partida, con su variación de rango. */
-export function MatchLedger({ matches, origin, pending = false }: MatchLedgerProps) {
+export function MatchLedger({ matches, origin, pending = false, showMode = false }: MatchLedgerProps) {
   if (pending) {
     return <p className="note note--faint">{RIOT_PENDING_LABEL}</p>;
   }
@@ -58,6 +61,7 @@ export function MatchLedger({ matches, origin, pending = false }: MatchLedgerPro
                 <span className="note note--faint">
                   {origin === 'riot' ? formatMatchDate(match.playedAt) : timeAgo(match.playedAt)} ·{' '}
                   {match.durationMinutes} min
+                  {showMode ? ` · ${MATCH_MODE_LABELS[modeOf(match)]}` : null}
                 </span>
               </td>
               <td className="ledger__right">

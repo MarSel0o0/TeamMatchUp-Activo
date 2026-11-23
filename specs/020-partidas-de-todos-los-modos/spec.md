@@ -1,5 +1,5 @@
 # Spec 020 — Partidas de todos los modos en la ficha de LoL
-Estado: aprobada (2026-11-22, usuario)
+Estado: implementada (2026-11-22; T1–T12), pendiente de la revisión del usuario y del `reviewer` (`validation.md`)
 
 Historial: borrador del 2026-11-22. Las decisiones D1 y D2 las tomó el usuario (2026-11-22); D3 a D8 son las
 opciones recomendadas por el planificador (el usuario pidió «haz todo lo recomendado»). El usuario aprobó la spec
