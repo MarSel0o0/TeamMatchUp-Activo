@@ -12,17 +12,23 @@
 }
 
 .matches__list {
+  /* Columnas compartidas por la cabecera y cada fila (`.entry__line`). Son grids independientes, así que
+     cada pista debe medir lo mismo en todos: nada de `auto` ni de pistas que dependan del contenido. La
+     última (acciones) es fija y cabe "Proponer" junto a "Ocultar", el más ancho de los dos textos del botón. */
+  --match-columns: 38px minmax(140px, 1.4fr) 150px 126px 76px 12.5rem;
   padding-bottom: var(--s3);
 }
 
 /* La cabecera de columnas se escribe una vez, no en cada fila. */
 .matches__columns {
   display: grid;
-  grid-template-columns: 38px minmax(140px, 1.4fr) 150px 126px 76px auto;
+  grid-template-columns: var(--match-columns);
   align-items: end;
   gap: var(--s4);
   margin: 0 var(--s3);
   padding: var(--s4) var(--s4) var(--s2);
+  /* El mismo borde transparente que `.entry`, para que la cabecera no quede 1px corrida. */
+  border: 1px solid transparent;
 }
 
 .matches__columns .label:nth-child(5) {
