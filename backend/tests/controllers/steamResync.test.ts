@@ -124,7 +124,7 @@ describe("resincronizar con Steam (RF-14)", () => {
     assert.deepEqual((response.body as { origins: unknown }).origins, {
       identity: "steam",
       rank: "leetify",
-      matches: "simulated",
+      matches: "leetify",
       profile: "steam",
     });
   });

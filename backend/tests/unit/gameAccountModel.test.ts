@@ -240,7 +240,7 @@ describe("GameAccount: verificación y origen por bloque (spec 012, RF-1, RF-5, 
     assert.deepStrictEqual(json.origins, {
       identity: "steam",
       rank: "leetify",
-      matches: "simulated",
+      matches: "leetify",
       profile: "steam",
     });
   });
@@ -310,7 +310,7 @@ describe("GameAccount: rango Premier de CS2 (spec 015, RF-7, RF-8, RF-20; P15-1,
     assert.strictEqual(json.currentRank, null);
     assert.deepStrictEqual(json.rankHistory, []);
     assert.strictEqual(json.premierStatus, "unavailable");
-    assert.deepStrictEqual(json.origins, { identity: "steam", rank: "leetify", matches: "simulated", profile: "steam" });
+    assert.deepStrictEqual(json.origins, { identity: "steam", rank: "leetify", matches: "leetify", profile: "steam" });
   });
 
   test("verificada con Steam y sin rango Premier: currentRank nulo es válido y sale premierStatus", async () => {

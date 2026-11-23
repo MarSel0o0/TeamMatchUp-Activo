@@ -83,3 +83,26 @@
 .ledger__delta[data-none] {
   color: var(--ink-3);
 }
+
+/* Partidas de Leetify (spec 019, RF-3, RF-5): etiqueta con la atribución y resultado en palabras. */
+.leetify-matches__source {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s2);
+}
+
+.ledger__outcome {
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  font-weight: 700;
+  color: var(--danger);
+}
+
+.ledger__outcome[data-outcome='win'] {
+  color: var(--ok);
+}
+
+.ledger__outcome[data-outcome='tie'] {
+  color: inherit;
+}

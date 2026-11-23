@@ -101,7 +101,8 @@ export function createApp(options: AppOptions): Express {
   app.use(cookieParser());
 
   // Registro público (002-RF-26); el resto de rutas de usuario, protegidas (003-RF-1).
-  app.use("/api/users", createUsersRouter({ jwtSecret, nodeEnv, now }));
+  // Spec 019: las partidas de CS2 verificada con Steam se leen en vivo de Leetify (RF-1).
+  app.use("/api/users", createUsersRouter({ jwtSecret, nodeEnv, now, leetify: leetifyClient }));
   app.use("/api/auth", createAuthRouter({ jwtSecret, nodeEnv, now })); // login y logout públicos; me protegida (RF-26)
   // Spec 004: todas con sesión (RF-1). Spec 012: fuentes reales para resincronizar (RF-15).
   // Spec 014: resincronización dedicada con Riot (RF-51, RF-53, P14-3) y anulación de desafíos (RF-29).

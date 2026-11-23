@@ -33,8 +33,8 @@ export const SOURCE_NAMES: Readonly<Record<DataSourceId, string>> = {
 
 /**
  * Bloques que entrega cada fuente. Steam no expone el rango Premier ni partidas competitivas
- * de CS2 (spec 013): las partidas siguen simuladas y etiquetadas (RF-8) y el rango lo entrega
- * Leetify desde la spec 015 (`THIRD_PARTY_BLOCKS`).
+ * de CS2 (spec 013): el rango lo entrega Leetify desde la spec 015 y las partidas desde la spec
+ * 019 (`THIRD_PARTY_BLOCKS`).
  */
 export const SOURCE_BLOCKS: Readonly<Record<SourceId, readonly Block[]>> = {
   steam: ["identity", "profile"],
@@ -47,7 +47,7 @@ export const SOURCE_BLOCKS: Readonly<Record<SourceId, readonly Block[]>> = {
  * todavía no hay lectura («rango no disponible», D11).
  */
 const THIRD_PARTY_BLOCKS: Readonly<Partial<Record<SourceId, Partial<Record<Block, DataSourceId>>>>> = {
-  steam: { rank: "leetify" },
+  steam: { rank: "leetify", matches: "leetify" }, // partidas: spec 019, RF-5
 };
 
 /**

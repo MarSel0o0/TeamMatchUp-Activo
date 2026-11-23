@@ -1,6 +1,7 @@
 import { AlertCircle } from 'lucide-react';
 import { formatRank } from '@/domain/games';
 import { LEETIFY_NO_HISTORY_TEXT, isLeetifyRank } from '@/domain/premierDisplay';
+import { showsLeetifyMatches } from '@/domain/leetifyMatches';
 import { isBlockPending } from '@/domain/riotDisplay';
 import type { SteamProfileOwner } from '@/features/steam/components/SteamProfileBlock';
 import { readNormalized, readWinRate } from '@/domain/playerSheet';
@@ -24,6 +25,7 @@ import {
 } from '@/shared/utils/copy';
 import { pluralize } from '@/shared/utils/format';
 import { AccountRow } from './AccountRow';
+import { LeetifyMatchList } from './LeetifyMatchList';
 import { MatchLedger } from './MatchLedger';
 
 interface GameSummaryPanelProps {
@@ -78,6 +80,8 @@ export function GameSummaryPanel({
   // así que la sección lleva solo el texto de RF-12; el texto de estado y la atribución ya van en
   // `AccountRow` (spec 015, RF-6, RF-7, RF-8, RF-12, D31).
   const fromLeetify = isLeetifyRank(summary.account.origins.rank);
+  // Partidas de Leetify (CS2 con Steam): en vivo y sin tasa de victorias (spec 019, RF-2, RF-4).
+  const leetifyMatches = showsLeetifyMatches(summary.account.origins.matches);
 
   return (
     <div className="ficha__game">
@@ -148,7 +152,8 @@ export function GameSummaryPanel({
       <div className="ficha__matches">
         <div className="line-between">
           <h3 className="sheet-title">{RECENT_MATCHES_TITLE}</h3>
-          {!matchesPending ? (
+          {/* Con partidas de Leetify no hay tasa de victorias (spec 019, RF-4, D2). */}
+          {!matchesPending && !leetifyMatches ? (
             <span className="ficha__winrate">
               {winRate !== null ? (
                 <>
@@ -160,11 +165,20 @@ export function GameSummaryPanel({
             </span>
           ) : null}
         </div>
-        <MatchLedger
-          matches={summary.recentMatches}
-          origin={summary.account.origins.matches}
-          pending={matchesPending}
-        />
+        {leetifyMatches ? (
+          // Spec 019 (RF-1, RF-2, RF-10): se piden en vivo; el resto del panel no las espera.
+          <LeetifyMatchList
+            ownerId={summary.account.userId}
+            gameId={summary.account.gameId}
+            handle={summary.account.handle}
+          />
+        ) : (
+          <MatchLedger
+            matches={summary.recentMatches}
+            origin={summary.account.origins.matches}
+            pending={matchesPending}
+          />
+        )}
       </div>
     </div>
   );

@@ -2,6 +2,7 @@ import type {
   Credentials,
   GameAccount,
   GameId,
+  LeetifyMatches,
   MatchCandidate,
   MatchFilters,
   MatchRecord,
@@ -58,7 +59,8 @@ export interface UpdateProfilePayload {
 export interface GameProfileSummary {
   account: GameAccount;
   recentMatches: MatchRecord[];
-  winRate: number;
+  /** Ausente cuando las partidas las entrega Leetify (spec 019, RF-4). */
+  winRate?: number;
   /** Variación del rango normalizado en los últimos 30 días. */
   trend: number;
 }
@@ -112,6 +114,11 @@ export interface ApiContract {
     listAccounts(userId: string): Promise<GameAccount[]>;
     /** `GET /api/users/:id/games/:gameId`. */
     getGameSummary(userId: string, gameId: GameId): Promise<GameProfileSummary>;
+    /**
+     * `GET /api/users/:id/games/:gameId/leetify-matches` (spec 019, RF-1): partidas de CS2 pedidas
+     * en vivo a Leetify. `userId` admite `me`.
+     */
+    getLeetifyMatches(userId: string, gameId: GameId): Promise<LeetifyMatches>;
   };
   /** Verificación de la cuenta de CS2 con Steam (spec 013): `/api/steam`. */
   steam: {

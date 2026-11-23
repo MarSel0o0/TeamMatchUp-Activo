@@ -93,7 +93,7 @@ describe("migrateAccounts: cuentas de Steam con rango simulado (RF-20, D9)", () 
     const json: Record<string, unknown> = JSON.parse(JSON.stringify(account));
     assert.strictEqual(json.currentRank, null);
     assert.strictEqual(json.premierStatus, "unavailable");
-    assert.deepStrictEqual(json.origins, { identity: "steam", rank: "leetify", matches: "simulated", profile: "steam" });
+    assert.deepStrictEqual(json.origins, { identity: "steam", rank: "leetify", matches: "leetify", profile: "steam" });
   });
 
   test("migra todas las que cumplen, no solo la primera", async () => {

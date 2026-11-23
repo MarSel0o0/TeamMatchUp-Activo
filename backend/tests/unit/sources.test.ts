@@ -12,11 +12,11 @@ describe("blockOrigins (RF-5, RF-8)", () => {
     assert.deepEqual(blockOrigins(null), simulated);
   });
 
-  test("Steam entrega identidad y perfil, el rango es de Leetify y las partidas siguen simuladas (spec 015, RF-6, RF-13)", () => {
+  test("Steam entrega identidad y perfil; el rango y las partidas son de Leetify (spec 015, RF-6; spec 019, RF-5)", () => {
     assert.deepEqual(blockOrigins({ source: "steam" }), {
       identity: "steam",
       rank: "leetify",
-      matches: "simulated",
+      matches: "leetify",
       profile: "steam",
     });
   });
@@ -43,8 +43,9 @@ describe("blockOrigins (RF-5, RF-8)", () => {
       const origins = blockOrigins({ source });
       for (const [block, origin] of Object.entries(origins)) {
         const delivered = SOURCE_BLOCKS[source].some((name) => name === block);
-        // Spec 015: el rango de Steam no lo entrega Steam sino Leetify (P15-7).
-        const expected = delivered ? source : source === "steam" && block === "rank" ? "leetify" : "simulated";
+        // Spec 015 y 019: el rango y las partidas de Steam no los entrega Steam sino Leetify (P15-7).
+        const fromLeetify = source === "steam" && (block === "rank" || block === "matches");
+        const expected = delivered ? source : fromLeetify ? "leetify" : "simulated";
         assert.equal(origin, expected, `${source}/${block}`);
       }
     }

@@ -2,6 +2,7 @@ import type {
   Credentials,
   GameAccount,
   GameId,
+  LeetifyMatches,
   MatchCandidate,
   PlaySession,
   PublicUser,
@@ -114,6 +115,12 @@ export const httpApi: ApiContract = {
     getGameSummary: (userId: string, gameId: GameId) =>
       request<GameProfileSummary>(
         `/users/${encodeURIComponent(userId)}/games/${encodeURIComponent(gameId)}`,
+      ),
+
+    // Spec 019 (RF-1): partidas de CS2 pedidas en vivo a Leetify a través del servidor.
+    getLeetifyMatches: (userId: string, gameId: GameId) =>
+      request<LeetifyMatches>(
+        `/users/${encodeURIComponent(userId)}/games/${encodeURIComponent(gameId)}/leetify-matches`,
       ),
   },
 

@@ -135,3 +135,55 @@ describe("readPremier: el resultado (RF-2, RF-14, D10, D13)", () => {
     assert.deepEqual(await pending, { kind: "failed" });
   });
 });
+
+// Spec 019 (T2): partidas recientes desde la misma consulta del perfil (RF-1, RF-7, RNF-2).
+describe("readRecentMatches (spec 019, RF-1, RF-7, RNF-2)", () => {
+  const recent = [{ id: "m1", finished_at: "2026-11-20T18:00:00Z", map_name: "de_nuke", outcome: "loss", score: [8, 13] }];
+  const read = (handler: Handler, apiKey: string | null = KEY) => {
+    const fake = fakeFetch(handler);
+    const client = createLeetifyClient({ apiKey, fetchFn: fake.fetchFn });
+    return { fake, reading: client.readRecentMatches?.(STEAM_ID, signal()) };
+  };
+
+  test("usa la misma consulta GET /v3/profile con el SteamID64, la clave en la cabecera y sin redirecciones", async () => {
+    const { fake, reading } = read(() => json({ ...profile(19309), recent_matches: recent }));
+    await reading;
+    assert.equal(fake.calls.length, 1);
+    const call = fake.calls[0];
+    assert.equal(call?.url.origin, "https://api-public.cs-prod.leetify.com");
+    assert.equal(call?.url.pathname, "/v3/profile");
+    assert.deepEqual([...(call?.url.searchParams.entries() ?? [])], [["steam64_id", STEAM_ID]]);
+    assert.equal(call?.init?.method, "GET");
+    assert.equal(call?.init?.redirect, "error");
+    assert.equal(new Headers(call?.init?.headers).get("_leetify_key"), KEY);
+    assert.ok(!call?.url.toString().includes(KEY));
+  });
+
+  test("sin clave consulta igual y no manda la cabecera", async () => {
+    const { fake, reading } = read(() => json({ recent_matches: [] }), null);
+    assert.deepEqual(await reading, { kind: "matches", matches: [] });
+    assert.equal(new Headers(fake.calls[0]?.init?.headers).has("_leetify_key"), false);
+  });
+
+  test("entrega las partidas leídas", async () => {
+    const { reading } = read(() => json({ ...profile(19309), recent_matches: recent }));
+    assert.deepEqual(await reading, {
+      kind: "matches",
+      matches: [{ id: "m1", finishedAt: "2026-11-20T18:00:00Z", map: "de_nuke", outcome: "loss", score: [8, 13] }],
+    });
+  });
+
+  test("404 → sin partidas; 5xx, 429 y JSON ilegible → fallo", async () => {
+    assert.deepEqual(await read(() => json({}, 404)).reading, { kind: "matches", matches: [] });
+    assert.deepEqual(await read(() => json({}, 503)).reading, { kind: "failed" });
+    assert.deepEqual(await read(() => json({}, 429)).reading, { kind: "failed" });
+    assert.deepEqual(await read(() => new Response("{roto", { status: 200 })).reading, { kind: "failed" });
+  });
+
+  test("una excepción de red → fallo, sin propagarla", async () => {
+    const { reading } = read(() => {
+      throw new Error(`fallo con ${KEY}`);
+    });
+    assert.deepEqual(await reading, { kind: "failed" });
+  });
+});

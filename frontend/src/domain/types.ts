@@ -152,6 +152,30 @@ export interface MatchRecord {
   rankDelta?: number;
 }
 
+/** Resultado de una partida de CS2 tal como lo informa Leetify (spec 019, RF-3). */
+export type LeetifyOutcome = 'win' | 'loss' | 'tie';
+
+/** Partida reciente de CS2 que entrega Leetify, pedida en vivo y nunca guardada (spec 019). */
+export interface LeetifyMatch {
+  id: string;
+  /** Fecha de término (ISO 8601). */
+  finishedAt: string;
+  /** Mapa tal como lo entrega Leetify, por ejemplo `de_mirage`. */
+  map: string;
+  outcome: LeetifyOutcome;
+  /** Marcador en el orden que lo entrega Leetify. */
+  score: [number, number];
+}
+
+/**
+ * `GET /api/users/:id/games/:gameId/leetify-matches` (spec 019, plan §3). `available: false`
+ * cuando Leetify falló (RF-7); una lista vacía disponible, sin partidas (RF-8).
+ */
+export interface LeetifyMatches {
+  available: boolean;
+  matches: LeetifyMatch[];
+}
+
 /** Usuario recomendado por el motor de coincidencias, para un juego concreto. */
 export interface MatchCandidate {
   user: PublicUser;

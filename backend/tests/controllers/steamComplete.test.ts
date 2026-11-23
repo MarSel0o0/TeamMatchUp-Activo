@@ -182,7 +182,7 @@ describe("verificación correcta (RF-4, RF-10, RF-13)", () => {
     assert.deepEqual(body.account["origins"], {
       identity: "steam",
       rank: "leetify",
-      matches: "simulated",
+      matches: "leetify",
       profile: "steam",
     });
     assert.deepEqual(body.account["profile"], {

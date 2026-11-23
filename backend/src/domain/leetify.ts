@@ -3,7 +3,7 @@
 // («hoy» llega como parámetro) y sin importar nada fuera de `domain/`.
 // - Una lectura de Leetify termina de una de tres formas (Definiciones): con rango, sin rango
 //   Premier o fallo. Nunca se guarda un dato dudoso: lo que no encaja en RF-2 es fallo (D13).
-// - Solo se lee `ranks.premier` del perfil; el resto de la respuesta no se toca (D3, RNF-3).
+// - Del perfil se lee `ranks.premier` (spec 015) y, desde la spec 019, `recent_matches` (RNF-3).
 import { GAMES } from "./games.ts";
 import { normalizeStep } from "./rankScale.ts";
 import type { Snapshot } from "./rankSimulator.ts";
@@ -123,4 +123,92 @@ export function applyLeetifyReading(state: PremierState, reading: LeetifyReading
     case "rated":
       return { premier: "rated", currentRank: premierSnapshot(reading.rating, now), rankHistory: [] };
   }
+}
+
+// ---------------------------------------------------------------------------------------------
+// Partidas recientes de CS2 desde Leetify (spec 019, RF-2, RF-3, RF-7, RF-8, RF-9; plan, §2).
+// Salen de la misma respuesta de `GET /v3/profile` (`recent_matches`). Se leen en vivo y nunca
+// se guardan (D1). De cada partida solo se toma fecha, mapa, resultado y marcador (RF-3).
+
+/** Como máximo se muestran las 8 partidas más recientes (spec 019, D3). */
+export const LEETIFY_MATCHES_LIMIT = 8;
+
+/** Resultado de una partida tal como lo informa Leetify (RF-3). */
+export type LeetifyOutcome = "win" | "loss" | "tie";
+
+const OUTCOMES: readonly LeetifyOutcome[] = ["win", "loss", "tie"];
+
+export interface LeetifyMatch {
+  /** Identificador de Leetify; sin uno de texto, la fecha (solo sirve de clave en la lista). */
+  id: string;
+  /** Fecha de término en ISO 8601. */
+  finishedAt: string;
+  /** Mapa tal como lo entrega Leetify (por ejemplo, `de_mirage`). */
+  map: string;
+  outcome: LeetifyOutcome;
+  /** Marcador en el orden que lo entrega Leetify, sin recalcular. */
+  score: [number, number];
+}
+
+/** Lectura de las partidas: con la lista (quizá vacía, RF-8) o fallo (RF-7). */
+export type LeetifyMatchesReading = { kind: "matches"; matches: LeetifyMatch[] } | { kind: "failed" };
+
+/** Error de la ruta de partidas cuando la cuenta no las obtiene de Leetify (plan, §3). */
+export const LEETIFY_MATCH_ERRORS = {
+  notFromLeetify: "esta cuenta no obtiene sus partidas de Leetify",
+} as const;
+
+function isScore(value: unknown): value is [number, number] {
+  return (
+    Array.isArray(value) &&
+    value.length === 2 &&
+    value.every((n) => typeof n === "number" && Number.isInteger(n) && n >= 0)
+  );
+}
+
+/** Una partida válida o `null` si le falta algo de RF-9. */
+function parseMatch(value: unknown): { match: LeetifyMatch; time: number } | null {
+  if (!isRecord(value)) return null;
+  const finishedAt = value["finished_at"];
+  const map = value["map_name"];
+  const outcome = value["outcome"];
+  const score = value["score"];
+  if (typeof finishedAt !== "string") return null;
+  const time = Date.parse(finishedAt);
+  if (!Number.isFinite(time)) return null;
+  if (typeof map !== "string" || map.trim() === "") return null;
+  if (typeof outcome !== "string" || !OUTCOMES.includes(outcome as LeetifyOutcome)) return null;
+  if (!isScore(score)) return null;
+  const id = value["id"];
+  return {
+    match: {
+      id: typeof id === "string" && id !== "" ? id : finishedAt,
+      finishedAt,
+      map,
+      outcome: outcome as LeetifyOutcome,
+      score: [score[0], score[1]],
+    },
+    time,
+  };
+}
+
+/**
+ * Partidas recientes de la respuesta de `GET /v3/profile` (RF-2, RF-7, RF-8, RF-9).
+ * - 404 (sin perfil) o `recent_matches` ausente o nulo → lista vacía.
+ * - Otro estado distinto de 200, cuerpo ilegible o `recent_matches` que no es arreglo → fallo.
+ * - Las partidas inválidas se omiten; el resto va de la más reciente a la más antigua, hasta 8.
+ */
+export function parseLeetifyMatches(status: number, body: unknown): LeetifyMatchesReading {
+  if (status === 404) return { kind: "matches", matches: [] };
+  if (status !== 200 || !isRecord(body)) return { kind: "failed" };
+  const recent = body["recent_matches"];
+  if (recent === undefined || recent === null) return { kind: "matches", matches: [] };
+  if (!Array.isArray(recent)) return { kind: "failed" };
+  const matches = recent
+    .map(parseMatch)
+    .filter((parsed): parsed is { match: LeetifyMatch; time: number } => parsed !== null)
+    .sort((a, b) => b.time - a.time)
+    .slice(0, LEETIFY_MATCHES_LIMIT)
+    .map(({ match }) => match);
+  return { kind: "matches", matches };
 }

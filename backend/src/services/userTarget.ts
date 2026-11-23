@@ -23,7 +23,8 @@ export type UserRoute =
 // segmento `[^/]+`, una `/` final opcional y `availability` sin distinguir mayúsculas.
 const USER_PATH = /^\/([^/]+)(?:\/(availability))?\/?$/i;
 // Spec 004 (plan, sección 1, T9): resumen por juego `/:id/games/:gameId`, solo GET/HEAD.
-const GAMES_PATH = /^\/([^/]+)\/games\/([^/]+)\/?$/i;
+// Spec 019 (plan, §3): `/:id/games/:gameId/leetify-matches` pasa por la misma guardia.
+const GAMES_PATH = /^\/([^/]+)\/games\/([^/]+)(?:\/leetify-matches)?\/?$/i;
 const USER_METHODS: ReadonlySet<string> = new Set(["GET", "PATCH", "DELETE"]);
 const AVAILABILITY_METHODS: ReadonlySet<string> = new Set(["GET", "PUT"]);
 

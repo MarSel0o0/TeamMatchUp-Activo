@@ -123,7 +123,7 @@ describe("alta de una cuenta verificada (RF-1, RF-8)", () => {
     assert.deepStrictEqual(toGameAccountJson(result.account).origins, {
       identity: "steam",
       rank: "leetify",
-      matches: "simulated",
+      matches: "leetify",
       profile: "steam",
     });
   });

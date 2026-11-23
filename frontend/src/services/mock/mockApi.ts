@@ -16,6 +16,7 @@ import type {
   Credentials,
   GameAccount,
   GameId,
+  LeetifyMatches,
   MatchCandidate,
   MatchFilters,
   MatchRecord,
@@ -196,6 +197,8 @@ const MESSAGES = {
   verifiedNotEditable: 'una cuenta verificada no se puede editar: desvincúlala y vuelve a verificarla',
   accountNotFound: 'cuenta no encontrada',
   noAccountForGame: 'el jugador no tiene una cuenta vinculada en este juego',
+  // Spec 019 (`LEETIFY_MATCH_ERRORS` del backend).
+  notFromLeetify: 'esta cuenta no obtiene sus partidas de Leetify',
   forbidden: 'no tienes permiso para esta operación',
   // Spec 003 (`PROFILE_MESSAGES` y `AVAILABILITY_MESSAGES` del backend).
   displayNameType: 'el nombre visible debe ser un texto',
@@ -958,6 +961,23 @@ export const mockApi: ApiContract = {
         );
         if (!account) return fail(404, MESSAGES.noAccountForGame);
         return reply(200, gameSummaryOf(account));
+      }),
+
+    // Spec 019 (RF-11): el modo simulado nunca verifica con Steam (spec 013, D10), así que ninguna
+    // cuenta obtiene partidas de Leetify; responde como el servidor a una cuenta que no es de Leetify.
+    getLeetifyMatches: (userId: string, gameId: GameId) =>
+      protectedOperation<LeetifyMatches>((user) => {
+        const target = resolveMockUserTarget(userId, user.id);
+        if (!target.ok) return fail(400, MESSAGES.invalidId);
+        if (!isKnownGame(gameId)) return fail(400, MESSAGES.invalidGame);
+        if (!database.users.some((candidate) => candidate.id === target.id)) {
+          return fail(404, MESSAGES.userNotFound);
+        }
+        const account = database.accounts.find(
+          (candidate) => candidate.userId === target.id && candidate.gameId === gameId,
+        );
+        if (!account) return fail(404, MESSAGES.noAccountForGame);
+        return fail(404, MESSAGES.notFromLeetify);
       }),
   },
 

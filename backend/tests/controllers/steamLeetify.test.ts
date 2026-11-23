@@ -261,11 +261,13 @@ describe("lo simulado se descarta (RF-3, RF-22)", () => {
     assert.equal(stored?.premier, "unrated");
   });
 
-  test("RF-13 de la 013: las partidas de CS2 siguen simuladas", async () => {
+  // Spec 019 reemplaza RF-13 de la 015: el bloque de partidas pasa a origen Leetify (RF-5). Las
+  // simuladas guardadas no se borran (fuera de alcance), pero ya no se muestran.
+  test("spec 019: el bloque de partidas tiene origen Leetify; las simuladas guardadas no se borran", async () => {
     const ana = await signUp(app, ANA);
     const body = (await verify(ana)).body as CompleteBody;
     assert.ok(((await storedCs2(ana.id))?.matches.length ?? 0) >= 1);
-    assert.equal(body.account.origins["matches"], "simulated");
+    assert.equal(body.account.origins["matches"], "leetify");
   });
 });
 

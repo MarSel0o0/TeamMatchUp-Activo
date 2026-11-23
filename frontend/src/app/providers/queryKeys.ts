@@ -23,6 +23,12 @@ export const queryKeys = {
   availability: (userId: QueryUserId) => ['u', userId, 'profile', 'availability'] as const,
   gameSummary: (userId: QueryUserId, gameId: GameId) =>
     ['u', userId, 'profile', 'summary', gameId] as const,
+  /**
+   * Partidas de CS2 pedidas en vivo a Leetify (spec 019, RF-1): `targetId` es el dueño de la
+   * cuenta. Sin caché propia: con `staleTime: 0` se vuelven a pedir en cada montaje.
+   */
+  leetifyMatches: (userId: QueryUserId, targetId: string, gameId: GameId) =>
+    ['u', userId, 'leetify-matches', targetId, gameId] as const,
   /** Prefijo de todos los resúmenes de perfil del usuario. */
   gameSummaries: (userId: QueryUserId) => ['u', userId, 'profile', 'summary'] as const,
   matches: (userId: QueryUserId, filters: MatchFilters) =>

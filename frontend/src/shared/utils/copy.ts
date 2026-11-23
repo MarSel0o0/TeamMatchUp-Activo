@@ -155,6 +155,11 @@ export const FIRST_READING_LABEL = 'Primera lectura:';
 export const RECENT_MATCHES_TITLE = 'Últimas partidas';
 export const WIN_RATE_SUFFIX = 'ganadas';
 
+/** Partidas de CS2 desde Leetify (spec 019, RF-5, RF-7, RF-8, RF-10). */
+export const LEETIFY_MATCHES_LABEL = 'Datos de Leetify';
+export const LEETIFY_MATCHES_LOADING = 'Cargando partidas de Leetify…';
+export const LEETIFY_MATCHES_EMPTY = 'No hay partidas disponibles en Leetify';
+
 /** Distancia de rango en la ficha y en la fila de coincidencias: "Δ <n> pts" (RF-6). */
 export const rankDistanceText = (n: number) => `Δ ${n} pts`;
 

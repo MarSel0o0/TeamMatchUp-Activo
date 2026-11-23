@@ -196,7 +196,7 @@ describe("cuenta verificada: resincronizar (RF-15)", () => {
     assert.deepStrictEqual(response.body.origins, {
       identity: "steam",
       rank: "leetify",
-      matches: "simulated",
+      matches: "leetify",
       profile: "steam",
     });
   });

@@ -2,10 +2,16 @@
 // plan 015, sección 2 y P15-9). Plazos cortos y sin red: solo temporizadores.
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
-import { SOURCE_TIMEOUT_MS, readPremierWithTimeout, readWithTimeout, withTimeout } from "../../src/services/realSources.ts";
+import {
+  SOURCE_TIMEOUT_MS,
+  readMatchesWithTimeout,
+  readPremierWithTimeout,
+  readWithTimeout,
+  withTimeout,
+} from "../../src/services/realSources.ts";
 import type { RealResult, RealSource } from "../../src/services/realSources.ts";
 import type { LeetifyClient } from "../../src/services/leetifyClient.ts";
-import type { LeetifyReading } from "../../src/domain/leetify.ts";
+import type { LeetifyMatchesReading, LeetifyReading } from "../../src/domain/leetify.ts";
 
 const ACCOUNT = { gameId: "cs2", handle: "76561198000000001", externalId: "76561198000000001" } as const;
 const STEAM_ID = "76561198000000001";
@@ -132,6 +138,62 @@ describe("readPremierWithTimeout (RF-14, RNF-4, P15-9)", () => {
       20,
     );
     assert.deepEqual(reading, FAILED);
+    assert.equal(received?.aborted, true);
+  });
+});
+
+// Spec 019 (T2): partidas de Leetify con plazo (RF-7; spec 015, RNF-4).
+describe("readMatchesWithTimeout (spec 019, RF-7)", () => {
+  const MATCHES_FAILED: LeetifyMatchesReading = { kind: "failed" };
+  const client = (readRecentMatches: NonNullable<LeetifyClient["readRecentMatches"]>): LeetifyClient => ({
+    readPremier: async () => ({ kind: "failed" }),
+    readRecentMatches,
+  });
+
+  test("pasa la lectura del cliente y el SteamID64", async () => {
+    let seen: string | undefined;
+    const reading = await readMatchesWithTimeout(
+      client(async (steamId) => {
+        seen = steamId;
+        return { kind: "matches", matches: [] };
+      }),
+      STEAM_ID,
+      1000,
+    );
+    assert.deepEqual(reading, { kind: "matches", matches: [] });
+    assert.equal(seen, STEAM_ID);
+  });
+
+  test("sin cliente, o con un cliente sin el método, es fallo y nunca hay red (P19-3)", async () => {
+    assert.deepEqual(await readMatchesWithTimeout(undefined, STEAM_ID, 1000), MATCHES_FAILED);
+    assert.deepEqual(
+      await readMatchesWithTimeout({ readPremier: async () => ({ kind: "failed" }) }, STEAM_ID, 1000),
+      MATCHES_FAILED,
+    );
+  });
+
+  test("si el cliente lanza → fallo", async () => {
+    const reading = await readMatchesWithTimeout(
+      client(async () => {
+        throw new Error("boom");
+      }),
+      STEAM_ID,
+      1000,
+    );
+    assert.deepEqual(reading, MATCHES_FAILED);
+  });
+
+  test("si vence el plazo → fallo y se cancela la consulta", async () => {
+    let received: AbortSignal | undefined;
+    const reading = await readMatchesWithTimeout(
+      client((_steamId, signal) => {
+        received = signal;
+        return new Promise<LeetifyMatchesReading>(() => undefined);
+      }),
+      STEAM_ID,
+      20,
+    );
+    assert.deepEqual(reading, MATCHES_FAILED);
     assert.equal(received?.aborted, true);
   });
 });
