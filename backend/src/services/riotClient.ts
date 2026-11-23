@@ -5,7 +5,6 @@
 // - Combina el plazo individual de 8 s por consulta con `opSignal` mediante `AbortSignal.any`.
 // - `fetchFn` es inyectable para que las pruebas nunca toquen la red (RNF-2).
 import {
-  RIOT_SOLO_QUEUE_ID,
   parseRiotAccount,
   parseRiotMatch,
   parseRiotSoloRank,
@@ -23,7 +22,7 @@ import { SOURCE_TIMEOUT_MS } from "./realSources.ts";
 /** Plazo máximo por consulta individual a Riot Games: 8 segundos (RNF-6). */
 export const RIOT_REQUEST_TIMEOUT_MS = SOURCE_TIMEOUT_MS;
 
-const SOLO_MATCH_IDS_COUNT = 20;
+const MATCH_IDS_COUNT = 20;
 
 export interface RiotIdParts {
   gameName: string;
@@ -88,7 +87,7 @@ export interface RiotClient {
     signal?: AbortSignal,
     recordedAt?: Date,
   ): Promise<RiotSoloRankResult>;
-  getSoloMatchIds(
+  getRecentMatchIds(
     puuid: string,
     region: LolRegion,
     signal?: AbortSignal,
@@ -130,7 +129,7 @@ function parseMatchIdList(raw: unknown): string[] | null {
   const ids: string[] = [];
   for (const item of raw) {
     if (typeof item !== "string" || item.trim().length === 0) return null;
-    if (ids.length < SOLO_MATCH_IDS_COUNT) ids.push(item);
+    if (ids.length < MATCH_IDS_COUNT) ids.push(item);
   }
   return ids;
 }
@@ -227,14 +226,13 @@ export function createRiotClient({
         : { kind: "ok", rank: parsed.snapshot };
     },
 
-    async getSoloMatchIds(puuid, region, signal) {
+    async getRecentMatchIds(puuid, region, signal) {
       const url = routingUrl(
         region,
         `/lol/match/v5/matches/by-puuid/${encodeURIComponent(puuid)}/ids`,
       );
-      url.searchParams.set("queue", String(RIOT_SOLO_QUEUE_ID));
       url.searchParams.set("start", "0");
-      url.searchParams.set("count", String(SOLO_MATCH_IDS_COUNT));
+      url.searchParams.set("count", String(MATCH_IDS_COUNT));
       const res = await requestJson(url, signal);
       if (res.kind !== "ok") return res;
       const matchIds = parseMatchIdList(res.body);

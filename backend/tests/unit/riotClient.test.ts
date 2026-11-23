@@ -98,7 +98,7 @@ describe("riotClient: cabecera X-Riot-Token, hosts y enrutamiento (D4, RNF-4, P1
     await client.getAccountByPuuid(PUUID, "LAS");
     await client.getSummonerByPuuid(PUUID, "LAS");
     await client.getSoloRankByPuuid(PUUID, "LAS");
-    await client.getSoloMatchIds(PUUID, "LAS");
+    await client.getRecentMatchIds(PUUID, "LAS");
     await client.getMatchById(MATCH_ID, PUUID, "LAS");
 
     assert.equal(calls.length, 6);
@@ -127,7 +127,7 @@ describe("riotClient: cabecera X-Riot-Token, hosts y enrutamiento (D4, RNF-4, P1
       await client.getAccountByPuuid(PUUID, region);
       await client.getSummonerByPuuid(PUUID, region);
       await client.getSoloRankByPuuid(PUUID, region);
-      await client.getSoloMatchIds(PUUID, region);
+      await client.getRecentMatchIds(PUUID, region);
       await client.getMatchById(MATCH_ID, PUUID, region);
 
       const routingOrigin = `https://${RIOT_ROUTING[region]}.api.riotgames.com`;
@@ -152,7 +152,9 @@ describe("riotClient: cabecera X-Riot-Token, hosts y enrutamiento (D4, RNF-4, P1
         calls[4]?.url.pathname,
         `/lol/match/v5/matches/by-puuid/${PUUID}/ids`,
       );
-      assert.equal(calls[4]?.url.searchParams.get("queue"), "420");
+      // Spec 020, RF-1, RNF-1: la lista ya no se filtra por cola, y sigue pidiendo 20 (mismo presupuesto de consultas).
+      assert.equal(calls[4]?.url.searchParams.has("queue"), false);
+      assert.equal(calls[4]?.url.searchParams.get("queue"), null);
       assert.equal(calls[4]?.url.searchParams.get("start"), "0");
       assert.equal(calls[4]?.url.searchParams.get("count"), "20");
 
@@ -252,16 +254,16 @@ describe("riotClient: parseo de respuestas válidas e inválidas (RF-3, RF-11, R
     );
   });
 
-  test("getSoloMatchIds acepta lista vacía o de strings, limita a 20 y rechaza tipos inválidos", async () => {
+  test("getRecentMatchIds acepta lista vacía o de strings, limita a 20 y rechaza tipos inválidos", async () => {
     const emptyFetch = createFakeFetch(() => jsonResponse([])).fetchFn;
     assert.deepEqual(
-      await createRiotClient({ apiKey: FAKE_KEY, fetchFn: emptyFetch }).getSoloMatchIds(PUUID, "LAS"),
+      await createRiotClient({ apiKey: FAKE_KEY, fetchFn: emptyFetch }).getRecentMatchIds(PUUID, "LAS"),
       { kind: "ok", matchIds: [] },
     );
 
     const manyIds = Array.from({ length: 25 }, (_, i) => `LA2_${i + 1}`);
     const manyFetch = createFakeFetch(() => jsonResponse(manyIds)).fetchFn;
-    const capped = await createRiotClient({ apiKey: FAKE_KEY, fetchFn: manyFetch }).getSoloMatchIds(
+    const capped = await createRiotClient({ apiKey: FAKE_KEY, fetchFn: manyFetch }).getRecentMatchIds(
       PUUID,
       "LAS",
     );
@@ -270,7 +272,7 @@ describe("riotClient: parseo de respuestas válidas e inválidas (RF-3, RF-11, R
     for (const badBody of [{ ids: [] }, [123], [""], ["   "], null]) {
       const badFetch = createFakeFetch(() => jsonResponse(badBody)).fetchFn;
       assert.deepEqual(
-        await createRiotClient({ apiKey: FAKE_KEY, fetchFn: badFetch }).getSoloMatchIds(PUUID, "LAS"),
+        await createRiotClient({ apiKey: FAKE_KEY, fetchFn: badFetch }).getRecentMatchIds(PUUID, "LAS"),
         { kind: "invalid_data" },
       );
     }
@@ -292,6 +294,7 @@ describe("riotClient: parseo de respuestas válidas e inválidas (RF-3, RF-11, R
         result: "win",
         summary: "MonkeyKing · 8/2/9",
         durationMinutes: 30,
+        mode: "solo", // la partida de la prueba es de la cola 420 (spec 020, RF-2)
       },
     });
 
@@ -338,7 +341,7 @@ describe("riotClient: estados HTTP, errores de red y JSON roto (RF-3, RF-16, RF-
     assert.deepEqual(await client.getAccountByPuuid(PUUID, "LAS"), { kind: "not_found" });
     assert.deepEqual(await client.getSummonerByPuuid(PUUID, "LAS"), { kind: "not_found" });
     assert.deepEqual(await client.getSoloRankByPuuid(PUUID, "LAS"), { kind: "not_found" });
-    assert.deepEqual(await client.getSoloMatchIds(PUUID, "LAS"), { kind: "not_found" });
+    assert.deepEqual(await client.getRecentMatchIds(PUUID, "LAS"), { kind: "not_found" });
     assert.deepEqual(await client.getMatchById(MATCH_ID, PUUID, "LAS"), { kind: "not_found" });
   });
 
@@ -362,7 +365,7 @@ describe("riotClient: estados HTTP, errores de red y JSON roto (RF-3, RF-16, RF-
         `rank ${status}`,
       );
       assert.deepEqual(
-        await client.getSoloMatchIds(PUUID, "LAS"),
+        await client.getRecentMatchIds(PUUID, "LAS"),
         { kind: "unavailable" },
         `ids ${status}`,
       );
@@ -486,7 +489,7 @@ describe("riotClient: sin fugas de la clave de Riot (RNF-4)", () => {
       await client.getAccountByPuuid(PUUID, "LAS"),
       await client.getSummonerByPuuid(PUUID, "LAS"),
       await client.getSoloRankByPuuid(PUUID, "LAS"),
-      await client.getSoloMatchIds(PUUID, "LAS"),
+      await client.getRecentMatchIds(PUUID, "LAS"),
       await client.getMatchById(MATCH_ID, PUUID, "LAS"),
     ];
 

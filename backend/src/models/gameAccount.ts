@@ -18,6 +18,8 @@ import type { HydratedDocument, Types } from "mongoose";
 import { GAME_IDS } from "../domain/games.ts";
 import type { GameId } from "../domain/games.ts";
 import type { PremierStatus } from "../domain/leetify.ts";
+import { MATCH_MODES } from "../domain/matchMode.ts";
+import type { MatchMode } from "../domain/matchMode.ts";
 import { canonicalHandle } from "../domain/rankSimulator.ts";
 import type { PendingBlock } from "../domain/riotChallenge.ts";
 import type { RiotLpBaseline } from "../domain/riotLpDelta.ts";
@@ -54,6 +56,11 @@ export interface MatchRecordFields {
   result: "win" | "loss";
   summary: string;
   durationMinutes: number;
+  /**
+   * Modo de la partida (spec 020, RF-2). Solo lo tienen las partidas reales de Riot guardadas desde la spec 020;
+   * las anteriores y las simuladas no lo tienen (RF-3, RF-16): se leen con `storedMode`.
+   */
+  mode?: MatchMode;
   /** Opcional en partidas reales de Riot sin variación fiable (spec 014, RF-12, RF-30). */
   rankDelta?: number;
 }
@@ -202,6 +209,8 @@ const MatchRecordSchema = new Schema<MatchRecordFields>(
     result: { type: String, required: true, enum: ["win", "loss"] },
     summary: { type: String, required: true },
     durationMinutes: { type: Number, required: true },
+    // Spec 020, RF-2, RF-3: opcional y sin valor por defecto (las simuladas y las anteriores a la spec no lo tienen).
+    mode: { type: String, enum: MATCH_MODES },
     rankDelta: { type: Number },
   },
   { _id: false },

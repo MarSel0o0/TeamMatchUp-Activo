@@ -8,10 +8,12 @@ import {
   mergeMatches,
   recentMatches,
   shouldAppendSnapshot,
+  soloWinRate,
   trend,
   winRate,
 } from "../../src/domain/accountState.ts";
 import type { AccountMatch, AccountState } from "../../src/domain/accountState.ts";
+import type { MatchMode } from "../../src/domain/matchMode.ts";
 import { simulateReading } from "../../src/domain/rankSimulator.ts";
 import type { SimulatedMatch, SimulatedReading, Snapshot } from "../../src/domain/rankSimulator.ts";
 
@@ -426,5 +428,82 @@ describe("recentMatches y mergeMatches con partidas sin rankDelta (spec 014, RF-
       ],
     );
     assert.deepStrictEqual(recentMatches(merged), merged);
+  });
+});
+
+// Spec 020, RF-12, RNF-4: porcentaje de victorias de una cuenta de LoL con datos de Riot, solo de las partidas de
+// Solo/Dúo (T6).
+describe("soloWinRate (spec 020, RF-12)", () => {
+  function lolMatch(id: string, minutesAgo: number, result: "win" | "loss", mode?: MatchMode): AccountMatch {
+    return {
+      id,
+      gameId: "lol",
+      playedAt: new Date(NOW.getTime() - minutesAgo * MINUTE),
+      result,
+      summary: "Ahri · 5/2/7",
+      durationMinutes: 30,
+      ...(mode === undefined ? {} : { mode }),
+    };
+  }
+
+  /** `count` partidas de Solo/Dúo, las `wins` primeras ganadas, de la más reciente a la más antigua. */
+  function soloRun(count: number, wins: number, firstMinutesAgo = 1): AccountMatch[] {
+    return Array.from({ length: count }, (_, i) =>
+      lolMatch(`s${i}`, firstMinutesAgo + i, i < wins ? "win" : "loss", "solo"),
+    );
+  }
+
+  test("5 de 8 de Solo/Dúo → 63 (mitades hacia arriba, spec 004 DP-11)", () => {
+    assert.equal(soloWinRate(soloRun(8, 5)), 63);
+  });
+
+  test("0 de 8 → 0 y 8 de 8 → 100", () => {
+    assert.equal(soloWinRate(soloRun(8, 0)), 0);
+    assert.equal(soloWinRate(soloRun(8, 8)), 100);
+  });
+
+  test("sin ninguna partida de Solo/Dúo → null, no 0 (RF-12: «sin datos»)", () => {
+    assert.equal(soloWinRate([]), null);
+    assert.equal(
+      soloWinRate([lolMatch("a", 1, "win", "aram"), lolMatch("f", 2, "win", "flex"), lolMatch("o", 3, "loss", "other")]),
+      null,
+    );
+  });
+
+  test("las partidas de otros modos no cuentan, ni como victorias ni como derrotas", () => {
+    const mixed = [
+      lolMatch("a1", 1, "win", "aram"),
+      lolMatch("s0", 2, "loss", "solo"),
+      lolMatch("f1", 3, "win", "flex"),
+      lolMatch("n1", 4, "win", "normal"),
+      lolMatch("s1", 5, "win", "solo"),
+      lolMatch("o1", 6, "win", "other"),
+    ];
+    assert.equal(soloWinRate(mixed), 50); // 1 de 2 de Solo/Dúo
+  });
+
+  test("con más de 8 de Solo/Dúo cuentan solo las 8 primeras, en el orden recibido", () => {
+    // Las 8 primeras: 3 ganadas; las 4 siguientes, ganadas, no cuentan.
+    const run = [...soloRun(8, 3), ...soloRun(4, 4, 100)];
+    assert.equal(soloWinRate(run), 38); // 3 de 8 = 37,5 → 38
+  });
+
+  test("las 8 se cogen entre las de Solo/Dúo, no entre las 8 primeras de cualquier modo", () => {
+    const run = [
+      ...Array.from({ length: 10 }, (_, i) => lolMatch(`a${i}`, 1 + i, "loss", "aram")),
+      ...soloRun(8, 8, 50),
+    ];
+    assert.equal(soloWinRate(run), 100);
+  });
+
+  test("una partida sin modo no cuenta como Solo/Dúo aquí: el servidor la marca antes con storedMode (RF-3)", () => {
+    assert.equal(soloWinRate([lolMatch("x", 1, "win")]), null);
+  });
+
+  test("no muta la entrada", () => {
+    const run = soloRun(9, 4);
+    const copy = structuredClone(run);
+    soloWinRate(run);
+    assert.deepEqual(run, copy);
   });
 });

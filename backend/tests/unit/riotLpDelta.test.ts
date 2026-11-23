@@ -40,6 +40,7 @@ function match(
     result: "win",
     summary: "Ahri · 7/2/6",
     durationMinutes: 30,
+    mode: "solo",
     ...overrides,
   };
   return base;
@@ -488,5 +489,146 @@ describe("applyRiotReading — historial de rango (RF-32, D52)", () => {
     assert.strictEqual(out.matches[0]?.id, "LA2_n_0");
     assert.deepStrictEqual(saved, savedCopy);
     assert.deepStrictEqual(incoming, incomingCopy);
+  });
+});
+
+// Spec 020, RF-13, RF-14, RF-15, RNF-4; plan 020, §3.3 y §7.1 (T4).
+describe("applyRiotReading — modos de partida (spec 020, RF-13, RF-14, RF-15)", () => {
+  const baseRank = rank("GOLD", 50, { division: "II", recordedAt: T0 });
+  const baseSolo = match("LA2_1", T0);
+  const baseBaseline: RiotLpBaseline = {
+    tier: "GOLD",
+    division: "II",
+    points: 50,
+    matchIds: ["LA2_1"],
+  };
+  const nextRank = rank("GOLD", 68, { division: "II", recordedAt: T1 });
+
+  function resync(
+    incoming: RiotMatchRecord[],
+    options: {
+      saved?: RiotMatchRecord[];
+      baseline?: RiotLpBaseline | null;
+      omittedAny?: boolean;
+      rank?: RiotRankSnapshot;
+    } = {},
+  ) {
+    return applyRiotReading({
+      previousRank: baseRank,
+      previousHistory: [baseRank],
+      previousMatches: options.saved ?? [baseSolo],
+      previousBaseline: options.baseline === undefined ? baseBaseline : options.baseline,
+      rankResult: { ok: true, rank: options.rank ?? nextRank },
+      matchesResult: { ok: true, matches: incoming, omittedAny: options.omittedAny ?? false },
+      isVerification: false,
+    });
+  }
+
+  test("una partida nueva de Solo/Dúo junto a nuevas de ARAM y de Flex recibe la variación y las otras no (RF-13, RF-14)", () => {
+    const solo = match("LA2_2", T2);
+    const aram = match("LA2_3", T2, { mode: "aram" });
+    const flex = match("LA2_4", T1, { mode: "flex" });
+    const out = resync([aram, solo, flex, baseSolo]);
+
+    assert.strictEqual(out.matches.find((m) => m.id === "LA2_2")?.rankDelta, 18);
+    assert.strictEqual(out.matches.find((m) => m.id === "LA2_3")?.rankDelta, undefined);
+    assert.strictEqual(out.matches.find((m) => m.id === "LA2_4")?.rankDelta, undefined);
+    assert.strictEqual(out.matches.find((m) => m.id === "LA2_1")?.rankDelta, undefined);
+  });
+
+  test("solo partidas nuevas de otros modos: ninguna variación y la línea base se renueva con el rango nuevo (RF-14)", () => {
+    const out = resync([match("LA2_3", T2, { mode: "aram" }), match("LA2_4", T1, { mode: "normal" }), baseSolo]);
+
+    for (const m of out.matches) assert.strictEqual(m.rankDelta, undefined, m.id);
+    assert.deepStrictEqual(out.nextBaseline, {
+      tier: "GOLD",
+      division: "II",
+      points: 68,
+      matchIds: ["LA2_1"],
+    });
+  });
+
+  test("dos partidas nuevas de Solo/Dúo siguen sin variación aunque haya otras de otros modos (RF-14)", () => {
+    const out = resync([
+      match("LA2_3", T2),
+      match("LA2_4", T1),
+      match("LA2_5", T1, { mode: "aram" }),
+      baseSolo,
+    ]);
+    for (const m of out.matches) assert.strictEqual(m.rankDelta, undefined, m.id);
+  });
+
+  test("una partida de otro modo ya guardada no cuenta como nueva al volver a leerla (RF-14)", () => {
+    // La línea base solo guarda ids de Solo/Dúo: la de ARAM guardada antes no está en ella y no debe contar.
+    const savedAram = match("LA2_9", T0, { mode: "aram" });
+    const out = resync([match("LA2_2", T2), savedAram, baseSolo], { saved: [savedAram, baseSolo] });
+
+    assert.strictEqual(out.matches.find((m) => m.id === "LA2_2")?.rankDelta, 18);
+    assert.strictEqual(out.matches.find((m) => m.id === "LA2_9")?.rankDelta, undefined);
+  });
+
+  test("una partida omitida, aunque pudiera ser de otro modo, hace la lectura incompleta: sin variación y sin mover la línea base (RF-15)", () => {
+    const out = resync([match("LA2_2", T2), baseSolo], { omittedAny: true });
+
+    assert.strictEqual(out.matches.find((m) => m.id === "LA2_2")?.rankDelta, undefined);
+    assert.deepStrictEqual(out.nextBaseline, baseBaseline);
+  });
+
+  test("las partidas de otros modos nunca llevan variación, ni la que traigan de fuera (RF-13)", () => {
+    const withDelta = match("LA2_3", T2, { mode: "flex", rankDelta: 12 });
+    const out = resync([withDelta, baseSolo]);
+
+    assert.strictEqual(out.matches.find((m) => m.id === "LA2_3")?.rankDelta, undefined);
+    assert.strictEqual(Object.hasOwn(out.matches.find((m) => m.id === "LA2_3") ?? {}, "rankDelta"), false);
+  });
+
+  test("la fusión conserva el modo de cada partida, y la variación ya asignada a una de Solo/Dúo (RF-2, RF-13)", () => {
+    const solo = match("LA2_1", T0, { rankDelta: 22 });
+    const savedFlex = match("LA2_6", T0, { mode: "flex" });
+    const out = resync([match("LA2_3", T2, { mode: "aram" }), baseSolo], {
+      saved: [solo, savedFlex],
+      baseline: { ...baseBaseline, matchIds: ["LA2_1"] },
+    });
+
+    assert.strictEqual(out.matches.find((m) => m.id === "LA2_1")?.mode, "solo");
+    assert.strictEqual(out.matches.find((m) => m.id === "LA2_1")?.rankDelta, 22);
+    assert.strictEqual(out.matches.find((m) => m.id === "LA2_3")?.mode, "aram");
+    assert.strictEqual(out.matches.find((m) => m.id === "LA2_6")?.mode, "flex");
+  });
+
+  test("la variación asignada conserva el modo de la partida (RF-2, RF-14)", () => {
+    const out = resync([match("LA2_2", T2), baseSolo]);
+    const assigned = out.matches.find((m) => m.id === "LA2_2");
+    assert.strictEqual(assigned?.rankDelta, 18);
+    assert.strictEqual(assigned?.mode, "solo");
+  });
+
+  test("la línea base nueva guarda solo ids de Solo/Dúo; la primera lectura (verificación) también", () => {
+    const incoming = [match("LA2_2", T2), match("LA2_3", T2, { mode: "aram" }), match("LA2_4", T1, { mode: "other" }), baseSolo];
+    assert.deepStrictEqual(resync(incoming).nextBaseline?.matchIds, ["LA2_2", "LA2_1"]);
+
+    const verification = applyRiotReading({
+      previousRank: null,
+      previousHistory: [],
+      previousMatches: [],
+      previousBaseline: null,
+      rankResult: { ok: true, rank: baseRank },
+      matchesResult: { ok: true, matches: incoming, omittedAny: false },
+      isVerification: true,
+    });
+    assert.deepStrictEqual(verification.nextBaseline?.matchIds, ["LA2_2", "LA2_1"]);
+    assert.strictEqual(verification.matches.length, 4);
+    assert.deepStrictEqual(
+      verification.matches.map((m) => m.mode).sort(),
+      ["aram", "other", "solo", "solo"],
+    );
+  });
+
+  test("una línea base guardada antes de la spec (solo ids de Solo/Dúo) sigue sirviendo (RF-14)", () => {
+    const legacy: RiotLpBaseline = { tier: "GOLD", division: "II", points: 50, matchIds: ["LA2_1", "LA2_0"] };
+    const out = resync([match("LA2_2", T2), baseSolo, match("LA2_7", T1, { mode: "aram" })], {
+      baseline: legacy,
+    });
+    assert.strictEqual(out.matches.find((m) => m.id === "LA2_2")?.rankDelta, 18);
   });
 });

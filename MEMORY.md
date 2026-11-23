@@ -754,6 +754,14 @@ commiteadas) → 006 (cambio de requisitos y T1–T10), todo hecho y validado �
 
 ## Próximo paso
 
+**Spec 020 «Partidas de todos los modos» (2026-11-22): spec, plan y tareas APROBADOS; T1–T7 (backend) HECHAS, parado en el
+punto de control tras T7** (backend completo: 3033 pruebas, 0 fallan, typecheck y lint en verde; frontend sin tocar; sin
+commitear). Siguiente: aprobación del usuario y T8 (frontend). Detalle en `specs/020-partidas-de-todos-los-modos/validation.md`.
+Documentos: `specs/020-partidas-de-todos-los-modos/{spec,plan,tasks}.md`. Pestañas por modo + «Todas» en la ficha de LoL real, mismas 20
+partidas y 24 consultas (opción A); % de victorias y variación de LP solo de Solo/Dúo. Corrige parcialmente la 014 (RF-11,
+RF-12, RF-30, RNF-1, D39) sin editarla. D1 a D8 aprobadas. Al hacer el plan se corrigió la redacción de la spec («las
+guardadas»: la lista se une, no se reemplaza). Siguiente: aprobación de las tareas y `/sdd-implement 020-partidas-de-todos-los-modos T1`.
+
 Actualizado el 2026-11-22, para el compañero que continúa. Flujo: skill `sdd` con los agentes
 `planner` (spec, plan, tareas), `implementer` (una tarea) y `reviewer` (validación). **Ninguna
 fase se salta la aprobación explícita del usuario.** Rama `feature/vinculacion-steam-riot`.

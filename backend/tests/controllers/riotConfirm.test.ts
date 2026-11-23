@@ -110,6 +110,7 @@ function sampleMatch(index: number, overrides: Partial<RiotMatchRecord> = {}): R
     result: index % 2 === 0 ? "win" : "loss",
     summary: `Ahri · ${8 + index}/2/5`,
     durationMinutes: 29,
+    mode: "solo",
     ...overrides,
   };
 }
@@ -190,7 +191,7 @@ function setupMatchingRiot(iconId: number, options: {
   };
   const matches = options.matches ?? [sampleMatch(1), sampleMatch(2)];
   const byId = new Map(matches.map((match) => [match.id, match]));
-  fake.state.soloMatchIds = {
+  fake.state.recentMatchIds = {
     kind: "ok",
     matchIds: matches.map((match) => match.id),
   };
@@ -452,7 +453,7 @@ describe("RF-26 paso 2 — errores consultando a Riot (confirmación contada)", 
     assert.equal(fake.state.summonerByPuuidCalls.length, 1);
     assert.equal(fake.state.accountByPuuidCalls.length, 0);
     assert.equal(fake.state.soloRankCalls.length, 0);
-    assert.equal(fake.state.soloMatchIdsCalls.length, 0);
+    assert.equal(fake.state.recentMatchIdsCalls.length, 0);
 
     const stored = await RiotChallenge.findById(ch.id);
     assert.equal(stored?.status, "open");
@@ -479,7 +480,7 @@ describe("RF-26 paso 2 — errores consultando a Riot (confirmación contada)", 
     assert.equal(fake.state.summonerByPuuidCalls.length, 1);
     assert.equal(fake.state.accountByPuuidCalls.length, 0);
     assert.equal(fake.state.soloRankCalls.length, 0);
-    assert.equal(fake.state.soloMatchIdsCalls.length, 0);
+    assert.equal(fake.state.recentMatchIdsCalls.length, 0);
 
     const stored = await RiotChallenge.findById(ch.id);
     assert.equal(stored?.status, "cancelled");
@@ -498,7 +499,7 @@ describe("RF-26 paso 2 — errores consultando a Riot (confirmación contada)", 
     assert.deepEqual(res.body, { error: RIOT_ERRORS.accountNotFound });
 
     assert.equal(fake.state.soloRankCalls.length, 0);
-    assert.equal(fake.state.soloMatchIdsCalls.length, 0);
+    assert.equal(fake.state.recentMatchIdsCalls.length, 0);
 
     const stored = await RiotChallenge.findById(ch.id);
     assert.equal(stored?.status, "cancelled");
@@ -527,7 +528,7 @@ describe("RF-7, RF-11..RF-13, RF-29, RF-30..RF-32, RF-34, RF-36 — verificació
       matches: [m1, m2],
     });
     // Incluimos un remake en la lista para comprobar que se descarta sin invalidar el baseline (D39, D102).
-    fake.state.soloMatchIds = { kind: "ok", matchIds: [m1.id, "LA2_REMAKE", m2.id] };
+    fake.state.recentMatchIds = { kind: "ok", matchIds: [m1.id, "LA2_REMAKE", m2.id] };
     fake.state.matchById = (matchId) => {
       if (matchId === "LA2_REMAKE") return { kind: "remake" };
       if (matchId === m1.id) return { kind: "ok", match: m1 };
@@ -631,7 +632,7 @@ describe("RF-7, RF-11..RF-13, RF-29, RF-30..RF-32, RF-34, RF-36 — verificació
     const ch = await openChallengeFor(ana.id, { iconId: 7 });
     const m1 = sampleMatch(1);
     setupMatchingRiot(7, { matches: [m1] });
-    fake.state.soloMatchIds = { kind: "ok", matchIds: [m1.id, "LA2_BROKEN", "LA2_FAIL"] };
+    fake.state.recentMatchIds = { kind: "ok", matchIds: [m1.id, "LA2_BROKEN", "LA2_FAIL"] };
     fake.state.matchById = (matchId) => {
       if (matchId === m1.id) return { kind: "ok", match: m1 };
       if (matchId === "LA2_BROKEN") return { kind: "invalid_data" };
@@ -712,7 +713,7 @@ describe("RF-27 — fallo parcial por bloques con ambos avisos y sin espera mín
     const ana = await signUp(app, ANA);
     const ch = await openChallengeFor(ana.id, { iconId: 7 });
     setupMatchingRiot(7);
-    fake.state.soloMatchIds = { kind: "unavailable" };
+    fake.state.recentMatchIds = { kind: "unavailable" };
 
     const res = await confirmChallenge(ana, ch.id);
     assert.equal(res.status, 200);
@@ -751,7 +752,7 @@ describe("RF-27 — fallo parcial por bloques con ambos avisos y sin espera mín
     const chAna = await openChallengeFor(ana.id, { iconId: 7 });
     setupMatchingRiot(7);
     fake.state.soloRankByPuuid = { kind: "unavailable" };
-    fake.state.soloMatchIds = { kind: "unavailable" };
+    fake.state.recentMatchIds = { kind: "unavailable" };
 
     const resAna = await confirmChallenge(ana, chAna.id);
     assert.equal(resAna.status, 200);
@@ -768,7 +769,7 @@ describe("RF-27 — fallo parcial por bloques con ambos avisos y sin espera mín
       account: { puuid: OTHER_RIOT_PUUID, gameName: "Dos", tagLine: "LAS", riotId: "Dos#LAS" },
     };
     fake.state.soloRankByPuuid = { kind: "unavailable" };
-    fake.state.soloMatchIds = { kind: "unavailable" };
+    fake.state.recentMatchIds = { kind: "unavailable" };
 
     const resBeto = await confirmChallenge(beto, chBeto.id);
     assert.equal(resBeto.status, 200);
@@ -1023,7 +1024,7 @@ describe("RNF-7 / D98 — plazo máximo de 60 s antes y después de confirmar el
     assert.deepEqual(res.body.account.pendingBlocks, ["rank", "matches"]);
     assert.equal(res.body.account.currentRank, null);
     assert.deepEqual(res.body.account.profile, { level: 120, iconId: 7 });
-    assert.equal(fake.state.soloMatchIdsCalls.length, 0);
+    assert.equal(fake.state.recentMatchIdsCalls.length, 0);
 
     const stored = await GameAccount.findById(res.body.account.id);
     assert.equal(stored?.lastSuccessfulSyncAt ?? null, null);
@@ -1038,7 +1039,7 @@ describe("RNF-7 / D98 — plazo máximo de 60 s antes y después de confirmar el
     const ch = await openChallengeFor(ana.id, { iconId: 7 });
     setupMatchingRiot(7);
 
-    fake.state.soloMatchIds = async () =>
+    fake.state.recentMatchIds = async () =>
       new Promise(() => {
         // Se cuelga después de haber leído bien el rango.
       });

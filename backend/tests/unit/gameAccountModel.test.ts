@@ -505,3 +505,48 @@ describe("User: sin lista de cuentas (spec 004, plan, R9)", () => {
     assert.ok(!text.includes(accountId.toHexString()));
   });
 });
+
+// Spec 020 (T5): modo de cada partida guardada. Opcional y sin valor por defecto: las partidas guardadas antes de la
+// spec y las simuladas no lo tienen (RF-3, RF-16; plan 020, D-P2).
+describe("GameAccount: modo de la partida (spec 020, RF-2, RF-3)", () => {
+  const MATCH = {
+    matchId: "m-1-0",
+    gameId: "lol",
+    playedAt: NOW,
+    result: "win",
+    summary: "Ahri · 5/2/7",
+    durationMinutes: 31,
+  } as const;
+
+  function accountWithMatchMode(mode: unknown) {
+    return lolAccount(undefined, { matches: [mode === undefined ? MATCH : { ...MATCH, mode }] });
+  }
+
+  test("una partida sin modo es válida y no se rellena (no hay valor por defecto)", async () => {
+    const account = accountWithMatchMode(undefined);
+    await account.validate();
+    const stored = account.toObject().matches[0];
+    assert.strictEqual(stored?.mode, undefined);
+    assert.strictEqual(Object.hasOwn(stored ?? {}, "mode"), false);
+  });
+
+  test("los cinco modos son válidos y se conservan", async () => {
+    for (const mode of ["solo", "flex", "normal", "aram", "other"]) {
+      const account = accountWithMatchMode(mode);
+      await account.validate();
+      assert.strictEqual(account.toObject().matches[0]?.mode, mode, mode);
+    }
+  });
+
+  test("otro valor no es válido", async () => {
+    for (const mode of ["ranked", "SOLO", "", "Solo/Dúo", 420, {}]) {
+      await assert.rejects(accountWithMatchMode(mode).validate(), `modo ${JSON.stringify(mode)}`);
+    }
+  });
+
+  test("las partidas, con su modo, siguen sin salir en el JSON de la cuenta", () => {
+    const json = serialized(accountWithMatchMode("aram"));
+    assert.ok(!("matches" in json));
+    assert.ok(!JSON.stringify(json).includes("aram"));
+  });
+});

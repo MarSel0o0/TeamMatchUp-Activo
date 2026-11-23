@@ -2,6 +2,7 @@
 // DP-9, DP-11, DP-30, DP-36, RNF-7; plan, sección 6, "Transiciones puras"; spec 014, RF-12,
 // RF-13, RF-27, RF-30). El instante llega como parámetro; solo importa de domain/.
 import type { GameId } from "./games.ts";
+import type { MatchMode } from "./matchMode.ts";
 import type { SimulatedMatch, SimulatedReading, Snapshot } from "./rankSimulator.ts";
 
 /** Máximo de partidas guardadas por cuenta (RF-15). */
@@ -20,6 +21,8 @@ export interface AccountMatch {
   result: "win" | "loss";
   summary: string;
   durationMinutes: number;
+  /** Solo en partidas reales de Riot (spec 020, RF-2); las simuladas no lo tienen. */
+  mode?: MatchMode;
   rankDelta?: number;
 }
 
@@ -135,4 +138,13 @@ export function trend(current: Snapshot | null, history: readonly Snapshot[]): n
 /** Las 8 primeras partidas en el orden guardado (RF-28). */
 export function recentMatches<M extends AccountMatch>(matches: readonly M[]): M[] {
   return matches.slice(0, RECENT_MATCHES);
+}
+
+/**
+ * Porcentaje de victorias de una cuenta de LoL con datos de Riot (spec 020, RF-12): solo de las 8 primeras partidas de
+ * modo `solo` en el orden recibido; `null` si no hay ninguna.
+ */
+export function soloWinRate(matches: readonly AccountMatch[]): number | null {
+  const solo = matches.filter((m) => m.mode === "solo").slice(0, RECENT_MATCHES);
+  return solo.length === 0 ? null : winRate(solo);
 }

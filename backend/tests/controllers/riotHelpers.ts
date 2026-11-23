@@ -56,7 +56,7 @@ export interface FakeRiotState {
     RiotSoloRankResult,
     [puuid: string, region: LolRegion, signal?: AbortSignal, recordedAt?: Date]
   >;
-  soloMatchIds: MaybeHandler<
+  recentMatchIds: MaybeHandler<
     RiotMatchIdsResult,
     [puuid: string, region: LolRegion, signal?: AbortSignal]
   >;
@@ -68,7 +68,7 @@ export interface FakeRiotState {
   accountByPuuidCalls: SummonerByPuuidCall[];
   summonerByPuuidCalls: SummonerByPuuidCall[];
   soloRankCalls: SummonerByPuuidCall[];
-  soloMatchIdsCalls: SummonerByPuuidCall[];
+  recentMatchIdsCalls: SummonerByPuuidCall[];
   matchByIdCalls: { matchId: string; puuid: string; region: LolRegion }[];
 }
 
@@ -97,13 +97,13 @@ function defaultState(): FakeRiotState {
       summoner: { profileIconId: 0, level: 120 },
     },
     soloRankByPuuid: { kind: "ok", rank: null },
-    soloMatchIds: { kind: "ok", matchIds: [] },
+    recentMatchIds: { kind: "ok", matchIds: [] },
     matchById: { kind: "not_found" },
     accountByRiotIdCalls: [],
     accountByPuuidCalls: [],
     summonerByPuuidCalls: [],
     soloRankCalls: [],
-    soloMatchIdsCalls: [],
+    recentMatchIdsCalls: [],
     matchByIdCalls: [],
   };
 }
@@ -126,7 +126,7 @@ export function fakeRiotClient(
       | "accountByPuuid"
       | "summonerByPuuid"
       | "soloRankByPuuid"
-      | "soloMatchIds"
+      | "recentMatchIds"
       | "matchById"
     >
   > = {},
@@ -150,9 +150,9 @@ export function fakeRiotClient(
       state.soloRankCalls.push({ puuid, region });
       return resolveHandler(state.soloRankByPuuid, puuid, region, signal, recordedAt);
     },
-    async getSoloMatchIds(puuid, region, signal) {
-      state.soloMatchIdsCalls.push({ puuid, region });
-      return resolveHandler(state.soloMatchIds, puuid, region, signal);
+    async getRecentMatchIds(puuid, region, signal) {
+      state.recentMatchIdsCalls.push({ puuid, region });
+      return resolveHandler(state.recentMatchIds, puuid, region, signal);
     },
     async getMatchById(matchId, puuid, region, signal) {
       state.matchByIdCalls.push({ matchId, puuid, region });
@@ -166,13 +166,13 @@ export function fakeRiotClient(
     state.accountByPuuid = overrides.accountByPuuid ?? fresh.accountByPuuid;
     state.summonerByPuuid = overrides.summonerByPuuid ?? fresh.summonerByPuuid;
     state.soloRankByPuuid = overrides.soloRankByPuuid ?? fresh.soloRankByPuuid;
-    state.soloMatchIds = overrides.soloMatchIds ?? fresh.soloMatchIds;
+    state.recentMatchIds = overrides.recentMatchIds ?? fresh.recentMatchIds;
     state.matchById = overrides.matchById ?? fresh.matchById;
     state.accountByRiotIdCalls.length = 0;
     state.accountByPuuidCalls.length = 0;
     state.summonerByPuuidCalls.length = 0;
     state.soloRankCalls.length = 0;
-    state.soloMatchIdsCalls.length = 0;
+    state.recentMatchIdsCalls.length = 0;
     state.matchByIdCalls.length = 0;
   }
 
@@ -182,7 +182,7 @@ export function fakeRiotClient(
       state.accountByPuuidCalls.length +
       state.summonerByPuuidCalls.length +
       state.soloRankCalls.length +
-      state.soloMatchIdsCalls.length +
+      state.recentMatchIdsCalls.length +
       state.matchByIdCalls.length
     );
   }

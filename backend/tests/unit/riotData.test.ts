@@ -322,10 +322,81 @@ describe("parseRiotMatch (RF-11, RF-12, RF-36, RF-52, D35, D83, O-5)", () => {
         result: "win",
         summary: "MonkeyKing · 9/2/11",
         durationMinutes: 30,
+        mode: "solo",
       },
     });
     if (res.kind === "match") {
       assert.strictEqual(Object.hasOwn(res.match, "rankDelta"), false);
+    }
+  });
+
+  // Spec 020, RF-1, RF-2, RF-4: ya no se rechazan las colas distintas de Solo/Dúo; la partida lleva su modo.
+  test("cada cola conocida da su modo y lo guarda en la partida (spec 020, RF-2)", () => {
+    const cases: ReadonlyArray<readonly [number, string]> = [
+      [420, "solo"],
+      [440, "flex"],
+      [400, "normal"],
+      [430, "normal"],
+      [490, "normal"],
+      [450, "aram"],
+      [1700, "other"],
+      [900, "other"],
+      [700, "other"],
+      [0, "other"],
+      [987_654, "other"],
+    ];
+    for (const [queueId, mode] of cases) {
+      const res = parseRiotMatch(rawMatch({ info: { queueId } }), PUUID);
+      assert.strictEqual(res.kind, "match", `cola ${queueId}`);
+      if (res.kind === "match") {
+        assert.strictEqual(res.match.mode, mode, `cola ${queueId}`);
+        // El resto de la partida no depende del modo.
+        assert.strictEqual(res.match.summary, "MonkeyKing · 9/2/11");
+        assert.strictEqual(res.match.result, "win");
+        assert.strictEqual(res.match.durationMinutes, 30);
+        assert.strictEqual(Object.hasOwn(res.match, "rankDelta"), false);
+      }
+    }
+  });
+
+  test("una partida que no informa su cola es de «other» (spec 020, RF-4)", () => {
+    for (const info of [{ queueId: undefined }, {}]) {
+      const raw = rawMatch({ info });
+      if (Object.keys(info).length === 0) Reflect.deleteProperty(raw.info, "queueId");
+      const res = parseRiotMatch(raw, PUUID);
+      assert.strictEqual(res.kind, "match");
+      if (res.kind === "match") assert.strictEqual(res.match.mode, "other");
+    }
+  });
+
+  test("una cola no numérica o no entera no se puede interpretar: invalid (spec 020, RF-1, spec 014 RF-52)", () => {
+    for (const queueId of ["420", null, true, {}, [], 420.5, Number.NaN, Number.POSITIVE_INFINITY]) {
+      assert.deepStrictEqual(
+        parseRiotMatch(rawMatch({ info: { queueId } }), PUUID),
+        { kind: "invalid" },
+        `cola ${String(queueId)}`,
+      );
+    }
+  });
+
+  test("las anuladas se descartan igual en cualquier modo (spec 020, RF-1; spec 014 D10)", () => {
+    for (const queueId of [420, 440, 450, 400, 1700]) {
+      assert.deepStrictEqual(
+        parseRiotMatch(
+          rawMatch({
+            info: { queueId, gameDuration: 195 },
+            participant: { win: false, gameEndedInEarlySurrender: true },
+          }),
+          PUUID,
+        ),
+        { kind: "remake" },
+        `cola ${queueId} con rendición temprana`,
+      );
+      assert.deepStrictEqual(
+        parseRiotMatch(rawMatch({ info: { queueId, endOfGameResult: "Abort_Unexpected" } }), PUUID),
+        { kind: "remake" },
+        `cola ${queueId} abortada`,
+      );
     }
   });
 
@@ -379,12 +450,11 @@ describe("parseRiotMatch (RF-11, RF-12, RF-36, RF-52, D35, D83, O-5)", () => {
     }
   });
 
-  test("datos faltantes, resultado no booleano, participante ausente o cola distinta devuelven invalid (RF-52, D83)", () => {
+  test("datos faltantes, resultado no booleano o participante ausente devuelven invalid (RF-52, D83)", () => {
     for (const bad of [
       null,
       {},
       rawMatch({ matchId: "" }),
-      rawMatch({ info: { queueId: 440 } }),
       rawMatch({ info: { gameDuration: -10 } }),
       rawMatch({ info: { gameEndTimestamp: undefined, gameStartTimestamp: undefined, gameCreation: undefined } }),
       rawMatch({ participant: { puuid: "otro" } }),

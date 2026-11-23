@@ -20,7 +20,10 @@ export interface RiotLpBaseline {
   tier: string | null;
   division?: string;
   points?: number;
-  /** Identificadores de las partidas Solo/Dúo no anuladas de esa lectura completa. */
+  /**
+   * Identificadores de las partidas de modo Solo/Dúo no anuladas de esa lectura completa (spec 020, RF-14: las de
+   * otros modos no cuentan como «partida nueva», así que no se guardan aquí).
+   */
   matchIds: string[];
 }
 
@@ -57,8 +60,8 @@ export function sameRankBracket(a: RankBracket, b: RankBracket): boolean {
 }
 
 function stripRankDelta(match: RiotMatchRecord): RiotMatchRecord {
-  const { id, gameId, playedAt, result, summary, durationMinutes } = match;
-  return { id, gameId, playedAt, result, summary, durationMinutes };
+  const { id, gameId, playedAt, result, summary, durationMinutes, mode } = match;
+  return { id, gameId, playedAt, result, summary, durationMinutes, mode };
 }
 
 function withRankDelta(match: RiotMatchRecord, delta: number): RiotMatchRecord {
@@ -87,7 +90,9 @@ function dedupeMatches(matches: readonly RiotMatchRecord[]): RiotMatchRecord[] {
  *   y existe una lectura anterior completa (`previousBaseline`), con exactamente 1 partida nueva
  *   respecto a `previousBaseline.matchIds` y mismo tramo de rango (`sameRankBracket`). Conserva
  *   siempre inmutables las variaciones ya asignadas y permite asignar variación sobre partidas
- *   que quedaron con `undefined` (`"—"`) en lecturas no completas.
+ *   que quedaron con `undefined` (`"—"`) en lecturas no completas. Spec 020 (RF-13 a RF-15): solo
+ *   cuentan como partida nueva las de modo Solo/Dúo, y las de los demás modos nunca reciben variación;
+ *   una partida omitida, de cualquier modo, vuelve incompleta la lectura.
  * - Partidas: fusiona conservando las guardadas y ordena como RF-28 de la spec 004, máx. 20.
  */
 export function applyRiotReading(input: ApplyRiotReadingInput): ApplyRiotReadingResult {
@@ -144,11 +149,13 @@ export function applyRiotReading(input: ApplyRiotReadingInput): ApplyRiotReading
 
   if (isCompleteForLpDelta) {
     const incomingUnique = dedupeMatches(matchesResult.matches);
+    // Spec 020, RF-14: solo las partidas de Solo/Dúo mueven los LP de este rango.
+    const incomingSolo = incomingUnique.filter((m) => m.mode === "solo");
     const nextRank = rankResult.rank;
 
     if (effectivePrevBaseline !== null) {
       const prevBaselineIds = new Set(effectivePrevBaseline.matchIds);
-      const newMatches = incomingUnique.filter((m) => !prevBaselineIds.has(m.id));
+      const newMatches = incomingSolo.filter((m) => !prevBaselineIds.has(m.id));
       if (
         newMatches.length === 1 &&
         effectivePrevBaseline.tier !== null &&
@@ -176,7 +183,7 @@ export function applyRiotReading(input: ApplyRiotReadingInput): ApplyRiotReading
       }
     }
 
-    const matchIds = incomingUnique.map((m) => m.id);
+    const matchIds = incomingSolo.map((m) => m.id);
     nextBaseline =
       nextRank === null
         ? { tier: null, matchIds }

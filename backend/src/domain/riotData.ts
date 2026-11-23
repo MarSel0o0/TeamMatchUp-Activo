@@ -3,14 +3,14 @@
 // D92, D94, D96; plan, §§2.1, 4, P14-8 y O-5).
 // Dominio puro: sin Express, Mongoose, red ni reloj (`now` llega por parámetro).
 import { GAMES } from "./games.ts";
+import { modeOfQueue } from "./matchMode.ts";
+import type { MatchMode } from "./matchMode.ts";
 import { normalizeRank } from "./rankScale.ts";
 import type { Snapshot } from "./rankSimulator.ts";
 import { isPlainObject } from "./sessionRules.ts";
 
 /** Cola clasificatoria Solo/Dúo de League of Legends (RF-11, RF-13). */
 export const RIOT_SOLO_QUEUE_TYPE = "RANKED_SOLO_5x5";
-/** Identificador numérico de Solo/Dúo en Match-v5 (RF-11). */
-export const RIOT_SOLO_QUEUE_ID = 420;
 /** Duración máxima en segundos para clasificar una rendición temprana como remake (O-5, P14-8). */
 export const REMAKE_MAX_DURATION_SECONDS = 300;
 /** Resultado de partida abortada inesperadamente en Match-v5 (O-5, P14-8). */
@@ -59,7 +59,7 @@ export type ParsedRiotSoloRank =
   | { ok: true; kind: "ranked"; snapshot: RiotRankSnapshot }
   | { ok: false };
 
-/** Partida real de Solo/Dúo parseada de Match-v5 (RF-11, RF-12, RF-30). */
+/** Partida real de cualquier modo parseada de Match-v5 (spec 014, RF-11, RF-12, RF-30; spec 020, RF-1, RF-2). */
 export interface RiotMatchRecord {
   id: string;
   gameId: "lol";
@@ -67,6 +67,8 @@ export interface RiotMatchRecord {
   result: "win" | "loss";
   summary: string;
   durationMinutes: number;
+  /** Modo de la partida (spec 020, RF-2). `rankDelta` solo puede existir en las de modo `solo` (RF-13). */
+  mode: MatchMode;
   rankDelta?: number;
 }
 
@@ -233,8 +235,13 @@ export function parseRiotMatch(raw: unknown, puuid: string): ParsedRiotMatch {
   const matchId = readNonEmptyString(ownProp(metadata, "matchId"));
   if (matchId === null) return { kind: "invalid" };
 
+  // Spec 020, RF-1, RF-2, RF-4: ya no se rechazan las colas distintas de Solo/Dúo; cada una da su modo. Una
+  // cola ausente es `other`; una que no es un entero no se puede interpretar (spec 014, RF-52).
   const rawQueueId = ownProp(info, "queueId");
-  if (rawQueueId !== undefined && rawQueueId !== RIOT_SOLO_QUEUE_ID) return { kind: "invalid" };
+  if (rawQueueId !== undefined && (typeof rawQueueId !== "number" || !Number.isInteger(rawQueueId))) {
+    return { kind: "invalid" };
+  }
+  const mode = modeOfQueue(rawQueueId);
 
   const rawEndResult = ownProp(info, "endOfGameResult");
   if (rawEndResult !== undefined && typeof rawEndResult !== "string") return { kind: "invalid" };
@@ -293,6 +300,7 @@ export function parseRiotMatch(raw: unknown, puuid: string): ParsedRiotMatch {
       result: rawWin ? "win" : "loss",
       summary: `${championName}${MATCH_SUMMARY_SEPARATOR}${kills}/${deaths}/${assists}`,
       durationMinutes: roundDurationMinutes(rawDuration),
+      mode,
     },
   };
 }

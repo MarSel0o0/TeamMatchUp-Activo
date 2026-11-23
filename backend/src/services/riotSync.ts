@@ -3,10 +3,11 @@
 // RNF-6, RNF-7; D53, D68, D69, D78, D80, D81, D82, D83, D84, D89, D90, D92, D94, D95, D98,
 // D102; plan, §§2.2, 5.2, 5.3, O-1, P14-3, P14-5 y P14-6).
 // - `riotCall` consume 1 consulta de la reserva respetando 20/s y el plazo global de 60 s.
-// - `readRiotAccountData` lee identidad vigente, perfil, rango Solo/Dúo y hasta 20 partidas
+// - `readRiotAccountData` lee identidad vigente, perfil, rango Solo/Dúo y hasta 20 partidas de cualquier modo
 //   dentro del presupuesto reservado tras confirmar el ícono.
 // - `syncRiotAccount` resincroniza una cuenta verificada con Riot en el orden exacto de RF-51.
 import { ACCOUNT_ERRORS } from "../domain/accountRules.ts";
+import { storedMode } from "../domain/matchMode.ts";
 import type { PendingBlock } from "../domain/riotChallenge.ts";
 import type { RiotMatchRecord, RiotRankSnapshot } from "../domain/riotData.ts";
 import { applyRiotReading } from "../domain/riotLpDelta.ts";
@@ -153,13 +154,13 @@ export async function readRiotAccountData(
     }
   }
 
-  // 11d. Partidas Solo/Dúo (lista + hasta 20 detalles).
+  // 11d. Partidas de cualquier modo (lista sin filtro de cola + hasta 20 detalles; spec 020, RF-1).
   let matchesResult:
     | { ok: true; matches: RiotMatchRecord[]; omittedAny: boolean }
     | { ok: false } = { ok: false };
   if (!signal.aborted) {
     const idsOutcome = await riotCall(limiter, reservation, signal, (callSignal) =>
-      client.getSoloMatchIds(puuid, region, callSignal),
+      client.getRecentMatchIds(puuid, region, callSignal),
     );
     if (!idsOutcome.aborted && idsOutcome.result.kind === "ok") {
       const matchIds = idsOutcome.result.matchIds.slice(0, MAX_MATCH_DETAILS);
@@ -221,6 +222,7 @@ function toStoredRiotMatch(stored: MatchRecordFields): RiotMatchRecord {
     result: stored.result,
     summary: stored.summary,
     durationMinutes: stored.durationMinutes,
+    mode: storedMode(stored.mode), // spec 020, RF-3: las guardadas sin modo eran Solo/Dúo.
     ...(stored.rankDelta == null ? {} : { rankDelta: stored.rankDelta }),
   };
 }
@@ -238,10 +240,10 @@ function toStoredBaseline(
 }
 
 function toRiotMatchRecord(match: RiotMatchRecord): MatchRecordFields {
-  const { id, gameId, playedAt, result, summary, durationMinutes, rankDelta } = match;
+  const { id, gameId, playedAt, result, summary, durationMinutes, mode, rankDelta } = match;
   return rankDelta === undefined
-    ? { matchId: id, gameId, playedAt, result, summary, durationMinutes }
-    : { matchId: id, gameId, playedAt, result, summary, durationMinutes, rankDelta };
+    ? { matchId: id, gameId, playedAt, result, summary, durationMinutes, mode }
+    : { matchId: id, gameId, playedAt, result, summary, durationMinutes, mode, rankDelta };
 }
 
 /**
@@ -427,7 +429,7 @@ export async function syncRiotAccount(
           rankResult = { ok: true, rank: rankOutcome.result.rank };
         }
 
-        // 7b. Partidas Solo/Dúo (Match-v5: lista + hasta 20 detalles).
+        // 7b. Partidas de cualquier modo (Match-v5: lista sin filtro de cola + hasta 20 detalles; spec 020, RF-1).
         let matchesResult:
           | { ok: true; matches: RiotMatchRecord[]; omittedAny: boolean }
           | { ok: false } = { ok: false };
@@ -435,7 +437,7 @@ export async function syncRiotAccount(
           limiter,
           reservation,
           opController.signal,
-          (signal) => client.getSoloMatchIds(puuid, region, signal),
+          (signal) => client.getRecentMatchIds(puuid, region, signal),
         );
         if (idsOutcome.aborted || opController.signal.aborted) {
           return { ok: false, status: 503, error: RIOT_ERRORS.unavailable };

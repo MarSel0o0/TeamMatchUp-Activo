@@ -101,10 +101,10 @@ async function isTakenByOtherUser(
 }
 
 function toRiotMatchRecord(match: RiotMatchRecord): MatchRecordFields {
-  const { id, gameId, playedAt, result, summary, durationMinutes, rankDelta } = match;
+  const { id, gameId, playedAt, result, summary, durationMinutes, mode, rankDelta } = match;
   return rankDelta === undefined
-    ? { matchId: id, gameId, playedAt, result, summary, durationMinutes }
-    : { matchId: id, gameId, playedAt, result, summary, durationMinutes, rankDelta };
+    ? { matchId: id, gameId, playedAt, result, summary, durationMinutes, mode }
+    : { matchId: id, gameId, playedAt, result, summary, durationMinutes, mode, rankDelta };
 }
 
 // Aplica la verificación a una cuenta existente (RF-8, RF-13). `handleKey` lo recalcula

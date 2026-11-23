@@ -39,13 +39,14 @@ import { validateProfileUpdate } from "../services/profile.ts";
 import { SESSION_COOKIE, sessionCookieOptions } from "../services/sessionToken.ts";
 import { USER_TARGET_MESSAGES, resolveUserTarget } from "../services/userTarget.ts";
 import { ACCOUNT_ERRORS } from "../domain/accountRules.ts";
-import { recentMatches, trend, winRate } from "../domain/accountState.ts";
+import { recentMatches, soloWinRate, trend, winRate } from "../domain/accountState.ts";
 import type { AccountMatch } from "../domain/accountState.ts";
 import { isGameId } from "../domain/games.ts";
 import { LEETIFY_MATCH_ERRORS } from "../domain/leetify.ts";
 import { blockOrigins } from "../domain/sources.ts";
 import type { LeetifyClient } from "../services/leetifyClient.ts";
 import { SOURCE_TIMEOUT_MS, readMatchesWithTimeout } from "../services/realSources.ts";
+import { hasMatchModes, storedMode } from "../domain/matchMode.ts";
 import { GameAccount, toGameAccountJson } from "../models/gameAccount.ts";
 import type { GameAccountDocument } from "../models/gameAccount.ts";
 import { PlaySession } from "../models/playSession.ts";
@@ -86,6 +87,9 @@ function userJson(user: UserDocument, sessionUserId: string): OwnUserJson | Publ
 // Resumen por juego (RF-12, RF-37; plan, sección 6): la cuenta, las 8 primeras partidas
 // guardadas en el orden de RF-28, la tasa de victorias de esas partidas y la tendencia.
 // `matchId` se entrega como `id`; `matches` y `readingNumber` no salen; `rankDelta` se omite si falta.
+// Spec 020 (RF-5, RF-12, RF-16; plan, §3.4 y §5): si el bloque de partidas tiene origen Riot, se entregan todas las
+// guardadas (hasta 20), cada una con su `mode` (las guardadas sin modo salen como `solo`, RF-3), y la tasa de
+// victorias es solo la de las 8 últimas de Solo/Dúo (`null` si no hay ninguna). El resto de cuentas, como siempre.
 function gameSummaryJson(account: GameAccountDocument) {
   // Spec 019 (RF-2, RF-4): si las partidas las entrega Leetify, el resumen no lleva las simuladas
   // guardadas ni la tasa de victorias; la interfaz las pide en vivo a `/leetify-matches`.
@@ -96,22 +100,25 @@ function gameSummaryJson(account: GameAccountDocument) {
       trend: trend(account.currentRank ?? null, account.rankHistory),
     };
   }
+  const accountJson = toGameAccountJson(account);
+  const withModes = hasMatchModes(accountJson.origins.matches);
   const matches: AccountMatch[] = account.matches.map(
-    ({ matchId, gameId, playedAt, result, summary, durationMinutes, rankDelta }) => ({
+    ({ matchId, gameId, playedAt, result, summary, durationMinutes, mode, rankDelta }) => ({
       id: matchId,
       gameId,
       playedAt,
       result,
       summary,
       durationMinutes,
+      ...(withModes ? { mode: storedMode(mode) } : {}),
       ...(rankDelta == null ? {} : { rankDelta }),
     }),
   );
-  const recent = recentMatches(matches);
+  const recent = withModes ? matches : recentMatches(matches);
   return {
-    account: toGameAccountJson(account),
+    account: accountJson,
     recentMatches: recent,
-    winRate: winRate(recent),
+    winRate: withModes ? soloWinRate(recent) : winRate(recent),
     trend: trend(account.currentRank ?? null, account.rankHistory),
   };
 }
