@@ -15,7 +15,7 @@ const GAME_ERROR = "juego no válido";
 const DISTANCE_ERROR =
   "filtro «Diferencia máxima de rango» no válido: usa un número entero de 0 a 100";
 const HOURS_ERROR = "filtro «Horas en común por semana» no válido: usa un número entero de 0 a 168";
-const VERIFIED_ERROR = "filtro «Solo cuentas con rango verificado» no válido: usa true o false";
+const VERIFIED_ERROR = "filtro «Solo cuentas verificadas» no válido: usa true o false";
 const SEARCH_ERROR = "filtro «Buscar jugador» no válido";
 const NO_ACCOUNT_ERROR = "no tienes una cuenta vinculada en este juego";
 

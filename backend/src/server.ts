@@ -4,7 +4,10 @@ import http from "node:http";
 import type { RequestListener } from "node:http";
 import type { AddressInfo } from "node:net";
 import mongoose from "mongoose";
+import { canonicalHandle } from "./domain/rankSimulator.ts";
 import { GameAccount } from "./models/gameAccount.ts";
+import { RiotChallenge } from "./models/riotChallenge.ts";
+import { SteamAttempt } from "./models/steamAttempt.ts";
 import { User } from "./models/user.ts";
 import type { Config, DatabaseConfig } from "./utils/config.ts";
 import type { Logger } from "./utils/logger.ts";
@@ -48,9 +51,46 @@ export async function connectDatabase(db: DatabaseConfig): Promise<void> {
 // Spec 002, RF-21 (D14): los índices únicos de `email` y `usernameKey` existen antes de
 // aceptar la primera petición, sin depender del `autoIndex` en segundo plano.
 // Spec 004, RF-5 (plan, sección 8): igual con el índice único `{ user, gameId }` de las cuentas.
+// Spec 012 (RF-2, RF-10; P12-1, P12-3, P12-4): índice único parcial de la verificación y una
+// pasada idempotente sobre las cuentas anteriores: completa `handleKey` y retira el `verified`
+// que guardaba el modelo antiguo (esas cuentas quedan sin verificar).
 export async function prepareDatabase(): Promise<void> {
   await User.init();
   await GameAccount.init();
+  await SteamAttempt.init(); // spec 013: índice único por usuario e índice TTL (RNF-7)
+  await RiotChallenge.init(); // spec 014: índices de consulta e índice TTL en deleteAt (RF-28, P14-1)
+  await migrateAccounts();
+}
+
+// Con el driver y no con el modelo: `verified` ya no está en el esquema (modo estricto).
+// Spec 015, RF-20 y D9: las cuentas de CS2 verificadas con Steam sin `premier` son las de la spec
+// 013, con rango e historial simulados; pasan a «rango no disponible» (sin rango y sin historial)
+// hasta que su dueño resincronice. El criterio es el estado de la cuenta, no una fecha, y la
+// pasada es idempotente: una cuenta que ya tiene `premier` no vuelve a coincidir. No consulta
+// Leetify. Las partidas simuladas se conservan (RF-13).
+export async function migrateAccounts(): Promise<void> {
+  const collection = GameAccount.collection;
+  const missing = await collection
+    .find({ handleKey: { $exists: false } }, { projection: { handle: 1 } })
+    .toArray();
+  for (const { _id, handle } of missing) {
+    if (typeof handle === "string") {
+      await collection.updateOne({ _id }, { $set: { handleKey: canonicalHandle(handle) } });
+    }
+  }
+  await collection.updateMany({ verified: { $exists: true } }, { $unset: { verified: "" } });
+  await collection.updateMany(
+    { gameId: "cs2", "verification.source": "steam", premier: { $exists: false } },
+    { $set: { premier: "unavailable", currentRank: null, rankHistory: [] } },
+  );
+  // Spec 015, RF-24 y D27: sin historial real guardado. Las cuentas de CS2 verificadas con Steam
+  // pierden su historial (el simulado de antes y el que dejó la primera versión de la 015); solo
+  // se vacía `rankHistory`, no `premier` ni `currentRank`. Las sin verificar (historial
+  // simulado, RF-22) y las de Riot no coinciden con el filtro. Idempotente, sin Leetify.
+  await collection.updateMany(
+    { gameId: "cs2", "verification.source": "steam", "rankHistory.0": { $exists: true } },
+    { $set: { rankHistory: [] } },
+  );
 }
 
 function errorCode(error: unknown): string | undefined {

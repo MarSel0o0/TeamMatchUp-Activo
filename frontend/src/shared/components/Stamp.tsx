@@ -1,3 +1,4 @@
+import { Badge } from '@mantine/core';
 import { useEffect, useState, type ReactNode } from 'react';
 
 type StampTone = 'sealed' | 'pen' | 'ok' | 'warn' | 'plain';
@@ -37,18 +38,16 @@ export function Stamp({
     return () => clearTimeout(timeout);
   }, [pressKey]);
 
-  const classes = [
-    'stamp',
-    tone !== 'plain' ? `stamp--${tone}` : '',
-    flat ? 'stamp--flat' : '',
-    pressing ? 'stamp--pressing' : '',
-  ]
-    .filter(Boolean)
-    .join(' ');
-
   return (
-    <span className={classes} title={title} role={announce ? 'status' : undefined}>
+    <Badge
+      component="span"
+      variant={tone}
+      className={pressing ? 'tmu-stamp--pressing' : undefined}
+      data-flat={flat ? '' : undefined}
+      title={title}
+      role={announce ? 'status' : undefined}
+    >
       {children}
-    </span>
+    </Badge>
   );
 }

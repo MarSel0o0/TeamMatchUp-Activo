@@ -1,6 +1,6 @@
 import { ArrowLeft } from 'lucide-react';
 import { motion } from 'motion/react';
-import { Link } from 'react-router-dom';
+import { ButtonLink } from '@/shared/components/AppButton';
 import { BrandMark } from '@/shared/components/BrandMark';
 import { Icon } from '@/shared/components/Icon';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
@@ -31,10 +31,10 @@ export default function NotFoundPage() {
         </p>
       </motion.div>
       <motion.div variants={rise}>
-        <Link className="btn btn--pen" to={ROUTES.home}>
+        <ButtonLink tone="pen" to={ROUTES.home}>
           <Icon as={ArrowLeft} size={15} />
           Volver al inicio
-        </Link>
+        </ButtonLink>
       </motion.div>
     </motion.div>
   );

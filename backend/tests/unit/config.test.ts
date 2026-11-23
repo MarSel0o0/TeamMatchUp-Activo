@@ -106,6 +106,9 @@ describe("parseConfig", () => {
       host: "127.0.0.1",
       db: { uri: DEV_URI, name: "teammatchup" },
       jwtSecret: SECRET,
+      steam: null, // spec 013, RF-22: sin STEAM_API_KEY, Steam no está configurado
+      riot: null, // spec 014, RF-38: sin RIOT_API_KEY, Riot no está configurado
+      leetify: { apiKey: null }, // spec 015, D24: Leetify siempre existe, con o sin clave
     });
     const otra = expectConfig(
       parseConfig(
@@ -124,6 +127,9 @@ describe("parseConfig", () => {
       host: "localhost",
       db: { uri: "mongodb://otra:27017", name: "otra" },
       jwtSecret: "otro-secreto",
+      steam: null,
+      riot: null,
+      leetify: { apiKey: null },
     });
   });
 
@@ -347,6 +353,313 @@ describe("parseConfig", () => {
   test("la función no modifica el objeto recibido", () => {
     const env = Object.freeze(devEnv());
     expectConfig(parseConfig(env));
+  });
+});
+
+// Spec 013 (T1): STEAM_API_KEY y PUBLIC_URL, ambas opcionales. Sin clave, Steam no está
+// configurado (RF-22); la dirección es la de la instancia en uso (RNF-4); la clave nunca sale
+// en un mensaje (RNF-2).
+describe("parseConfig — Steam (013, RF-22, RNF-2, RNF-4)", () => {
+  const KEY = "0123456789ABCDEF0123456789ABCDEF";
+  const LOCAL = "http://localhost:5173";
+  const COURSE = "https://fullstack.dcc.uchile.cl:7041";
+  const URL_ERROR =
+    "PUBLIC_URL no es válida: debe ser una dirección http o https con servidor y puerto, sin ruta, consulta ni #";
+  const KEY_WITHOUT_URL = "STEAM_API_KEY requiere PUBLIC_URL, la dirección de esta instancia";
+  const HTTPS_IN_PRODUCTION = "PUBLIC_URL debe usar https en producción";
+
+  test("RF-22: sin STEAM_API_KEY ni PUBLIC_URL → steam es null", () => {
+    for (const env of [devEnv(), prodEnv(), testEnv()]) assert.equal(expectConfig(parseConfig(env)).steam, null);
+  });
+
+  test("RF-22: una clave vacía o en blanco cuenta como no definida", () => {
+    for (const blank of ["", "   "]) {
+      const config = expectConfig(parseConfig(devEnv({ STEAM_API_KEY: blank, PUBLIC_URL: LOCAL })));
+      assert.equal(config.steam, null);
+    }
+  });
+
+  test("RF-22: PUBLIC_URL sin clave se ignora, también si no es válida", () => {
+    assert.equal(expectConfig(parseConfig(devEnv({ PUBLIC_URL: LOCAL }))).steam, null);
+    assert.equal(expectConfig(parseConfig(devEnv({ PUBLIC_URL: "esto no es una dirección" }))).steam, null);
+  });
+
+  test("clave y dirección válidas → steam con la clave tal cual y la dirección sin barra final", () => {
+    const config = expectConfig(parseConfig(devEnv({ STEAM_API_KEY: KEY, PUBLIC_URL: LOCAL })));
+    assert.deepStrictEqual(config.steam, { apiKey: KEY, publicUrl: LOCAL });
+    const conBarra = expectConfig(parseConfig(devEnv({ STEAM_API_KEY: KEY, PUBLIC_URL: `${LOCAL}/` })));
+    assert.deepStrictEqual(conBarra.steam, { apiKey: KEY, publicUrl: LOCAL });
+  });
+
+  test("RNF-4: en producción acepta https con puerto, como el servidor del curso", () => {
+    const config = expectConfig(parseConfig(prodEnv({ STEAM_API_KEY: KEY, PUBLIC_URL: COURSE })));
+    assert.deepStrictEqual(config.steam, { apiKey: KEY, publicUrl: COURSE });
+  });
+
+  test("RNF-4: la clave sin PUBLIC_URL (ausente o vacía) es un error", () => {
+    for (const env of [devEnv({ STEAM_API_KEY: KEY }), devEnv({ STEAM_API_KEY: KEY, PUBLIC_URL: "  " })]) {
+      assert.deepEqual(expectErrors(parseConfig(env)), [KEY_WITHOUT_URL]);
+    }
+  });
+
+  test("RNF-4: PUBLIC_URL con ruta, consulta, #, usuario, otro protocolo o espacios es un error", () => {
+    const invalidas = [
+      "http://localhost:5173/app",
+      "http://localhost:5173/?a=1",
+      "http://localhost:5173?a=1",
+      "http://localhost:5173/#x",
+      "http://localhost:5173#",
+      "http://usuario:clave@localhost:5173",
+      "ftp://localhost:5173",
+      "localhost:5173",
+      "localhost",
+      " http://localhost:5173",
+      "http://localhost:5173 ",
+      "http://",
+    ];
+    for (const publicUrl of invalidas) {
+      assert.deepEqual(
+        expectErrors(parseConfig(devEnv({ STEAM_API_KEY: KEY, PUBLIC_URL: publicUrl }))),
+        [URL_ERROR],
+        publicUrl,
+      );
+    }
+  });
+
+  test("RNF-4: en producción http es un error; en desarrollo y prueba es válido", () => {
+    assert.deepEqual(expectErrors(parseConfig(prodEnv({ STEAM_API_KEY: KEY, PUBLIC_URL: LOCAL }))), [
+      HTTPS_IN_PRODUCTION,
+    ]);
+    for (const env of [devEnv(), testEnv()]) {
+      const config = expectConfig(parseConfig({ ...env, STEAM_API_KEY: KEY, PUBLIC_URL: LOCAL }));
+      assert.equal(config.steam?.publicUrl, LOCAL);
+    }
+  });
+
+  test("los errores de Steam se acumulan con los demás", () => {
+    const errors = expectErrors(parseConfig(prodEnv({ PORT: "abc", STEAM_API_KEY: KEY })));
+    assert.equal(errors.length, 2);
+    assert.ok(errors.includes(KEY_WITHOUT_URL));
+  });
+
+  test("RNF-2: ningún mensaje de error contiene la clave", () => {
+    const secreta = "CLAVE-SECRETA-0123456789ABCDEF-0123";
+    const casos: EnvSource[] = [
+      devEnv({ STEAM_API_KEY: secreta }),
+      devEnv({ STEAM_API_KEY: secreta, PUBLIC_URL: "http://localhost:5173/ruta" }),
+      prodEnv({ STEAM_API_KEY: secreta, PUBLIC_URL: LOCAL, PORT: "abc", JWT_SECRET: DEV_JWT_SECRET }),
+    ];
+    for (const env of casos) {
+      const mensaje = allErrors(parseConfig(env));
+      assert.doesNotMatch(mensaje, /CLAVE-SECRETA/);
+      assert.doesNotMatch(formatConfigErrors(expectErrors(parseConfig(env))), /CLAVE-SECRETA/);
+    }
+  });
+
+  test("loadConfig toma las dos variables del archivo y el proceso prevalece", async (t) => {
+    const dir = await mkdtemp(join(tmpdir(), "tmu-steam-"));
+    t.after(() => rm(dir, { recursive: true, force: true }));
+    const envFilePath = join(dir, ".env");
+    await writeFile(
+      envFilePath,
+      [
+        "NODE_ENV=development",
+        "PORT=3001",
+        `JWT_SECRET=${SECRET}`,
+        `MONGODB_URI=${DEV_URI}`,
+        "MONGODB_DBNAME=teammatchup",
+        `STEAM_API_KEY=${KEY}`,
+        `PUBLIC_URL=${LOCAL}`,
+        "",
+      ].join("\n"),
+    );
+    const delArchivo = expectConfig(loadConfig({ envFilePath, processEnv: {} }));
+    assert.deepStrictEqual(delArchivo.steam, { apiKey: KEY, publicUrl: LOCAL });
+    const delProceso = expectConfig(loadConfig({ envFilePath, processEnv: { PUBLIC_URL: "http://localhost:4000" } }));
+    assert.equal(delProceso.steam?.publicUrl, "http://localhost:4000");
+  });
+});
+
+// Spec 014 (T1): RIOT_API_KEY opcional, sin requerir PUBLIC_URL (P14-10). Sin clave, Riot no
+// está configurado (RF-38); la clave nunca sale en errores ni registros (RNF-4) y se renueva
+// reemplazándola en `.env` y reiniciando (RF-17).
+describe("parseConfig — Riot (014, RF-17, RF-38, RNF-4)", () => {
+  const KEY = "RGAPI-00000000-0000-0000-0000-000000000001";
+  const KEY_TWO = "RGAPI-00000000-0000-0000-0000-000000000002";
+
+  test("RF-38: sin RIOT_API_KEY → riot es null en los tres entornos", () => {
+    for (const env of [devEnv(), prodEnv(), testEnv()]) {
+      assert.equal(expectConfig(parseConfig(env)).riot, null);
+    }
+  });
+
+  test("RF-38: RIOT_API_KEY vacía o solo espacios → riot es null", () => {
+    for (const blank of ["", " ", "   ", "\t "]) {
+      for (const env of [devEnv({ RIOT_API_KEY: blank }), prodEnv({ RIOT_API_KEY: blank }), testEnv({ RIOT_API_KEY: blank })]) {
+        assert.equal(expectConfig(parseConfig(env)).riot, null, JSON.stringify(blank));
+      }
+    }
+  });
+
+  test("RF-38 / P14-10: con RIOT_API_KEY presente → riot.apiKey tal cual, sin exigir PUBLIC_URL", () => {
+    for (const env of [devEnv({ RIOT_API_KEY: KEY }), prodEnv({ RIOT_API_KEY: KEY }), testEnv({ RIOT_API_KEY: KEY })]) {
+      const config = expectConfig(parseConfig(env));
+      assert.deepStrictEqual(config.riot, { apiKey: KEY });
+      assert.equal(config.steam, null);
+    }
+    // Sin recortar (D18 de la 001), igual que JWT_SECRET y STEAM_API_KEY.
+    assert.deepStrictEqual(expectConfig(parseConfig(devEnv({ RIOT_API_KEY: ` ${KEY} ` }))).riot, {
+      apiKey: ` ${KEY} `,
+    });
+    // Sin STEAM_API_KEY, PUBLIC_URL inválida se sigue ignorando aunque haya RIOT_API_KEY.
+    const conUrlInvalida = expectConfig(
+      parseConfig(devEnv({ RIOT_API_KEY: KEY, PUBLIC_URL: "no-es-una-url" })),
+    );
+    assert.deepStrictEqual(conUrlInvalida.riot, { apiKey: KEY });
+    assert.equal(conUrlInvalida.steam, null);
+  });
+
+  test("RIOT_API_KEY convive con STEAM_API_KEY sin interferencias", () => {
+    const steamKey = "0123456789ABCDEF0123456789ABCDEF";
+    const localUrl = "http://localhost:5173";
+    const config = expectConfig(
+      parseConfig(devEnv({ STEAM_API_KEY: steamKey, PUBLIC_URL: localUrl, RIOT_API_KEY: KEY })),
+    );
+    assert.deepStrictEqual(config.steam, { apiKey: steamKey, publicUrl: localUrl });
+    assert.deepStrictEqual(config.riot, { apiKey: KEY });
+  });
+
+  test("RNF-4: ningún mensaje de error contiene la clave de Riot", () => {
+    const secreta = "RGAPI-SECRETO-RIOT-NO-FILTRAR-999999";
+    const casos: EnvSource[] = [
+      devEnv({ RIOT_API_KEY: secreta, PORT: "abc" }),
+      devEnv({ RIOT_API_KEY: secreta, MONGODB_URI: "" }),
+      devEnv({ RIOT_API_KEY: secreta, STEAM_API_KEY: "0123456789ABCDEF0123456789ABCDEF" }),
+      prodEnv({ RIOT_API_KEY: secreta, JWT_SECRET: DEV_JWT_SECRET, PORT: "0" }),
+    ];
+    for (const env of casos) {
+      const mensaje = allErrors(parseConfig(env));
+      assert.doesNotMatch(mensaje, /RGAPI-SECRETO-RIOT/);
+      assert.doesNotMatch(formatConfigErrors(expectErrors(parseConfig(env))), /RGAPI-SECRETO-RIOT/);
+    }
+  });
+
+  test("RF-17: loadConfig lee RIOT_API_KEY desde .env, el proceso prevalece y renovar .env carga la nueva clave", async (t) => {
+    const dir = await mkdtemp(join(tmpdir(), "tmu-riot-"));
+    t.after(() => rm(dir, { recursive: true, force: true }));
+    const envFilePath = join(dir, ".env");
+    const baseLines = [
+      "NODE_ENV=development",
+      "PORT=3001",
+      `JWT_SECRET=${SECRET}`,
+      `MONGODB_URI=${DEV_URI}`,
+      "MONGODB_DBNAME=teammatchup",
+    ];
+
+    await writeFile(envFilePath, [...baseLines, `RIOT_API_KEY=${KEY}`, ""].join("\n"));
+    assert.deepStrictEqual(expectConfig(loadConfig({ envFilePath, processEnv: {} })).riot, { apiKey: KEY });
+
+    const delProceso = expectConfig(loadConfig({ envFilePath, processEnv: { RIOT_API_KEY: "RGAPI-desde-proceso" } }));
+    assert.deepStrictEqual(delProceso.riot, { apiKey: "RGAPI-desde-proceso" });
+
+    const vaciaEnProceso = expectConfig(loadConfig({ envFilePath, processEnv: { RIOT_API_KEY: "" } }));
+    assert.equal(vaciaEnProceso.riot, null);
+
+    await writeFile(envFilePath, [...baseLines, `RIOT_API_KEY=${KEY_TWO}`, ""].join("\n"));
+    assert.deepStrictEqual(expectConfig(loadConfig({ envFilePath, processEnv: {} })).riot, { apiKey: KEY_TWO });
+  });
+});
+
+// Spec 015 (T2): LEETIFY_API_KEY opcional (D24). Sin clave se consulta igual, así que Leetify nunca
+// es «no configurado»: `leetify` siempre existe y solo cambia su clave. La clave es un secreto que
+// nunca sale en errores ni registros (RNF-2).
+describe("parseConfig — Leetify (015, D24, RNF-2)", () => {
+  const KEY = "LEETIFY-CLAVE-FALSA-000000000000001";
+  const KEY_TWO = "LEETIFY-CLAVE-FALSA-000000000000002";
+
+  test("D24: sin LEETIFY_API_KEY → leetify existe y su clave es null en los tres entornos", () => {
+    for (const env of [devEnv(), prodEnv(), testEnv()]) {
+      assert.deepStrictEqual(expectConfig(parseConfig(env)).leetify, { apiKey: null });
+    }
+  });
+
+  test("D24: LEETIFY_API_KEY vacía o solo espacios → sin clave", () => {
+    for (const blank of ["", " ", "   ", "\t "]) {
+      for (const env of [
+        devEnv({ LEETIFY_API_KEY: blank }),
+        prodEnv({ LEETIFY_API_KEY: blank }),
+        testEnv({ LEETIFY_API_KEY: blank }),
+      ]) {
+        assert.deepStrictEqual(expectConfig(parseConfig(env)).leetify, { apiKey: null }, JSON.stringify(blank));
+      }
+    }
+  });
+
+  test("con LEETIFY_API_KEY presente → apiKey tal cual, sin recortar y sin exigir PUBLIC_URL", () => {
+    for (const env of [devEnv({ LEETIFY_API_KEY: KEY }), prodEnv({ LEETIFY_API_KEY: KEY }), testEnv({ LEETIFY_API_KEY: KEY })]) {
+      const config = expectConfig(parseConfig(env));
+      assert.deepStrictEqual(config.leetify, { apiKey: KEY });
+      assert.equal(config.steam, null);
+      assert.equal(config.riot, null);
+    }
+    assert.deepStrictEqual(expectConfig(parseConfig(devEnv({ LEETIFY_API_KEY: ` ${KEY} ` }))).leetify, {
+      apiKey: ` ${KEY} `,
+    });
+  });
+
+  test("convive con las claves de Steam y de Riot sin interferencias", () => {
+    const steamKey = "0123456789ABCDEF0123456789ABCDEF";
+    const localUrl = "http://localhost:5173";
+    const config = expectConfig(
+      parseConfig(
+        devEnv({ STEAM_API_KEY: steamKey, PUBLIC_URL: localUrl, RIOT_API_KEY: "RGAPI-1", LEETIFY_API_KEY: KEY }),
+      ),
+    );
+    assert.deepStrictEqual(config.steam, { apiKey: steamKey, publicUrl: localUrl });
+    assert.deepStrictEqual(config.riot, { apiKey: "RGAPI-1" });
+    assert.deepStrictEqual(config.leetify, { apiKey: KEY });
+  });
+
+  test("RNF-2: ningún mensaje de error contiene la clave de Leetify", () => {
+    const secreta = "LEETIFY-SECRETO-NO-FILTRAR-999999";
+    const casos: EnvSource[] = [
+      devEnv({ LEETIFY_API_KEY: secreta, PORT: "abc" }),
+      devEnv({ LEETIFY_API_KEY: secreta, MONGODB_URI: "" }),
+      devEnv({ LEETIFY_API_KEY: secreta, STEAM_API_KEY: "0123456789ABCDEF0123456789ABCDEF" }),
+      prodEnv({ LEETIFY_API_KEY: secreta, JWT_SECRET: DEV_JWT_SECRET, PORT: "0" }),
+    ];
+    for (const env of casos) {
+      assert.doesNotMatch(allErrors(parseConfig(env)), /LEETIFY-SECRETO/);
+      assert.doesNotMatch(formatConfigErrors(expectErrors(parseConfig(env))), /LEETIFY-SECRETO/);
+    }
+  });
+
+  test("loadConfig lee LEETIFY_API_KEY desde .env, el proceso prevalece y renovarla carga la nueva", async (t) => {
+    const dir = await mkdtemp(join(tmpdir(), "tmu-leetify-"));
+    t.after(() => rm(dir, { recursive: true, force: true }));
+    const envFilePath = join(dir, ".env");
+    const baseLines = [
+      "NODE_ENV=development",
+      "PORT=3001",
+      `JWT_SECRET=${SECRET}`,
+      `MONGODB_URI=${DEV_URI}`,
+      "MONGODB_DBNAME=teammatchup",
+    ];
+
+    await writeFile(envFilePath, [...baseLines, ""].join("\n"));
+    assert.deepStrictEqual(expectConfig(loadConfig({ envFilePath, processEnv: {} })).leetify, { apiKey: null });
+
+    await writeFile(envFilePath, [...baseLines, `LEETIFY_API_KEY=${KEY}`, ""].join("\n"));
+    assert.deepStrictEqual(expectConfig(loadConfig({ envFilePath, processEnv: {} })).leetify, { apiKey: KEY });
+
+    const delProceso = expectConfig(loadConfig({ envFilePath, processEnv: { LEETIFY_API_KEY: "desde-proceso" } }));
+    assert.deepStrictEqual(delProceso.leetify, { apiKey: "desde-proceso" });
+
+    const vaciaEnProceso = expectConfig(loadConfig({ envFilePath, processEnv: { LEETIFY_API_KEY: "" } }));
+    assert.deepStrictEqual(vaciaEnProceso.leetify, { apiKey: null });
+
+    await writeFile(envFilePath, [...baseLines, `LEETIFY_API_KEY=${KEY_TWO}`, ""].join("\n"));
+    assert.deepStrictEqual(expectConfig(loadConfig({ envFilePath, processEnv: {} })).leetify, { apiKey: KEY_TWO });
   });
 });
 

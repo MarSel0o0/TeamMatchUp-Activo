@@ -1,5 +1,5 @@
 import { UserX } from 'lucide-react';
-import { Link, Navigate, useParams } from 'react-router-dom';
+import { Navigate, useParams } from 'react-router-dom';
 import { ROUTES } from '@/app/routes';
 import {
   distanceView,
@@ -11,6 +11,7 @@ import {
 import type { Loadable, ProposeState } from '@/domain/playerSheet';
 import type { GameAccount } from '@/domain/types';
 import { useAuth } from '@/features/auth/useAuth';
+import { ButtonLink } from '@/shared/components/AppButton';
 import { Blank, Failure, SheetSkeleton } from '@/shared/components/States';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { GO_TO_MATCHES_LABEL, PLAYER_CROSS_TITLE, PLAYER_NOT_FOUND_TEXT } from '@/shared/utils/copy';
@@ -91,9 +92,9 @@ function PlayerSheet({ rawId, myZone }: { rawId: string; myZone: string }) {
         icon={UserX}
         title={PLAYER_NOT_FOUND_TEXT}
         action={
-          <Link className="btn btn--pen" to={ROUTES.matches}>
+          <ButtonLink tone="pen" to={ROUTES.matches}>
             {GO_TO_MATCHES_LABEL}
-          </Link>
+          </ButtonLink>
         }
       />
     );
@@ -119,6 +120,7 @@ function PlayerSheet({ rawId, myZone }: { rawId: string; myZone: string }) {
         summaryError={summaryQuery.error}
         onRetrySummary={() => void summaryQuery.refetch()}
         rechecking={rechecking}
+        owner={userQuery.data}
       />
       {/* Bloque "Cruce": distancia y horas en común (T7) y "Proponer sesión" (T8). */}
       <section className="sheet" aria-labelledby={CROSS_TITLE_ID}>

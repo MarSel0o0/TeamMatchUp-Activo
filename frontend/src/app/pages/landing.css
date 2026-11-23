@@ -455,6 +455,9 @@
   flex-direction: column;
   gap: var(--s5);
   padding: var(--s7) var(--s6) var(--s5);
+  /* Los marcadores miden lo que la pista y se desplazan con `transform`: su caja vacía
+     sobresalía de la ventana (1502 px a 1280). El relleno deja ver las etiquetas enteras. */
+  overflow-x: clip;
 }
 
 .rank-demo__track {

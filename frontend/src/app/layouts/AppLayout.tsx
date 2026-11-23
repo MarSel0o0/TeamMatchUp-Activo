@@ -2,11 +2,15 @@ import { LogOut } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Suspense, useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation, useOutlet } from 'react-router-dom';
+import { env } from '@/config/env';
 import { useAuth } from '@/features/auth/useAuth';
+import { AppButton } from '@/shared/components/AppButton';
 import { BrandMark } from '@/shared/components/BrandMark';
 import { DemoTag } from '@/shared/components/DemoTag';
 import { Icon } from '@/shared/components/Icon';
+import { IconButton } from '@/shared/components/IconButton';
 import { Monogram } from '@/shared/components/Monogram';
+import { Spinner } from '@/shared/components/Spinner';
 import { Working } from '@/shared/components/States';
 import { ThemeToggle } from '@/shared/components/ThemeToggle';
 import { EASE_FLUID, EASE_OUT, SPRING, pageTransition } from '@/shared/motion/presets';
@@ -103,21 +107,21 @@ export function AppLayout() {
 
           <div className="dock__end">
             <ThemeToggle />
-            <DemoTag className="dock__demo" />
+            {env.useMockApi ? <DemoTag className="dock__demo" /> : null}
 
             {user ? (
               <div className="dock__user">
                 <Monogram name={user.displayName} color={user.avatarColor} size="sm" />
                 <span className="dock__user-name">{user.displayName}</span>
-                <button
-                  type="button"
-                  className="dock__icon-btn"
+                <IconButton
+                  variant="bar"
+                  label={loggingOut ? SENDING_TEXT : 'Cerrar sesión'}
                   onClick={handleLogout}
                   disabled={loggingOut}
                   title={loggingOut ? SENDING_TEXT : 'Cerrar sesión'}
                 >
-                  <Icon as={LogOut} size={15} label={loggingOut ? SENDING_TEXT : 'Cerrar sesión'} />
-                </button>
+                  <Icon as={LogOut} size={15} />
+                </IconButton>
               </div>
             ) : null}
 
@@ -183,15 +187,10 @@ export function AppLayout() {
                     <span className="note note--faint">@{user.username}</span>
                   </span>
                 </div>
-                <button
-                  type="button"
-                  className="btn btn--sm"
-                  onClick={handleLogout}
-                  disabled={loggingOut}
-                >
-                  {loggingOut ? <span className="btn__spin" /> : <Icon as={LogOut} size={13} />}
+                <AppButton size="sm" onClick={handleLogout} disabled={loggingOut}>
+                  {loggingOut ? <Spinner /> : <Icon as={LogOut} size={13} />}
                   {loggingOut ? SENDING_TEXT : 'Cerrar sesión'}
-                </button>
+                </AppButton>
               </motion.div>
             ) : null}
           </motion.div>
@@ -217,7 +216,7 @@ export function AppLayout() {
 
       <footer className="shell__foot">
         <span className="label">TeamMatchUp · 2026</span>
-        <DemoTag />
+        {env.useMockApi ? <DemoTag /> : null}
       </footer>
     </div>
   );

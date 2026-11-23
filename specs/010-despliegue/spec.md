@@ -1,5 +1,8 @@
 # Spec 010 — Producción, despliegue y documentación
-Estado: borrador
+Estado: aprobada (de hecho: su plan y tareas se implementan desde el 2026-10-21; nunca se cambió
+el «borrador»). Implementación local validada por el `reviewer` (2026-11-20); falta el
+despliegue real (T9, lo hace el usuario) para pasar a implementada.
+Ajustada el 2026-11-20 al servidor real y a las specs 013 a 015 (ver «Cambios»).
 
 ## Contexto y objetivo
 El enunciado del Hito 2 exige un repositorio público con `frontend/` y `backend/`, la
@@ -27,12 +30,13 @@ Esta spec cierra el hito: construcción de producción, despliegue y documentaci
 - Acceso por SSH en el puerto 219 con un usuario del sistema compartido por todos los
   grupos (`<usuario>` / `<contraseña>`; las credenciales reales están fuera del repositorio
   y no se escriben en ningún archivo del proyecto).
-- Carpeta del equipo en el servidor: `teammatchup`; proceso del gestor de procesos del
-  servidor (PM2): `teammatchup-7041`, según la regla `<carpeta>-<puerto>` del curso
-  (nombres elegidos por el coordinador como decisión menor).
+- Carpeta del equipo en el servidor: `reactivoActivo`; proceso del gestor de procesos del
+  servidor (PM2): `reactivoActivo-7041`, según la regla `<carpeta>-<puerto>` del curso (son los
+  nombres que el equipo ya usa en el servidor, rama `origin/deploy`).
 - MongoDB del servidor es compartido entre grupos. Decisión del usuario: base propia
   `teammatchup_7041`; si el usuario de MongoDB no tiene permiso para crearla, se usa la
-  base `fullstack` con el prefijo `tmu_` en todas las colecciones.
+  base `fullstack` con el prefijo `tmu_` en todas las colecciones. En el servidor real no hay
+  permiso (`Unauthorized`, código 13): se usa `fullstack` con `tmu_`.
 
 ## Usuarios
 - Jugador que entra a la aplicación desplegada.
@@ -72,22 +76,22 @@ Esta spec cierra el hito: construcción de producción, despliegue y documentaci
   en la base `teammatchup_7041` o, si no puede crearse, en la base `fullstack` con el
   prefijo `tmu_` en todas sus colecciones.
 - RF-7: EL README raíz indica las variables de entorno de servidor e interfaz (incluidas las
-  claves de las fuentes externas de la spec 004, sin valores), los requisitos previos,
+  claves opcionales de Steam, Riot Games y Leetify de las specs 013 a 015, sin valores), los requisitos previos,
   cómo levantar la aplicación en local (desarrollo y pruebas) y la URL desplegada.
 - RF-8: EL README de la interfaz lista las operaciones de la API que consume tal como quedan
   tras las specs 002 a 009.
 - RF-9: EL README documenta el procedimiento de despliegue en el servidor del curso:
   compilar interfaz y servidor; subir la carpeta del servidor por SSH en el puerto 219 a la
-  carpeta `teammatchup`; crear allí el archivo de variables de producción con la ubicación
+  carpeta `reactivoActivo`; crear allí el archivo de variables de producción con la ubicación
   de MongoDB, el nombre de la base, el puerto 7041, la dirección `0.0.0.0`, el secreto de
   firma y las claves de las fuentes; instalar dependencias; levantar el proceso
-  `teammatchup-7041` y guardar la lista de procesos; reiniciar solo ese proceso tras subir
+  `reactivoActivo-7041` y guardar la lista de procesos; reiniciar solo ese proceso tras subir
   cambios. Usa marcadores (`<usuario>`, `<contraseña>`) en lugar de credenciales.
-- RF-10: EL README documenta cómo obtener y renovar la clave de desarrollo de Riot (caduca
-  cada 24 horas), dónde reemplazarla en el servidor del curso, que hay que reiniciar el
-  proceso para que la tome y que mientras está caducada vincular y resincronizar cuentas
-  LoL responden "Fuente no disponible, inténtalo más tarde." sin cerrar sesión, y las
-  cuentas ya guardadas conservan su último rango.
+- RF-10: EL README documenta cómo obtener y renovar la clave de desarrollo de Riot Games
+  (caduca cada 24 horas; spec 014), dónde reemplazarla en el servidor del curso, que hay que
+  reiniciar el proceso para que la tome y que mientras está caducada las operaciones que
+  consultan a Riot responden 503 («Riot Games no está disponible por ahora, intenta más
+  tarde») sin cerrar sesión ni perder cuentas verificadas.
 - RF-11: EL README indica que el servidor no tiene datos de demostración: la base empieza
   vacía y las coincidencias se demuestran con cuentas reales del equipo.
 
@@ -110,7 +114,7 @@ Esta spec cierra el hito: construcción de producción, despliegue y documentaci
   `tmu_` (RF-6) y ninguna colección sin prefijo queda escrita en `fullstack`.
 - Limitación reconocida del entorno, sin arreglo desde el proyecto: como el usuario del
   sistema es compartido por todos los grupos, el archivo de variables de producción (secreto
-  de firma, claves de Riot y FACEIT, ubicación de MongoDB) es legible por otros grupos.
+  de firma, claves de Steam, Riot Games y Leetify, ubicación de MongoDB) es legible por otros grupos.
 - Clave de Riot caducada durante una evaluación: se aplica RF-10; el resto de la aplicación
   sigue funcionando.
 
@@ -122,19 +126,28 @@ Esta spec cierra el hito: construcción de producción, despliegue y documentaci
 - Renovación automática de la clave de Riot.
 
 ## Criterios de finalización
-- [ ] En local, la construcción de producción responde la interfaz y la API en el mismo
-      puerto, y recargar `/perfil` carga la aplicación.
-- [ ] Una ruta de API inexistente responde 404 en JSON en producción.
+- [x] En local, la construcción de producción responde la interfaz y la API en el mismo
+      puerto, y recargar `/perfil` carga la aplicación (`validation.md` §2, 2026-11-20).
+- [x] Una ruta de API inexistente responde 404 en JSON en producción (`validation.md` §2).
 - [ ] En `https://fullstack.dcc.uchile.cl:7041/` se completa: registro, inicio de sesión
       (la cookie llega con Secure), recarga y cierre de sesión.
-- [ ] El proceso `teammatchup-7041` aparece en la lista guardada del gestor de procesos y
+- [ ] El proceso `reactivoActivo-7041` aparece en la lista guardada del gestor de procesos y
       la aplicación vuelve a responder tras reiniciarlo.
 - [ ] Una persona que no participó en el despliegue levanta la aplicación en local siguiendo
       solo el README.
-- [ ] `git status` limpio de archivos de variables y de construcción, y una búsqueda en el
-      repositorio no encuentra credenciales.
+- [x] `git status` limpio de archivos de variables y de construcción, y una búsqueda en el
+      repositorio no encuentra credenciales (`validation.md` §4).
 
 ## Dudas abiertas
-- [NECESITA ACLARACIÓN] (condición previa al plan, spec 004) Confirmar que los términos de
-  Riot permiten usar la clave de desarrollo en la aplicación desplegada para la
-  demostración.
+Ninguna. La duda sobre los términos de Riot quedó resuelta en la spec 014 (decisión del
+2026-11-04): el equipo usa la clave de desarrollo aceptando que los términos no admiten un
+producto público con ella.
+
+## Cambios
+- **2026-11-20.** Nombres del servidor: carpeta `reactivoActivo` y proceso `reactivoActivo-7041`
+  (los que el equipo ya usa), en lugar de `teammatchup` y `teammatchup-7041`. R-2 ocurrió: base
+  `fullstack` con prefijo `tmu_`. HU-4 y RF-10 se mantienen, aunque el plan los retiró el
+  2026-10-21 cuando el proyecto no usaba Riot: la spec 014 volvió a introducir `RIOT_API_KEY` y
+  el README documenta su renovación; RF-10 se reescribe con el comportamiento de la 014 (503).
+  RF-7 y el caso límite de los secretos nombran Steam, Riot Games y Leetify en lugar de las
+  fuentes de la spec 004 (FACEIT ya no se usa).

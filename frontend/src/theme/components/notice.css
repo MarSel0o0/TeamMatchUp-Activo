@@ -1,0 +1,34 @@
+/*
+ * Avisos en línea (spec 017, M13; RF-2, RF-3, RF-15; plan 4.6), sobre el `Paper` de la librería
+ * (`shared/components/Notice.tsx`, que le pone `tmu-notice` y `data-variant` = neutral | pen | error).
+ * Solo tokens. `Paper` también lo usa la ventana modal, por eso la clase no se pone en el tema.
+ */
+.tmu-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s3);
+  padding: var(--s3) var(--s4);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  box-shadow: none;
+  font-size: var(--t-small);
+  color: var(--ink-2);
+}
+
+.tmu-notice svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.tmu-notice[data-variant='error'] {
+  border-color: var(--danger-edge);
+  background: var(--danger-wash);
+  color: var(--ink);
+}
+
+.tmu-notice[data-variant='pen'] {
+  border-color: var(--volt-edge);
+  background: var(--volt-wash);
+  color: var(--ink);
+}

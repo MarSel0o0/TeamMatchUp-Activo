@@ -1,9 +1,10 @@
+import { TextInput } from '@mantine/core';
 import { AlertCircle } from 'lucide-react';
 import { forwardRef, useId, type InputHTMLAttributes } from 'react';
 import { useCodePointLimit } from '../hooks/useCodePointLimit';
 import { Icon } from './Icon';
 
-interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
+interface TextFieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size'> {
   label: string;
   error?: string;
   hint?: string;
@@ -15,13 +16,17 @@ interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   onValueChange?: (value: string) => void;
 }
 
+/**
+ * Campo de texto (M4): el `TextInput` de la librería con etiqueta, error anunciado, pista y límite de
+ * caracteres Unicode, y el aspecto de `theme/components/field.css`. Con error, el campo queda descrito por el
+ * error; sin él, por la pista (si la hay), como siempre.
+ */
 export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function TextField(
   { label, error, hint, id, maxCodePoints, onValueChange, ...inputProps },
   forwardedRef,
 ) {
   const generatedId = useId();
   const fieldId = id ?? generatedId;
-  const describedBy = error ? `${fieldId}-error` : hint ? `${fieldId}-hint` : undefined;
 
   const limit = useCodePointLimit<HTMLInputElement>({
     value: typeof inputProps.value === 'string' ? inputProps.value : '',
@@ -37,35 +42,28 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
   };
 
   return (
-    <div className="field">
-      <label className="label" htmlFor={fieldId}>
-        {label}
-      </label>
-      <input
-        {...inputProps}
-        {...(limited
-          ? {
-              onChange: limit.onChange,
-              onCompositionStart: limit.onCompositionStart,
-              onCompositionEnd: limit.onCompositionEnd,
-            }
-          : {})}
-        ref={setRefs}
-        id={fieldId}
-        className="input"
-        aria-invalid={error ? true : undefined}
-        aria-describedby={describedBy}
-      />
-      {error ? (
-        <span className="field__error" id={`${fieldId}-error`} role="alert">
-          <Icon as={AlertCircle} size={12} />
-          {error}
-        </span>
-      ) : hint ? (
-        <span className="field__hint" id={`${fieldId}-hint`}>
-          {hint}
-        </span>
-      ) : null}
-    </div>
+    <TextInput
+      {...inputProps}
+      {...(limited
+        ? {
+            onChange: limit.onChange,
+            onCompositionStart: limit.onCompositionStart,
+            onCompositionEnd: limit.onCompositionEnd,
+          }
+        : {})}
+      ref={setRefs}
+      id={fieldId}
+      label={label}
+      description={error ? undefined : hint}
+      error={
+        error ? (
+          <>
+            <Icon as={AlertCircle} size={12} />
+            {error}
+          </>
+        ) : undefined
+      }
+      errorProps={{ role: 'alert' }}
+    />
   );
 });

@@ -14,6 +14,13 @@ export const ROUTES = {
   schedule: '/agenda',
   sessionDetail: '/agenda/:sessionId',
   player: '/jugadores/:userId',
+  /**
+   * Página a la que Steam devuelve al usuario (spec 013, D3). Va fuera de las rutas protegidas y de
+   * `PROTECTED_PATHS`: sin sesión no se recuerda para continuar después de iniciar sesión (RF-7).
+   */
+  steamReturn: '/verificar/steam',
+  /** Verificación de cuenta de LoL con Riot Games (spec 014, O-2, RF-2, RF-45, RF-46). */
+  riotVerify: '/verificar/riot',
 } as const;
 
 export type RoutePath = (typeof ROUTES)[keyof typeof ROUTES];
@@ -38,13 +45,14 @@ export function sessionPath(sessionId: string): string {
   return `${SESSION_PATH_PREFIX}${encodeURIComponent(sessionId)}`;
 }
 
-/** Rutas que exigen sesión; las specs 008 y 009 añaden las suyas (plan 3.5). */
+/** Rutas que exigen sesión; las specs 008, 009 y 014 añaden las suyas (plan 3.5). */
 const PROTECTED_PATHS: readonly string[] = [
   ROUTES.home,
   ROUTES.profile,
   ROUTES.settings,
   ROUTES.matches,
   ROUTES.schedule,
+  ROUTES.riotVerify,
 ];
 
 /**
@@ -59,6 +67,15 @@ export function isProtectedPath(pathname: string): boolean {
     normalized.startsWith(PLAYER_PATH_PREFIX) ||
     normalized.startsWith(SESSION_PATH_PREFIX)
   );
+}
+
+/**
+ * `true` solo para la agenda (`/agenda`, con o sin barra final). El detalle `/agenda/:id` es
+ * «salir de la agenda» (spec 016, RF-15, RF-30, Definiciones).
+ */
+export function isSchedulePath(pathname: string): boolean {
+  const normalized = pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname;
+  return normalized === ROUTES.schedule;
 }
 
 /** Índice del expediente: las secciones de la navegación principal. */

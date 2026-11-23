@@ -132,3 +132,13 @@ X-CSRF-Token: {{loginD.response.headers.X-CSRF-Token}}
 {
   "displayName": "Jugador\tD"
 }
+
+### 15. Disponibilidad de otro jugador inexistente: 404 "usuario no encontrado" (RF-20; la usa «Proponer», spec 008)
+# Con el id de un jugador real responde 200 con su lista de bloques.
+GET {{baseUrl}}/api/users/000000000000000000000000/availability
+X-CSRF-Token: {{loginD.response.headers.X-CSRF-Token}}
+
+### 16. Resumen por juego de otro jugador inexistente: 404 "usuario no encontrado" (RF-13, RF-29; ficha de jugador, spec 008)
+# Con el id de un jugador real con cuenta de LoL responde 200 con cuenta, rango y partidas.
+GET {{baseUrl}}/api/users/000000000000000000000000/games/lol
+X-CSRF-Token: {{loginD.response.headers.X-CSRF-Token}}

@@ -5,7 +5,10 @@ import { ROUTES } from '@/app/routes';
 import { env } from '@/config/env';
 import { isSessionCleared } from '@/services/api';
 import { DEMO_CREDENTIALS } from '@/services/mock/seed';
+import { AppButton } from '@/shared/components/AppButton';
 import { Icon } from '@/shared/components/Icon';
+import { Notice } from '@/shared/components/Notice';
+import { Spinner } from '@/shared/components/Spinner';
 import { TextField } from '@/shared/components/TextField';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { LOGIN_NOTICES, NO_MESSAGE_TEXT, SENDING_TEXT, type LoginNotice } from '@/shared/utils/copy';
@@ -95,15 +98,15 @@ export default function LoginPage() {
       </header>
 
       {submitError ? (
-        <p className="notice notice--error" role="alert">
+        <Notice tone="error" role="alert">
           <Icon as={AlertCircle} size={15} />
           {submitError}
-        </p>
+        </Notice>
       ) : notice ? (
-        <p className="notice notice--pen" role="alert">
+        <Notice tone="pen" role="alert">
           <Icon as={Info} size={15} />
           {LOGIN_NOTICES[notice]}
-        </p>
+        </Notice>
       ) : null}
 
       <div className="access__fields">
@@ -127,10 +130,10 @@ export default function LoginPage() {
         />
       </div>
 
-      <button type="submit" className="btn btn--pen btn--block access__submit" disabled={submitting}>
-        {submitting ? <span className="btn__spin" /> : <Icon as={ArrowRight} size={15} />}
+      <AppButton type="submit" tone="pen" block className="access__submit" disabled={submitting}>
+        {submitting ? <Spinner /> : <Icon as={ArrowRight} size={15} />}
         {submitting ? SENDING_TEXT : 'Entrar'}
-      </button>
+      </AppButton>
 
       {env.useMockApi ? (
         <div className="access__demo">
@@ -139,16 +142,15 @@ export default function LoginPage() {
             <code>{DEMO_CREDENTIALS.email}</code> y contraseña{' '}
             <code>{DEMO_CREDENTIALS.password}</code>.
           </span>
-          <button
-            type="button"
-            className="btn btn--sm"
+          <AppButton
+            size="sm"
             onClick={() => {
               setForm({ email: DEMO_CREDENTIALS.email, password: DEMO_CREDENTIALS.password });
               setErrors({});
             }}
           >
             Rellenar esos datos
-          </button>
+          </AppButton>
         </div>
       ) : null}
 

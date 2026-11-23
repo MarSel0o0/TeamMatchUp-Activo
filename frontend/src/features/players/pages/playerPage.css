@@ -17,13 +17,6 @@
   min-width: 0;
 }
 
-/* El panel recibe el foco por teclado (patrón de pestañas, RNF-2): el anillo de siempre, por
-   dentro, para que el recorte de la hoja no lo oculte. */
-.player-panel:focus-visible {
-  outline: 2px solid var(--volt);
-  outline-offset: -2px;
-}
-
 /* RNF-5: el riel del marcador de `RankScale` se mueve con `transform` y su caja sobresale a la
    derecha de la regla (hasta el N % de su ancho); sin recortarla, a 360 px empuja la página a lo
    ancho. `clip` no crea un recuadro con desplazamiento y deja ver el marcador, que queda dentro
@@ -38,7 +31,7 @@
 }
 
 /* "Proponer sesión" deshabilitado sin `disabled` (recibe el foco; RNF-2): mismo aspecto que
-   `.btn:disabled`. */
+   `.tmu-btn:disabled`. */
 .player-propose {
   display: flex;
   align-items: center;
@@ -46,7 +39,7 @@
   flex-wrap: wrap;
 }
 
-.player-propose .btn[aria-disabled='true'] {
+.player-propose .tmu-btn[aria-disabled='true'] {
   opacity: 0.4;
   cursor: not-allowed;
 }
@@ -78,7 +71,7 @@
   color: var(--ink);
 }
 
-.player-hours .notice,
+.player-hours .tmu-notice,
 .player-hours .note,
 .player-distance .note,
 .player-hours .ficha__ranges li {

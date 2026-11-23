@@ -1,7 +1,8 @@
-import { Search } from 'lucide-react';
-import type { CSSProperties } from 'react';
 import type { MatchFilters } from '@/domain/types';
-import { Icon } from '@/shared/components/Icon';
+import { AppButton } from '@/shared/components/AppButton';
+import { SearchField } from '@/shared/components/SearchField';
+import { SliderField } from '@/shared/components/SliderField';
+import { SwitchField } from '@/shared/components/SwitchField';
 import { CountUp } from '@/shared/motion/CountUp';
 import './matchFilters.css';
 
@@ -10,6 +11,8 @@ interface MatchFiltersPanelProps {
   onChange: (filters: MatchFilters) => void;
   resultCount: number;
   onReset: () => void;
+  /** Todos los controles desactivados: CS2 sin rango Premier propio, no hay búsqueda posible (spec 015, RF-10). */
+  disabled?: boolean;
 }
 
 /** Casillas del formulario de búsqueda. Se aplican sin recargar la página. */
@@ -18,6 +21,7 @@ export function MatchFiltersPanel({
   onChange,
   resultCount,
   onReset,
+  disabled = false,
 }: MatchFiltersPanelProps) {
   const patch = (changes: Partial<MatchFilters>) => onChange({ ...filters, ...changes });
 
@@ -32,74 +36,48 @@ export function MatchFiltersPanel({
       </div>
 
       <div className="sheet__body stack">
-        <div className="field">
-          <label className="label" htmlFor="filter-search">
-            Buscar jugador
-          </label>
-          <div className="filters__search">
-            <Icon as={Search} size={14} />
-            <input
-              id="filter-search"
-              className="input"
-              type="search"
-              placeholder="Nombre o usuario"
-              value={filters.search}
-              onChange={(event) => patch({ search: event.target.value })}
-            />
-          </div>
-        </div>
+        <SearchField
+          id="filter-search"
+          label="Buscar jugador"
+          placeholder="Nombre o usuario"
+          value={filters.search}
+          disabled={disabled}
+          onChange={(event) => patch({ search: event.target.value })}
+        />
 
-        <div className="field">
-          <label className="label filters__dial" htmlFor="filter-rank">
-            Diferencia máxima de rango
-            <span className="num">{filters.maxRankDistance} pts</span>
-          </label>
-          <input
-            id="filter-rank"
-            className="slider"
-            type="range"
-            min={0}
-            max={50}
-            step={5}
-            value={filters.maxRankDistance}
-            style={{ '--fill': `${(filters.maxRankDistance / 50) * 100}%` } as CSSProperties}
-            onChange={(event) => patch({ maxRankDistance: Number(event.target.value) })}
-          />
-          <span className="field__hint">
-            Sobre la escala normalizada 0-100 que permite comparar juegos con escalas distintas.
-          </span>
-        </div>
+        <SliderField
+          label="Diferencia máxima de rango"
+          unit="pts"
+          min={0}
+          max={50}
+          step={5}
+          value={filters.maxRankDistance}
+          disabled={disabled}
+          onChange={(value) => patch({ maxRankDistance: value })}
+          hint="Sobre la escala normalizada 0-100 que permite comparar juegos con escalas distintas."
+        />
 
-        <div className="field">
-          <label className="label filters__dial" htmlFor="filter-overlap">
-            Horas en común por semana
-            <span className="num">{filters.minSharedHours} h</span>
-          </label>
-          <input
-            id="filter-overlap"
-            className="slider"
-            type="range"
-            min={0}
-            max={12}
-            step={1}
-            value={filters.minSharedHours}
-            style={{ '--fill': `${(filters.minSharedHours / 12) * 100}%` } as CSSProperties}
-            onChange={(event) => patch({ minSharedHours: Number(event.target.value) })}
-          />
-        </div>
+        <SliderField
+          label="Horas en común por semana"
+          unit="h"
+          min={0}
+          max={12}
+          step={1}
+          value={filters.minSharedHours}
+          disabled={disabled}
+          onChange={(value) => patch({ minSharedHours: value })}
+        />
 
-        <label className="check">
-          <input
-            type="checkbox"
-            checked={filters.onlyVerified}
-            onChange={(event) => patch({ onlyVerified: event.target.checked })}
-          />
-          Solo cuentas verificadas
-        </label>
+        <SwitchField
+          label="Solo cuentas verificadas"
+          checked={filters.onlyVerified}
+          disabled={disabled}
+          onChange={(event) => patch({ onlyVerified: event.target.checked })}
+        />
 
-        <button type="button" className="btn btn--sm" onClick={onReset}>
+        <AppButton type="button" size="sm" onClick={onReset} disabled={disabled}>
           Restablecer criterios
-        </button>
+        </AppButton>
       </div>
     </aside>
   );

@@ -1,8 +1,9 @@
 import { CalendarRange } from 'lucide-react';
 import { useState } from 'react';
-import { Link, useLocation, useParams } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import { ROUTES } from '@/app/routes';
 import { useAuth } from '@/features/auth/useAuth';
+import { ButtonLink } from '@/shared/components/AppButton';
 import { Blank, Failure, Working } from '@/shared/components/States';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import {
@@ -84,9 +85,9 @@ function SessionDetailBody({ rawId, currentUserId }: { rawId: string; currentUse
         description={SESSION_GONE_TEXT}
         headingRef={focusRef('emptyTitle')}
         action={
-          <Link className="btn" to={ROUTES.schedule}>
+          <ButtonLink to={ROUTES.schedule}>
             {GO_TO_SCHEDULE_LABEL}
-          </Link>
+          </ButtonLink>
         }
       />
     );

@@ -5,11 +5,15 @@ import { Link } from 'react-router-dom';
 import { playerPath } from '@/app/routes';
 import { formatRange, groupBlocks } from '@/domain/availability';
 import { formatRank, getGame } from '@/domain/games';
+import { verifiedLabel } from '@/domain/origins';
 import { scoreLabel } from '@/domain/matching';
+import { isLeetifyRank, scoreOriginLabel, showsRankDistance } from '@/domain/premierDisplay';
 import { blockReason, buildProposal, type Proposal } from '@/domain/proposal';
-import type { MatchCandidate, RankSnapshot } from '@/domain/types';
+import type { MatchCandidate, Origin, RankSnapshot } from '@/domain/types';
 import { useAvailabilityOf } from '@/features/profile/hooks';
-import { DemoTag } from '@/shared/components/DemoTag';
+import { AppButton } from '@/shared/components/AppButton';
+import { LeetifyAttribution } from '@/shared/components/LeetifyAttribution';
+import { OriginTag } from '@/shared/components/OriginTag';
 import { HoursSheet } from '@/shared/components/HoursSheet';
 import { Icon } from '@/shared/components/Icon';
 import { Monogram } from '@/shared/components/Monogram';
@@ -32,6 +36,8 @@ interface MatchEntryProps {
   viewerBlocks: string[];
   /** La disponibilidad propia ya llegó; mientras no, "Proponer" no puede decidir su motivo. */
   viewerLoaded: boolean;
+  /** Origen del rango propio en este juego: con Leetify en cualquiera de los dos lados no se muestra la distancia (spec 015, RF-25). */
+  ownRankOrigin: Origin;
   /** Recibe la propuesta ya calculada (RF-29); la página navega a la agenda. */
   onPropose?: (proposal: Proposal) => void;
 }
@@ -44,7 +50,7 @@ interface MatchEntryProps {
  * reacomodan deslizándose a su nueva posición en vez de saltar.
  */
 export const MatchEntry = forwardRef<HTMLElement, MatchEntryProps>(function MatchEntry(
-  { candidate, viewerBlocks, viewerLoaded, onPropose },
+  { candidate, viewerBlocks, viewerLoaded, ownRankOrigin, onPropose },
   ref,
 ) {
   const [open, setOpen] = useState(false);
@@ -69,7 +75,13 @@ export const MatchEntry = forwardRef<HTMLElement, MatchEntryProps>(function Matc
   // Defensivo (RF-14): el servidor no entrega cuentas sin rango, pero si llegara una no se
   // muestra ni se calcula ninguna distancia con él.
   const rank: RankSnapshot | null | undefined = candidate.account.currentRank;
-  const simulated = candidate.account.simulated;
+  const rankOrigin = candidate.account.origins.rank;
+  // Con rango de Leetify, en lugar de la etiqueta va su atribución (spec 015, RF-6).
+  const rankTag = isLeetifyRank(rankOrigin) ? (
+    <LeetifyAttribution handle={candidate.account.handle} className="entry__demo" />
+  ) : (
+    <OriginTag origin={rankOrigin} className="entry__demo" />
+  );
 
   return (
     <motion.article
@@ -102,8 +114,11 @@ export const MatchEntry = forwardRef<HTMLElement, MatchEntryProps>(function Matc
               <span className="entry__rank" style={{ color: game.accent }}>
                 {formatRank(candidate.gameId, rank)}
               </span>
-              <span className="note note--faint num">{rankDistanceText(candidate.rankDistance)}</span>
-              {simulated ? <DemoTag className="entry__demo" /> : null}
+              {/* RF-25, D31: la cifra se oculta con Leetify; el orden y el filtro siguen usándola (D32). */}
+              {showsRankDistance(ownRankOrigin, rankOrigin) ? (
+                <span className="note note--faint num">{rankDistanceText(candidate.rankDistance)}</span>
+              ) : null}
+              {rankTag}
             </>
           ) : (
             <span className="note note--faint">{NO_DATA_TEXT}</span>
@@ -124,7 +139,7 @@ export const MatchEntry = forwardRef<HTMLElement, MatchEntryProps>(function Matc
           <ScoreRing
             score={candidate.score}
             label={scoreLabel(candidate.score)}
-            simulated={simulated}
+            origin={scoreOriginLabel(ownRankOrigin, rankOrigin)}
           />
         ) : (
           <span className="note note--faint">{NO_DATA_TEXT}</span>
@@ -132,9 +147,9 @@ export const MatchEntry = forwardRef<HTMLElement, MatchEntryProps>(function Matc
 
         <div className="entry__actions">
           {onPropose ? (
-            <button
+            <AppButton
               type="button"
-              className="btn btn--pen btn--sm entry__propose"
+              tone="pen" size="sm" className="entry__propose"
               aria-disabled={proposal === null ? true : undefined}
               aria-describedby={reason !== null ? reasonId : undefined}
               onClick={() => {
@@ -143,18 +158,18 @@ export const MatchEntry = forwardRef<HTMLElement, MatchEntryProps>(function Matc
             >
               <Icon as={CalendarPlus} size={13} />
               Proponer
-            </button>
+            </AppButton>
           ) : null}
-          <button
+          <AppButton
             type="button"
-            className="btn btn--sm entry__toggle"
+            size="sm" className="entry__toggle"
             onClick={() => setOpen((value) => !value)}
             aria-expanded={open}
             aria-label={open ? 'Ocultar horas' : 'Ver horas en común'}
           >
             <Icon as={ChevronDown} size={14} />
             <span className="entry__toggle-text">{open ? 'Ocultar' : 'Horas'}</span>
-          </button>
+          </AppButton>
         </div>
 
         {reason !== null ? (
@@ -175,12 +190,10 @@ export const MatchEntry = forwardRef<HTMLElement, MatchEntryProps>(function Matc
           >
             <div className="entry__detail">
               <div className="entry__stamps">
-                {candidate.account.verified ? (
-                  <Stamp tone="sealed">Verificada</Stamp>
-                ) : (
-                  <Stamp tone="warn">Sin verificar</Stamp>
-                )}
-                {simulated ? <DemoTag className="entry__demo" /> : null}
+                <Stamp tone={candidate.account.verified ? 'sealed' : 'warn'}>
+                  {verifiedLabel(candidate.account.verifiedWith)}
+                </Stamp>
+                {rankTag}
                 <span className="note note--faint">
                   Última lectura {timeAgo(candidate.account.lastSyncedAt)}
                 </span>
@@ -207,15 +220,18 @@ export const MatchEntry = forwardRef<HTMLElement, MatchEntryProps>(function Matc
   );
 });
 
-/** Afinidad como anillo que se llena: la columna que el ojo recorre para comparar. */
+/**
+ * Afinidad como anillo que se llena: la columna que el ojo recorre para comparar. El puntaje es de
+ * la plataforma: `origin` lo da `scoreOriginLabel` y con `null` no lleva etiqueta (RF-26).
+ */
 function ScoreRing({
   score,
   label,
-  simulated,
+  origin,
 }: {
   score: number;
   label: string;
-  simulated: boolean;
+  origin: Origin | null;
 }) {
   const tone = score >= 75 ? 'var(--volt)' : score >= 50 ? 'var(--ink)' : 'var(--ink-3)';
 
@@ -236,7 +252,7 @@ function ScoreRing({
       </svg>
       <CountUp value={score} className="entry__score-value" />
       <span className="entry__score-label">{label}</span>
-      {simulated ? <DemoTag className="entry__demo" /> : null}
+      {origin ? <OriginTag origin={origin} className="entry__demo" /> : null}
     </div>
   );
 }

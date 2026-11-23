@@ -33,6 +33,68 @@ describe(".env.example (001-RF-9, RF-27, RF-28)", () => {
     assert.equal(values.NODE_ENV, "development");
   });
 
+  // Spec 013 (T1, RF-22, RNF-2): las dos variables de Steam son opcionales, van comentadas y no
+  // llevan ningún valor real (la plantilla no puede traer una clave).
+  test("STEAM_API_KEY y PUBLIC_URL aparecen solo comentadas, sin clave real", () => {
+    const { text, values } = readExample();
+    for (const name of ["STEAM_API_KEY", "PUBLIC_URL"]) {
+      assert.equal(Object.hasOwn(values, name), false, `${name} no debe estar definida`);
+      assert.match(text, new RegExp(`^#\\s*${name}=`, "m"), `${name} debe aparecer comentada`);
+    }
+    assert.doesNotMatch(text, /^#\s*STEAM_API_KEY=\S*[0-9A-Fa-f]{32}/m, "no debe traer una clave de 32 caracteres");
+  });
+
+  // Spec 014 (T1, RF-17, RF-38, RNF-4): RIOT_API_KEY es opcional, va comentada sin clave real
+  // y documenta la caducidad de 24 h sin alterar las siete variables obligatorias.
+  test("spec 014: RIOT_API_KEY aparece solo comentada, sin clave real y con nota de caducidad de 24 h", () => {
+    const { text, values } = readExample();
+    assert.equal(Object.hasOwn(values, "RIOT_API_KEY"), false, "RIOT_API_KEY no debe estar definida");
+    assert.match(text, /^#\s*RIOT_API_KEY=/m, "RIOT_API_KEY debe aparecer comentada");
+    assert.doesNotMatch(text, /^#\s*RIOT_API_KEY=\S+/m, "RIOT_API_KEY no debe traer un valor de clave");
+    assert.doesNotMatch(text, /RGAPI-/i, "la plantilla no debe contener una clave de Riot");
+
+    const lines = text.split(/\r?\n/);
+    const keyLine = lines.findIndex((line) => /^#\s*RIOT_API_KEY=/.test(line));
+    assert.ok(keyLine > 0, "falta la línea comentada # RIOT_API_KEY=");
+    const comments: string[] = [];
+    for (let i = keyLine - 1; i >= 0 && (lines[i] ?? "").startsWith("#"); i--) {
+      comments.push(lines[i] ?? "");
+    }
+    assert.ok(
+      comments.some((line) => /24\s*(?:h|horas)/i.test(line)),
+      "ningún comentario justo antes de RIOT_API_KEY indica su caducidad de 24 h",
+    );
+
+    const parsed = parseConfig(values);
+    assert.equal(parsed.ok, true);
+    if (parsed.ok) assert.equal(parsed.config.riot, null);
+  });
+
+  // Spec 015 (T2, D24, RNF-2): LEETIFY_API_KEY es opcional (sin clave se consulta igual), va
+  // comentada, sin valor, y explica que es un secreto y para qué sirve.
+  test("spec 015: LEETIFY_API_KEY aparece solo comentada, sin valor y explicada", () => {
+    const { text, values } = readExample();
+    assert.equal(Object.hasOwn(values, "LEETIFY_API_KEY"), false, "LEETIFY_API_KEY no debe estar definida");
+    assert.match(text, /^#\s*LEETIFY_API_KEY=/m, "LEETIFY_API_KEY debe aparecer comentada");
+    assert.doesNotMatch(text, /^#\s*LEETIFY_API_KEY=\S+/m, "LEETIFY_API_KEY no debe traer un valor de clave");
+
+    const lines = text.split(/\r?\n/);
+    const keyLine = lines.findIndex((line) => /^#\s*LEETIFY_API_KEY=/.test(line));
+    assert.ok(keyLine > 0, "falta la línea comentada # LEETIFY_API_KEY=");
+    const comments: string[] = [];
+    for (let i = keyLine - 1; i >= 0 && (lines[i] ?? "").startsWith("#"); i--) {
+      comments.push(lines[i] ?? "");
+    }
+    const joined = comments.join("\n");
+    assert.match(joined, /opcional/i, "debe decir que es opcional");
+    assert.match(joined, /secreto/i, "debe decir que es un secreto");
+    assert.match(joined, /leetify\.com\/app\/developer/, "debe indicar dónde se obtiene");
+
+    const parsed = parseConfig(values);
+    assert.equal(parsed.ok, true);
+    if (parsed.ok) assert.deepEqual(parsed.config.leetify, { apiKey: null });
+  });
+
   test("HOST aparece solo comentada como opcional", () => {
     const { text, values } = readExample();
     assert.equal(Object.hasOwn(values, "HOST"), false);

@@ -1,0 +1,20 @@
+/*
+ * Indicador giratorio (spec 017, M15; RF-17; plan 4.6). Es el tipo propio de `Loader` (`Spinner.tsx`):
+ * un círculo de 13 px con borde de 1,5 px y un cuarto transparente que gira en 640 ms. Toma el color del
+ * contenedor (`currentColor`), como hoy: dentro de un botón, el del texto del botón; en «Leyendo…», el del
+ * estado vacío; en «Actualizando», el de la cabecera (T2).
+ */
+.tmu-spin {
+  width: 13px;
+  height: 13px;
+  border: 1.5px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 99px;
+  animation: tmu-spin 640ms linear infinite;
+}
+
+@keyframes tmu-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

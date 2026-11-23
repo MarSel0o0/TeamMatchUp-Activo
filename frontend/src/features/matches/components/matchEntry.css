@@ -23,7 +23,7 @@
 
 .entry__line {
   display: grid;
-  grid-template-columns: 38px minmax(140px, 1.4fr) 150px 126px 76px auto;
+  grid-template-columns: var(--match-columns);
   align-items: center;
   gap: var(--s4);
   padding: var(--s3) var(--s4);
@@ -70,6 +70,8 @@
   position: relative;
   display: grid;
   grid-template-columns: 44px;
+  /* Centrado en su columna, igual que la etiqueta "Afinidad" de la cabecera. */
+  justify-content: center;
   grid-template-rows: 44px auto;
   justify-items: center;
   gap: 2px;
@@ -133,13 +135,13 @@
 }
 
 /* "Proponer" deshabilitado sigue recibiendo el foco (aria-disabled), así que replica el
-   aspecto de `.btn:disabled` y no el de la interacción. */
+   aspecto de `.tmu-btn:disabled` y no el de la interacción. */
 .entry__propose[aria-disabled='true'] {
   opacity: 0.4;
   cursor: not-allowed;
 }
 
-.btn.entry__propose[aria-disabled='true']:hover {
+.tmu-btn.entry__propose[aria-disabled='true']:hover {
   background: var(--volt);
   border-color: var(--volt);
   box-shadow: none;

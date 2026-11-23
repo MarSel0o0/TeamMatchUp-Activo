@@ -154,13 +154,13 @@ a:hover {
 }
 
 :focus-visible {
-  outline: 2px solid var(--volt);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 3px;
 }
 
 /* Foco llevado por el programa a un título o mensaje (spec 009, RNF-2): siempre visible. */
 [tabindex='-1']:focus {
-  outline: 2px solid var(--volt);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 3px;
 }
 
@@ -239,6 +239,38 @@ a:hover {
 
 .note--faint {
   color: var(--ink-3);
+}
+
+/* Atribución de Leetify (spec 015, RF-6, RNF-8): logo oficial y enlace al perfil. El tema lo elige
+   este CSS: la insignia blanca va en el oscuro (el de defecto) y la negra en el claro. */
+.leetify-attribution {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s2);
+}
+
+.leetify-attribution__logo {
+  display: block;
+  height: 24px;
+  width: auto;
+}
+
+.leetify-attribution__logo--light {
+  display: none;
+}
+
+:root[data-theme='light'] .leetify-attribution__logo--dark {
+  display: none;
+}
+
+:root[data-theme='light'] .leetify-attribution__logo--light {
+  display: block;
+}
+
+.leetify-attribution__link {
+  font-weight: 700;
+  text-decoration: underline;
 }
 
 .num {
@@ -395,281 +427,6 @@ a:hover {
 }
 
 /* ========================================================================== */
-/* Insignia (antes "sello"): aterriza con un pequeño golpe al aparecer          */
-/* ========================================================================== */
-
-.stamp {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.24rem 0.65rem 0.24rem 0.55rem;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-pill);
-  font-family: var(--mono);
-  font-size: var(--t-micro);
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  color: var(--ink-2);
-  background: var(--surface-3);
-}
-
-.stamp::before {
-  content: '';
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: currentColor;
-  box-shadow: 0 0 8px currentColor;
-  flex-shrink: 0;
-}
-
-.stamp svg {
-  display: none;
-}
-
-.stamp--sealed {
-  color: var(--accent-text);
-  background: var(--volt-wash);
-  border-color: var(--volt-edge);
-}
-
-.stamp--pen {
-  color: var(--accent-text);
-  background: var(--volt-wash);
-  border-color: var(--volt-edge);
-}
-
-.stamp--ok {
-  color: var(--ok);
-  background: var(--ok-wash);
-  border-color: rgba(86, 214, 143, 0.35);
-}
-
-.stamp--warn {
-  color: var(--warn);
-  background: var(--warn-wash);
-  border-color: rgba(241, 178, 74, 0.35);
-}
-
-.stamp--danger {
-  color: var(--danger);
-  background: var(--danger-wash);
-  border-color: rgba(255, 107, 94, 0.35);
-}
-
-@keyframes press {
-  0% {
-    transform: scale(1.35);
-    opacity: 0;
-    filter: blur(4px);
-  }
-  60% {
-    transform: scale(0.96);
-    opacity: 1;
-    filter: blur(0);
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-.stamp--pressing {
-  animation: press 480ms var(--ease-out) both;
-}
-
-/* ========================================================================== */
-/* Botones: píldoras con respuesta física                                      */
-/* ========================================================================== */
-
-.btn {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--s2);
-  min-height: 38px;
-  padding: 0.5rem 1.05rem;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-pill);
-  background: var(--fill-1);
-  color: var(--ink);
-  font-size: var(--t-small);
-  font-weight: 540;
-  letter-spacing: -0.005em;
-  cursor: pointer;
-  white-space: nowrap;
-  text-decoration: none;
-  transition:
-    background var(--base) var(--ease),
-    border-color var(--base) var(--ease),
-    color var(--base) var(--ease),
-    box-shadow var(--base) var(--ease),
-    transform var(--fast) var(--ease);
-}
-
-a.btn,
-a.btn:hover {
-  color: var(--ink);
-  text-decoration: none;
-}
-
-a.btn--pen,
-a.btn--pen:hover {
-  color: var(--volt-ink);
-}
-
-.btn:hover:not(:disabled):not([aria-disabled='true']) {
-  background: var(--fill-3);
-  border-color: var(--line-strong);
-}
-
-.btn:active:not(:disabled):not([aria-disabled='true']) {
-  transform: scale(0.97);
-}
-
-.btn:disabled,
-.btn[aria-disabled='true'] {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.btn svg {
-  transition: transform var(--base) var(--ease);
-}
-
-.btn:hover:not(:disabled) svg {
-  transform: translateX(2px);
-}
-
-/* Acción primaria: volt sólido. Negro encima, 14:1 de contraste. */
-.btn--pen {
-  background: var(--volt);
-  border-color: var(--volt);
-  color: var(--volt-ink);
-  font-weight: 620;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 8px 24px -12px rgba(205, 242, 75, 0.6);
-}
-
-.btn--pen:hover:not(:disabled) {
-  background: var(--volt-bright);
-  border-color: var(--accent-text-hover);
-  box-shadow: var(--volt-glow);
-}
-
-.btn--quiet {
-  border-color: transparent;
-  background: transparent;
-  color: var(--ink-2);
-}
-
-.btn--quiet:hover:not(:disabled) {
-  color: var(--ink);
-  background: var(--fill-2);
-  border-color: transparent;
-}
-
-.btn--danger {
-  color: var(--danger);
-  border-color: transparent;
-  background: transparent;
-}
-
-.btn--danger:hover:not(:disabled) {
-  background: var(--danger-wash);
-  border-color: rgba(255, 107, 94, 0.4);
-}
-
-.btn--sm {
-  min-height: 30px;
-  padding: 0.3rem 0.8rem;
-  font-size: var(--t-micro);
-  gap: 0.35rem;
-}
-
-.btn--lg {
-  min-height: 52px;
-  padding: 0.5rem 0.6rem 0.5rem 1.5rem;
-  font-size: var(--t-base);
-  gap: var(--s3);
-}
-
-.btn--block {
-  width: 100%;
-}
-
-/* Icono anidado: un círculo propio dentro del botón, con tensión al hover. */
-.btn__orb {
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: rgba(12, 15, 2, 0.12);
-  transition: transform var(--base) var(--spring);
-}
-
-.btn:hover:not(:disabled) .btn__orb {
-  transform: translate(3px, -1px) scale(1.06);
-}
-
-.btn:hover:not(:disabled) .btn__orb svg {
-  transform: none;
-}
-
-.btn__spin {
-  width: 13px;
-  height: 13px;
-  border: 1.5px solid currentColor;
-  border-top-color: transparent;
-  border-radius: 99px;
-  animation: spin 640ms linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* Chip seleccionable (filtros de juego, etc.). */
-.chip {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--s2);
-  min-height: 32px;
-  padding: 0.3rem 0.9rem;
-  border: 1px solid var(--line);
-  border-radius: var(--r-pill);
-  background: var(--fill-1);
-  color: var(--ink-2);
-  font-size: var(--t-small);
-  font-weight: 520;
-  cursor: pointer;
-  transition: all var(--base) var(--ease);
-}
-
-.chip:hover {
-  color: var(--ink);
-  border-color: var(--line-strong);
-}
-
-.chip[aria-pressed='true'] {
-  color: var(--ink);
-  border-color: var(--chip-ink, var(--volt-edge));
-  background: color-mix(in srgb, var(--chip-ink, var(--volt)) 14%, transparent);
-}
-
-.chip__dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--chip-ink, var(--volt));
-}
-
-/* ========================================================================== */
 /* Campos                                                                      */
 /* ========================================================================== */
 
@@ -691,210 +448,6 @@ a.btn--pen:hover {
 .field__hint {
   font-size: var(--t-micro);
   color: var(--ink-3);
-}
-
-.field__error {
-  display: flex;
-  align-items: center;
-  gap: var(--s1);
-  font-size: var(--t-micro);
-  color: var(--danger);
-}
-
-.input,
-.select,
-.textarea {
-  width: 100%;
-  min-height: 44px;
-  padding: 0.6rem 0.9rem;
-  background: var(--surface-sunk);
-  border: 1px solid var(--line);
-  border-radius: var(--r-md);
-  color: var(--ink);
-  box-shadow: var(--inset);
-  transition:
-    border-color var(--base) var(--ease),
-    background var(--base) var(--ease),
-    box-shadow var(--base) var(--ease);
-}
-
-.input::placeholder,
-.textarea::placeholder {
-  color: var(--placeholder);
-}
-
-.input:hover,
-.select:hover,
-.textarea:hover {
-  border-color: var(--line-strong);
-}
-
-.input:focus,
-.select:focus,
-.textarea:focus {
-  outline: none;
-  border-color: var(--volt-edge);
-  background: var(--surface);
-  box-shadow: 0 0 0 4px var(--volt-wash);
-}
-
-.input[aria-invalid='true'] {
-  border-color: var(--danger);
-  box-shadow: 0 0 0 4px var(--danger-wash);
-}
-
-.textarea {
-  resize: vertical;
-  min-height: 6rem;
-  line-height: 1.55;
-}
-
-.select {
-  appearance: none;
-  padding-right: 2.4rem;
-  cursor: pointer;
-  background-image: linear-gradient(45deg, transparent 50%, var(--ink-3) 50%),
-    linear-gradient(135deg, var(--ink-3) 50%, transparent 50%);
-  background-position: calc(100% - 19px) 52%, calc(100% - 14px) 52%;
-  background-size: 5px 5px, 5px 5px;
-  background-repeat: no-repeat;
-}
-
-.select option {
-  background: var(--surface-2);
-}
-
-/* Casilla dibujada como interruptor. */
-.check {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--s3);
-  font-size: var(--t-small);
-  color: var(--ink-2);
-  cursor: pointer;
-}
-
-.check input {
-  appearance: none;
-  position: relative;
-  width: 36px;
-  height: 20px;
-  flex-shrink: 0;
-  border-radius: var(--r-pill);
-  background: var(--surface-3);
-  border: 1px solid var(--line-strong);
-  cursor: pointer;
-  transition: background var(--base) var(--ease), border-color var(--base) var(--ease);
-}
-
-.check input::after {
-  content: '';
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--ink-2);
-  transition: transform var(--base) var(--spring), background var(--base) var(--ease);
-}
-
-.check input:checked {
-  background: var(--volt);
-  border-color: var(--volt);
-}
-
-.check input:checked::after {
-  transform: translateX(16px);
-  background: var(--volt-ink);
-}
-
-/* Deslizador con pista rellena hasta el valor (--fill la escribe el componente). */
-.slider {
-  appearance: none;
-  width: 100%;
-  height: 22px;
-  background: transparent;
-  cursor: pointer;
-}
-
-.slider::-webkit-slider-runnable-track {
-  height: 4px;
-  border-radius: 4px;
-  background: linear-gradient(
-    90deg,
-    var(--volt) var(--fill, 50%),
-    var(--surface-3) var(--fill, 50%)
-  );
-}
-
-.slider::-moz-range-track {
-  height: 4px;
-  border-radius: 4px;
-  background: var(--surface-3);
-}
-
-.slider::-moz-range-progress {
-  height: 4px;
-  border-radius: 4px;
-  background: var(--volt);
-}
-
-.slider::-webkit-slider-thumb {
-  appearance: none;
-  width: 18px;
-  height: 18px;
-  margin-top: -7px;
-  border-radius: 50%;
-  background: var(--ink);
-  border: 4px solid var(--volt);
-  box-shadow: 0 0 0 4px var(--volt-wash);
-  transition: transform var(--fast) var(--spring);
-}
-
-.slider::-moz-range-thumb {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--ink);
-  border: 4px solid var(--volt);
-}
-
-.slider:active::-webkit-slider-thumb {
-  transform: scale(1.2);
-}
-
-/* ========================================================================== */
-/* Avisos                                                                      */
-/* ========================================================================== */
-
-.notice {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--s3);
-  padding: var(--s3) var(--s4);
-  border: 1px solid var(--line);
-  border-radius: var(--r-md);
-  background: var(--surface-2);
-  font-size: var(--t-small);
-  color: var(--ink-2);
-}
-
-.notice svg {
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.notice--error {
-  border-color: rgba(255, 107, 94, 0.4);
-  background: var(--danger-wash);
-  color: var(--ink);
-}
-
-.notice--pen {
-  border-color: var(--volt-edge);
-  background: var(--volt-wash);
-  color: var(--ink);
 }
 
 /* ========================================================================== */
@@ -991,28 +544,6 @@ a.btn--pen:hover {
   }
 }
 
-.skeleton {
-  position: relative;
-  overflow: hidden;
-  background: var(--surface-2);
-  border-radius: var(--r-md);
-}
-
-.skeleton::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  transform: translateX(-100%);
-  background: linear-gradient(90deg, transparent, var(--fill-2), transparent);
-  animation: sweep 1.4s var(--ease) infinite;
-}
-
-@keyframes sweep {
-  to {
-    transform: translateX(100%);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -1043,9 +574,14 @@ a.btn--pen:hover {
 :root[data-theme='light'] .entry__rank,
 :root[data-theme='light'] .account .sheet-title,
 :root[data-theme='light'] .account__entries dd,
-:root[data-theme='light'] .game-mark,
 :root[data-theme='light'] .preview__game {
   filter: brightness(0.68) saturate(1.35);
+}
+
+/* La marca de juego también va sobre el fondo de la página (cabecera del detalle de sesión),
+   más oscuro que una hoja: con 0.68 «LoL» quedaba en 4,1:1 (spec 009, RNF-5). */
+:root[data-theme='light'] .game-mark {
+  filter: brightness(0.62) saturate(1.35);
 }
 
 /* El volt sobre blanco necesita un canto para no perderse. */

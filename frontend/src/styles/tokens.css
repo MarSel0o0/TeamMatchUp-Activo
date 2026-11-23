@@ -36,7 +36,7 @@
   /* --- Texto ------------------------------------------------------------- */
   --ink: #eef0f2;
   --ink-2: #a2a9b3;
-  --ink-3: #7c848f;
+  --ink-3: #818994;
 
   /* --- Acento volt: lo que el jugador hace ------------------------------- */
   --volt: #cdf24b;
@@ -64,7 +64,7 @@
   --well: rgba(0, 0, 0, 0.25);
   --well-soft: rgba(0, 0, 0, 0.2);
   --inset: inset 0 1px 2px rgba(0, 0, 0, 0.4);
-  --placeholder: #646b75;
+  --placeholder: #78808c;
   --spot: rgba(205, 242, 75, 0.55);
   --grain: 0.045;
   --ambient-a: rgba(205, 242, 75, 0.07);
@@ -89,6 +89,25 @@
   --ink-lol: #d3a04a;
   --ink-r6: #5fc2d8;
   --ink-cs2: #e08a4f;
+
+  /* --- Componentes migrados a la librería (spec 017, plan 3.2) -------------
+     Valores de siempre: antes eran literales en global.css y en los CSS de
+     los componentes. Los dos temas llevan el mismo valor salvo el foco. ---- */
+  --btn-pen-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 8px 24px -12px rgba(205, 242, 75, 0.6);
+  --danger-edge: rgba(255, 107, 94, 0.4);
+  --btn-orb-bg: rgba(12, 15, 2, 0.12);
+  --ok-edge: rgba(86, 214, 143, 0.35);
+  --warn-edge: rgba(241, 178, 74, 0.35);
+  --tab-ink: #0d0e10;
+  --tab-pill-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 6px 18px -8px rgba(0, 0, 0, 0.8);
+  /* Tinta de cada juego del catálogo (`GameDefinition.inkVar`): pestañas, puntos y chips. */
+  --game-ink-lol: #c8963e;
+  --game-ink-r6: #3ea0c8;
+  --game-ink-cs2: #d97a45;
+  /* Indicador de foco: el contorno de los controles y el borde y halo de un campo. */
+  --focus-ring: var(--accent-text);
+  --focus-edge: var(--volt-edge);
+  --focus-halo: var(--volt-wash);
 
   /* --- Espaciado --------------------------------------------------------- */
   --s1: 0.25rem;
@@ -162,7 +181,7 @@
 
   --ink: #101216;
   --ink-2: #474e58;
-  --ink-3: #656c76;
+  --ink-3: #606670;
 
   --volt: #c6ee35;
   --volt-bright: #d2f55a;
@@ -173,11 +192,12 @@
   --accent-text: #4a6800;
   --accent-text-hover: #3a5300;
 
-  --danger: #c93a2c;
+  /* Texto de estado con al menos 4,5:1 sobre su wash y sobre el hover de fila (spec 008, RNF-5). */
+  --danger: #a83025;
   --danger-wash: rgba(201, 58, 44, 0.09);
-  --ok: #17864c;
+  --ok: #147542;
   --ok-wash: rgba(23, 134, 76, 0.1);
-  --warn: #a8660c;
+  --warn: #985c0b;
   --warn-wash: rgba(168, 102, 12, 0.1);
 
   --fill-1: rgba(14, 17, 22, 0.025);
@@ -192,7 +212,7 @@
   --well: rgba(14, 17, 22, 0.035);
   --well-soft: rgba(255, 255, 255, 0.55);
   --inset: inset 0 1px 2px rgba(14, 17, 22, 0.08);
-  --placeholder: #737a84;
+  --placeholder: #696f78;
   --spot: rgba(110, 150, 0, 0.55);
   --grain: 0.03;
   --ambient-a: rgba(170, 215, 20, 0.14);
@@ -205,6 +225,11 @@
 
   --lift: 0 1px 2px rgba(30, 40, 60, 0.06), 0 12px 30px -14px rgba(30, 40, 60, 0.2);
   --lift-high: 0 2px 4px rgba(30, 40, 60, 0.06), 0 30px 60px -24px rgba(30, 40, 60, 0.3);
+
+  /* Foco de un campo en claro: el volt no llega a 3:1 sobre blanco, así que borde y halo toman el
+     tono del acento (--focus-ring ya vale --accent-text, #4a6800). */
+  --focus-edge: var(--focus-ring);
+  --focus-halo: color-mix(in srgb, var(--focus-ring) 75%, transparent);
 
   color-scheme: light;
 }

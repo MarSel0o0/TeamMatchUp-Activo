@@ -505,8 +505,6 @@ finalización» de la spec. Cada paso con fecha y resultado.
   (el módulo del backend simulado escribe su base al importarse aunque el modo no esté activo).
   No es credencial: `session` es `null` y no contiene el comprobante.
 
-(pendiente: 5.B, la mitad B de T29)
-
 ### 5.B Datos, presentación y proponer sesión
 
 Mitad B de T29 (RF-11 a RF-16, RF-18, RF-21 a RF-23, RF-26, RF-27, RF-29 a RF-32; RNF-6 y RNF-4/RNF-8 por remisión).
@@ -589,8 +587,8 @@ Mitad B de T29 (RF-11 a RF-16, RF-18, RF-21 a RF-23, RF-26, RF-27, RF-29 a RF-32
 
 **5.B.3 Observaciones y defectos abiertos (no se corrigió nada)**
 
-- **O1 — RF-15, texto de ejemplo con «ubisoft» (decisión pendiente, ya señalada por T23).** El formulario de vincular, con R6 elegido, muestra el *placeholder* `tu-nombre-ubisoft` y, si el formato es incorrecto, el aviso «Ese Ubisoft ID no tiene el formato esperado (tu-nombre-ubisoft).» (`domain/games.ts:61`, usado por `LinkAccountForm.tsx`). No presenta la fuente del rango, pero el texto visible contiene «ubisoft» fuera de la etiqueta «Ubisoft ID». Si el criterio «ningún texto nombra Ubisoft» se lee a la letra, es un defecto menor de una línea; si se lee como «no atribuye datos a la fuente», no lo es. Decide el usuario.
-- **O2 — «exactamente «Datos de demostración»» y mayúsculas CSS.** En la barra, el nodo de texto es exacto pero `.dock__demo` lleva `text-transform: uppercase` (regla previa, idéntica en `HEAD`), de modo que se ve «DATOS DE DEMOSTRACIÓN» y `innerText` devuelve eso. En el pie, el perfil, la entrada y las filas se ve «Datos de demostración». La barra se oculta por debajo de 1140 px (regla previa), de modo que a 360 px solo queda el pie. Si el «exactamente» incluye la grafía visible, hay que decidir entre cambiar el CSS (rediseño, RNF-4) o aceptar el texto del nodo.
+- **O1 — RF-15, texto de ejemplo con «ubisoft» (aceptada el 2026-11-20, R24; antes pendiente, ya señalada por T23).** El formulario de vincular, con R6 elegido, muestra el *placeholder* `tu-nombre-ubisoft` y, si el formato es incorrecto, el aviso «Ese Ubisoft ID no tiene el formato esperado (tu-nombre-ubisoft).» (`domain/games.ts:61`, usado por `LinkAccountForm.tsx`). No presenta la fuente del rango, pero el texto visible contiene «ubisoft» fuera de la etiqueta «Ubisoft ID». Si el criterio «ningún texto nombra Ubisoft» se lee a la letra, es un defecto menor de una línea; si se lee como «no atribuye datos a la fuente», no lo es. Decide el usuario.
+- **O2 — «exactamente «Datos de demostración»» y mayúsculas CSS (aceptada el 2026-11-20, R24).** En la barra, el nodo de texto es exacto pero `.dock__demo` lleva `text-transform: uppercase` (regla previa, idéntica en `HEAD`), de modo que se ve «DATOS DE DEMOSTRACIÓN» y `innerText` devuelve eso. En el pie, el perfil, la entrada y las filas se ve «Datos de demostración». La barra se oculta por debajo de 1140 px (regla previa), de modo que a 360 px solo queda el pie. Si el «exactamente» incluye la grafía visible, hay que decidir entre cambiar el CSS (rediseño, RNF-4) o aceptar el texto del nodo.
 - **O3 — Jueves 03:00.** Los criterios de coincidencias citan el jueves 03:00, pero la hoja de horas de Configuración solo ofrece 12:00 a 01:00; ese bloque solo se puede guardar por la API. No afecta a la spec (es el caso «fuera del horario de la agenda» de RF-29), pero un recorrido estrictamente por la interfaz no puede producirlo.
 - **O4 — Contadores animados.** La tasa de victorias («% ganadas») y el puntaje de la fila usan `useInView(..., { once: true })`: mientras el elemento no ha estado a la vista, el texto es «0». No es un defecto de datos (con el elemento a la vista coinciden con la API) pero conviene saberlo al automatizar lecturas.
 - **O5 — Perfil con una cuenta sin rango en el modo simulado.** Al dejar `currentRank: null` editando a mano la base simulada, Configuración muestra «Sin datos» (RF-14), pero el *perfil* de ese juego muestra «No se pudieron cargar los datos / No se pudo conectar con el servidor…» (el resumen simulado falla con ese dato); y con solo la cuenta de LoL de un candidato sin rango, coincidencias de LoL muestra 0 resultados sin ningún aviso (no se pudo ver el caso «Sin datos» de la fila). Es un estado que ni el servidor ni el modo simulado producen (RF-14 lo declara así); no se trata como defecto de la spec, pero la rama «Sin datos» del perfil solo se comprobó por revisión de código.
@@ -707,3 +705,44 @@ A 1280 px todas las vistas dan 1280 salvo Entrada (1502, también en el código 
 Resultado de `cd frontend && npm run typecheck && npm run lint && npm run build` al terminar T28: los tres en verde
 (`tsc --noEmit` sin errores, `eslint .` sin avisos, `tsc -b && vite build` compila en unos 4 s). Procesos propios (Vite
 en el 5207 en sus tres arranques, el de la línea base y Chrome en el 9407) cerrados por PID.
+
+## 7. Validación del `reviewer` (2026-11-20) — APROBADO
+
+Contra el código de `4b29c75` (rama `feature/vinculacion-steam-riot`), no contra el del 2026-10-19:
+las specs 008 a 015 tocaron muchas piezas de esta. Donde una spec posterior cambió un RF de forma
+explícita, se validó la versión vigente. Entorno: backend en :3317 con base temporal
+`teammatchup_rev007` (borrada), sin claves de Steam, Riot ni Leetify y sin red fuera de localhost;
+Vite real en :5317 y simulado en :5318; Chrome headless por CDP a 1280 y 360 px. Frontend: `lint`,
+`typecheck` (`tsc -b`) y `build` en verde.
+
+- **Todos los RF y RNF cumplen.** Modificados por specs posteriores, validados en su versión
+  vigente: RF-11 (012 RF-6, 013 RF-24), RF-14 (015 RF-12), RF-15 (012 a 015), RF-18 (013, 014),
+  RF-21 (012 RF-2), RF-22 (013 RF-24).
+- **Medidas destacadas:** RF-5 error de sesión a los 30,3 s; RF-20 guardar horas y registro a los
+  30,0 y 30,1 s, **resincronizar a los 64,9 s** (ver decisiones); RF-24 las otras pestañas van a login
+  en unos 110 ms; RNF-6 sin diferencias en 17.069 combinaciones de puntaje.
+- **D1 cerrado:** tras `4b29c75`, a 360 px todas las vistas miden 360 en los dos modos y la portada
+  a 1280 mide 1280. Coincidencias mide 361: es la fila de pestañas, con desplazamiento propio, y no
+  desplaza la página (excepción aceptada).
+- **D3 cerrado** por la spec 012 (RF-6): la etiqueta va por bloque, así que la ficha «Fuente» ya no
+  tiene sentido.
+- **O-A1 corregido** en `spec.md` (RF-10, punto 8, con el texto de la 006).
+
+Decisiones del usuario, abiertas (no bloquean):
+- **RF-20, plazo de resincronizar.** Hoy 65 s para todas las cuentas (`httpApi.ts`,
+  `RIOT_REQUEST_TIMEOUT_MS`). Recomendación del `reviewer`: 65 s solo para LoL y 30 s para R6 y CS2
+  (CS2 no pasa de 16 s según la 015; R6 es simulado). Cambio de unas 15 líneas que añade el juego a
+  `syncAccount`; antes hay que ajustar P14-11 del plan de la 014.
+- **O1** (`tu-nombre-ubisoft`, `domain/games.ts:61`): aceptarlo («no atribuye datos») o cambiarlo
+  por `tu-nombre` (una línea).
+- **O2** (barra en mayúsculas por CSS): hoy solo se ve en modo simulado (013 RF-24). Recomendación:
+  aceptarlo.
+
+**Resueltas (2026-11-20, decisiones del usuario):** RF-20 → R23. La spec admite 65 s para
+resincronizar y las operaciones de Riot, así que los 64,9 s medidos cumplen, sin cambios de código.
+O1 y O2 → R24, aceptadas tal como están. La 007 ya no tiene decisiones abiertas.
+
+Opcional, fuera de la 007: `mockApi.ts` escribe la base simulada en `localStorage` también con el
+servidor real (O6 conocida); `frontend/package.json` usa `^` y la constitución pide versiones
+exactas.
+

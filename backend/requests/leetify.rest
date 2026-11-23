@@ -1,0 +1,58 @@
+# Prueba manual del rango Premier real de CS2 con Leetify (spec 015, T16).
+#
+# Formato de la extensión REST Client de VS Code: guarda la cookie `token` entre peticiones
+# (rest-client.rememberCookiesForSubsequentRequests, activo por defecto) y lee la cabecera
+# X-CSRF-Token de la respuesta del inicio de sesión con {{login.response.headers...}}.
+#
+# Requisitos: servidor en desarrollo (`npm run dev`) con MongoDB disponible y el `.env`
+# copiado de `.env.example`. La cuenta de ejemplo debe existir (paso 1 de `auth.rest`) y tener
+# una cuenta de CS2 verificada con Steam (`steam.rest`; necesita STEAM_API_KEY y PUBLIC_URL).
+# Sin esa cuenta, los pasos 2 y 3 responden 404 o 409. `LEETIFY_API_KEY` en `backend/.env` es
+# opcional: sin ella Leetify responde con límites de consulta más bajos.
+#
+# La clave de Leetify NUNCA se escribe en este archivo ni se sube al repositorio. El paso 5
+# la lee de la variable `leetifyKey`: déjala vacía para consultar sin clave (límites de
+# consulta más bajos) o defínela fuera del repositorio, por ejemplo en
+# `rest-client.environmentVariables` de tu configuración de usuario de VS Code.
+#
+# Los datos que entrega Leetify no se guardan: solo el rating vigente (spec 015, RF-24).
+# Respuestas del servidor al resincronizar: el rating de la cuenta, `premier` ("rated" |
+# "unrated" | "unavailable") y, si Leetify falla, el aviso de RF-16 sin perder el último rating.
+# Entre dos lecturas de Leetify de una misma cuenta pasan al menos 5 minutos: la segunda
+# resincronización inmediata responde 429 (RNF-7).
+
+@baseUrl = http://localhost:3001
+@email = ana.ejemplo@example.com
+@password = contrasena-de-ejemplo
+@steamId64 = 76561198000000001
+@leetifyKey =
+
+### 1. Inicio de sesión (público): 200, cookie `token` y cabecera X-CSRF-Token (spec 002)
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### 2. Cuentas propias: 200; copia el `id` de la cuenta de CS2 verificada y pégalo en el paso 3
+GET {{baseUrl}}/api/accounts
+X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
+
+### 3. Resincronizar la cuenta de CS2 verificada con Steam: 200 con Steam primero y Leetify
+### después (RF-16 a RF-19). Cambia el id por el de tu cuenta.
+POST {{baseUrl}}/api/accounts/000000000000000000000000/sync
+X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
+
+### 4. Coincidencias de CS2: 200 con candidatos que tienen rating Premier; 409 si tu cuenta no
+### lo tiene (RF-10). Los candidatos sin rating nunca entran (RF-7).
+GET {{baseUrl}}/api/matches?game=cs2
+X-CSRF-Token: {{login.response.headers.X-CSRF-Token}}
+
+### 5. Petición directa a Leetify (no pasa por la app), para comprobar P15-3 a mano:
+### 200 con `ranks.premier` (número o null) si el SteamID64 tiene perfil; 404 `text/plain`
+### «Not Found» si no está registrado. Cambia `steamId64` por uno real para ver un 200.
+GET https://api-public.cs-prod.leetify.com/v3/profile?steam64_id={{steamId64}}
+_leetify_key: {{leetifyKey}}

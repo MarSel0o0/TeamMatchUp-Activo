@@ -69,6 +69,12 @@
   align-items: start;
 }
 
+/* Sin esto, un texto con `nowrap` (el nombre de Steam) ensancha la columna y la fila desborda a
+   375 px (spec 013, RF-15 y RF-19); la ficha de jugador ya lo hacía en `playerPage.css`. */
+.ficha__game > * {
+  min-width: 0;
+}
+
 .ficha__game > div:first-child {
   border-right: 1px solid var(--line);
 }
@@ -79,6 +85,10 @@
   gap: var(--s3);
   padding: var(--s5);
   border-top: 1px solid var(--line);
+  /* El riel del marcador mide lo que la pista y se desplaza con `transform`: su caja vacía
+     sobresalía a la derecha (a 375 px la página medía más de 500). El relleno deja ver el
+     marcador entero en los extremos. */
+  overflow-x: clip;
 }
 
 .ficha__matches {
@@ -128,7 +138,7 @@
     padding: var(--s5);
   }
 
-  .ficha__head .btn {
+  .ficha__head .tmu-btn {
     width: 100%;
   }
 

@@ -1,0 +1,146 @@
+/*
+ * Campos: texto, área de texto, búsqueda y lista desplegable (spec 017, M4 a M7; RF-2, RF-3, RF-9, RF-10,
+ * RF-20; plan 3.4 y 4.2). Sobre `TextInput`, `Textarea` y `NativeSelect` de la librería: `mantineTheme.ts`
+ * les pone las clases `tmu-field*` y el orden de la etiqueta, el campo, la pista y el error. Solo tokens.
+ *   .tmu-field          el contenedor (etiqueta, campo, pista, error)
+ *   .tmu-field__label   la etiqueta
+ *   .tmu-field__wrapper el envoltorio del campo (con el icono de búsqueda, si lo hay)
+ *   .tmu-field__input   el campo, el área o la lista
+ *   .tmu-field__hint    la pista; .tmu-field__error  el error, con su icono
+ */
+.tmu-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  margin: 0;
+}
+
+.tmu-field__label {
+  display: block;
+  margin: 0;
+  font-family: var(--face);
+  font-size: var(--t-small);
+  font-weight: 520;
+  line-height: inherit;
+  letter-spacing: -0.005em;
+  text-transform: none;
+  color: var(--ink-2);
+}
+
+.tmu-field__wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin: 0;
+}
+
+.tmu-field__hint {
+  margin: 0;
+  font-size: var(--t-micro);
+  line-height: inherit;
+  color: var(--ink-3);
+}
+
+.tmu-field__error {
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+  margin: 0;
+  font-size: var(--t-micro);
+  line-height: inherit;
+  color: var(--danger);
+}
+
+.tmu-field__input {
+  width: 100%;
+  height: auto;
+  min-height: 44px;
+  padding: 0.6rem 0.9rem;
+  background: var(--surface-sunk);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  color: var(--ink);
+  line-height: inherit;
+  box-shadow: var(--inset);
+  transition:
+    border-color var(--base) var(--ease),
+    background var(--base) var(--ease),
+    box-shadow var(--base) var(--ease);
+}
+
+.tmu-field__input::placeholder {
+  color: var(--placeholder);
+}
+
+.tmu-field__input:hover {
+  border-color: var(--line-strong);
+}
+
+/* Foco: la forma propia de los campos (borde y halo), no el contorno de los demás controles. */
+.tmu-field__input:focus {
+  outline: none;
+  border-color: var(--focus-edge);
+  background: var(--surface);
+  box-shadow: 0 0 0 4px var(--focus-halo);
+}
+
+/* El error manda sobre el foco. */
+.tmu-field__input[aria-invalid='true'],
+.tmu-field__input[aria-invalid='true']:focus {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 4px var(--danger-wash);
+}
+
+.tmu-field__input:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+/* Área de texto: cambio de alto manual. */
+textarea.tmu-field__input {
+  resize: vertical;
+  min-height: 6rem;
+  line-height: 1.55;
+}
+
+/* Lista desplegable nativa (P1): la flecha propia de siempre; la de la librería no se muestra. */
+select.tmu-field__input {
+  appearance: none;
+  padding-right: 2.4rem;
+  cursor: pointer;
+  background-image: linear-gradient(45deg, transparent 50%, var(--ink-3) 50%),
+    linear-gradient(135deg, var(--ink-3) 50%, transparent 50%);
+  background-position: calc(100% - 19px) 52%, calc(100% - 14px) 52%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+
+select.tmu-field__input option {
+  background: var(--surface-2);
+}
+
+.tmu-field__wrapper[data-with-right-section] > .tmu-field__section {
+  display: none;
+}
+
+/* Campo de búsqueda: píldora con el icono dentro, a la izquierda. */
+.tmu-field--search .tmu-field__input {
+  padding-left: 2.5rem;
+  border-radius: var(--r-pill);
+}
+
+.tmu-field--search .tmu-field__input::-webkit-search-cancel-button {
+  filter: invert(1) opacity(0.4);
+}
+
+.tmu-field__section {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--s4);
+  display: flex;
+  align-items: center;
+  width: auto;
+  color: var(--ink-3);
+  pointer-events: none;
+}

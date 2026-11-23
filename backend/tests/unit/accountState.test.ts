@@ -8,10 +8,12 @@ import {
   mergeMatches,
   recentMatches,
   shouldAppendSnapshot,
+  soloWinRate,
   trend,
   winRate,
 } from "../../src/domain/accountState.ts";
-import type { AccountState } from "../../src/domain/accountState.ts";
+import type { AccountMatch, AccountState } from "../../src/domain/accountState.ts";
+import type { MatchMode } from "../../src/domain/matchMode.ts";
 import { simulateReading } from "../../src/domain/rankSimulator.ts";
 import type { SimulatedMatch, SimulatedReading, Snapshot } from "../../src/domain/rankSimulator.ts";
 
@@ -48,8 +50,8 @@ function ids(matches: readonly SimulatedMatch[]): string[] {
 }
 
 /** Lectura construida a mano a partir de la fotografía y las partidas dadas. */
-function reading(snap: Snapshot, matches: SimulatedMatch[], mainMatchId: string, verified = true): SimulatedReading {
-  return { snapshot: snap, matches, mainMatchId, verified };
+function reading(snap: Snapshot, matches: SimulatedMatch[], mainMatchId: string): SimulatedReading {
+  return { snapshot: snap, matches, mainMatchId };
 }
 
 describe("compareMatches (RF-28)", () => {
@@ -234,7 +236,7 @@ describe("shouldAppendSnapshot (DP-9)", () => {
 });
 
 describe("initialState (RF-4)", () => {
-  test("lectura 0 real: rango vigente, único elemento del historial, partidas, verificada, número 0 y fecha", () => {
+  test("lectura 0 real: rango vigente, único elemento del historial, partidas, número 0 y fecha, sin marca de verificada", () => {
     const r = simulateReading({ gameId: "lol", canonicalHandle: "jugador1#las", readingNumber: 0, now: NOW });
     const state = initialState(r, NOW);
     assert.deepStrictEqual(state.currentRank, r.snapshot);
@@ -242,14 +244,13 @@ describe("initialState (RF-4)", () => {
     assert.deepStrictEqual(state.matches, mergeMatches([], r.matches, r.mainMatchId));
     assert.strictEqual(state.readingNumber, 0);
     assert.deepStrictEqual(state.lastSyncedAt, NOW);
-    assert.strictEqual(state.verified, r.verified);
+    assert.strictEqual(Object.hasOwn(state, "verified"), false); // spec 012, RF-1
   });
 
   test("las partidas quedan en el orden de RF-28 aunque la lectura venga desordenada", () => {
-    const r = reading(snapshot(), [match("m-0-1", minutesBefore(NOW, 30)), match("m-0-0", NOW)], "m-0-0", false);
+    const r = reading(snapshot(), [match("m-0-1", minutesBefore(NOW, 30)), match("m-0-0", NOW)], "m-0-0");
     const state = initialState(r, NOW);
     assert.deepStrictEqual(ids(state.matches), ["m-0-0", "m-0-1"]);
-    assert.strictEqual(state.verified, false);
     assert.strictEqual(state.readingNumber, 0);
   });
 });
@@ -263,7 +264,6 @@ describe("applySync (RF-10, DP-9, DP-36)", () => {
       matches: [match("m-0-0", NOW), match("m-0-1", minutesBefore(NOW, 40))],
       readingNumber: 0,
       lastSyncedAt: NOW,
-      verified: true,
     };
   }
 
@@ -291,10 +291,10 @@ describe("applySync (RF-10, DP-9, DP-36)", () => {
   test("con cambio de rango: agrega la fotografía al final y deja el vigente", () => {
     const state = baseState();
     const next = snapshot({ points: 60, recordedAt: LATER });
-    const result = applySync(state, reading(next, [match("m-1-0", LATER)], "m-1-0", false), 1, LATER);
+    const result = applySync(state, reading(next, [match("m-1-0", LATER)], "m-1-0"), 1, LATER);
     assert.deepStrictEqual(result.rankHistory, [state.currentRank, next]);
     assert.deepStrictEqual(result.currentRank, next);
-    assert.strictEqual(result.verified, false);
+    assert.strictEqual(Object.hasOwn(result, "verified"), false);
   });
 
   test("reloj atrasado: la fotografía va al final aunque su fecha sea anterior (DP-36)", () => {
@@ -380,9 +380,15 @@ describe("trend (DP-30)", () => {
   test("historial vacío = 0", () => {
     assert.strictEqual(trend(snapshot(), []), 0);
   });
+
+  test("sin rango vigente (null, spec 014 RF-13/RF-27) devuelve 0 aunque haya historial", () => {
+    const first = snapshot({ normalized: 40 });
+    assert.strictEqual(trend(null, [first]), 0);
+    assert.strictEqual(trend(null, []), 0);
+  });
 });
 
-describe("recentMatches", () => {
+describe("recentMatches y mergeMatches con partidas sin rankDelta (spec 014, RF-12, RF-30)", () => {
   test("devuelve las 8 primeras", () => {
     const matches: SimulatedMatch[] = [];
     for (let j = 0; j < 12; j += 1) matches.push(match(`m-0-${j}`, minutesBefore(NOW, j)));
@@ -392,5 +398,112 @@ describe("recentMatches", () => {
   test("con menos de 8 devuelve todas", () => {
     const matches = [match("m-0-0", NOW), match("m-0-1", minutesBefore(NOW, 1))];
     assert.deepStrictEqual(recentMatches(matches), matches);
+  });
+
+  test("admite partidas sin rankDelta (undefined) en compareMatches, mergeMatches y recentMatches", () => {
+    const a: AccountMatch = {
+      id: "LA2_2",
+      gameId: "lol",
+      playedAt: NOW,
+      result: "win",
+      summary: "Ahri · 5/1/8",
+      durationMinutes: 28,
+    };
+    const b: AccountMatch = {
+      id: "LA2_1",
+      gameId: "lol",
+      playedAt: minutesBefore(NOW, 30),
+      result: "loss",
+      summary: "Jinx · 3/4/2",
+      durationMinutes: 32,
+      rankDelta: -16,
+    };
+    assert.ok(compareMatches(a, b) < 0);
+    const merged = mergeMatches([b], [a], "");
+    assert.deepStrictEqual(
+      merged.map((m) => [m.id, m.rankDelta]),
+      [
+        ["LA2_2", undefined],
+        ["LA2_1", -16],
+      ],
+    );
+    assert.deepStrictEqual(recentMatches(merged), merged);
+  });
+});
+
+// Spec 020, RF-12, RNF-4: porcentaje de victorias de una cuenta de LoL con datos de Riot, solo de las partidas de
+// Solo/Dúo (T6).
+describe("soloWinRate (spec 020, RF-12)", () => {
+  function lolMatch(id: string, minutesAgo: number, result: "win" | "loss", mode?: MatchMode): AccountMatch {
+    return {
+      id,
+      gameId: "lol",
+      playedAt: new Date(NOW.getTime() - minutesAgo * MINUTE),
+      result,
+      summary: "Ahri · 5/2/7",
+      durationMinutes: 30,
+      ...(mode === undefined ? {} : { mode }),
+    };
+  }
+
+  /** `count` partidas de Solo/Dúo, las `wins` primeras ganadas, de la más reciente a la más antigua. */
+  function soloRun(count: number, wins: number, firstMinutesAgo = 1): AccountMatch[] {
+    return Array.from({ length: count }, (_, i) =>
+      lolMatch(`s${i}`, firstMinutesAgo + i, i < wins ? "win" : "loss", "solo"),
+    );
+  }
+
+  test("5 de 8 de Solo/Dúo → 63 (mitades hacia arriba, spec 004 DP-11)", () => {
+    assert.equal(soloWinRate(soloRun(8, 5)), 63);
+  });
+
+  test("0 de 8 → 0 y 8 de 8 → 100", () => {
+    assert.equal(soloWinRate(soloRun(8, 0)), 0);
+    assert.equal(soloWinRate(soloRun(8, 8)), 100);
+  });
+
+  test("sin ninguna partida de Solo/Dúo → null, no 0 (RF-12: «sin datos»)", () => {
+    assert.equal(soloWinRate([]), null);
+    assert.equal(
+      soloWinRate([lolMatch("a", 1, "win", "aram"), lolMatch("f", 2, "win", "flex"), lolMatch("o", 3, "loss", "other")]),
+      null,
+    );
+  });
+
+  test("las partidas de otros modos no cuentan, ni como victorias ni como derrotas", () => {
+    const mixed = [
+      lolMatch("a1", 1, "win", "aram"),
+      lolMatch("s0", 2, "loss", "solo"),
+      lolMatch("f1", 3, "win", "flex"),
+      lolMatch("n1", 4, "win", "normal"),
+      lolMatch("s1", 5, "win", "solo"),
+      lolMatch("o1", 6, "win", "other"),
+    ];
+    assert.equal(soloWinRate(mixed), 50); // 1 de 2 de Solo/Dúo
+  });
+
+  test("con más de 8 de Solo/Dúo cuentan solo las 8 primeras, en el orden recibido", () => {
+    // Las 8 primeras: 3 ganadas; las 4 siguientes, ganadas, no cuentan.
+    const run = [...soloRun(8, 3), ...soloRun(4, 4, 100)];
+    assert.equal(soloWinRate(run), 38); // 3 de 8 = 37,5 → 38
+  });
+
+  test("las 8 se cogen entre las de Solo/Dúo, no entre las 8 primeras de cualquier modo", () => {
+    const run = [
+      ...Array.from({ length: 10 }, (_, i) => lolMatch(`a${i}`, 1 + i, "loss", "aram")),
+      ...soloRun(8, 8, 50),
+    ];
+    assert.equal(soloWinRate(run), 100);
+  });
+
+  test("una partida sin modo no cuenta como Solo/Dúo aquí: el servidor la marca antes con storedMode (RF-3)", () => {
+    assert.equal(soloWinRate([lolMatch("x", 1, "win")]), null);
+  });
+
+  test("no muta la entrada", () => {
+    const run = soloRun(9, 4);
+    const copy = structuredClone(run);
+    soloWinRate(run);
+    assert.deepEqual(run, copy);
   });
 });

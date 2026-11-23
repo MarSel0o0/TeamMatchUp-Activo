@@ -1,18 +1,27 @@
-import { Check, Save } from 'lucide-react';
-import { useRef, useState, type FormEvent } from 'react';
+import { AlertCircle, Check, Save } from 'lucide-react';
+import { useCallback, useLayoutEffect, useRef, useState, type FormEvent } from 'react';
 import { formatRange, groupBlocks } from '@/domain/availability';
+import { resolveUnlinkFocus, unlinkDialogTitle } from '@/domain/unlinkDialog';
 import type { TimeBlock } from '@/domain/types';
 import { useAuth } from '@/features/auth/useAuth';
+import { AppButton } from '@/shared/components/AppButton';
+import { Notice } from '@/shared/components/Notice';
+import { Spinner } from '@/shared/components/Spinner';
 import { HoursSheet } from '@/shared/components/HoursSheet';
 import { Icon } from '@/shared/components/Icon';
 import { MutationNotice } from '@/shared/components/MutationNotice';
 import { Stamp } from '@/shared/components/Stamp';
+import { TextAreaField } from '@/shared/components/TextAreaField';
 import { Failure, SheetSkeleton } from '@/shared/components/States';
 import { TextField } from '@/shared/components/TextField';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import { isSessionCleared } from '@/services/api';
 import { REREAD_TEXT, SENDING_TEXT } from '@/shared/utils/copy';
 import { pluralize } from '@/shared/utils/format';
+import { RiotVerifyButton } from '@/features/riot/components/RiotVerifyButton';
+import { SteamVerifyButton } from '@/features/steam/components/SteamVerifyButton';
 import { AccountRow } from '../components/AccountRow';
+import { UnlinkAccountDialog } from '../components/UnlinkAccountDialog';
 import { LinkAccountForm } from '../components/LinkAccountForm';
 import {
   useAccounts,
@@ -88,20 +97,83 @@ export default function SettingsPage() {
     syncAccount.mutate(accountId, { onSettled: accountDone });
   };
 
+  // Desvincular con ventana de confirmación (spec 017, RF-23 a RF-25; plan 4.7). El estado es local: los almacenes de
+  // la 016 no cambian. El título se calcula al abrir y no cambia aunque la lista de cuentas se vuelva a leer.
+  const [unlinkOpen, setUnlinkOpen] = useState(false);
+  const [unlinkTarget, setUnlinkTarget] = useState<{ accountId: string; title: string } | null>(null);
+  const sectionTitleRef = useRef<HTMLHeadingElement>(null);
+  const dialogTitleRef = useRef<HTMLHeadingElement>(null);
+  const dialogConfirmRef = useRef<HTMLButtonElement>(null);
+  const unlinkButtons = useRef(new Map<string, HTMLButtonElement>());
+  const [focusRequest, setFocusRequest] = useState<{
+    target: 'dialogTitle' | 'confirm' | 'sectionTitle' | 'rowButton';
+    accountId?: string;
+  } | null>(null);
+  const unlinkButtonRef = useCallback(
+    (accountId: string) => (element: HTMLButtonElement | null) => {
+      if (element) unlinkButtons.current.set(accountId, element);
+      else unlinkButtons.current.delete(accountId);
+    },
+    [],
+  );
+  useLayoutEffect(() => {
+    if (focusRequest === null) return;
+    const element =
+      focusRequest.target === 'dialogTitle'
+        ? dialogTitleRef.current
+        : focusRequest.target === 'confirm'
+          ? dialogConfirmRef.current
+          : focusRequest.target === 'sectionTitle'
+            ? sectionTitleRef.current
+            : (unlinkButtons.current.get(focusRequest.accountId ?? '') ?? null);
+    element?.focus();
+  }, [focusRequest]);
+
   const unlinkGame = (accountId: string) => {
     if (accountSending.current) return;
     const account = accounts.find((candidate) => candidate.id === accountId);
-    const confirmed = window.confirm(
-      `¿Desvincular ${account ? account.handle : 'esta cuenta'}? Dejarás de aparecer en las coincidencias de ese juego.`,
-    );
-    if (!confirmed) return;
+    syncAccount.reset();
+    unlinkAccount.reset();
+    setUnlinkTarget({ accountId, title: unlinkDialogTitle(account ? account.handle : null) });
+    setUnlinkOpen(true);
+  };
+
+  // Cierra sin enviar: el foco vuelve a «Desvincular» de la fila si sigue ahí; si no, al título de la sección.
+  const closeUnlinkDialog = () => {
+    if (unlinkAccount.isPending || !unlinkOpen || unlinkTarget === null) return;
+    const button = unlinkButtons.current.get(unlinkTarget.accountId);
+    const target = resolveUnlinkFocus('closedWithoutSending', {
+      rowButtonFocusable: button !== undefined && !button.disabled && document.contains(button),
+    });
+    setUnlinkOpen(false);
+    unlinkAccount.reset();
+    if (target !== null) setFocusRequest({ target: target as 'rowButton' | 'sectionTitle', accountId: unlinkTarget.accountId });
+  };
+
+  const confirmUnlink = () => {
+    if (accountSending.current || unlinkTarget === null) return;
     accountSending.current = true;
     syncAccount.reset();
-    unlinkAccount.mutate(accountId, { onSettled: accountDone });
+    unlinkAccount.reset();
+    setFocusRequest({ target: 'dialogTitle' }); // el botón queda deshabilitado (RF-25)
+    unlinkAccount.mutate(unlinkTarget.accountId, {
+      onSuccess: () => {
+        setUnlinkOpen(false);
+        setFocusRequest({ target: 'sectionTitle' });
+      },
+      onError: (error) => {
+        // Un 401 lo resuelve la spec 007 (RF-7): la vista se va y no se devuelve el foco a ningún control.
+        if (isSessionCleared(error)) return;
+        setFocusRequest({ target: 'confirm' });
+      },
+      onSettled: accountDone,
+    });
   };
 
   const accountsBusy = syncAccount.isPending || unlinkAccount.isPending;
-  const accountError = syncAccount.error ?? unlinkAccount.error;
+  // El error de desvincular vive en la ventana, no encima de la lista (RF-25).
+  const accountError = syncAccount.error;
+  const syncNotice = syncAccount.isSuccess ? syncAccount.data.syncNotice : undefined;
 
   if (!user) return null;
 
@@ -135,27 +207,22 @@ export default function SettingsPage() {
             onChange={(event) => setDisplayName(event.target.value)}
           />
 
-          <div className="field">
-            <label className="label" htmlFor="prefs-bio">
-              Cómo juegas
-            </label>
-            <textarea
-              id="prefs-bio"
-              className="textarea"
-              maxLength={200}
-              placeholder="Rol que prefieres, qué buscas en un equipo, cómo te comunicas…"
-              value={bio}
-              onChange={(event) => setBio(event.target.value)}
-            />
-            <span className="field__hint">{bio.length}/200 caracteres</span>
-          </div>
+          <TextAreaField
+            id="prefs-bio"
+            label="Cómo juegas"
+            maxLength={200}
+            placeholder="Rol que prefieres, qué buscas en un equipo, cómo te comunicas…"
+            value={bio}
+            onChange={(event) => setBio(event.target.value)}
+            footer={<span className="tmu-field__hint">{bio.length}/200 caracteres</span>}
+          />
 
           <div className="line">
-            <button type="submit" className="btn btn--pen" disabled={updateProfile.isPending}>
-              {updateProfile.isPending ? <span className="btn__spin" /> : <Icon as={Save} size={14} />}
+            <AppButton type="submit" tone="pen" disabled={updateProfile.isPending}>
+              {updateProfile.isPending ? <Spinner /> : <Icon as={Save} size={14} />}
               {updateProfile.isPending ? SENDING_TEXT : 'Guardar ficha'}
-            </button>
-            <span className="note note--faint">
+            </AppButton>
+            <span className="note note--faint settings__ident">
               {user.email} · {user.timezone}
             </span>
           </div>
@@ -167,7 +234,9 @@ export default function SettingsPage() {
       <div className="prefs__columns">
         <section className="sheet">
           <div className="sheet__head">
-            <h2 className="sheet-title grow">Cuentas vinculadas</h2>
+            <h2 ref={sectionTitleRef} tabIndex={-1} className="sheet-title grow">
+              Cuentas vinculadas
+            </h2>
             <span className="note note--faint">{REREAD_TEXT}</span>
           </div>
 
@@ -186,6 +255,14 @@ export default function SettingsPage() {
           ) : (
             <>
               <MutationNotice error={accountError} padded />
+              {syncNotice ? (
+                <div className="sheet__body">
+                  <Notice tone="pen" role="status">
+                    <Icon as={AlertCircle} size={15} />
+                    {syncNotice}
+                  </Notice>
+                </div>
+              ) : null}
               <div className="sheet__body sheet__body--flush">
                 {accounts.map((account) => (
                   <AccountRow
@@ -193,9 +270,13 @@ export default function SettingsPage() {
                     account={account}
                     onSync={syncGame}
                     onUnlink={unlinkGame}
+                    unlinkButtonRef={unlinkButtonRef(account.id)}
                     syncing={syncAccount.isPending && syncAccount.variables === account.id}
                     unlinking={unlinkAccount.isPending && unlinkAccount.variables === account.id}
                     locked={accountsBusy}
+                    offerSteamVerify
+                    offerRiotVerify
+                    owner={user}
                   />
                 ))}
               </div>
@@ -208,7 +289,11 @@ export default function SettingsPage() {
             <h2 className="sheet-title">Vincular un juego</h2>
           </div>
           <div className="sheet__body">
-            <LinkAccountForm linkedGames={accounts.map((account) => account.gameId)} />
+            <LinkAccountForm
+              linkedGames={accounts.map((account) => account.gameId)}
+              aboveLol={<RiotVerifyButton />}
+              aboveCs2={<SteamVerifyButton />}
+            />
           </div>
         </section>
       </div>
@@ -224,19 +309,19 @@ export default function SettingsPage() {
           </div>
           <div className="line">
             {pending ? (
-              <button type="button" className="btn btn--sm" onClick={() => setDraftBlocks(null)}>
+              <AppButton type="button" size="sm" onClick={() => setDraftBlocks(null)}>
                 Descartar
-              </button>
+              </AppButton>
             ) : null}
-            <button
+            <AppButton
               type="button"
-              className="btn btn--pen btn--sm"
+              tone="pen" size="sm"
               onClick={handleSaveAvailability}
               disabled={!pending || saveAvailability.isPending}
             >
-              {saveAvailability.isPending ? <span className="btn__spin" /> : <Icon as={Save} size={13} />}
+              {saveAvailability.isPending ? <Spinner /> : <Icon as={Save} size={13} />}
               {saveAvailability.isPending ? SENDING_TEXT : 'Guardar horas'}
-            </button>
+            </AppButton>
           </div>
         </div>
 
@@ -264,6 +349,17 @@ export default function SettingsPage() {
           </div>
         ) : null}
       </section>
+
+      <UnlinkAccountDialog
+        open={unlinkOpen}
+        title={unlinkTarget?.title ?? ''}
+        onClose={closeUnlinkDialog}
+        onConfirm={confirmUnlink}
+        pending={unlinkAccount.isPending}
+        error={unlinkAccount.error}
+        titleRef={dialogTitleRef}
+        confirmRef={dialogConfirmRef}
+      />
     </>
   );
 }

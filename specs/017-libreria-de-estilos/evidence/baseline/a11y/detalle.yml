@@ -1,0 +1,35 @@
+- link "Saltar al contenido"
+- banner:
+  - navigation "Principal":
+    - link "TeamMatchUp, inicio": TeamMatchUp
+    - list:
+      - listitem:
+        - link "Mi ficha"
+      - listitem:
+        - link "Coincidencias"
+      - listitem:
+        - link "Agenda"
+      - listitem:
+        - link "Configuración"
+    - button "Cambiar a tema claro"
+    - text: Datos de demostración Jugador Demo
+    - button "Cerrar sesión":
+      - img "Cerrar sesión"
+- main:
+  - text: R6
+  - paragraph: Rainbow Six Siege
+  - heading "Ranked flex, 5 stack" [level=1]
+  - paragraph: Sábado · 23:00–02:00
+  - paragraph: Traer ganas de comunicar calls.
+  - text: 2/5 jugadores
+  - list:
+    - listitem:
+      - link "Catalina Leiva"
+      - text: organiza
+    - listitem:
+      - link "Felipe Navarro"
+    - listitem: cupo libre
+    - listitem: cupo libre
+    - listitem: cupo libre
+  - button "Unirme"
+- contentinfo: TeamMatchUp · 2026 Datos de demostración

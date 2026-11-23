@@ -1,14 +1,22 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { flushSync } from 'react-dom';
 import { STORAGE_KEYS } from '@/config/env';
+import { AppMantineProvider } from './AppMantineProvider';
 import { ThemeContext, type Theme } from './themeContext';
 
 /**
- * Lee el tema que dejó fijado el script de `index.html` antes de que React
- * cargue: así la primera pintura ya sale con el tema correcto, sin destello.
+ * Lee el tema que dejó fijado el script del `<head>` (`themeBootPlugin`, `domain/themeChoice.ts`)
+ * antes de que React cargue: así la primera pintura ya sale con el tema correcto, sin destello.
  */
 function initialTheme(): Theme {
   return document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
+}
+
+/** Las dos marcas del tema: `data-theme` (los tokens) y `data-mantine-color-scheme` (la librería). */
+function writeThemeMarks(theme: Theme) {
+  const root = document.documentElement;
+  root.dataset.theme = theme;
+  root.setAttribute('data-mantine-color-scheme', theme);
 }
 
 function persist(theme: Theme) {
@@ -23,7 +31,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>(initialTheme);
 
   useEffect(() => {
-    document.documentElement.dataset.theme = theme;
+    writeThemeMarks(theme);
     document.querySelector('meta[name="theme-color"]')?.setAttribute(
       'content',
       theme === 'light' ? '#eceef1' : '#0b0c0e',
@@ -38,7 +46,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       // flushSync: la captura de "después" de la transición debe ver ya el
       // tema nuevo aplicado al DOM.
       flushSync(() => setTheme(next));
-      document.documentElement.dataset.theme = next;
+      writeThemeMarks(next);
     };
 
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -61,5 +69,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo(() => ({ theme, toggleTheme }), [theme, toggleTheme]);
 
-  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+  return (
+    <AppMantineProvider colorScheme={theme}>
+      <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
+    </AppMantineProvider>
+  );
 }

@@ -507,6 +507,8 @@ de la usuaria: «Mantener 18 tareas (Recomendado)» (ver «Decisiones registrada
   - Verificación: `cd frontend && npm run typecheck && npm run lint && npm run build`.
 
 - [x] **T16. Recorrido manual de los Criterios de finalización.** RF-1 a RF-24, RNF-1 a RNF-6
+  - Nota (2026-11-20): el contraste de los botones deshabilitados y bloqueados (hallazgo C4 de la
+    validación) quedó cubierto por la excepción de RNF-5 (cambio VC4); no reabre ninguna tarea.
   - Precondición: implementadas la 006 (servidor con obtener y editar por id), la 007 (al
     menos RF-7, RF-10 y RF-24) y la 008 (al menos RF-9, RF-15 y RF-20); MongoDB local y
     `backend/.env`. Si no se cumple, se hace solo la parte en modo simulado, se anota y la

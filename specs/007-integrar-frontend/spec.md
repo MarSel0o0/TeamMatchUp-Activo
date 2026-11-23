@@ -1,5 +1,6 @@
 # Spec 007 — Conectar la interfaz al servidor real
 Estado: implementada (2026-10-19; T1–T31 hechas, recorrido manual T29 en `validation.md`). Aprobada el 2026-10-18.
+Validada por el `reviewer` contra el código del 2026-11-20 (`validation.md`, sección 7): APROBADO.
 Alineación posterior a la implementación de las specs 004 y 005 (2026-10-19, aprobada por el
 usuario; commits `9b5cc87` y `88af4cd`): solo cambia RF-10 (puntos 4, 5 y 10, y puntos nuevos
 12 y 13), para que los textos que imita el modo simulado coincidan con los de las specs 004
@@ -16,6 +17,15 @@ usuario (RF-10 punto 12, RF-16 y R14); (2) el texto del 401 del inicio de sesió
 «correo o contraseña incorrectos» (minúscula, sin punto final), como en la spec 002, RF-9 y en
 el backend (caso límite de las credenciales incorrectas); (3) el estado de «Depende de» se
 actualiza (004 y 005 implementadas el 2026-10-19). No cambia ningún otro requisito.
+
+Cambio por la spec 012 (2026-11-04, aprobado): la etiqueta «Datos de demostración» pasa a ser por bloque de datos y cada bloque de origen real muestra el nombre de su fuente (spec 012, RF-5 a RF-7). El modo simulado deja todas las cuentas sin verificar (RF-2).
+
+Cambios por specs posteriores (sin editar los RF de esta spec; ver la sección «Impacto» o los RF
+propios de cada una): spec 013 (RF-21, RF-24, RF-25: botón de Steam, aviso global solo en modo
+simulado y texto de «Resincronizar» de las cuentas de Steam); spec 014 (RF-38, RF-42 y P14-11:
+botón de Riot y plazo de 65 s para las operaciones de Riot y para resincronizar cualquier cuenta,
+incorporado a RF-20 por la decisión R23); spec 015 (RF-12: sin historial ni diferencia en las cuentas de CS2 con
+rango de Leetify).
 
 ## Contexto y objetivo
 Las vistas del Hito 1 funcionan contra un backend simulado en el navegador. El cliente HTTP
@@ -123,7 +133,7 @@ muestra rango", que dejaron de existir con la spec 004 vigente.)
   Si llegan varios 401 a la vez, es la vista que estaba en pantalla al recibir el primero.
 - **Error con mensaje**: respuesta no exitosa cuyo cuerpo es JSON con el campo de error de
   la spec 001 (RF-7) como texto no vacío. **Error sin mensaje**: cualquier otro fallo de una
-  petición: fallo de red, petición interrumpida, sin respuesta en 30 segundos (RF-20),
+  petición: fallo de red, petición interrumpida, sin respuesta dentro del plazo de RF-20,
   cuerpo que no es JSON (por ejemplo, HTML del entorno de desarrollo con el servidor
   apagado), JSON sin el campo de error o con un valor que no es texto, y cualquier código
   4xx o 5xx con cuerpo vacío o de otra forma. Un 401 nunca es un error sin mensaje: se
@@ -233,7 +243,7 @@ muestra rango", que dejaron de existir con la spec 004 vigente.)
   6. Ninguna operación de la spec 004 responde 409 (spec 004, casos límite): R6 se vincula
      y se resincroniza como los demás juegos.
   7. Ningún candidato de coincidencias trae correo (spec 005, RF-3 y RNF-2).
-  8. Salir de una sesión sin estar inscrito: 409 con "no estás inscrito en esta sesión"
+  8. Salir de una sesión sin estar inscrito: 409 con "No estás inscrito en esta sesión."
      (spec 006, RF-17), no 200.
   9. Actualizar el perfil: guarda el color de avatar, y nombre visible vacío o solo con
      espacios, zona horaria no IANA, nombre visible de más de 40, biografía de más de 200
@@ -285,7 +295,11 @@ muestra rango", que dejaron de existir con la spec 004 vigente.)
   segundos, se aplica RF-7. Tampoco vuelve a pedir los datos de forma automática por si el
   servidor terminó la operación después (decisión del usuario, D12; ver casos límite).
   Este plazo y este estado de "en curso" valen para las vistas existentes; las vistas
-  nuevas los heredan (specs 008 y 009).
+  nuevas los heredan (specs 008 y 009). Excepción: resincronizar una cuenta, de cualquier
+  juego, y las operaciones de verificación de Riot (spec 014: crear y confirmar el desafío)
+  tienen un plazo de 65 segundos en lugar de 30, porque el servidor puede tardar hasta 60
+  segundos en responder (spec 014, RNF-7, P14-11). En ellas, todo lo anterior vale igual
+  cambiando 30 por 65 segundos (decisión del usuario, 2026-11-20, R23).
 - RF-24: CUANDO otra pestaña registra un cambio de sesión, EL SISTEMA limpia la sesión del
   cliente en esta pestaña y lleva a login, recordando la ruta de origen, sin recargar la
   página, y login muestra el aviso fijo "Se cerró o cambió la sesión en otra pestaña.",
@@ -562,12 +576,13 @@ muestra rango", que dejaron de existir con la spec 004 vigente.)
   protegida, que recibe 401 y las lleva a login con "Tu sesión expiró. Vuelve a entrar."
   (RF-7), no con el aviso de RF-24 (D2).
 - Operación de escritura (vincular, resincronizar, desvincular, guardar perfil o
-  disponibilidad, crear, sumarse, salir, cancelar) sin respuesta a los 30 segundos: el botón
+  disponibilidad, crear, sumarse, salir, cancelar) sin respuesta dentro de su plazo (30
+  segundos; 65 para resincronizar, R23): el botón
   se desbloquea y se muestra el Texto de error sin mensaje (RF-20). El servidor puede haber
   completado la operación: el resultado aparece la siguiente vez que la interfaz lee los
   datos (por ejemplo, al recargar), y un segundo intento de vincular el mismo juego recibe
-  400 (spec 004, RF-5), que se muestra según RF-9. Si el servidor responde después de los 30
-  segundos, la interfaz no muestra esa respuesta ni vuelve a pedir los datos; hasta la
+  400 (spec 004, RF-5), que se muestra según RF-9. Si el servidor responde después del
+  plazo, la interfaz no muestra esa respuesta ni vuelve a pedir los datos; hasta la
   siguiente lectura, las vistas pueden mostrar el estado anterior (D12).
 - Doble clic en "Proponer", "Guardar disponibilidad", "Crear sesión" o "Sumarse": una sola
   petición o una sola navegación (RF-20, RF-29).
@@ -689,12 +704,12 @@ muestra rango", que dejaron de existir con la spec 004 vigente.)
       responde la consulta de sesión: nunca se ve login ni una vista protegida antes de la
       respuesta (RF-5). Con la consulta de sesión bloqueada sin respuesta, a los 30 segundos
       aparece la pantalla de error con "Reintentar".
-- [ ] Con una limitación de red personalizada de 40 segundos de latencia, pulsar
-      "Resincronizar" muestra "Enviando…" con el botón deshabilitado y, a los 30 segundos,
-      desbloquea el botón y muestra "No se pudo conectar con el servidor. Inténtalo de
-      nuevo." sin llevar a login; el mismo resultado al guardar la disponibilidad o al
-      registrar un jugador; un doble clic en cualquiera de esos botones envía una sola
-      petición (RF-20).
+- [ ] Con una limitación de red personalizada de 40 segundos de latencia, guardar la
+      disponibilidad o registrar un jugador muestra "Enviando…" con el botón deshabilitado
+      y, a los 30 segundos, desbloquea el botón y muestra "No se pudo conectar con el
+      servidor. Inténtalo de nuevo." sin llevar a login. Con 70 segundos de latencia,
+      pulsar "Resincronizar" da el mismo resultado a los 65 segundos (R23). Un doble clic
+      en cualquiera de esos botones envía una sola petición (RF-20).
 - [ ] Con dos pestañas con sesión iniciada y la segunda en Configuración, cerrar sesión en
       la primera lleva la segunda a login, en menos de 5 segundos, sin datos de la cuenta,
       con el aviso "Se cerró o cambió la sesión en otra pestaña." (no "Tu sesión expiró.
@@ -845,6 +860,21 @@ Decisiones del usuario del 2026-10-19 (ajustes menores tras implementar las spec
 - R22 (decisión del usuario, 2026-10-19): el texto del 401 del inicio de sesión en la
   interfaz y en el modo simulado es «correo o contraseña incorrectos» (minúscula inicial, sin
   punto final), el de la spec 002, RF-9 y el del backend.
+- R23 (decisión del usuario, 2026-11-20: «Ajustar la spec (Recommended)»): RF-20 admite
+  un plazo de 65 segundos para resincronizar cualquier cuenta y para las operaciones de
+  verificación de Riot de la spec 014 (P14-11). Origen: la validación del `reviewer` del
+  2026-11-20 midió «Resincronizar» a los 64,9 s, contra los 30 s que pedía RF-20. Se descarta
+  limitar los 65 s a las cuentas de LoL (recomendación del `reviewer`; unas 15 líneas y un
+  ajuste de P14-11): R6 es simulado y responde al instante y CS2 no pasa de 16 s (spec 015), así
+  que el plazo más corto no cambia nada que el jugador vea y añade una rama por juego. Cambian
+  RF-20, Definiciones (error sin mensaje), Casos límite y Criterios de finalización; no cambia
+  el código. R5 sigue valiendo con esta excepción.
+- R24 (decisión del usuario, 2026-11-20: «Aceptarlo (Recommended)» en O1 y en O2): se aceptan las observaciones O1 y O2 de la
+  validación (`validation.md`, 5.B.3). El ejemplo de formato `tu-nombre-ubisoft` del formulario
+  de vincular no atribuye datos a Ubisoft, así que cumple RF-15. En la barra lateral, «Datos de
+  demostración» se ve en mayúsculas por un estilo previo, pero el texto es exacto, como piden
+  RF-11 y RF-22; además, la barra solo aparece en modo simulado (spec 013, RF-24). Sin cambios
+  de código.
 
 Ninguna de las decisiones R1 a R18 depende del texto de la etiqueta. R9 (textos literales
 nuevos) no incluye la etiqueta porque ya existía como aviso global; R13 y R14 no se ven

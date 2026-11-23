@@ -1,0 +1,27 @@
+{
+  "name": "teammatchup-e2etests",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Pruebas E2E de TeamMatchUp con Playwright (spec 018)",
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "test": "playwright test --project=chromium",
+    "test:reverse": "playwright test --project=chromium-reverse",
+    "test:unit": "node --test lib/preflight.test.ts lib/processEnv.test.ts lib/uniqueData.test.ts lib/origin.test.ts lib/settings.test.ts lib/backendEnv.test.ts tests/registry.test.ts tests/ui.test.ts tests/fixtures.test.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "report": "playwright show-report",
+    "browser:install": "playwright install chromium"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.5",
+    "@playwright/test": "1.57.0",
+    "@types/node": "22.20.2",
+    "eslint": "9.39.5",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.70.0"
+  }
+}

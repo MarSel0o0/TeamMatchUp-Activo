@@ -1,0 +1,7711 @@
+{
+ "browser": "Chrome 159.0.8154.13",
+ "date": "2026-11-22T12:53:04.389Z",
+ "tabOrder": {
+  "landing__1280": [
+   "a: TeamMatchUp",
+   "button[button]: Cambiar a tema claro",
+   "a: Entrar",
+   "a: Crear cuenta",
+   "a: Crear cuenta",
+   "a: Ya tengo cuenta",
+   "a: Crear cuenta"
+  ],
+  "login__1280": [
+   "a: TeamMatchUp",
+   "button[button]: Cambiar a tema claro",
+   "input[email]: Correo",
+   "input[password]: Contraseña",
+   "button[submit]: Entrar",
+   "button[button]: Rellenar esos datos",
+   "a: Crear una"
+  ],
+  "registro__1280": [
+   "a: TeamMatchUp",
+   "button[button]: Cambiar a tema claro",
+   "input[text]: Nombre",
+   "input[text]: Usuario",
+   "input[email]: Correo",
+   "input[password]: Contraseña",
+   "input[password]: Repite la contraseña",
+   "button[submit]: Crear cuenta",
+   "a: Entrar"
+  ],
+  "inicio__1280": [
+   "a: Saltar al contenido",
+   "a: TeamMatchUp, inicio",
+   "a: Mi ficha",
+   "a: Coincidencias",
+   "a: Agenda",
+   "a: Configuración",
+   "button[button]: Cambiar a tema claro",
+   "button[button]: ",
+   "a: Abrir la agenda",
+   "a: Editar mis horas",
+   "a: Ver coincidencias",
+   "a: Abrir mi ficha"
+  ],
+  "perfil__1280": [
+   "a: Saltar al contenido",
+   "a: TeamMatchUp, inicio",
+   "a: Mi ficha",
+   "a: Coincidencias",
+   "a: Agenda",
+   "a: Configuración",
+   "button[button]: Cambiar a tema claro",
+   "button[button]: ",
+   "a: Editar ficha",
+   "a: Vincular otra cuenta",
+   "tab: League of Legends",
+   "tab: Rainbow Six Siege",
+   "tab: Counter-Strike 2",
+   "button[button]: Resincronizar",
+   "a: Editar horas"
+  ],
+  "configuracion__1280": [
+   "a: Saltar al contenido",
+   "a: TeamMatchUp, inicio",
+   "a: Mi ficha",
+   "a: Coincidencias",
+   "a: Agenda",
+   "a: Configuración",
+   "button[button]: Cambiar a tema claro",
+   "button[button]: ",
+   "input[text]: Nombre visible",
+   "textarea[textarea]: Cómo juegas",
+   "button[submit]: Guardar ficha",
+   "button[button]: Resincronizar",
+   "button[button]: Desvincular",
+   "button[button]: Resincronizar",
+   "button[button]: Desvincular",
+   "button[button]: Resincronizar",
+   "button[button]: Desvincular",
+   "button[button]: Lunes 12:00",
+   "button[button]: Martes 12:00",
+   "button[button]: Miércoles 12:00",
+   "button[button]: Jueves 12:00",
+   "button[button]: Viernes 12:00",
+   "button[button]: Sábado 12:00",
+   "button[button]: Domingo 12:00",
+   "button[button]: Lunes 13:00",
+   "button[button]: Martes 13:00",
+   "button[button]: Miércoles 13:00",
+   "button[button]: Jueves 13:00",
+   "button[button]: Viernes 13:00",
+   "button[button]: Sábado 13:00",
+   "button[button]: Domingo 13:00",
+   "button[button]: Lunes 14:00",
+   "button[button]: Martes 14:00",
+   "button[button]: Miércoles 14:00",
+   "button[button]: Jueves 14:00",
+   "button[button]: Viernes 14:00",
+   "button[button]: Sábado 14:00",
+   "button[button]: Domingo 14:00",
+   "button[button]: Lunes 15:00",
+   "button[button]: Martes 15:00",
+   "button[button]: Miércoles 15:00",
+   "button[button]: Jueves 15:00",
+   "button[button]: Viernes 15:00",
+   "button[button]: Sábado 15:00, marcado",
+   "button[button]: Domingo 15:00, marcado",
+   "button[button]: Lunes 16:00",
+   "button[button]: Martes 16:00",
+   "button[button]: Miércoles 16:00",
+   "button[button]: Jueves 16:00",
+   "button[button]: Viernes 16:00",
+   "button[button]: Sábado 16:00, marcado",
+   "button[button]: Domingo 16:00, marcado",
+   "button[button]: Lunes 17:00",
+   "button[button]: Martes 17:00",
+   "button[button]: Miércoles 17:00",
+   "button[button]: Jueves 17:00",
+   "button[button]: Viernes 17:00",
+   "button[button]: Sábado 17:00, marcado",
+   "button[button]: Domingo 17:00, marcado",
+   "button[button]: Lunes 18:00",
+   "button[button]: Martes 18:00",
+   "button[button]: Miércoles 18:00",
+   "button[button]: Jueves 18:00",
+   "button[button]: Viernes 18:00",
+   "button[button]: Sábado 18:00, marcado",
+   "button[button]: Domingo 18:00, marcado",
+   "button[button]: Lunes 19:00, marcado",
+   "button[button]: Martes 19:00, marcado",
+   "button[button]: Miércoles 19:00, marcado",
+   "button[button]: Jueves 19:00, marcado",
+   "button[button]: Viernes 19:00, marcado",
+   "button[button]: Sábado 19:00, marcado",
+   "button[button]: Domingo 19:00, marcado",
+   "button[button]: Lunes 20:00, marcado",
+   "button[button]: Martes 20:00, marcado",
+   "button[button]: Miércoles 20:00, marcado",
+   "button[button]: Jueves 20:00, marcado",
+   "button[button]: Viernes 20:00, marcado",
+   "button[button]: Sábado 20:00, marcado",
+   "button[button]: Domingo 20:00, marcado",
+   "button[button]: Lunes 21:00, marcado",
+   "button[button]: Martes 21:00, marcado",
+   "button[button]: Miércoles 21:00, marcado",
+   "button[button]: Jueves 21:00, marcado",
+   "button[button]: Viernes 21:00, marcado",
+   "button[button]: Sábado 21:00, marcado",
+   "button[button]: Domingo 21:00, marcado",
+   "button[button]: Lunes 22:00, marcado",
+   "button[button]: Martes 22:00, marcado",
+   "button[button]: Miércoles 22:00, marcado"
+  ],
+  "coincidencias__1280": [
+   "a: Saltar al contenido",
+   "a: TeamMatchUp, inicio",
+   "a: Mi ficha",
+   "a: Coincidencias",
+   "a: Agenda",
+   "a: Configuración",
+   "button[button]: Cambiar a tema claro",
+   "button[button]: ",
+   "tab: League of Legends",
+   "tab: Rainbow Six Siege",
+   "tab: Counter-Strike 2",
+   "input[search]: Buscar jugador",
+   "input[range]: Diferencia máxima de rango25 pts",
+   "input[range]: Horas en común por semana2 h",
+   "input[checkbox]: Solo cuentas verificadas",
+   "button[button]: Restablecer criterios",
+   "a: Fernanda Soto",
+   "button[button]: Proponer",
+   "button[button]: Ver horas en común",
+   "a: Isidora Campos",
+   "button[button]: Proponer",
+   "button[button]: Ver horas en común",
+   "a: Renata Bustos",
+   "button[button]: Proponer",
+   "button[button]: Ver horas en común",
+   "a: Emilia Vargas",
+   "button[button]: Proponer",
+   "button[button]: Ver horas en común",
+   "a: Cristóbal Lagos",
+   "button[button]: Proponer",
+   "button[button]: Ver horas en común"
+  ],
+  "agenda__1280": [
+   "a: Saltar al contenido",
+   "a: TeamMatchUp, inicio",
+   "a: Mi ficha",
+   "a: Coincidencias",
+   "a: Agenda",
+   "a: Configuración",
+   "button[button]: Cambiar a tema claro",
+   "button[button]: ",
+   "button[button]: Anotar sesión",
+   "button[button]: Todos los juegos",
+   "button[button]: League of Legends",
+   "button[button]: Rainbow Six Siege",
+   "button[button]: Counter-Strike 2",
+   "button[button]: Anotar una sesión el Lunes a las 12:00",
+   "button[button]: Anotar una sesión el Martes a las 12:00",
+   "button[button]: Anotar una sesión el Miércoles a las 12:",
+   "button[button]: Anotar una sesión el Jueves a las 12:00",
+   "button[button]: Anotar una sesión el Viernes a las 12:00",
+   "button[button]: Anotar una sesión el Sábado a las 12:00",
+   "button[button]: Anotar una sesión el Domingo a las 12:00",
+   "button[button]: Anotar una sesión el Lunes a las 13:00",
+   "button[button]: Anotar una sesión el Martes a las 13:00",
+   "button[button]: Anotar una sesión el Miércoles a las 13:",
+   "button[button]: Anotar una sesión el Jueves a las 13:00",
+   "button[button]: Anotar una sesión el Viernes a las 13:00",
+   "button[button]: Anotar una sesión el Sábado a las 13:00",
+   "button[button]: Anotar una sesión el Domingo a las 13:00",
+   "button[button]: Anotar una sesión el Lunes a las 14:00",
+   "button[button]: Anotar una sesión el Martes a las 14:00",
+   "button[button]: Anotar una sesión el Miércoles a las 14:",
+   "button[button]: Anotar una sesión el Jueves a las 14:00",
+   "button[button]: Anotar una sesión el Viernes a las 14:00",
+   "button[button]: Anotar una sesión el Sábado a las 14:00",
+   "button[button]: Anotar una sesión el Domingo a las 14:00",
+   "button[button]: Anotar una sesión el Lunes a las 15:00",
+   "button[button]: Anotar una sesión el Martes a las 15:00",
+   "button[button]: Anotar una sesión el Miércoles a las 15:",
+   "button[button]: Anotar una sesión el Jueves a las 15:00",
+   "button[button]: Anotar una sesión el Viernes a las 15:00",
+   "button[button]: Anotar una sesión el Sábado a las 15:00",
+   "button[button]: Anotar una sesión el Domingo a las 15:00",
+   "button[button]: Anotar una sesión el Lunes a las 16:00",
+   "button[button]: Anotar una sesión el Martes a las 16:00",
+   "button[button]: Anotar una sesión el Miércoles a las 16:",
+   "button[button]: Anotar una sesión el Jueves a las 16:00",
+   "button[button]: Anotar una sesión el Viernes a las 16:00",
+   "button[button]: Anotar una sesión el Sábado a las 16:00",
+   "button[button]: Anotar una sesión el Domingo a las 16:00",
+   "button[button]: Anotar una sesión el Lunes a las 17:00",
+   "button[button]: Anotar una sesión el Martes a las 17:00",
+   "button[button]: Anotar una sesión el Miércoles a las 17:",
+   "button[button]: Anotar una sesión el Jueves a las 17:00",
+   "button[button]: Anotar una sesión el Viernes a las 17:00",
+   "button[button]: Anotar una sesión el Sábado a las 17:00",
+   "button[button]: Anotar una sesión el Domingo a las 17:00",
+   "button[button]: Anotar una sesión el Lunes a las 18:00",
+   "button[button]: Anotar una sesión el Martes a las 18:00",
+   "button[button]: Anotar una sesión el Miércoles a las 18:",
+   "button[button]: Anotar una sesión el Jueves a las 18:00",
+   "button[button]: Anotar una sesión el Viernes a las 18:00",
+   "button[button]: Anotar una sesión el Sábado a las 18:00",
+   "button[button]: Anotar una sesión el Domingo a las 18:00",
+   "button[button]: Anotar una sesión el Lunes a las 19:00",
+   "button[button]: Anotar una sesión el Martes a las 19:00",
+   "button[button]: Anotar una sesión el Miércoles a las 19:",
+   "button[button]: Anotar una sesión el Jueves a las 19:00",
+   "button[button]: Anotar una sesión el Viernes a las 19:00",
+   "button[button]: Anotar una sesión el Sábado a las 19:00",
+   "button[button]: Anotar una sesión el Domingo a las 19:00",
+   "button[button]: Anotar una sesión el Lunes a las 20:00",
+   "button[button]: Anotar una sesión el Martes a las 20:00",
+   "button[button]: Anotar una sesión el Miércoles a las 20:",
+   "button[button]: Anotar una sesión el Jueves a las 20:00",
+   "button[button]: Anotar una sesión el Viernes a las 20:00",
+   "button[button]: Anotar una sesión el Sábado a las 20:00",
+   "button[button]: Anotar una sesión el Domingo a las 20:00",
+   "button[button]: Anotar una sesión el Lunes a las 21:00",
+   "button[button]: Anotar una sesión el Martes a las 21:00",
+   "button[button]: Anotar una sesión el Miércoles a las 21:",
+   "button[button]: Anotar una sesión el Jueves a las 21:00",
+   "button[button]: Anotar una sesión el Viernes a las 21:00",
+   "button[button]: Anotar una sesión el Sábado a las 21:00",
+   "button[button]: Anotar una sesión el Domingo a las 21:00",
+   "button[button]: Anotar una sesión el Lunes a las 22:00",
+   "button[button]: Anotar una sesión el Martes a las 22:00",
+   "button[button]: Anotar una sesión el Miércoles a las 22:",
+   "button[button]: Anotar una sesión el Jueves a las 22:00",
+   "button[button]: Anotar una sesión el Viernes a las 22:00",
+   "button[button]: Anotar una sesión el Sábado a las 22:00",
+   "button[button]: Anotar una sesión el Domingo a las 22:00"
+  ],
+  "detalle__1280": [
+   "a: Catalina Leiva",
+   "a: Felipe Navarro",
+   "button[button]: Unirme"
+  ],
+  "ficha__1280": [
+   "a: Saltar al contenido",
+   "a: TeamMatchUp, inicio",
+   "a: Mi ficha",
+   "a: Coincidencias",
+   "a: Agenda",
+   "a: Configuración",
+   "button[button]: Cambiar a tema claro",
+   "button[button]: ",
+   "tab: League of Legends",
+   "tabpanel: League of LegendsRiot ID · Ignxcia#099Da",
+   "button[button]: Proponer sesión"
+  ],
+  "riot__1280": [
+   "a: Saltar al contenido",
+   "a: TeamMatchUp, inicio",
+   "a: Mi ficha",
+   "a: Coincidencias",
+   "a: Agenda",
+   "a: Configuración",
+   "button[button]: Cambiar a tema claro",
+   "button[button]: ",
+   "input[text]: Riot ID",
+   "select[select-one]: Región",
+   "button[submit]: Pedir ícono de verificación",
+   "button[button]: Volver"
+  ],
+  "steam__1280": [
+   "a: TeamMatchUp",
+   "button[button]: Cambiar a tema claro",
+   "input[email]: Correo",
+   "input[password]: Contraseña",
+   "button[submit]: Entrar",
+   "button[button]: Rellenar esos datos",
+   "a: Crear una"
+  ],
+  "no-encontrada__1280": [
+   "a: Volver al inicio"
+  ],
+  "landing__375": [
+   "a: TeamMatchUp",
+   "button[button]: Cambiar a tema claro",
+   "a: Entrar",
+   "a: Crear cuenta",
+   "a: Crear cuenta",
+   "a: Ya tengo cuenta",
+   "a: Crear cuenta"
+  ],
+  "login__375": [
+   "a: TeamMatchUp",
+   "button[button]: Cambiar a tema claro",
+   "input[email]: Correo",
+   "input[password]: Contraseña",
+   "button[submit]: Entrar",
+   "button[button]: Rellenar esos datos",
+   "a: Crear una"
+  ],
+  "registro__375": [
+   "a: TeamMatchUp",
+   "button[button]: Cambiar a tema claro",
+   "input[text]: Nombre",
+   "input[text]: Usuario",
+   "input[email]: Correo",
+   "input[password]: Contraseña",
+   "input[password]: Repite la contraseña",
+   "button[submit]: Crear cuenta",
+   "a: Entrar"
+  ],
+  "inicio__375": [
+   "a: Saltar al contenido",
+   "a: TeamMatchUp, inicio",
+   "button[button]: Cambiar a tema claro",
+   "button[button]: Abrir el menú",
+   "a: Abrir la agenda",
+   "a: Editar mis horas",
+   "a: Ver coincidencias",
+   "a: Abrir mi ficha"
+  ],
+  "perfil__375": [
+   "a: Saltar al contenido",
+   "a: TeamMatchUp, inicio",
+   "button[button]: Cambiar a tema claro",
+   "button[button]: Abrir el menú",
+   "a: Editar ficha",
+   "a: Vincular otra cuenta",
+   "tab: League of Legends",
+   "tab: Rainbow Six Siege",
+   "tab: Counter-Strike 2",
+   "button[button]: Resincronizar",
+   "a: Editar horas"
+  ],
+  "configuracion__375": [
+   "a: Saltar al contenido",
+   "a: TeamMatchUp, inicio",
+   "button[button]: Cambiar a tema claro",
+   "button[button]: Abrir el menú",
+   "input[text]: Nombre visible",
+   "textarea[textarea]: Cómo juegas",
+   "button[submit]: Guardar ficha",
+   "button[button]: Resincronizar",
+   "button[button]: Desvincular",
+   "button[button]: Resincronizar",
+   "button[button]: Desvincular",
+   "button[button]: Resincronizar",
+   "button[button]: Desvincular",
+   "button[button]: Lunes 12:00",
+   "button[button]: Martes 12:00",
+   "button[button]: Miércoles 12:00",
+   "button[button]: Jueves 12:00",
+   "button[button]: Viernes 12:00",
+   "button[button]: Sábado 12:00",
+   "button[button]: Domingo 12:00",
+   "button[button]: Lunes 13:00",
+   "button[button]: Martes 13:00",
+   "button[button]: Miércoles 13:00",
+   "button[button]: Jueves 13:00",
+   "button[button]: Viernes 13:00",
+   "button[button]: Sábado 13:00",
+   "button[button]: Domingo 13:00",
+   "button[button]: Lunes 14:00",
+   "button[button]: Martes 14:00",
+   "button[button]: Miércoles 14:00",
+   "button[button]: Jueves 14:00",
+   "button[button]: Viernes 14:00",
+   "button[button]: Sábado 14:00",
+   "button[button]: Domingo 14:00",
+   "button[button]: Lunes 15:00",
+   "button[button]: Martes 15:00",
+   "button[button]: Miércoles 15:00",
+   "button[button]: Jueves 15:00",
+   "button[button]: Viernes 15:00",
+   "button[button]: Sábado 15:00, marcado",
+   "button[button]: Domingo 15:00, marcado",
+   "button[button]: Lunes 16:00",
+   "button[button]: Martes 16:00",
+   "button[button]: Miércoles 16:00",
+   "button[button]: Jueves 16:00",
+   "button[button]: Viernes 16:00",
+   "button[button]: Sábado 16:00, marcado",
+   "button[button]: Domingo 16:00, marcado",
+   "button[button]: Lunes 17:00",
+   "button[button]: Martes 17:00",
+   "button[button]: Miércoles 17:00",
+   "button[button]: Jueves 17:00",
+   "button[button]: Viernes 17:00",
+   "button[button]: Sábado 17:00, marcado",
+   "button[button]: Domingo 17:00, marcado",
+   "button[button]: Lunes 18:00",
+   "button[button]: Martes 18:00",
+   "button[button]: Miércoles 18:00",
+   "button[button]: Jueves 18:00",
+   "button[button]: Viernes 18:00",
+   "button[button]: Sábado 18:00, marcado",
+   "button[button]: Domingo 18:00, marcado",
+   "button[button]: Lunes 19:00, marcado",
+   "button[button]: Martes 19:00, marcado",
+   "button[button]: Miércoles 19:00, marcado",
+   "button[button]: Jueves 19:00, marcado",
+   "button[button]: Viernes 19:00, marcado",
+   "button[button]: Sábado 19:00, marcado",
+   "button[button]: Domingo 19:00, marcado",
+   "button[button]: Lunes 20:00, marcado",
+   "button[button]: Martes 20:00, marcado",
+   "button[button]: Miércoles 20:00, marcado",
+   "button[button]: Jueves 20:00, marcado",
+   "button[button]: Viernes 20:00, marcado",
+   "button[button]: Sábado 20:00, marcado",
+   "button[button]: Domingo 20:00, marcado",
+   "button[button]: Lunes 21:00, marcado",
+   "button[button]: Martes 21:00, marcado",
+   "button[button]: Miércoles 21:00, marcado",
+   "button[button]: Jueves 21:00, marcado",
+   "button[button]: Viernes 21:00, marcado",
+   "button[button]: Sábado 21:00, marcado",
+   "button[button]: Domingo 21:00, marcado",
+   "button[button]: Lunes 22:00, marcado",
+   "button[button]: Martes 22:00, marcado",
+   "button[button]: Miércoles 22:00, marcado",
+   "button[button]: Jueves 22:00, marcado",
+   "button[button]: Viernes 22:00, marcado",
+   "button[button]: Sábado 22:00, marcado",
+   "button[button]: Domingo 22:00, marcado"
+  ],
+  "coincidencias__375": [
+   "a: Saltar al contenido",
+   "a: TeamMatchUp, inicio",
+   "button[button]: Cambiar a tema claro",
+   "button[button]: Abrir el menú",
+   "tab: League of Legends",
+   "tab: Rainbow Six Siege",
+   "tab: Counter-Strike 2",
+   "input[search]: Buscar jugador",
+   "input[range]: Diferencia máxima de rango25 pts",
+   "input[range]: Horas en común por semana2 h",
+   "input[checkbox]: Solo cuentas verificadas",
+   "button[button]: Restablecer criterios",
+   "a: Fernanda Soto",
+   "button[button]: Proponer",
+   "button[button]: Ver horas en común",
+   "a: Isidora Campos",
+   "button[button]: Proponer",
+   "button[button]: Ver horas en común",
+   "a: Renata Bustos",
+   "button[button]: Proponer",
+   "button[button]: Ver horas en común",
+   "a: Emilia Vargas",
+   "button[button]: Proponer",
+   "button[button]: Ver horas en común",
+   "a: Cristóbal Lagos",
+   "button[button]: Proponer",
+   "button[button]: Ver horas en común"
+  ],
+  "agenda__375": [
+   "a: Saltar al contenido",
+   "a: TeamMatchUp, inicio",
+   "button[button]: Cambiar a tema claro",
+   "button[button]: Abrir el menú",
+   "button[button]: Anotar sesión",
+   "button[button]: Todos los juegos",
+   "button[button]: League of Legends",
+   "button[button]: Rainbow Six Siege",
+   "button[button]: Counter-Strike 2",
+   "button[button]: Anotar una sesión el Lunes a las 12:00",
+   "button[button]: Anotar una sesión el Martes a las 12:00",
+   "button[button]: Anotar una sesión el Miércoles a las 12:",
+   "button[button]: Anotar una sesión el Jueves a las 12:00",
+   "button[button]: Anotar una sesión el Viernes a las 12:00",
+   "button[button]: Anotar una sesión el Sábado a las 12:00",
+   "button[button]: Anotar una sesión el Domingo a las 12:00",
+   "button[button]: Anotar una sesión el Lunes a las 13:00",
+   "button[button]: Anotar una sesión el Martes a las 13:00",
+   "button[button]: Anotar una sesión el Miércoles a las 13:",
+   "button[button]: Anotar una sesión el Jueves a las 13:00",
+   "button[button]: Anotar una sesión el Viernes a las 13:00",
+   "button[button]: Anotar una sesión el Sábado a las 13:00",
+   "button[button]: Anotar una sesión el Domingo a las 13:00",
+   "button[button]: Anotar una sesión el Lunes a las 14:00",
+   "button[button]: Anotar una sesión el Martes a las 14:00",
+   "button[button]: Anotar una sesión el Miércoles a las 14:",
+   "button[button]: Anotar una sesión el Jueves a las 14:00",
+   "button[button]: Anotar una sesión el Viernes a las 14:00",
+   "button[button]: Anotar una sesión el Sábado a las 14:00",
+   "button[button]: Anotar una sesión el Domingo a las 14:00",
+   "button[button]: Anotar una sesión el Lunes a las 15:00",
+   "button[button]: Anotar una sesión el Martes a las 15:00",
+   "button[button]: Anotar una sesión el Miércoles a las 15:",
+   "button[button]: Anotar una sesión el Jueves a las 15:00",
+   "button[button]: Anotar una sesión el Viernes a las 15:00",
+   "button[button]: Anotar una sesión el Sábado a las 15:00",
+   "button[button]: Anotar una sesión el Domingo a las 15:00",
+   "button[button]: Anotar una sesión el Lunes a las 16:00",
+   "button[button]: Anotar una sesión el Martes a las 16:00",
+   "button[button]: Anotar una sesión el Miércoles a las 16:",
+   "button[button]: Anotar una sesión el Jueves a las 16:00",
+   "button[button]: Anotar una sesión el Viernes a las 16:00",
+   "button[button]: Anotar una sesión el Sábado a las 16:00",
+   "button[button]: Anotar una sesión el Domingo a las 16:00",
+   "button[button]: Anotar una sesión el Lunes a las 17:00",
+   "button[button]: Anotar una sesión el Martes a las 17:00",
+   "button[button]: Anotar una sesión el Miércoles a las 17:",
+   "button[button]: Anotar una sesión el Jueves a las 17:00",
+   "button[button]: Anotar una sesión el Viernes a las 17:00",
+   "button[button]: Anotar una sesión el Sábado a las 17:00",
+   "button[button]: Anotar una sesión el Domingo a las 17:00",
+   "button[button]: Anotar una sesión el Lunes a las 18:00",
+   "button[button]: Anotar una sesión el Martes a las 18:00",
+   "button[button]: Anotar una sesión el Miércoles a las 18:",
+   "button[button]: Anotar una sesión el Jueves a las 18:00",
+   "button[button]: Anotar una sesión el Viernes a las 18:00",
+   "button[button]: Anotar una sesión el Sábado a las 18:00",
+   "button[button]: Anotar una sesión el Domingo a las 18:00",
+   "button[button]: Anotar una sesión el Lunes a las 19:00",
+   "button[button]: Anotar una sesión el Martes a las 19:00",
+   "button[button]: Anotar una sesión el Miércoles a las 19:",
+   "button[button]: Anotar una sesión el Jueves a las 19:00",
+   "button[button]: Anotar una sesión el Viernes a las 19:00",
+   "button[button]: Anotar una sesión el Sábado a las 19:00",
+   "button[button]: Anotar una sesión el Domingo a las 19:00",
+   "button[button]: Anotar una sesión el Lunes a las 20:00",
+   "button[button]: Anotar una sesión el Martes a las 20:00",
+   "button[button]: Anotar una sesión el Miércoles a las 20:",
+   "button[button]: Anotar una sesión el Jueves a las 20:00",
+   "button[button]: Anotar una sesión el Viernes a las 20:00",
+   "button[button]: Anotar una sesión el Sábado a las 20:00",
+   "button[button]: Anotar una sesión el Domingo a las 20:00",
+   "button[button]: Anotar una sesión el Lunes a las 21:00",
+   "button[button]: Anotar una sesión el Martes a las 21:00",
+   "button[button]: Anotar una sesión el Miércoles a las 21:",
+   "button[button]: Anotar una sesión el Jueves a las 21:00",
+   "button[button]: Anotar una sesión el Viernes a las 21:00",
+   "button[button]: Anotar una sesión el Sábado a las 21:00",
+   "button[button]: Anotar una sesión el Domingo a las 21:00",
+   "button[button]: Anotar una sesión el Lunes a las 22:00",
+   "button[button]: Anotar una sesión el Martes a las 22:00",
+   "button[button]: Anotar una sesión el Miércoles a las 22:",
+   "button[button]: Anotar una sesión el Jueves a las 22:00",
+   "button[button]: Anotar una sesión el Viernes a las 22:00",
+   "button[button]: Anotar una sesión el Sábado a las 22:00",
+   "button[button]: Anotar una sesión el Domingo a las 22:00",
+   "button[button]: Anotar una sesión el Lunes a las 23:00",
+   "button[button]: Anotar una sesión el Martes a las 23:00",
+   "button[button]: Anotar una sesión el Miércoles a las 23:",
+   "button[button]: Anotar una sesión el Jueves a las 23:00"
+  ],
+  "detalle__375": [
+   "a: Catalina Leiva",
+   "a: Felipe Navarro",
+   "button[button]: Unirme"
+  ],
+  "ficha__375": [
+   "a: Saltar al contenido",
+   "a: TeamMatchUp, inicio",
+   "button[button]: Cambiar a tema claro",
+   "button[button]: Abrir el menú",
+   "tab: League of Legends",
+   "tabpanel: League of LegendsRiot ID · Ignxcia#099Da",
+   "div: LunMarMiéJueVieSábDom12:0013:0014:0015:0",
+   "button[button]: Proponer sesión"
+  ],
+  "riot__375": [
+   "a: Saltar al contenido",
+   "a: TeamMatchUp, inicio",
+   "button[button]: Cambiar a tema claro",
+   "button[button]: Abrir el menú",
+   "input[text]: Riot ID",
+   "select[select-one]: Región",
+   "button[submit]: Pedir ícono de verificación",
+   "button[button]: Volver"
+  ],
+  "steam__375": [
+   "a: TeamMatchUp",
+   "button[button]: Cambiar a tema claro",
+   "input[email]: Correo",
+   "input[password]: Contraseña",
+   "button[submit]: Entrar",
+   "button[button]: Rellenar esos datos",
+   "a: Crear una"
+  ],
+  "no-encontrada__375": [
+   "a: Volver al inicio"
+  ]
+ },
+ "sliders": {
+  "/Diferencia máxima de rango/": {
+   "start": 25,
+   "min": "0",
+   "max": "50",
+   "step": "5",
+   "keys": {
+    "ArrowRight": "30",
+    "ArrowLeft": "20",
+    "ArrowUp": "30",
+    "ArrowDown": "20",
+    "Home": "0",
+    "End": "50",
+    "PageUp": "30",
+    "PageDown": "20"
+   }
+  },
+  "/Horas en común/": {
+   "start": 4,
+   "min": "0",
+   "max": "12",
+   "step": "1",
+   "keys": {
+    "ArrowRight": "5",
+    "ArrowLeft": "3",
+    "ArrowUp": "5",
+    "ArrowDown": "3",
+    "Home": "0",
+    "End": "12",
+    "PageUp": "5",
+    "PageDown": "3"
+   }
+  },
+  "Solo cuentas verificadas": {
+   "before": false,
+   "afterSpace": true
+  }
+ },
+ "spinner": {
+  "dark": {
+   "color": "rgb(238, 240, 242)",
+   "borderTopColor": "rgba(0, 0, 0, 0)",
+   "borderRightColor": "rgb(238, 240, 242)",
+   "width": "13px",
+   "height": "13px",
+   "borderWidth": "1px",
+   "animation": "spin 0.64s"
+  },
+  "light": {
+   "color": "rgb(16, 18, 22)",
+   "borderTopColor": "rgba(0, 0, 0, 0)",
+   "borderRightColor": "rgb(16, 18, 22)",
+   "width": "13px",
+   "height": "13px",
+   "borderWidth": "1px",
+   "animation": "spin 0.64s"
+  }
+ },
+ "contrast": {
+  "landing__dark": [
+   {
+    "el": "a.landing__brand",
+    "name": "TeamMatchUp",
+    "text": 16.44
+   },
+   {
+    "el": "button.theme-toggle",
+    "name": "Cambiar a tema claro",
+    "text": 7.54,
+    "border": 1.47
+   },
+   {
+    "el": "a.btn",
+    "name": "Entrar",
+    "text": 16.44
+   },
+   {
+    "el": "a.btn",
+    "name": "Crear cuenta",
+    "text": 15.12,
+    "border": 1
+   },
+   {
+    "el": "a.btn",
+    "name": "Crear cuenta",
+    "text": 15.12,
+    "border": 1
+   },
+   {
+    "el": "a.hero__secondary",
+    "name": "Ya tengo cuenta",
+    "text": 8.26
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 12:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 12:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 12:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 12:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 12:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 12:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 12:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 13:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 13:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 13:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 13:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 13:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 13:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 13:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 14:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 14:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 14:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 14:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 14:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 14:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 14:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 15:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 15:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 15:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 15:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 15:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 15:00, marcado",
+    "text": 10.16
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 15:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 16:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 16:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 16:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 16:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 16:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 16:00, horario en común",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 16:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 17:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 17:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 17:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 17:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 17:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 17:00, horario en común",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 17:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 18:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 18:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 18:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 18:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 18:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 18:00, horario en común",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 18:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 19:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 19:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 19:00, horario en co",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 19:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 19:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 19:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 19:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 20:00, marcado",
+    "text": 10.16
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 20:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 20:00, horario en co",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 20:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 20:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 20:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 20:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 21:00, marcado",
+    "text": 10.16
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 21:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 21:00, marcado",
+    "text": 10.16
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 21:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 21:00, marcado",
+    "text": 10.16
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 21:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 21:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 22:00, horario en común",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 22:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 22:00, marcado",
+    "text": 10.16
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 22:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 22:00, marcado",
+    "text": 10.16
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 22:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 22:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 23:00, horario en común",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 23:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 23:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 23:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 23:00, marcado",
+    "text": 10.16
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 23:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 23:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 00:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 00:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 00:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 00:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 00:00, marcado",
+    "text": 10.16
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 00:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 00:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 01:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 01:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 01:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 01:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 01:00, marcado",
+    "text": 10.16
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 01:00",
+    "text": 15.95
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 01:00",
+    "text": 15.95
+   },
+   {
+    "el": "a.btn",
+    "name": "Crear cuenta",
+    "text": 15.12,
+    "border": 1
+   }
+  ],
+  "landing__light": [
+   {
+    "el": "a.landing__brand",
+    "name": "TeamMatchUp",
+    "text": 1.1
+   },
+   {
+    "el": "button.theme-toggle",
+    "name": "Cambiar a tema claro",
+    "text": 2.28,
+    "border": 1.01
+   },
+   {
+    "el": "a.btn",
+    "name": "Entrar",
+    "text": 1.1
+   },
+   {
+    "el": "a.btn",
+    "name": "Crear cuenta",
+    "text": 15.12,
+    "border": 1
+   },
+   {
+    "el": "a.btn",
+    "name": "Crear cuenta",
+    "text": 15.12,
+    "border": 1
+   },
+   {
+    "el": "a.hero__secondary",
+    "name": "Ya tengo cuenta",
+    "text": 2.04
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 12:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 12:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 12:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 12:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 12:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 12:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 12:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 13:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 13:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 13:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 13:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 13:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 13:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 13:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 14:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 14:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 14:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 14:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 14:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 14:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 14:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 15:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 15:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 15:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 15:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 15:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 15:00, marcado",
+    "text": 14.82
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 15:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 16:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 16:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 16:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 16:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 16:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 16:00, horario en común",
+    "text": 14.64
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 16:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 17:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 17:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 17:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 17:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 17:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 17:00, horario en común",
+    "text": 14.64
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 17:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 18:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 18:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 18:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 18:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 18:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 18:00, horario en común",
+    "text": 14.64
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 18:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 19:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 19:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 19:00, horario en co",
+    "text": 14.64
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 19:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 19:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 19:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 19:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 20:00, marcado",
+    "text": 14.82
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 20:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 20:00, horario en co",
+    "text": 14.64
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 20:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 20:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 20:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 20:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 21:00, marcado",
+    "text": 14.82
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 21:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 21:00, marcado",
+    "text": 14.82
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 21:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 21:00, marcado",
+    "text": 14.82
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 21:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 21:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 22:00, horario en común",
+    "text": 14.64
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 22:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 22:00, marcado",
+    "text": 14.82
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 22:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 22:00, marcado",
+    "text": 14.82
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 22:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 22:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 23:00, horario en común",
+    "text": 14.64
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 23:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 23:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 23:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 23:00, marcado",
+    "text": 14.82
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 23:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 23:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 00:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 00:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 00:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 00:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 00:00, marcado",
+    "text": 14.82
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 00:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 00:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 01:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 01:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 01:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 01:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 01:00, marcado",
+    "text": 14.82
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 01:00",
+    "text": 15.2
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 01:00",
+    "text": 15.2
+   },
+   {
+    "el": "a.btn",
+    "name": "Crear cuenta",
+    "text": 15.12,
+    "border": 1
+   }
+  ],
+  "login__dark": [
+   {
+    "el": "a.gate__brand",
+    "name": "TeamMatchUp",
+    "text": 17.37
+   },
+   {
+    "el": "button.theme-toggle",
+    "name": "Cambiar a tema claro",
+    "text": 7.92,
+    "border": 1.43
+   },
+   {
+    "el": "input.input",
+    "name": "tu@correo.com",
+    "text": 16.68,
+    "border": 1.18
+   },
+   {
+    "el": "input.input",
+    "name": "••••••••",
+    "text": 16.68,
+    "border": 1.18
+   },
+   {
+    "el": "button.btn",
+    "name": "Entrar",
+    "text": 15.12,
+    "border": 1
+   },
+   {
+    "el": "button.btn",
+    "name": "Rellenar esos datos",
+    "text": 15.62,
+    "border": 1.47
+   },
+   {
+    "el": "a",
+    "name": "Crear una",
+    "text": 14.65
+   }
+  ],
+  "login__light": [
+   {
+    "el": "a.gate__brand",
+    "name": "TeamMatchUp",
+    "text": 17.54
+   },
+   {
+    "el": "button.theme-toggle",
+    "name": "Cambiar a tema claro",
+    "text": 6.49,
+    "border": 1.38
+   },
+   {
+    "el": "input.input",
+    "name": "tu@correo.com",
+    "text": 15.54,
+    "border": 1.19
+   },
+   {
+    "el": "input.input",
+    "name": "••••••••",
+    "text": 15.54,
+    "border": 1.19
+   },
+   {
+    "el": "button.btn",
+    "name": "Entrar",
+    "text": 14.46,
+    "border": 1
+   },
+   {
+    "el": "button.btn",
+    "name": "Rellenar esos datos",
+    "text": 13.5,
+    "border": 1.38
+   },
+   {
+    "el": "a",
+    "name": "Crear una",
+    "text": 5.26
+   }
+  ],
+  "registro__dark": [
+   {
+    "el": "a.gate__brand",
+    "name": "TeamMatchUp",
+    "text": 17.37
+   },
+   {
+    "el": "button.theme-toggle",
+    "name": "Cambiar a tema claro",
+    "text": 7.92,
+    "border": 1.43
+   },
+   {
+    "el": "input.input",
+    "name": "Cómo quieres que te vean",
+    "text": 16.68,
+    "border": 1.18
+   },
+   {
+    "el": "input.input",
+    "name": "tu_nick",
+    "text": 16.68,
+    "border": 1.18
+   },
+   {
+    "el": "input.input",
+    "name": "tu@correo.com",
+    "text": 16.68,
+    "border": 1.18
+   },
+   {
+    "el": "input.input",
+    "name": "Mínimo 8 caracteres",
+    "text": 16.68,
+    "border": 1.18
+   },
+   {
+    "el": "input.input",
+    "name": "••••••••",
+    "text": 16.68,
+    "border": 1.18
+   },
+   {
+    "el": "button.btn",
+    "name": "Crear cuenta",
+    "text": 15.12,
+    "border": 1
+   },
+   {
+    "el": "a",
+    "name": "Entrar",
+    "text": 14.65
+   }
+  ],
+  "registro__light": [
+   {
+    "el": "a.gate__brand",
+    "name": "TeamMatchUp",
+    "text": 17.54
+   },
+   {
+    "el": "button.theme-toggle",
+    "name": "Cambiar a tema claro",
+    "text": 6.49,
+    "border": 1.38
+   },
+   {
+    "el": "input.input",
+    "name": "Cómo quieres que te vean",
+    "text": 15.54,
+    "border": 1.19
+   },
+   {
+    "el": "input.input",
+    "name": "tu_nick",
+    "text": 15.54,
+    "border": 1.19
+   },
+   {
+    "el": "input.input",
+    "name": "tu@correo.com",
+    "text": 15.54,
+    "border": 1.19
+   },
+   {
+    "el": "input.input",
+    "name": "Mínimo 8 caracteres",
+    "text": 15.54,
+    "border": 1.19
+   },
+   {
+    "el": "input.input",
+    "name": "••••••••",
+    "text": 15.54,
+    "border": 1.19
+   },
+   {
+    "el": "button.btn",
+    "name": "Crear cuenta",
+    "text": 14.46,
+    "border": 1
+   },
+   {
+    "el": "a",
+    "name": "Entrar",
+    "text": 5.26
+   }
+  ],
+  "inicio__dark": [
+   {
+    "el": "a.skip-link",
+    "name": "Saltar al contenido",
+    "text": 15.12
+   },
+   {
+    "el": "a.dock__brand",
+    "name": "TeamMatchUp",
+    "text": 16.44
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Mi ficha",
+    "text": 7.54
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Coincidencias",
+    "text": 7.54
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Agenda",
+    "text": 7.54
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Configuración",
+    "text": 7.54
+   },
+   {
+    "el": "button.theme-toggle",
+    "name": "Cambiar a tema claro",
+    "text": 7.54,
+    "border": 1.47
+   },
+   {
+    "el": "button.dock__icon-btn",
+    "name": "",
+    "text": 7.54
+   },
+   {
+    "el": "a.bento__link",
+    "name": "Abrir la agenda",
+    "text": 15.28
+   },
+   {
+    "el": "a.bento__link",
+    "name": "Editar mis horas",
+    "text": 15.28
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 12:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 12:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 12:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 12:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 12:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 12:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 12:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 13:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 13:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 13:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 13:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 13:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 13:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 13:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 14:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 14:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 14:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 14:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 14:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 14:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 14:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 15:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 15:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 15:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 15:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 15:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 15:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 15:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 16:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 16:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 16:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 16:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 16:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 16:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 16:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 17:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 17:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 17:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 17:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 17:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 17:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 17:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 18:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 18:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 18:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 18:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 18:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 18:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 18:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 19:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 19:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 19:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 19:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 19:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 19:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 19:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 20:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 20:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 20:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 20:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 20:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 20:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 20:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 21:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 21:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 21:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 21:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 21:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 21:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 21:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 22:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 22:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 22:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 22:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 22:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 22:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 22:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 23:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 23:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 23:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 23:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 23:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 23:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 23:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 00:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 00:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 00:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 00:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 00:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 00:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 00:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 01:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 01:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 01:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 01:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 01:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 01:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 01:00",
+    "text": 15.53
+   },
+   {
+    "el": "a.bento__link",
+    "name": "Ver coincidencias",
+    "text": 15.28
+   },
+   {
+    "el": "a.bento__link",
+    "name": "Abrir mi ficha",
+    "text": 15.28
+   }
+  ],
+  "inicio__light": [
+   {
+    "el": "a.skip-link",
+    "name": "Saltar al contenido",
+    "text": 14.46
+   },
+   {
+    "el": "a.dock__brand",
+    "name": "TeamMatchUp",
+    "text": 17.99
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Mi ficha",
+    "text": 7.21
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Coincidencias",
+    "text": 7.21
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Agenda",
+    "text": 7.21
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Configuración",
+    "text": 7.21
+   },
+   {
+    "el": "button.theme-toggle",
+    "name": "Cambiar a tema claro",
+    "text": 7.23,
+    "border": 1.39
+   },
+   {
+    "el": "button.dock__icon-btn",
+    "name": "",
+    "text": 7.21
+   },
+   {
+    "el": "a.bento__link",
+    "name": "Abrir la agenda",
+    "text": 5.52
+   },
+   {
+    "el": "a.bento__link",
+    "name": "Editar mis horas",
+    "text": 5.52
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 12:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 12:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 12:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 12:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 12:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 12:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 12:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 13:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 13:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 13:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 13:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 13:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 13:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 13:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 14:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 14:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 14:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 14:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 14:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 14:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 14:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 15:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 15:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 15:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 15:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 15:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 15:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 15:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 16:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 16:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 16:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 16:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 16:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 16:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 16:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 17:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 17:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 17:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 17:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 17:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 17:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 17:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 18:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 18:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 18:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 18:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 18:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 18:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 18:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 19:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 19:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 19:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 19:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 19:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 19:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 19:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 20:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 20:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 20:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 20:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 20:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 20:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 20:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 21:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 21:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 21:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 21:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 21:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 21:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 21:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 22:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 22:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 22:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 22:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 22:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 22:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 22:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 23:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 23:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 23:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 23:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 23:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 23:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 23:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 00:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 00:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 00:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 00:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 00:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 00:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 00:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 01:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 01:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 01:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 01:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 01:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 01:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 01:00",
+    "text": 14.79
+   },
+   {
+    "el": "a.bento__link",
+    "name": "Ver coincidencias",
+    "text": 5.52
+   },
+   {
+    "el": "a.bento__link",
+    "name": "Abrir mi ficha",
+    "text": 5.52
+   }
+  ],
+  "perfil__dark": [
+   {
+    "el": "a.skip-link",
+    "name": "Saltar al contenido",
+    "text": 15.12
+   },
+   {
+    "el": "a.dock__brand",
+    "name": "TeamMatchUp",
+    "text": 16.44
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Mi ficha",
+    "text": 1.08
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Coincidencias",
+    "text": 7.54
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Agenda",
+    "text": 7.54
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Configuración",
+    "text": 7.54
+   },
+   {
+    "el": "button.theme-toggle",
+    "name": "Cambiar a tema claro",
+    "text": 7.54,
+    "border": 1.47
+   },
+   {
+    "el": "button.dock__icon-btn",
+    "name": "",
+    "text": 7.54
+   },
+   {
+    "el": "a.btn",
+    "name": "Editar ficha",
+    "text": 16.43,
+    "border": 1.43
+   },
+   {
+    "el": "a.btn",
+    "name": "Vincular otra cuenta",
+    "text": 16.43,
+    "border": 1.43
+   },
+   {
+    "el": "button.tabs__tab",
+    "name": "League of Legends",
+    "text": 1.01
+   },
+   {
+    "el": "button.tabs__tab",
+    "name": "Rainbow Six Siege",
+    "text": 8.04
+   },
+   {
+    "el": "button.tabs__tab",
+    "name": "Counter-Strike 2",
+    "text": 8.04
+   },
+   {
+    "el": "span.stamp",
+    "name": "Sin verificar",
+    "text": 8.61,
+    "border": 2.25
+   },
+   {
+    "el": "button.btn",
+    "name": "Verificar con Riot Games",
+    "text": 16.43,
+    "border": 1.43
+   },
+   {
+    "el": "button.btn",
+    "name": "Resincronizar",
+    "text": 16.43,
+    "border": 1.43
+   },
+   {
+    "el": "a.btn",
+    "name": "Editar horas",
+    "text": 16.43,
+    "border": 1.43
+   }
+  ],
+  "perfil__light": [
+   {
+    "el": "a.skip-link",
+    "name": "Saltar al contenido",
+    "text": 14.46
+   },
+   {
+    "el": "a.dock__brand",
+    "name": "TeamMatchUp",
+    "text": 17.99
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Mi ficha",
+    "text": 17.69
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Coincidencias",
+    "text": 7.21
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Agenda",
+    "text": 7.21
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Configuración",
+    "text": 7.21
+   },
+   {
+    "el": "button.theme-toggle",
+    "name": "Cambiar a tema claro",
+    "text": 7.23,
+    "border": 1.39
+   },
+   {
+    "el": "button.dock__icon-btn",
+    "name": "",
+    "text": 7.21
+   },
+   {
+    "el": "a.btn",
+    "name": "Editar ficha",
+    "text": 14.17,
+    "border": 1.38
+   },
+   {
+    "el": "a.btn",
+    "name": "Vincular otra cuenta",
+    "text": 14.17,
+    "border": 1.38
+   },
+   {
+    "el": "button.tabs__tab",
+    "name": "League of Legends",
+    "text": 17.52
+   },
+   {
+    "el": "button.tabs__tab",
+    "name": "Rainbow Six Siege",
+    "text": 7.16
+   },
+   {
+    "el": "button.tabs__tab",
+    "name": "Counter-Strike 2",
+    "text": 7.16
+   },
+   {
+    "el": "span.stamp",
+    "name": "Sin verificar",
+    "text": 4.15,
+    "border": 1.14
+   },
+   {
+    "el": "button.btn",
+    "name": "Verificar con Riot Games",
+    "text": 14.17,
+    "border": 1.38
+   },
+   {
+    "el": "button.btn",
+    "name": "Resincronizar",
+    "text": 14.17,
+    "border": 1.38
+   },
+   {
+    "el": "a.btn",
+    "name": "Editar horas",
+    "text": 14.17,
+    "border": 1.38
+   }
+  ],
+  "configuracion__dark": [
+   {
+    "el": "a.skip-link",
+    "name": "Saltar al contenido",
+    "text": 15.12
+   },
+   {
+    "el": "a.dock__brand",
+    "name": "TeamMatchUp",
+    "text": 16.44
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Mi ficha",
+    "text": 7.54
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Coincidencias",
+    "text": 7.54
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Agenda",
+    "text": 7.54
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Configuración",
+    "text": 1.08
+   },
+   {
+    "el": "button.theme-toggle",
+    "name": "Cambiar a tema claro",
+    "text": 7.54,
+    "border": 1.47
+   },
+   {
+    "el": "button.dock__icon-btn",
+    "name": "",
+    "text": 7.54
+   },
+   {
+    "el": "input.input",
+    "name": "",
+    "text": 16.68,
+    "border": 1.18
+   },
+   {
+    "el": "textarea.textarea",
+    "name": "Cuenta de demostración con los",
+    "text": 16.68,
+    "border": 1.18
+   },
+   {
+    "el": "button.btn",
+    "name": "Guardar ficha",
+    "text": 15.12,
+    "border": 1
+   },
+   {
+    "el": "span.stamp",
+    "name": "Sin verificar",
+    "text": 8.61,
+    "border": 2.25
+   },
+   {
+    "el": "button.btn",
+    "name": "Verificar con Riot Games",
+    "text": 16.43,
+    "border": 1.43
+   },
+   {
+    "el": "button.btn",
+    "name": "Resincronizar",
+    "text": 16.43,
+    "border": 1.43
+   },
+   {
+    "el": "button.btn",
+    "name": "Desvincular",
+    "text": 7
+   },
+   {
+    "el": "span.stamp",
+    "name": "Sin verificar",
+    "text": 8.61,
+    "border": 2.25
+   },
+   {
+    "el": "button.btn",
+    "name": "Resincronizar",
+    "text": 16.43,
+    "border": 1.43
+   },
+   {
+    "el": "button.btn",
+    "name": "Desvincular",
+    "text": 7
+   },
+   {
+    "el": "span.stamp",
+    "name": "Sin verificar",
+    "text": 8.61,
+    "border": 2.25
+   },
+   {
+    "el": "button.btn",
+    "name": "Verificar con Steam",
+    "text": 16.43,
+    "border": 1.43
+   },
+   {
+    "el": "button.btn",
+    "name": "Resincronizar",
+    "text": 16.43,
+    "border": 1.43
+   },
+   {
+    "el": "button.btn",
+    "name": "Desvincular",
+    "text": 7
+   },
+   {
+    "el": "button.btn",
+    "name": "Guardar horas",
+    "text": 15.12,
+    "border": 1
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 12:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 12:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 12:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 12:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 12:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 12:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 12:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 13:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 13:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 13:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 13:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 13:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 13:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 13:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 14:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 14:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 14:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 14:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 14:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 14:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 14:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 15:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 15:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 15:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 15:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 15:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 15:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 15:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 16:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 16:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 16:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 16:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 16:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 16:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 16:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 17:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 17:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 17:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 17:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 17:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 17:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 17:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 18:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 18:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 18:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 18:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 18:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 18:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 18:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 19:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 19:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 19:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 19:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 19:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 19:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 19:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 20:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 20:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 20:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 20:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 20:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 20:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 20:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 21:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 21:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 21:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 21:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 21:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 21:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 21:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 22:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 22:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 22:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 22:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 22:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 22:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 22:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 23:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 23:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 23:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 23:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 23:00, marcado",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 23:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 23:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 00:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 00:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 00:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 00:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 00:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 00:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 00:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 01:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 01:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 01:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 01:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 01:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 01:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 01:00",
+    "text": 15.53
+   }
+  ],
+  "configuracion__light": [
+   {
+    "el": "a.skip-link",
+    "name": "Saltar al contenido",
+    "text": 14.46
+   },
+   {
+    "el": "a.dock__brand",
+    "name": "TeamMatchUp",
+    "text": 17.99
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Mi ficha",
+    "text": 7.21
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Coincidencias",
+    "text": 7.21
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Agenda",
+    "text": 7.21
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Configuración",
+    "text": 17.69
+   },
+   {
+    "el": "button.theme-toggle",
+    "name": "Cambiar a tema claro",
+    "text": 7.23,
+    "border": 1.39
+   },
+   {
+    "el": "button.dock__icon-btn",
+    "name": "",
+    "text": 7.21
+   },
+   {
+    "el": "input.input",
+    "name": "",
+    "text": 15.54,
+    "border": 1.19
+   },
+   {
+    "el": "textarea.textarea",
+    "name": "Cuenta de demostración con los",
+    "text": 15.54,
+    "border": 1.19
+   },
+   {
+    "el": "button.btn",
+    "name": "Guardar ficha",
+    "text": 14.46,
+    "border": 1
+   },
+   {
+    "el": "span.stamp",
+    "name": "Sin verificar",
+    "text": 4.15,
+    "border": 1.14
+   },
+   {
+    "el": "button.btn",
+    "name": "Verificar con Riot Games",
+    "text": 14.17,
+    "border": 1.38
+   },
+   {
+    "el": "button.btn",
+    "name": "Resincronizar",
+    "text": 14.17,
+    "border": 1.38
+   },
+   {
+    "el": "button.btn",
+    "name": "Desvincular",
+    "text": 5.55
+   },
+   {
+    "el": "span.stamp",
+    "name": "Sin verificar",
+    "text": 4.15,
+    "border": 1.14
+   },
+   {
+    "el": "button.btn",
+    "name": "Resincronizar",
+    "text": 14.17,
+    "border": 1.38
+   },
+   {
+    "el": "button.btn",
+    "name": "Desvincular",
+    "text": 5.55
+   },
+   {
+    "el": "span.stamp",
+    "name": "Sin verificar",
+    "text": 4.15,
+    "border": 1.14
+   },
+   {
+    "el": "button.btn",
+    "name": "Verificar con Steam",
+    "text": 14.17,
+    "border": 1.38
+   },
+   {
+    "el": "button.btn",
+    "name": "Resincronizar",
+    "text": 14.17,
+    "border": 1.38
+   },
+   {
+    "el": "button.btn",
+    "name": "Desvincular",
+    "text": 5.55
+   },
+   {
+    "el": "button.btn",
+    "name": "Guardar horas",
+    "text": 14.46,
+    "border": 1
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 12:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 12:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 12:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 12:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 12:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 12:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 12:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 13:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 13:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 13:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 13:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 13:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 13:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 13:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 14:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 14:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 14:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 14:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 14:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 14:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 14:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 15:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 15:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 15:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 15:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 15:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 15:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 15:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 16:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 16:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 16:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 16:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 16:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 16:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 16:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 17:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 17:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 17:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 17:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 17:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 17:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 17:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 18:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 18:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 18:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 18:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 18:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 18:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 18:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 19:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 19:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 19:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 19:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 19:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 19:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 19:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 20:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 20:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 20:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 20:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 20:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 20:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 20:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 21:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 21:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 21:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 21:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 21:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 21:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 21:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 22:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 22:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 22:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 22:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 22:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 22:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 22:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 23:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 23:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 23:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 23:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 23:00, marcado",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 23:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 23:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 00:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 00:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 00:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 00:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 00:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 00:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 00:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 01:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 01:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 01:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 01:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 01:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 01:00",
+    "text": 14.78
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 01:00",
+    "text": 14.78
+   }
+  ],
+  "coincidencias__dark": [
+   {
+    "el": "a.skip-link",
+    "name": "Saltar al contenido",
+    "text": 15.12
+   },
+   {
+    "el": "a.dock__brand",
+    "name": "TeamMatchUp",
+    "text": 16.44
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Mi ficha",
+    "text": 7.54
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Coincidencias",
+    "text": 1.08
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Agenda",
+    "text": 7.54
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Configuración",
+    "text": 7.54
+   },
+   {
+    "el": "button.theme-toggle",
+    "name": "Cambiar a tema claro",
+    "text": 7.54,
+    "border": 1.47
+   },
+   {
+    "el": "button.dock__icon-btn",
+    "name": "",
+    "text": 7.54
+   },
+   {
+    "el": "button.tabs__tab",
+    "name": "League of Legends",
+    "text": 1.01
+   },
+   {
+    "el": "button.tabs__tab",
+    "name": "Rainbow Six Siege",
+    "text": 8.04
+   },
+   {
+    "el": "button.tabs__tab",
+    "name": "Counter-Strike 2",
+    "text": 8.04
+   },
+   {
+    "el": "input.input",
+    "name": "Nombre o usuario",
+    "text": 16.68,
+    "border": 1.18
+   },
+   {
+    "el": "input.slider",
+    "name": "",
+    "text": 17.13
+   },
+   {
+    "el": "input.slider",
+    "name": "",
+    "text": 17.13
+   },
+   {
+    "el": "label.check",
+    "name": "Solo cuentas verificadas",
+    "text": 8.26
+   },
+   {
+    "el": "input",
+    "name": "",
+    "text": 6.74,
+    "border": 1.5
+   },
+   {
+    "el": "button.btn",
+    "name": "Restablecer criterios",
+    "text": 16.43,
+    "border": 1.43
+   },
+   {
+    "el": "a",
+    "name": "Fernanda Soto",
+    "text": 15.28
+   },
+   {
+    "el": "button.btn",
+    "name": "Proponer",
+    "text": 15.12,
+    "border": 1
+   },
+   {
+    "el": "button.btn",
+    "name": "Horas",
+    "text": 16.43,
+    "border": 1.43
+   },
+   {
+    "el": "a",
+    "name": "Isidora Campos",
+    "text": 15.28
+   },
+   {
+    "el": "button.btn",
+    "name": "Proponer",
+    "text": 15.12,
+    "border": 1
+   },
+   {
+    "el": "button.btn",
+    "name": "Horas",
+    "text": 16.43,
+    "border": 1.43
+   },
+   {
+    "el": "a",
+    "name": "Renata Bustos",
+    "text": 15.28
+   },
+   {
+    "el": "button.btn",
+    "name": "Proponer",
+    "text": 15.12,
+    "border": 1
+   },
+   {
+    "el": "button.btn",
+    "name": "Horas",
+    "text": 16.43,
+    "border": 1.43
+   },
+   {
+    "el": "a",
+    "name": "Emilia Vargas",
+    "text": 15.28
+   },
+   {
+    "el": "button.btn",
+    "name": "Proponer",
+    "text": 15.12,
+    "border": 1
+   },
+   {
+    "el": "button.btn",
+    "name": "Horas",
+    "text": 16.43,
+    "border": 1.43
+   },
+   {
+    "el": "a",
+    "name": "Cristóbal Lagos",
+    "text": 15.28
+   },
+   {
+    "el": "button.btn",
+    "name": "Proponer",
+    "text": 15.12,
+    "border": 1
+   },
+   {
+    "el": "button.btn",
+    "name": "Horas",
+    "text": 16.43,
+    "border": 1.43
+   }
+  ],
+  "coincidencias__light": [
+   {
+    "el": "a.skip-link",
+    "name": "Saltar al contenido",
+    "text": 14.46
+   },
+   {
+    "el": "a.dock__brand",
+    "name": "TeamMatchUp",
+    "text": 17.99
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Mi ficha",
+    "text": 7.33
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Coincidencias",
+    "text": 17.69
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Agenda",
+    "text": 7.33
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Configuración",
+    "text": 7.33
+   },
+   {
+    "el": "button.theme-toggle",
+    "name": "Cambiar a tema claro",
+    "text": 7.34,
+    "border": 1.39
+   },
+   {
+    "el": "button.dock__icon-btn",
+    "name": "",
+    "text": 7.33
+   },
+   {
+    "el": "button.tabs__tab",
+    "name": "League of Legends",
+    "text": 17.52
+   },
+   {
+    "el": "button.tabs__tab",
+    "name": "Rainbow Six Siege",
+    "text": 7.27
+   },
+   {
+    "el": "button.tabs__tab",
+    "name": "Counter-Strike 2",
+    "text": 7.27
+   },
+   {
+    "el": "input.input",
+    "name": "Nombre o usuario",
+    "text": 15.83,
+    "border": 1.2
+   },
+   {
+    "el": "input.slider",
+    "name": "",
+    "text": 16.13
+   },
+   {
+    "el": "input.slider",
+    "name": "",
+    "text": 16.13
+   },
+   {
+    "el": "label.check",
+    "name": "Solo cuentas verificadas",
+    "text": 7.23
+   },
+   {
+    "el": "input",
+    "name": "",
+    "text": 6.79,
+    "border": 1.39
+   },
+   {
+    "el": "button.btn",
+    "name": "Restablecer criterios",
+    "text": 14.45,
+    "border": 1.39
+   },
+   {
+    "el": "a",
+    "name": "Fernanda Soto",
+    "text": 5.52
+   },
+   {
+    "el": "button.btn",
+    "name": "Proponer",
+    "text": 14.46,
+    "border": 1
+   },
+   {
+    "el": "button.btn",
+    "name": "Horas",
+    "text": 14.45,
+    "border": 1.39
+   },
+   {
+    "el": "a",
+    "name": "Isidora Campos",
+    "text": 5.52
+   },
+   {
+    "el": "button.btn",
+    "name": "Proponer",
+    "text": 14.46,
+    "border": 1
+   },
+   {
+    "el": "button.btn",
+    "name": "Horas",
+    "text": 14.45,
+    "border": 1.39
+   },
+   {
+    "el": "a",
+    "name": "Renata Bustos",
+    "text": 5.52
+   },
+   {
+    "el": "button.btn",
+    "name": "Proponer",
+    "text": 14.46,
+    "border": 1
+   },
+   {
+    "el": "button.btn",
+    "name": "Horas",
+    "text": 14.45,
+    "border": 1.39
+   },
+   {
+    "el": "a",
+    "name": "Emilia Vargas",
+    "text": 5.52
+   },
+   {
+    "el": "button.btn",
+    "name": "Proponer",
+    "text": 14.46,
+    "border": 1
+   },
+   {
+    "el": "button.btn",
+    "name": "Horas",
+    "text": 14.45,
+    "border": 1.39
+   },
+   {
+    "el": "a",
+    "name": "Cristóbal Lagos",
+    "text": 5.52
+   },
+   {
+    "el": "button.btn",
+    "name": "Proponer",
+    "text": 14.46,
+    "border": 1
+   },
+   {
+    "el": "button.btn",
+    "name": "Horas",
+    "text": 14.45,
+    "border": 1.39
+   }
+  ],
+  "agenda__dark": [
+   {
+    "el": "a.skip-link",
+    "name": "Saltar al contenido",
+    "text": 15.12
+   },
+   {
+    "el": "a.dock__brand",
+    "name": "TeamMatchUp",
+    "text": 16.44
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Mi ficha",
+    "text": 7.54
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Coincidencias",
+    "text": 7.54
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Agenda",
+    "text": 1.08
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Configuración",
+    "text": 7.54
+   },
+   {
+    "el": "button.theme-toggle",
+    "name": "Cambiar a tema claro",
+    "text": 7.54,
+    "border": 1.47
+   },
+   {
+    "el": "button.dock__icon-btn",
+    "name": "",
+    "text": 7.54
+   },
+   {
+    "el": "button.btn",
+    "name": "Anotar sesión",
+    "text": 15.12,
+    "border": 1
+   },
+   {
+    "el": "button.chip",
+    "name": "Todos los juegos",
+    "text": 17.13,
+    "border": 2.99
+   },
+   {
+    "el": "button.chip",
+    "name": "League of Legends",
+    "text": 7.92,
+    "border": 1.19
+   },
+   {
+    "el": "button.chip",
+    "name": "Rainbow Six Siege",
+    "text": 7.92,
+    "border": 1.19
+   },
+   {
+    "el": "button.chip",
+    "name": "Counter-Strike 2",
+    "text": 7.92,
+    "border": 1.19
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Lunes a l",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Martes a ",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Miércoles",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Jueves a ",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Viernes a",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Sábado a ",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Domingo a",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Lunes a l",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Martes a ",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Miércoles",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Jueves a ",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Viernes a",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Sábado a ",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Domingo a",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Lunes a l",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Martes a ",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Miércoles",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Jueves a ",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Viernes a",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Sábado a ",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Domingo a",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Lunes a l",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Martes a ",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Miércoles",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Jueves a ",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Viernes a",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Sábado a ",
+    "text": 1,
+    "border": 1.86
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Domingo a",
+    "text": 1,
+    "border": 1.86
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Lunes a l",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Martes a ",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Miércoles",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Jueves a ",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Viernes a",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Sábado a ",
+    "text": 1,
+    "border": 1.86
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Domingo a",
+    "text": 1,
+    "border": 1.86
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Lunes a l",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Martes a ",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Miércoles",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Jueves a ",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Viernes a",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Sábado a ",
+    "text": 1,
+    "border": 1.86
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Domingo a",
+    "text": 1,
+    "border": 1.86
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Lunes a l",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Martes a ",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Miércoles",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Jueves a ",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Viernes a",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Sábado a ",
+    "text": 1,
+    "border": 1.86
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Domingo a",
+    "text": 1,
+    "border": 1.86
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Lunes a l",
+    "text": 1,
+    "border": 1.86
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Martes a ",
+    "text": 1,
+    "border": 1.86
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Miércoles",
+    "text": 1,
+    "border": 1.86
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Jueves a ",
+    "text": 1,
+    "border": 1.86
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Viernes a",
+    "text": 1,
+    "border": 1.86
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Sábado a ",
+    "text": 1,
+    "border": 1.86
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Domingo a",
+    "text": 1,
+    "border": 1.86
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Lunes a l",
+    "text": 1,
+    "border": 1.86
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Martes a ",
+    "text": 1,
+    "border": 1.86
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Miércoles",
+    "text": 1,
+    "border": 1.86
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Jueves a ",
+    "text": 1,
+    "border": 1.86
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Viernes a",
+    "text": 1,
+    "border": 1.86
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Sábado a ",
+    "text": 1,
+    "border": 1.86
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Domingo a",
+    "text": 1,
+    "border": 1.86
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Lunes a l",
+    "text": 1,
+    "border": 1.86
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Martes a ",
+    "text": 1,
+    "border": 1.86
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Miércoles",
+    "text": 1,
+    "border": 1.86
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Jueves a ",
+    "text": 1,
+    "border": 1.86
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Viernes a",
+    "text": 1,
+    "border": 1.86
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Sábado a ",
+    "text": 1,
+    "border": 1.86
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Domingo a",
+    "text": 1,
+    "border": 1.86
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Lunes a l",
+    "text": 1,
+    "border": 1.86
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Martes a ",
+    "text": 1,
+    "border": 1.86
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Miércoles",
+    "text": 1,
+    "border": 1.86
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Jueves a ",
+    "text": 1,
+    "border": 1.86
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Viernes a",
+    "text": 1,
+    "border": 1.86
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Sábado a ",
+    "text": 1,
+    "border": 1.86
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Domingo a",
+    "text": 1,
+    "border": 1.86
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Lunes a l",
+    "text": 1,
+    "border": 1.86
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Martes a ",
+    "text": 1,
+    "border": 1.86
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Miércoles",
+    "text": 1,
+    "border": 1.86
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Jueves a ",
+    "text": 1,
+    "border": 1.86
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Viernes a",
+    "text": 1,
+    "border": 1.86
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Sábado a ",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Domingo a",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Lunes a l",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Martes a ",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Miércoles",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Jueves a ",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Viernes a",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Sábado a ",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Domingo a",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Lunes a l",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Martes a ",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Miércoles",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Jueves a ",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Viernes a",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Sábado a ",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Domingo a",
+    "text": 1,
+    "border": 1.09
+   },
+   {
+    "el": "button.week__session",
+    "name": "Noche de clasificatoriasLoL · ",
+    "text": 17.13,
+    "border": 2.62
+   },
+   {
+    "el": "button.week__session",
+    "name": "Partidas hasta que aguante el ",
+    "text": 17.13,
+    "border": 2.44
+   },
+   {
+    "el": "button.week__session",
+    "name": "Calentamiento y luego competit",
+    "text": 17.13,
+    "border": 2.44
+   },
+   {
+    "el": "button.week__session",
+    "name": "Ranked flex, 5 stackLoL · 3/5",
+    "text": 17.13,
+    "border": 2.62
+   },
+   {
+    "el": "button.week__session",
+    "name": "Subida de rango sin presiónR6 ",
+    "text": 17.13,
+    "border": 2.44
+   },
+   {
+    "el": "button.week__session",
+    "name": "Calentamiento y luego competit",
+    "text": 17.13,
+    "border": 2.62
+   },
+   {
+    "el": "button.week__session",
+    "name": "Noche de clasificatoriasR6 · 5",
+    "text": 17.13,
+    "border": 2.44
+   },
+   {
+    "el": "button.week__session",
+    "name": "Ranked flex, 5 stackR6 · 2/5",
+    "text": 17.13,
+    "border": 2.44
+   },
+   {
+    "el": "button.week__session",
+    "name": "Scrim casual, todos bienvenido",
+    "text": 17.13,
+    "border": 2.38
+   }
+  ],
+  "agenda__light": [
+   {
+    "el": "a.skip-link",
+    "name": "Saltar al contenido",
+    "text": 14.46
+   },
+   {
+    "el": "a.dock__brand",
+    "name": "TeamMatchUp",
+    "text": 17.99
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Mi ficha",
+    "text": 7.21
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Coincidencias",
+    "text": 7.21
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Agenda",
+    "text": 17.69
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Configuración",
+    "text": 7.21
+   },
+   {
+    "el": "button.theme-toggle",
+    "name": "Cambiar a tema claro",
+    "text": 7.23,
+    "border": 1.39
+   },
+   {
+    "el": "button.dock__icon-btn",
+    "name": "",
+    "text": 7.21
+   },
+   {
+    "el": "button.btn",
+    "name": "Anotar sesión",
+    "text": 14.46,
+    "border": 1
+   },
+   {
+    "el": "button.chip",
+    "name": "Todos los juegos",
+    "text": 14.83,
+    "border": 1.58
+   },
+   {
+    "el": "button.chip",
+    "name": "League of Legends",
+    "text": 6.49,
+    "border": 1.19
+   },
+   {
+    "el": "button.chip",
+    "name": "Rainbow Six Siege",
+    "text": 6.49,
+    "border": 1.19
+   },
+   {
+    "el": "button.chip",
+    "name": "Counter-Strike 2",
+    "text": 6.49,
+    "border": 1.19
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Lunes a l",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Martes a ",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Miércoles",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Jueves a ",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Viernes a",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Sábado a ",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Domingo a",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Lunes a l",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Martes a ",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Miércoles",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Jueves a ",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Viernes a",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Sábado a ",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Domingo a",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Lunes a l",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Martes a ",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Miércoles",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Jueves a ",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Viernes a",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Sábado a ",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Domingo a",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Lunes a l",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Martes a ",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Miércoles",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Jueves a ",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Viernes a",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Sábado a ",
+    "text": 1,
+    "border": 1.18
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Domingo a",
+    "text": 1,
+    "border": 1.18
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Lunes a l",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Martes a ",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Miércoles",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Jueves a ",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Viernes a",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Sábado a ",
+    "text": 1,
+    "border": 1.18
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Domingo a",
+    "text": 1,
+    "border": 1.18
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Lunes a l",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Martes a ",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Miércoles",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Jueves a ",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Viernes a",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Sábado a ",
+    "text": 1,
+    "border": 1.18
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Domingo a",
+    "text": 1,
+    "border": 1.18
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Lunes a l",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Martes a ",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Miércoles",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Jueves a ",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Viernes a",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Sábado a ",
+    "text": 1,
+    "border": 1.18
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Domingo a",
+    "text": 1,
+    "border": 1.18
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Lunes a l",
+    "text": 1,
+    "border": 1.18
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Martes a ",
+    "text": 1,
+    "border": 1.18
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Miércoles",
+    "text": 1,
+    "border": 1.18
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Jueves a ",
+    "text": 1,
+    "border": 1.18
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Viernes a",
+    "text": 1,
+    "border": 1.18
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Sábado a ",
+    "text": 1,
+    "border": 1.18
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Domingo a",
+    "text": 1,
+    "border": 1.18
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Lunes a l",
+    "text": 1,
+    "border": 1.18
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Martes a ",
+    "text": 1,
+    "border": 1.18
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Miércoles",
+    "text": 1,
+    "border": 1.18
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Jueves a ",
+    "text": 1,
+    "border": 1.18
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Viernes a",
+    "text": 1,
+    "border": 1.18
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Sábado a ",
+    "text": 1,
+    "border": 1.18
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Domingo a",
+    "text": 1,
+    "border": 1.18
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Lunes a l",
+    "text": 1,
+    "border": 1.18
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Martes a ",
+    "text": 1,
+    "border": 1.18
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Miércoles",
+    "text": 1,
+    "border": 1.18
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Jueves a ",
+    "text": 1,
+    "border": 1.18
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Viernes a",
+    "text": 1,
+    "border": 1.18
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Sábado a ",
+    "text": 1,
+    "border": 1.18
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Domingo a",
+    "text": 1,
+    "border": 1.18
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Lunes a l",
+    "text": 1,
+    "border": 1.18
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Martes a ",
+    "text": 1,
+    "border": 1.18
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Miércoles",
+    "text": 1,
+    "border": 1.18
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Jueves a ",
+    "text": 1,
+    "border": 1.18
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Viernes a",
+    "text": 1,
+    "border": 1.18
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Sábado a ",
+    "text": 1,
+    "border": 1.18
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Domingo a",
+    "text": 1,
+    "border": 1.18
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Lunes a l",
+    "text": 1,
+    "border": 1.18
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Martes a ",
+    "text": 1,
+    "border": 1.18
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Miércoles",
+    "text": 1,
+    "border": 1.18
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Jueves a ",
+    "text": 1,
+    "border": 1.18
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Viernes a",
+    "text": 1,
+    "border": 1.18
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Sábado a ",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Domingo a",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Lunes a l",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Martes a ",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Miércoles",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Jueves a ",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Viernes a",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Sábado a ",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Domingo a",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Lunes a l",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Martes a ",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Miércoles",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Jueves a ",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Viernes a",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Sábado a ",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__slot",
+    "name": "Anotar una sesión el Domingo a",
+    "text": 1,
+    "border": 1.13
+   },
+   {
+    "el": "button.week__session",
+    "name": "Noche de clasificatoriasLoL · ",
+    "text": 16.13,
+    "border": 1.49
+   },
+   {
+    "el": "button.week__session",
+    "name": "Partidas hasta que aguante el ",
+    "text": 16.13,
+    "border": 1.57
+   },
+   {
+    "el": "button.week__session",
+    "name": "Calentamiento y luego competit",
+    "text": 16.13,
+    "border": 1.57
+   },
+   {
+    "el": "button.week__session",
+    "name": "Ranked flex, 5 stackLoL · 3/5",
+    "text": 16.13,
+    "border": 1.49
+   },
+   {
+    "el": "button.week__session",
+    "name": "Subida de rango sin presiónR6 ",
+    "text": 16.13,
+    "border": 1.57
+   },
+   {
+    "el": "button.week__session",
+    "name": "Calentamiento y luego competit",
+    "text": 16.13,
+    "border": 1.49
+   },
+   {
+    "el": "button.week__session",
+    "name": "Noche de clasificatoriasR6 · 5",
+    "text": 16.13,
+    "border": 1.57
+   },
+   {
+    "el": "button.week__session",
+    "name": "Ranked flex, 5 stackR6 · 2/5",
+    "text": 16.13,
+    "border": 1.57
+   },
+   {
+    "el": "button.week__session",
+    "name": "Scrim casual, todos bienvenido",
+    "text": 16.13,
+    "border": 1.61
+   }
+  ],
+  "detalle__dark": [
+   {
+    "el": "a.skip-link",
+    "name": "Saltar al contenido",
+    "text": 15.12
+   },
+   {
+    "el": "a.dock__brand",
+    "name": "TeamMatchUp",
+    "text": 16.44
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Mi ficha",
+    "text": 7.54
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Coincidencias",
+    "text": 7.54
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Agenda",
+    "text": 1.08
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Configuración",
+    "text": 7.54
+   },
+   {
+    "el": "button.theme-toggle",
+    "name": "Cambiar a tema claro",
+    "text": 7.54,
+    "border": 1.47
+   },
+   {
+    "el": "button.dock__icon-btn",
+    "name": "",
+    "text": 7.54
+   },
+   {
+    "el": "a",
+    "name": "Catalina Leiva",
+    "text": 15.28
+   },
+   {
+    "el": "a",
+    "name": "Felipe Navarro",
+    "text": 15.28
+   },
+   {
+    "el": "button.btn",
+    "name": "Unirme",
+    "text": 15.12,
+    "border": 1
+   }
+  ],
+  "detalle__light": [
+   {
+    "el": "a.skip-link",
+    "name": "Saltar al contenido",
+    "text": 14.46
+   },
+   {
+    "el": "a.dock__brand",
+    "name": "TeamMatchUp",
+    "text": 17.99
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Mi ficha",
+    "text": 7.21
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Coincidencias",
+    "text": 7.21
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Agenda",
+    "text": 17.69
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Configuración",
+    "text": 7.21
+   },
+   {
+    "el": "button.theme-toggle",
+    "name": "Cambiar a tema claro",
+    "text": 7.23,
+    "border": 1.39
+   },
+   {
+    "el": "button.dock__icon-btn",
+    "name": "",
+    "text": 7.21
+   },
+   {
+    "el": "a",
+    "name": "Catalina Leiva",
+    "text": 5.52
+   },
+   {
+    "el": "a",
+    "name": "Felipe Navarro",
+    "text": 5.52
+   },
+   {
+    "el": "button.btn",
+    "name": "Unirme",
+    "text": 14.46,
+    "border": 1
+   }
+  ],
+  "ficha__dark": [
+   {
+    "el": "a.skip-link",
+    "name": "Saltar al contenido",
+    "text": 15.12
+   },
+   {
+    "el": "a.dock__brand",
+    "name": "TeamMatchUp",
+    "text": 16.44
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Mi ficha",
+    "text": 7.54
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Coincidencias",
+    "text": 7.54
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Agenda",
+    "text": 7.54
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Configuración",
+    "text": 7.54
+   },
+   {
+    "el": "button.theme-toggle",
+    "name": "Cambiar a tema claro",
+    "text": 7.54,
+    "border": 1.47
+   },
+   {
+    "el": "button.dock__icon-btn",
+    "name": "",
+    "text": 7.54
+   },
+   {
+    "el": "button.tabs__tab",
+    "name": "League of Legends",
+    "text": 1.01
+   },
+   {
+    "el": "span.stamp",
+    "name": "Sin verificar",
+    "text": 8.61,
+    "border": 2.25
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 12:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 12:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 12:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 12:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 12:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 12:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 12:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 13:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 13:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 13:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 13:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 13:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 13:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 13:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 14:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 14:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 14:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 14:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 14:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 14:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 14:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 15:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 15:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 15:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 15:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 15:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 15:00, marcado",
+    "text": 9.81
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 15:00, marcado",
+    "text": 9.81
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 16:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 16:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 16:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 16:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 16:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 16:00, marcado",
+    "text": 9.81
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 16:00, marcado",
+    "text": 9.81
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 17:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 17:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 17:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 17:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 17:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 17:00, marcado",
+    "text": 9.81
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 17:00, marcado",
+    "text": 9.81
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 18:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 18:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 18:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 18:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 18:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 18:00, marcado",
+    "text": 9.81
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 18:00, marcado",
+    "text": 9.81
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 19:00, horario en común",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 19:00, marcado",
+    "text": 9.81
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 19:00, horario en co",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 19:00, marcado",
+    "text": 9.81
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 19:00, marcado",
+    "text": 9.81
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 19:00, marcado",
+    "text": 9.81
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 19:00, marcado",
+    "text": 9.81
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 20:00, horario en común",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 20:00, marcado",
+    "text": 9.81
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 20:00, horario en co",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 20:00, marcado",
+    "text": 9.81
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 20:00, horario en comú",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 20:00, marcado",
+    "text": 9.81
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 20:00, marcado",
+    "text": 9.81
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 21:00, marcado",
+    "text": 9.81
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 21:00, marcado",
+    "text": 9.81
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 21:00, horario en co",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 21:00, marcado",
+    "text": 9.81
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 21:00, horario en comú",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 21:00, marcado",
+    "text": 9.81
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 21:00, marcado",
+    "text": 9.81
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 22:00, marcado",
+    "text": 9.81
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 22:00, marcado",
+    "text": 9.81
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 22:00, marcado",
+    "text": 9.81
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 22:00, marcado",
+    "text": 9.81
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 22:00, marcado",
+    "text": 9.81
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 22:00, marcado",
+    "text": 9.81
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 22:00, marcado",
+    "text": 9.81
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 23:00, marcado",
+    "text": 9.81
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 23:00, marcado",
+    "text": 9.81
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 23:00, marcado",
+    "text": 9.81
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 23:00, marcado",
+    "text": 9.81
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 23:00, horario en comú",
+    "text": 1.12
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 23:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 23:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 00:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 00:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 00:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 00:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 00:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 00:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 00:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 01:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 01:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 01:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 01:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 01:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 01:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 01:00",
+    "text": 15.53
+   },
+   {
+    "el": "button.btn",
+    "name": "Proponer sesión",
+    "text": 15.12,
+    "border": 1
+   }
+  ],
+  "ficha__light": [
+   {
+    "el": "a.skip-link",
+    "name": "Saltar al contenido",
+    "text": 14.46
+   },
+   {
+    "el": "a.dock__brand",
+    "name": "TeamMatchUp",
+    "text": 17.99
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Mi ficha",
+    "text": 7.21
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Coincidencias",
+    "text": 7.21
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Agenda",
+    "text": 7.21
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Configuración",
+    "text": 7.21
+   },
+   {
+    "el": "button.theme-toggle",
+    "name": "Cambiar a tema claro",
+    "text": 7.23,
+    "border": 1.39
+   },
+   {
+    "el": "button.dock__icon-btn",
+    "name": "",
+    "text": 7.21
+   },
+   {
+    "el": "button.tabs__tab",
+    "name": "League of Legends",
+    "text": 17.52
+   },
+   {
+    "el": "span.stamp",
+    "name": "Sin verificar",
+    "text": 4.15,
+    "border": 1.14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 12:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 12:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 12:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 12:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 12:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 12:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 12:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 13:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 13:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 13:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 13:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 13:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 13:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 13:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 14:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 14:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 14:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 14:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 14:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 14:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 14:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 15:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 15:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 15:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 15:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 15:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 15:00, marcado",
+    "text": 13.46
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 15:00, marcado",
+    "text": 13.46
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 16:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 16:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 16:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 16:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 16:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 16:00, marcado",
+    "text": 13.46
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 16:00, marcado",
+    "text": 13.46
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 17:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 17:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 17:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 17:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 17:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 17:00, marcado",
+    "text": 13.46
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 17:00, marcado",
+    "text": 13.46
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 18:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 18:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 18:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 18:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 18:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 18:00, marcado",
+    "text": 13.46
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 18:00, marcado",
+    "text": 13.46
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 19:00, horario en común",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 19:00, marcado",
+    "text": 13.46
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 19:00, horario en co",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 19:00, marcado",
+    "text": 13.46
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 19:00, marcado",
+    "text": 13.46
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 19:00, marcado",
+    "text": 13.46
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 19:00, marcado",
+    "text": 13.46
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 20:00, horario en común",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 20:00, marcado",
+    "text": 13.46
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 20:00, horario en co",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 20:00, marcado",
+    "text": 13.46
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 20:00, horario en comú",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 20:00, marcado",
+    "text": 13.46
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 20:00, marcado",
+    "text": 13.46
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 21:00, marcado",
+    "text": 13.46
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 21:00, marcado",
+    "text": 13.46
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 21:00, horario en co",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 21:00, marcado",
+    "text": 13.46
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 21:00, horario en comú",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 21:00, marcado",
+    "text": 13.46
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 21:00, marcado",
+    "text": 13.46
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 22:00, marcado",
+    "text": 13.46
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 22:00, marcado",
+    "text": 13.46
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 22:00, marcado",
+    "text": 13.46
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 22:00, marcado",
+    "text": 13.46
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 22:00, marcado",
+    "text": 13.46
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 22:00, marcado",
+    "text": 13.46
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 22:00, marcado",
+    "text": 13.46
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 23:00, marcado",
+    "text": 13.46
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 23:00, marcado",
+    "text": 13.46
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 23:00, marcado",
+    "text": 13.46
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 23:00, marcado",
+    "text": 13.46
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 23:00, horario en comú",
+    "text": 14
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 23:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 23:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 00:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 00:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 00:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 00:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 00:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 00:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 00:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Lunes 01:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Martes 01:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Miércoles 01:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Jueves 01:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Viernes 01:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Sábado 01:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.hours__cell",
+    "name": "Domingo 01:00",
+    "text": 14.79
+   },
+   {
+    "el": "button.btn",
+    "name": "Proponer sesión",
+    "text": 14.46,
+    "border": 1
+   }
+  ],
+  "riot__dark": [
+   {
+    "el": "a.skip-link",
+    "name": "Saltar al contenido",
+    "text": 15.12
+   },
+   {
+    "el": "a.dock__brand",
+    "name": "TeamMatchUp",
+    "text": 16.44
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Mi ficha",
+    "text": 7.54
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Coincidencias",
+    "text": 7.54
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Agenda",
+    "text": 7.54
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Configuración",
+    "text": 7.54
+   },
+   {
+    "el": "button.theme-toggle",
+    "name": "Cambiar a tema claro",
+    "text": 7.54,
+    "border": 1.47
+   },
+   {
+    "el": "button.dock__icon-btn",
+    "name": "",
+    "text": 7.54
+   },
+   {
+    "el": "input.input",
+    "name": "Nombre#TAG",
+    "text": 16.68,
+    "border": 1.18
+   },
+   {
+    "el": "select.select",
+    "name": "LASLANNAEUWEUNEBRKR",
+    "text": 16.68,
+    "border": 1.18
+   },
+   {
+    "el": "button.btn",
+    "name": "Pedir ícono de verificación",
+    "text": 15.12,
+    "border": 1
+   },
+   {
+    "el": "button.btn",
+    "name": "Volver",
+    "text": 16.43,
+    "border": 1.43
+   }
+  ],
+  "riot__light": [
+   {
+    "el": "a.skip-link",
+    "name": "Saltar al contenido",
+    "text": 14.46
+   },
+   {
+    "el": "a.dock__brand",
+    "name": "TeamMatchUp",
+    "text": 17.99
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Mi ficha",
+    "text": 7.33
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Coincidencias",
+    "text": 7.33
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Agenda",
+    "text": 7.33
+   },
+   {
+    "el": "a.dock__link",
+    "name": "Configuración",
+    "text": 7.33
+   },
+   {
+    "el": "button.theme-toggle",
+    "name": "Cambiar a tema claro",
+    "text": 7.34,
+    "border": 1.39
+   },
+   {
+    "el": "button.dock__icon-btn",
+    "name": "",
+    "text": 7.33
+   },
+   {
+    "el": "input.input",
+    "name": "Nombre#TAG",
+    "text": 15.97,
+    "border": 1.2
+   },
+   {
+    "el": "select.select",
+    "name": "LASLANNAEUWEUNEBRKR",
+    "text": 15.97,
+    "border": 1.2
+   },
+   {
+    "el": "button.btn",
+    "name": "Pedir ícono de verificación",
+    "text": 14.46,
+    "border": 1
+   },
+   {
+    "el": "button.btn",
+    "name": "Volver",
+    "text": 14.45,
+    "border": 1.39
+   }
+  ],
+  "steam__dark": [
+   {
+    "el": "a.gate__brand",
+    "name": "TeamMatchUp",
+    "text": 17.37
+   },
+   {
+    "el": "button.theme-toggle",
+    "name": "Cambiar a tema claro",
+    "text": 7.92,
+    "border": 1.43
+   },
+   {
+    "el": "input.input",
+    "name": "tu@correo.com",
+    "text": 16.68,
+    "border": 1.18
+   },
+   {
+    "el": "input.input",
+    "name": "••••••••",
+    "text": 16.68,
+    "border": 1.18
+   },
+   {
+    "el": "button.btn",
+    "name": "Entrar",
+    "text": 15.12,
+    "border": 1
+   },
+   {
+    "el": "button.btn",
+    "name": "Rellenar esos datos",
+    "text": 15.62,
+    "border": 1.47
+   },
+   {
+    "el": "a",
+    "name": "Crear una",
+    "text": 14.65
+   }
+  ],
+  "steam__light": [
+   {
+    "el": "a.gate__brand",
+    "name": "TeamMatchUp",
+    "text": 17.54
+   },
+   {
+    "el": "button.theme-toggle",
+    "name": "Cambiar a tema claro",
+    "text": 6.48,
+    "border": 1.38
+   },
+   {
+    "el": "input.input",
+    "name": "tu@correo.com",
+    "text": 15.69,
+    "border": 1.19
+   },
+   {
+    "el": "input.input",
+    "name": "••••••••",
+    "text": 15.69,
+    "border": 1.19
+   },
+   {
+    "el": "button.btn",
+    "name": "Entrar",
+    "text": 14.46,
+    "border": 1
+   },
+   {
+    "el": "button.btn",
+    "name": "Rellenar esos datos",
+    "text": 13.5,
+    "border": 1.38
+   },
+   {
+    "el": "a",
+    "name": "Crear una",
+    "text": 5.26
+   }
+  ],
+  "no-encontrada__dark": [
+   {
+    "el": "a.btn",
+    "name": "Volver al inicio",
+    "text": 15.12,
+    "border": 1
+   }
+  ],
+  "no-encontrada__light": [
+   {
+    "el": "a.btn",
+    "name": "Volver al inicio",
+    "text": 14.46,
+    "border": 1
+   }
+  ]
+ }
+}

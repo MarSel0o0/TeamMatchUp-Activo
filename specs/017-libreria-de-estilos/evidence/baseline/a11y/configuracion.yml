@@ -1,0 +1,210 @@
+- link "Saltar al contenido"
+- banner:
+  - navigation "Principal":
+    - link "TeamMatchUp, inicio": TeamMatchUp
+    - list:
+      - listitem:
+        - link "Mi ficha"
+      - listitem:
+        - link "Coincidencias"
+      - listitem:
+        - link "Agenda"
+      - listitem:
+        - link "Configuración"
+    - button "Cambiar a tema claro"
+    - text: Datos de demostración Jugador Demo
+    - button "Cerrar sesión":
+      - img "Cerrar sesión"
+- main:
+  - heading "Configuración" [level=1]
+  - paragraph: Vincula los juegos que juegas y declara cuándo puedes jugar. Es lo que cruzamos con el resto.
+  - heading "Datos de la ficha" [level=2]
+  - text: Nombre visible
+  - textbox "Nombre visible": Jugador Demo
+  - text: Cómo juegas
+  - textbox "Cómo juegas": Cuenta de demostración con los tres juegos vinculados. Cuenta de demostración con los tres juegos vinculados.
+  - text: 54/200 caracteres
+  - button "Guardar ficha"
+  - text: demo@teammatchup.gg · America/Santiago
+  - heading "Cuentas vinculadas" [level=2]
+  - text: El rango se vuelve a leer al pulsar "Resincronizar".
+  - article:
+    - heading "League of Legends" [level=3]
+    - paragraph: Jugador1#LAS
+    - text: Datos de demostración Sin verificar
+    - term: Rango vigente
+    - definition: Emerald II · 59 LP
+    - definition: Datos de demostración
+    - term: Región
+    - definition: LAS
+    - term: Última lectura
+    - definition: hace 3 horas
+    - button "Verificar con Riot Games" [disabled]
+    - text: No disponible en modo de demostración
+    - button "Resincronizar"
+    - button "Desvincular"
+    - paragraph: Al resincronizar, tu rango puede cambiar un escalón y pueden llegar partidas nuevas.
+  - article:
+    - heading "Rainbow Six Siege" [level=3]
+    - paragraph: jugador1
+    - text: Datos de demostración Sin verificar
+    - term: Rango vigente
+    - definition: Emerald II · 3836 MMR
+    - definition: Datos de demostración
+    - term: Región
+    - definition: LATAM
+    - term: Última lectura
+    - definition: hace 2 horas
+    - button "Resincronizar"
+    - button "Desvincular"
+    - paragraph: Al resincronizar, tu rango puede cambiar un escalón y pueden llegar partidas nuevas.
+  - article:
+    - heading "Counter-Strike 2" [level=3]
+    - paragraph: "76561190000000001"
+    - text: Datos de demostración Sin verificar
+    - term: Rango vigente
+    - definition: Red · 28063 CS Rating
+    - definition: Datos de demostración
+    - term: Región
+    - definition: South America
+    - term: Última lectura
+    - definition: hace 11 horas
+    - button "Verificar con Steam" [disabled]
+    - text: No disponible en modo de demostración Tu rango Premier se obtiene de Leetify con tu SteamID64
+    - button "Resincronizar"
+    - button "Desvincular"
+    - paragraph: Al resincronizar, tu rango puede cambiar un escalón y pueden llegar partidas nuevas.
+  - heading "Vincular un juego" [level=2]
+  - paragraph: Ya tienes vinculados los tres juegos que la plataforma soporta.
+  - heading "Mis horas de la semana" [level=2]
+  - paragraph: 41 bloques marcados
+  - button "Guardar horas" [disabled]
+  - text: Lun Mar Mié Jue Vie Sáb Dom
+  - row "12:00 Lunes 12:00 Martes 12:00 Miércoles 12:00 Jueves 12:00 Viernes 12:00 Sábado 12:00 Domingo 12:00":
+    - text: 12:00
+    - button "Lunes 12:00"
+    - button "Martes 12:00"
+    - button "Miércoles 12:00"
+    - button "Jueves 12:00"
+    - button "Viernes 12:00"
+    - button "Sábado 12:00"
+    - button "Domingo 12:00"
+  - row "13:00 Lunes 13:00 Martes 13:00 Miércoles 13:00 Jueves 13:00 Viernes 13:00 Sábado 13:00 Domingo 13:00":
+    - text: 13:00
+    - button "Lunes 13:00"
+    - button "Martes 13:00"
+    - button "Miércoles 13:00"
+    - button "Jueves 13:00"
+    - button "Viernes 13:00"
+    - button "Sábado 13:00"
+    - button "Domingo 13:00"
+  - row "14:00 Lunes 14:00 Martes 14:00 Miércoles 14:00 Jueves 14:00 Viernes 14:00 Sábado 14:00 Domingo 14:00":
+    - text: 14:00
+    - button "Lunes 14:00"
+    - button "Martes 14:00"
+    - button "Miércoles 14:00"
+    - button "Jueves 14:00"
+    - button "Viernes 14:00"
+    - button "Sábado 14:00"
+    - button "Domingo 14:00"
+  - row "15:00 Lunes 15:00 Martes 15:00 Miércoles 15:00 Jueves 15:00 Viernes 15:00 Sábado 15:00, marcado Domingo 15:00, marcado":
+    - text: 15:00
+    - button "Lunes 15:00"
+    - button "Martes 15:00"
+    - button "Miércoles 15:00"
+    - button "Jueves 15:00"
+    - button "Viernes 15:00"
+    - button "Sábado 15:00, marcado" [pressed]
+    - button "Domingo 15:00, marcado" [pressed]
+  - row "16:00 Lunes 16:00 Martes 16:00 Miércoles 16:00 Jueves 16:00 Viernes 16:00 Sábado 16:00, marcado Domingo 16:00, marcado":
+    - text: 16:00
+    - button "Lunes 16:00"
+    - button "Martes 16:00"
+    - button "Miércoles 16:00"
+    - button "Jueves 16:00"
+    - button "Viernes 16:00"
+    - button "Sábado 16:00, marcado" [pressed]
+    - button "Domingo 16:00, marcado" [pressed]
+  - row "17:00 Lunes 17:00 Martes 17:00 Miércoles 17:00 Jueves 17:00 Viernes 17:00 Sábado 17:00, marcado Domingo 17:00, marcado":
+    - text: 17:00
+    - button "Lunes 17:00"
+    - button "Martes 17:00"
+    - button "Miércoles 17:00"
+    - button "Jueves 17:00"
+    - button "Viernes 17:00"
+    - button "Sábado 17:00, marcado" [pressed]
+    - button "Domingo 17:00, marcado" [pressed]
+  - row "18:00 Lunes 18:00 Martes 18:00 Miércoles 18:00 Jueves 18:00 Viernes 18:00 Sábado 18:00, marcado Domingo 18:00, marcado":
+    - text: 18:00
+    - button "Lunes 18:00"
+    - button "Martes 18:00"
+    - button "Miércoles 18:00"
+    - button "Jueves 18:00"
+    - button "Viernes 18:00"
+    - button "Sábado 18:00, marcado" [pressed]
+    - button "Domingo 18:00, marcado" [pressed]
+  - row "19:00 Lunes 19:00, marcado Martes 19:00, marcado Miércoles 19:00, marcado Jueves 19:00, marcado Viernes 19:00, marcado Sábado 19:00, marcado Domingo 19:00, marcado":
+    - text: 19:00
+    - button "Lunes 19:00, marcado" [pressed]
+    - button "Martes 19:00, marcado" [pressed]
+    - button "Miércoles 19:00, marcado" [pressed]
+    - button "Jueves 19:00, marcado" [pressed]
+    - button "Viernes 19:00, marcado" [pressed]
+    - button "Sábado 19:00, marcado" [pressed]
+    - button "Domingo 19:00, marcado" [pressed]
+  - row "20:00 Lunes 20:00, marcado Martes 20:00, marcado Miércoles 20:00, marcado Jueves 20:00, marcado Viernes 20:00, marcado Sábado 20:00, marcado Domingo 20:00, marcado":
+    - text: 20:00
+    - button "Lunes 20:00, marcado" [pressed]
+    - button "Martes 20:00, marcado" [pressed]
+    - button "Miércoles 20:00, marcado" [pressed]
+    - button "Jueves 20:00, marcado" [pressed]
+    - button "Viernes 20:00, marcado" [pressed]
+    - button "Sábado 20:00, marcado" [pressed]
+    - button "Domingo 20:00, marcado" [pressed]
+  - row "21:00 Lunes 21:00, marcado Martes 21:00, marcado Miércoles 21:00, marcado Jueves 21:00, marcado Viernes 21:00, marcado Sábado 21:00, marcado Domingo 21:00, marcado":
+    - text: 21:00
+    - button "Lunes 21:00, marcado" [pressed]
+    - button "Martes 21:00, marcado" [pressed]
+    - button "Miércoles 21:00, marcado" [pressed]
+    - button "Jueves 21:00, marcado" [pressed]
+    - button "Viernes 21:00, marcado" [pressed]
+    - button "Sábado 21:00, marcado" [pressed]
+    - button "Domingo 21:00, marcado" [pressed]
+  - row "22:00 Lunes 22:00, marcado Martes 22:00, marcado Miércoles 22:00, marcado Jueves 22:00, marcado Viernes 22:00, marcado Sábado 22:00, marcado Domingo 22:00, marcado":
+    - text: 22:00
+    - button "Lunes 22:00, marcado" [pressed]
+    - button "Martes 22:00, marcado" [pressed]
+    - button "Miércoles 22:00, marcado" [pressed]
+    - button "Jueves 22:00, marcado" [pressed]
+    - button "Viernes 22:00, marcado" [pressed]
+    - button "Sábado 22:00, marcado" [pressed]
+    - button "Domingo 22:00, marcado" [pressed]
+  - row "23:00 Lunes 23:00, marcado Martes 23:00, marcado Miércoles 23:00, marcado Jueves 23:00, marcado Viernes 23:00, marcado Sábado 23:00 Domingo 23:00":
+    - text: 23:00
+    - button "Lunes 23:00, marcado" [pressed]
+    - button "Martes 23:00, marcado" [pressed]
+    - button "Miércoles 23:00, marcado" [pressed]
+    - button "Jueves 23:00, marcado" [pressed]
+    - button "Viernes 23:00, marcado" [pressed]
+    - button "Sábado 23:00"
+    - button "Domingo 23:00"
+  - row "00:00 Lunes 00:00 Martes 00:00 Miércoles 00:00 Jueves 00:00 Viernes 00:00 Sábado 00:00 Domingo 00:00":
+    - text: 00:00
+    - button "Lunes 00:00"
+    - button "Martes 00:00"
+    - button "Miércoles 00:00"
+    - button "Jueves 00:00"
+    - button "Viernes 00:00"
+    - button "Sábado 00:00"
+    - button "Domingo 00:00"
+  - row "01:00 Lunes 01:00 Martes 01:00 Miércoles 01:00 Jueves 01:00 Viernes 01:00 Sábado 01:00 Domingo 01:00":
+    - text: 01:00
+    - button "Lunes 01:00"
+    - button "Martes 01:00"
+    - button "Miércoles 01:00"
+    - button "Jueves 01:00"
+    - button "Viernes 01:00"
+    - button "Sábado 01:00"
+    - button "Domingo 01:00"
+  - text: Tus horas Arrastra sobre la grilla para marcar; vuelve a pasar para borrar. Lun 19:00–00:00 Mar 19:00–00:00 Mié 19:00–00:00 Jue 19:00–00:00 Vie 19:00–00:00 Sáb 15:00–23:00 Dom 15:00–23:00
+- contentinfo: TeamMatchUp · 2026 Datos de demostración

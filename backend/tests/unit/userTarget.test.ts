@@ -88,6 +88,25 @@ describe("matchUserRoute (§2.1, RF-18, RF-20)", () => {
     }
   });
 
+  test("partidas de Leetify (spec 019): la guardia las trata como el resumen por juego", () => {
+    for (const method of ["GET", "HEAD"]) {
+      assert.deepEqual(
+        matchUserRoute(method, "/me/games/cs2/leetify-matches"),
+        { kind: "games", rawSegment: "me", rawGame: "cs2" },
+        method,
+      );
+      assert.deepEqual(
+        matchUserRoute(method, `/${SESSION_ID}/games/cs2/Leetify-Matches/`),
+        { kind: "games", rawSegment: SESSION_ID, rawGame: "cs2" },
+        method,
+      );
+    }
+    for (const method of ["PUT", "PATCH", "DELETE", "POST"]) {
+      assert.equal(matchUserRoute(method, "/me/games/cs2/leetify-matches"), null, method);
+    }
+    assert.equal(matchUserRoute("GET", "/me/games/cs2/otra-cosa"), null);
+  });
+
   test("resumen por juego: PUT, PATCH, DELETE y POST → null", () => {
     for (const method of ["PUT", "PATCH", "DELETE", "POST"]) {
       assert.equal(matchUserRoute(method, "/me/games/lol"), null, method);

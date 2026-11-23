@@ -49,6 +49,41 @@ export interface RankSnapshot {
   recordedAt: string;
 }
 
+/** Fuente real que puede verificar una cuenta (spec 012; backend `domain/sources.ts`). */
+export type SourceId = 'steam' | 'riot';
+
+/**
+ * Quien entrega un dato de rango sin verificar la cuenta: Leetify, para el rango Premier de CS2
+ * (spec 015, RF-6; backend `DATA_SOURCE_IDS`).
+ */
+export type DataSourceId = SourceId | 'leetify';
+
+/** `simulated` o la fuente real de la que vino un dato (spec 012, RF-5; spec 015, RF-6). */
+export type Origin = 'simulated' | DataSourceId;
+
+/** Origen de cada bloque de datos de una cuenta (spec 012, RF-5). */
+export interface BlockOrigins {
+  identity: Origin;
+  rank: Origin;
+  matches: Origin;
+  profile: Origin;
+}
+
+/** Datos de perfil que entrega la fuente real; todos opcionales (spec 012, RF-22). */
+export interface AccountProfile {
+  displayName?: string;
+  avatarUrl?: string;
+  country?: string;
+  level?: number;
+  iconId?: number;
+  hoursTotal?: number;
+  hoursRecent?: number;
+  isPrivate?: boolean;
+}
+
+/** Bloques de una cuenta verificada con Riot que pueden quedar pendientes (spec 014, RF-27). */
+export type PendingBlock = 'rank' | 'matches' | 'profile';
+
 export interface GameAccount {
   id: string;
   userId: string;
@@ -56,17 +91,57 @@ export interface GameAccount {
   /** Identificador dentro del juego (Riot ID, Ubisoft ID, SteamID...). */
   handle: string;
   region: string;
-  currentRank: RankSnapshot;
+  /** Puede ser `null` en cuentas verificadas con Riot sin clasificar o con rango pendiente (spec 014, RF-13, RF-27). */
+  currentRank: RankSnapshot | null;
   /** Historial de variación del rango, de más antiguo a más reciente. */
   rankHistory: RankSnapshot[];
   lastSyncedAt: string;
-  /** La plataforma pudo leer el rango desde la fuente externa. */
+  /** Verificada con una fuente real; ya no la decide el simulador (spec 012, RF-1, RF-2). */
   verified: boolean;
-  /** Los datos de la cuenta son de demostración (RF-11). */
-  simulated: boolean;
+  /** Fuente con la que se verificó; solo presente si `verified` (spec 012, RF-5). */
+  verifiedWith?: SourceId;
+  verifiedAt?: string;
+  /** Origen de cada bloque de datos (spec 012, RF-5, RF-6). */
+  origins: BlockOrigins;
+  profile?: AccountProfile;
+  /** Bloques que faltan por leer tras una verificación parcial con Riot (spec 014, RF-27). */
+  pendingBlocks?: PendingBlock[];
+  /**
+   * Solo en CS2 verificada con Steam y sin rating: «sin rango Premier» o «rango no disponible»
+   * (spec 015, RF-7, RF-8). Con rating no viene.
+   */
+  premierStatus?: PremierStatus;
+}
+
+/** Cuenta de CS2 sin rating de Leetify: sin rango Premier o rango no disponible (spec 015). */
+export type PremierStatus = 'unrated' | 'unavailable';
+
+/** Resultado de resincronizar una cuenta; añade aviso solo en resincronización parcial de Riot (spec 014, RF-53, O-1). */
+export type SyncAccountResult = GameAccount & {
+  syncNotice?: string;
+};
+
+/** Desafío de verificación de LoL con Riot Games (spec 014, RF-1, RF-45; nunca incluye `puuid`, RNF-3). */
+export interface RiotChallenge {
+  id: string;
+  iconId: number;
+  expiresAt: string;
+  remainingSeconds: number;
+  riotId: string;
+  region: string;
+}
+
+/** Resultado de confirmar un desafío de Riot con éxito (spec 014, RF-7, RF-27). */
+export interface RiotConfirmResult {
+  outcome: 'verified';
+  account: GameAccount;
+  notice?: string;
 }
 
 export type MatchResult = 'win' | 'loss';
+
+/** Modo de una partida de LoL con datos de Riot (spec 020, RF-2). */
+export type MatchMode = 'solo' | 'flex' | 'normal' | 'aram' | 'other';
 
 export interface MatchRecord {
   id: string;
@@ -76,7 +151,34 @@ export interface MatchRecord {
   /** Resumen corto y agnóstico del juego, ej. `Ahri · 8/2/11`. */
   summary: string;
   durationMinutes: number;
-  rankDelta: number;
+  /** Solo en las partidas de LoL con datos de Riot; las simuladas no lo tienen (spec 020, RF-2, RF-16). */
+  mode?: MatchMode;
+  /** Variación de puntos; opcional en partidas reales de Riot sin variación fiable (spec 014, RF-12, RF-30). */
+  rankDelta?: number;
+}
+
+/** Resultado de una partida de CS2 tal como lo informa Leetify (spec 019, RF-3). */
+export type LeetifyOutcome = 'win' | 'loss' | 'tie';
+
+/** Partida reciente de CS2 que entrega Leetify, pedida en vivo y nunca guardada (spec 019). */
+export interface LeetifyMatch {
+  id: string;
+  /** Fecha de término (ISO 8601). */
+  finishedAt: string;
+  /** Mapa tal como lo entrega Leetify, por ejemplo `de_mirage`. */
+  map: string;
+  outcome: LeetifyOutcome;
+  /** Marcador en el orden que lo entrega Leetify. */
+  score: [number, number];
+}
+
+/**
+ * `GET /api/users/:id/games/:gameId/leetify-matches` (spec 019, plan §3). `available: false`
+ * cuando Leetify falló (RF-7); una lista vacía disponible, sin partidas (RF-8).
+ */
+export interface LeetifyMatches {
+  available: boolean;
+  matches: LeetifyMatch[];
 }
 
 /** Usuario recomendado por el motor de coincidencias, para un juego concreto. */

@@ -34,7 +34,6 @@ export interface SimulatedReading {
   snapshot: Snapshot;
   matches: SimulatedMatch[];
   mainMatchId: string;
-  verified: boolean;
 }
 
 export interface ReadingInput {
@@ -83,13 +82,6 @@ export function canonicalHandle(handle: string): string {
 /** Generador de la lectura k: semilla `juego|identificador|lectura`. */
 function readingRng(gameId: GameId, canonical: string, k: number): () => number {
   return createRng(hash32(`${gameId}|${canonical}|${k}`));
-}
-
-/** Verificada si la suma de los códigos del identificador canónico es par. */
-export function isVerifiedHandle(canonical: string): boolean {
-  let sum = 0;
-  for (let i = 0; i < canonical.length; i += 1) sum += canonical.charCodeAt(i);
-  return sum % 2 === 0;
 }
 
 export function evolveStep(previous: number, delta: -1 | 0 | 1, size: number): number {
@@ -193,5 +185,5 @@ export function readAccountState(input: ReadingInput): SimulatedReading {
     });
   }
 
-  return { snapshot, matches, mainMatchId: `m-${n}-0`, verified: isVerifiedHandle(canonical) };
+  return { snapshot, matches, mainMatchId: `m-${n}-0` };
 }

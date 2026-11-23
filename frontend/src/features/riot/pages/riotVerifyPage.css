@@ -1,0 +1,168 @@
+/* Página de verificación de cuenta de League of Legends con Riot Games (spec 014, RF-2, RF-46, RF-47, RF-54). */
+
+.riot-verify__sheet {
+  max-width: 720px;
+  width: 100%;
+}
+
+.riot-verify__form {
+  max-width: 520px;
+}
+
+.riot-verify__account {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  flex-wrap: wrap;
+}
+
+.riot-verify__account-id {
+  font-family: var(--mono);
+  font-size: var(--t-lead);
+  font-weight: 600;
+  color: var(--ink);
+  word-break: break-word;
+}
+
+.riot-verify__region {
+  padding: var(--s1) var(--s3);
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line-strong);
+  background: var(--surface-3);
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  color: var(--ink-2);
+}
+
+.riot-verify__hero {
+  display: flex;
+  align-items: center;
+  gap: var(--s5);
+  flex-wrap: wrap;
+  padding: var(--s4);
+  border-radius: var(--r-lg);
+  background: var(--surface-sunk);
+  border: 1px solid var(--line);
+}
+
+.riot-verify__icon-box {
+  display: grid;
+  place-items: center;
+  width: 88px;
+  height: 88px;
+  flex-shrink: 0;
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  border: 1px solid var(--line-strong);
+  overflow: hidden;
+  padding: var(--s2);
+  text-align: center;
+}
+
+.riot-verify__icon-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--r-sm);
+}
+
+.riot-verify__icon-fallback {
+  font-size: var(--t-small);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.riot-verify__timer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  min-width: 0;
+}
+
+.riot-verify__clock {
+  font-size: var(--t-h2);
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--accent-text);
+}
+
+.riot-verify__clock--expired {
+  color: var(--warn);
+}
+
+.riot-verify__expired {
+  border-color: var(--warn);
+  background: var(--warn-wash);
+  color: var(--ink);
+}
+
+.riot-verify__steps {
+  list-style: none;
+  counter-reset: riot-step;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+.riot-verify__step {
+  counter-increment: riot-step;
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  padding: var(--s3) var(--s4);
+  border-radius: var(--r-md);
+  background: var(--surface-sunk);
+  border: 1px solid var(--line-hair);
+  color: var(--ink);
+  font-size: var(--t-small);
+}
+
+.riot-verify__step::before {
+  content: counter(riot-step);
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: var(--r-pill);
+  background: var(--volt-wash);
+  border: 1px solid var(--volt-edge);
+  color: var(--accent-text);
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  font-weight: 600;
+}
+
+.riot-verify__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+}
+
+.riot-verify__action-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s2);
+}
+
+.riot-verify__footer {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .riot-verify__hero {
+    gap: var(--s4);
+  }
+
+  .riot-verify__action-group .tmu-btn,
+  .riot-verify__footer .tmu-btn {
+    width: 100%;
+  }
+}

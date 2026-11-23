@@ -8,7 +8,6 @@ import {
   createRng,
   evolveStep,
   hash32,
-  isVerified,
   randInt,
   simulateReading,
   stepAt,
@@ -120,7 +119,7 @@ function assertReadingShape(gameId: GameId, handle: string, n: number, reading: 
     assert.equal(Math.sign(m.rankDelta), m.result === "win" ? 1 : -1, label);
     assertSummary(gameId, m.summary, m.result, label);
   });
-  assert.equal(reading.verified, isVerified(handle), label);
+  assert.equal(Object.hasOwn(reading, "verified"), false, label); // spec 012, RF-1
 }
 
 describe("primitivas (plan, 4.1)", () => {
@@ -209,7 +208,6 @@ describe("determinismo (RF-35, RF-43, RNF-7)", () => {
             assert.deepStrictEqual({ ...match, playedAt: before.playedAt }, before);
           });
           assert.equal(late.mainMatchId, early.mainMatchId);
-          assert.equal(late.verified, early.verified);
         }
       }
     }
@@ -324,48 +322,20 @@ describe("el rango cambia de verdad (RF-42, DP-40)", () => {
   });
 });
 
-describe("verificada (RF-41)", () => {
-  const examples: readonly { gameId: GameId; handle: string; verified: boolean }[] = [
-    { gameId: "lol", handle: "jugador1#las", verified: true },
-    { gameId: "lol", handle: "Jugador3#LAS", verified: true },
-    { gameId: "lol", handle: "jugador2#las", verified: false },
-    { gameId: "lol", handle: "jugador4#las", verified: false },
-    { gameId: "r6", handle: "jugador2", verified: true },
-    { gameId: "r6", handle: "jugador4", verified: true },
-    { gameId: "r6", handle: "jugador1", verified: false },
-    { gameId: "r6", handle: "jugador3", verified: false },
-    { gameId: "cs2", handle: "76561190000000001", verified: true },
-    { gameId: "cs2", handle: "76561190000000003", verified: true },
-    { gameId: "cs2", handle: "76561190000000002", verified: false },
-    { gameId: "cs2", handle: "76561190000000004", verified: false },
-  ];
-
-  test("los 12 ejemplos de la tabla 4.4", () => {
-    for (const { gameId, handle, verified } of examples) {
-      const canonical = canonicalHandle(handle);
-      assert.equal(isVerified(canonical), verified, `${gameId} ${handle}`);
-      assert.equal(read(gameId, canonical, 0).verified, verified, `${gameId} ${handle}`);
-    }
-  });
-
-  test("conjuntos de 100: LoL 51, R6 49, CS2 51 verificados", () => {
-    const expected: Readonly<Record<GameId, number>> = { lol: 51, r6: 49, cs2: 51 };
-    for (const gameId of GAME_IDS) {
-      const count = handleSet(gameId).filter((handle) => isVerified(handle)).length;
-      assert.equal(count, expected[gameId], gameId);
-      assert.ok(count >= 40 && count <= 60, gameId);
-    }
-  });
-
-  test("la marca no cambia entre lecturas n = 0..10", () => {
+describe("la lectura simulada no decide la verificación (spec 012, RF-1, RF-2)", () => {
+  test("ninguna lectura trae `verified`, sea cual sea el identificador y el número", async () => {
     for (const gameId of GAME_IDS) {
       for (const handle of handleSet(gameId)) {
-        const expected = isVerified(handle);
-        for (let n = 0; n <= 10; n += 1) {
-          assert.equal(read(gameId, handle, n).verified, expected, `${gameId} ${handle} n=${n}`);
+        for (let n = 0; n <= 3; n += 1) {
+          assert.equal(Object.hasOwn(read(gameId, handle, n), "verified"), false, `${gameId} ${handle} n=${n}`);
         }
       }
     }
+  });
+
+  test("el módulo ya no exporta `isVerified`", async () => {
+    const module: Record<string, unknown> = await import("../../src/domain/rankSimulator.ts");
+    assert.equal(Object.hasOwn(module, "isVerified"), false);
   });
 });
 
@@ -409,7 +379,6 @@ describe("lectura literal fija (R4)", () => {
         },
       ],
       mainMatchId: "m-0-0",
-      verified: true,
     });
   });
 
@@ -443,7 +412,6 @@ describe("lectura literal fija (R4)", () => {
         },
       ],
       mainMatchId: "m-0-0",
-      verified: true,
     });
   });
 
@@ -494,7 +462,6 @@ describe("lectura literal fija (R4)", () => {
         },
       ],
       mainMatchId: "m-0-0",
-      verified: true,
     });
   });
 });

@@ -2,24 +2,36 @@ import type {
   Credentials,
   GameAccount,
   GameId,
+  LeetifyMatches,
   MatchCandidate,
   PlaySession,
   PublicUser,
   RegisterPayload,
+  RiotChallenge,
+  RiotConfirmResult,
+  SyncAccountResult,
   TimeBlock,
   User,
 } from '@/domain/types';
 import { BAD_CREDENTIALS_TEXT, NO_MESSAGE_TEXT } from '@/shared/utils/copy';
 import type {
   ApiContract,
+  CreateRiotChallengePayload,
   CreateSessionPayload,
   GameProfileSummary,
   LinkAccountPayload,
   SessionEditPayload,
+  SteamCompleteResult,
   UpdateProfilePayload,
 } from '../apiContract';
 import { saveCsrf } from './csrfStorage';
 import { ApiError, CSRF_HEADER, request, requestWithHeaders } from './httpClient';
+
+/**
+ * Plazo en ms para operaciones que consultan a Riot Games (spec 014, RNF-7, P14-11):
+ * el servidor corta a los 60 s, así que 65 s garantiza recibir la respuesta (incluido el 503).
+ */
+const RIOT_REQUEST_TIMEOUT_MS = 65_000;
 
 /**
  * Implementación del contrato contra el servidor Express (plan, sección 4).
@@ -77,7 +89,10 @@ export const httpApi: ApiContract = {
       request<void>(`/accounts/${encodeURIComponent(accountId)}`, { method: 'DELETE' }),
 
     syncAccount: (accountId: string) =>
-      request<GameAccount>(`/accounts/${encodeURIComponent(accountId)}/sync`, { method: 'POST' }),
+      request<SyncAccountResult>(`/accounts/${encodeURIComponent(accountId)}/sync`, {
+        method: 'POST',
+        timeoutMs: RIOT_REQUEST_TIMEOUT_MS,
+      }),
 
     getAvailability: () => request<TimeBlock[]>('/users/me/availability'),
 
@@ -100,6 +115,66 @@ export const httpApi: ApiContract = {
     getGameSummary: (userId: string, gameId: GameId) =>
       request<GameProfileSummary>(
         `/users/${encodeURIComponent(userId)}/games/${encodeURIComponent(gameId)}`,
+      ),
+
+    // Spec 019 (RF-1): partidas de CS2 pedidas en vivo a Leetify a través del servidor.
+    getLeetifyMatches: (userId: string, gameId: GameId) =>
+      request<LeetifyMatches>(
+        `/users/${encodeURIComponent(userId)}/games/${encodeURIComponent(gameId)}/leetify-matches`,
+      ),
+  },
+
+  steam: {
+    status: () => request<{ available: boolean }>('/steam'),
+
+    start: () => request<{ url: string }>('/steam/start', { method: 'POST' }),
+
+    // El servidor recibe lo que trajo la dirección de vuelta; el comprobante anti-CSRF y la cookie
+    // viajan como en cualquier operación protegida (spec 013, D3, RNF-6).
+    complete: (query: Record<string, string>) =>
+      request<SteamCompleteResult>('/steam/complete', { method: 'POST', body: { query } }),
+
+    // RF-7, D11: sin sesión el servidor responde 401 tras descartar el intento. Va como operación
+    // pública (`protectedCall: false`) para que ese 401 no cuente como sesión vencida y no recuerde
+    // esta dirección. Solo viaja el token: si hubiera sesión, sería una cancelación (RF-5), nunca
+    // una verificación.
+    abandon: async (attempt: string) => {
+      try {
+        await request<unknown>('/steam/complete', {
+          method: 'POST',
+          body: { query: { attempt } },
+          protectedCall: false,
+        });
+      } catch {
+        // 401 esperado; cualquier otro fallo tampoco cambia lo que se muestra.
+      }
+    },
+  },
+
+  riot: {
+    status: () => request<{ available: boolean }>('/riot'),
+
+    async currentChallenge(): Promise<RiotChallenge | null> {
+      const { challenge } = await request<{ challenge: RiotChallenge | null }>(
+        '/riot/challenges/current',
+      );
+      return challenge;
+    },
+
+    createChallenge: (payload: CreateRiotChallengePayload) =>
+      request<RiotChallenge>('/riot/challenges', {
+        method: 'POST',
+        body: payload,
+        timeoutMs: RIOT_REQUEST_TIMEOUT_MS,
+      }),
+
+    confirmChallenge: (challengeId: string) =>
+      request<RiotConfirmResult>(
+        `/riot/challenges/${encodeURIComponent(challengeId)}/confirm`,
+        {
+          method: 'POST',
+          timeoutMs: RIOT_REQUEST_TIMEOUT_MS,
+        },
       ),
   },
 

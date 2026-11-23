@@ -4,9 +4,11 @@ import { Fragment, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { ROUTES } from '@/app/routes';
 import { SignUpSheetPreview } from '@/app/layouts/SignUpSheetPreview';
+import { env } from '@/config/env';
 import { intersectBlocks, toBlock } from '@/domain/availability';
 import { GAME_LIST } from '@/domain/games';
 import type { TimeBlock, WeekDay } from '@/domain/types';
+import { ButtonLink } from '@/shared/components/AppButton';
 import { BrandMark } from '@/shared/components/BrandMark';
 import { DemoTag } from '@/shared/components/DemoTag';
 import { HoursSheet } from '@/shared/components/HoursSheet';
@@ -64,12 +66,12 @@ export default function LandingPage() {
           </Link>
           <div className="line landing__actions">
             <ThemeToggle />
-            <Link to={ROUTES.login} className="btn btn--quiet btn--sm">
+            <ButtonLink to={ROUTES.login} tone="quiet" size="sm">
               Entrar
-            </Link>
-            <Link to={ROUTES.register} className="btn btn--pen btn--sm">
+            </ButtonLink>
+            <ButtonLink to={ROUTES.register} tone="pen" size="sm">
               Crear cuenta
-            </Link>
+            </ButtonLink>
           </div>
         </nav>
       </header>
@@ -110,12 +112,12 @@ export default function LandingPage() {
 
             <motion.div className="hero__ctas" variants={rise}>
               <Magnetic>
-                <Link to={ROUTES.register} className="btn btn--pen btn--lg">
+                <ButtonLink to={ROUTES.register} tone="pen" size="lg">
                   Crear cuenta
-                  <span className="btn__orb">
+                  <span className="tmu-btn__orb">
                     <Icon as={ArrowUpRight} size={18} />
                   </span>
-                </Link>
+                </ButtonLink>
               </Magnetic>
               <Link to={ROUTES.login} className="hero__secondary">
                 Ya tengo cuenta
@@ -213,12 +215,12 @@ export default function LandingPage() {
             </motion.h2>
             <motion.div variants={rise}>
               <Magnetic>
-                <Link to={ROUTES.register} className="btn btn--pen btn--lg">
+                <ButtonLink to={ROUTES.register} tone="pen" size="lg">
                   Crear cuenta
-                  <span className="btn__orb">
+                  <span className="tmu-btn__orb">
                     <Icon as={ArrowUpRight} size={18} />
                   </span>
-                </Link>
+                </ButtonLink>
               </Magnetic>
             </motion.div>
           </Reveal>
@@ -229,7 +231,7 @@ export default function LandingPage() {
         <span className="label">TeamMatchUp · 2026</span>
         <span className="line">
           <span className="note note--faint">Proyecto académico.</span>
-          <DemoTag />
+          {env.useMockApi ? <DemoTag /> : null}
         </span>
       </footer>
     </div>

@@ -1,0 +1,98 @@
+/*
+ * Ventanas modales (spec 017, M10 y M16; RF-2, RF-3, RF-12, RF-22 a RF-25; plan 4.4), sobre el `Modal.Root` de la
+ * librería (`shared/components/Slip.tsx`). La superficie es la de siempre: el panel con bisel y filo volt
+ * (`slip sheet sheet--punched`; las reglas de `.sheet` están en `styles/global.css`). Aquí van la disposición, el
+ * fondo desenfocado y el botón de cerrar. Solo tokens.
+ */
+.tmu-modal {
+  --modal-x-offset: var(--s4);
+  --modal-y-offset: var(--s4);
+}
+
+/* Fondo: el velo del tema, no el negro por defecto de la librería (que llega en una variable en línea). */
+.tmu-modal__overlay {
+  background: var(--scrim);
+}
+
+.slip {
+  flex: 0 1 auto;
+  width: min(560px, 100%);
+  max-width: 100%;
+  height: auto;
+  max-height: 90dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow:
+    var(--highlight),
+    0 0 0 5px var(--bezel),
+    0 0 0 6px var(--line-hair),
+    var(--lift-high);
+}
+
+/* La cabecera de la librería es pegajosa y con fondo propio; la de la hoja, no. */
+.slip > .sheet__head {
+  position: static;
+  min-height: 0;
+  background: transparent;
+  z-index: auto;
+}
+
+/* Un título largo sin espacios parte línea y no desborda (RNF-4). */
+.slip .sheet-title {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.slip__ref {
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--r-pill);
+  background: var(--volt-wash);
+  border: 1px solid var(--volt-edge);
+  color: var(--accent-text);
+  font-size: var(--t-micro);
+}
+
+.slip__close {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+  transition:
+    transform var(--base) var(--spring),
+    color var(--base) var(--ease),
+    background var(--base) var(--ease);
+}
+
+.slip__close:hover {
+  color: var(--ink);
+  background: var(--fill-2);
+  transform: rotate(90deg);
+}
+
+.slip__body {
+  padding: var(--s5);
+  overflow-y: auto;
+}
+
+/* El mensaje que se liga a la ventana como descripción (`Modal.Body`): sin el relleno de la librería. */
+.slip__desc {
+  padding: 0;
+  margin: 0 0 var(--s4);
+}
+
+.slip__foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--s2);
+  padding: var(--s4) var(--s5);
+  border-top: 1px solid var(--line);
+}

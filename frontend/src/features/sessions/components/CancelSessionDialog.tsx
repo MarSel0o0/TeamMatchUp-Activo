@@ -1,5 +1,8 @@
 import { AlertCircle, Ban } from 'lucide-react';
 import { useRef, type Ref } from 'react';
+import { AppButton } from '@/shared/components/AppButton';
+import { Notice } from '@/shared/components/Notice';
+import { Spinner } from '@/shared/components/Spinner';
 import { Icon } from '@/shared/components/Icon';
 import { Slip } from '@/shared/components/Slip';
 import {
@@ -43,40 +46,38 @@ export function CancelSessionDialog({
       open={open}
       title={CANCEL_DIALOG_TITLE}
       onClose={onClose}
-      initialFocusRef={backRef}
       titleRef={titleRef ?? ownTitleRef}
-      trapFocus
       closeLocked={pending}
       footer={
         <>
-          <button
+          <AppButton
             ref={backRef}
             type="button"
-            className="btn"
+            data-autofocus
             onClick={pending ? undefined : onClose}
             aria-disabled={pending ? true : undefined}
           >
             {CANCEL_DIALOG_BACK}
-          </button>
-          <button
+          </AppButton>
+          <AppButton
             ref={confirmRef}
             type="button"
-            className="btn btn--danger"
+            tone="danger"
             onClick={onConfirm}
             disabled={pending}
           >
-            {pending ? <span className="btn__spin" /> : <Icon as={Ban} size={14} />}
+            {pending ? <Spinner /> : <Icon as={Ban} size={14} />}
             {pending ? SENDING_TEXT : CANCEL_DIALOG_CONFIRM}
-          </button>
+          </AppButton>
         </>
       }
     >
       <p className="note">{CANCEL_DIALOG_BODY}</p>
       {message ? (
-        <p className="notice notice--error" role="alert">
+        <Notice tone="error" role="alert">
           <Icon as={AlertCircle} size={15} />
           {message}
-        </p>
+        </Notice>
       ) : null}
     </Slip>
   );

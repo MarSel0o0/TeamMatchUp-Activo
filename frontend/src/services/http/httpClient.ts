@@ -18,6 +18,8 @@ interface RequestOptions {
   protectedCall?: boolean;
   /** Mensaje de un 401 sin cuerpo legible (el inicio de sesión fija el suyo). */
   unauthorizedMessage?: string;
+  /** Plazo opcional de la petición en ms; por defecto 30 s (P14-11: 65 s en operaciones de Riot). */
+  timeoutMs?: number;
 }
 
 function buildUrl(path: string, query?: RequestOptions['query']): string {
@@ -70,6 +72,7 @@ export async function requestWithHeaders<T>(
     protectedCall: options.protectedCall ?? true,
     signal: options.signal,
     unauthorizedMessage: options.unauthorizedMessage,
+    timeoutMs: options.timeoutMs,
   });
 }
 

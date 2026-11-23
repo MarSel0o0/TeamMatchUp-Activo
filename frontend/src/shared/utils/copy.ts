@@ -35,6 +35,53 @@ export const RESYNC_LABEL = 'Resincronizar';
 export const RESYNC_NOTE =
   'Al resincronizar, tu rango puede cambiar un escalón y pueden llegar partidas nuevas.';
 
+/** Verificación con Steam (spec 013). Los avisos son literales de RF-4 y RF-5 (RF-20). */
+export const STEAM_VERIFY_LABEL = 'Verificar con Steam';
+export const STEAM_VERIFYING_TEXT = 'Verificando con Steam…';
+/** RF-21: en modo simulado el botón se ve desactivado con este texto. */
+export const STEAM_MOCK_DISABLED_TEXT = 'No disponible en modo de demostración';
+/** RF-25: texto junto a «Resincronizar» de una cuenta verificada con Steam. */
+export const STEAM_RESYNC_NOTE =
+  'Al resincronizar, se vuelven a leer tus datos de Steam. Puedes hacerlo cada 5 minutos.';
+/** RF-12: cuenta verificada que aún no tiene datos de perfil (se obtienen resincronizando). */
+export const STEAM_NO_PROFILE_TEXT = 'Aún no tenemos tus datos de Steam; resincroniza para obtenerlos.';
+export const STEAM_NOTICES = {
+  verified: 'cuenta de Steam verificada',
+  cancelled: 'verificación con Steam cancelada',
+} as const;
+
+/** RF-21 (spec 015): nota bajo «Verificar con Steam» sobre de dónde sale el rango Premier. */
+export const LEETIFY_PRIVACY_TEXT = 'Tu rango Premier se obtiene de Leetify con tu SteamID64';
+
+/** Verificación con Riot Games (spec 014, RF-2, RF-7, RF-13, RF-27, RF-39 a RF-42, RF-53, RF-54). */
+export const RIOT_VERIFY_LABEL = 'Verificar con Riot Games';
+/** RF-42: en modo simulado el botón se ve desactivado con este texto. */
+export const RIOT_MOCK_DISABLED_TEXT = 'No disponible en modo de demostración';
+/** RF-41: texto junto a «Resincronizar» de una cuenta de LoL verificada con Riot Games. */
+export const RIOT_RESYNC_NOTE =
+  'Al resincronizar, se vuelven a leer tus datos de Riot Games. Puedes hacerlo cada 5 minutos.';
+/** RF-27: etiqueta de cada bloque cuya lectura falló al verificar con Riot Games. */
+export const RIOT_PENDING_LABEL = 'Datos pendientes de Riot Games';
+/** RF-13: etiqueta de una cuenta de LoL verificada que no tiene rango Solo/Dúo vigente. */
+export const RIOT_UNRANKED_LABEL = 'sin clasificar';
+/** RF-7: aviso en el perfil al completar la verificación de Riot sin datos pendientes. */
+export const RIOT_VERIFIED_NOTICE = 'Cuenta de Riot verificada';
+/** RF-53: aviso tras una resincronización parcial de Riot Games. */
+export const RIOT_PARTIAL_SYNC_NOTICE =
+  'No pudimos actualizar algunos de tus datos de Riot Games. Resincroniza más tarde para verlos.';
+/** RF-2: pasos fijos de la pantalla del desafío para cambiar el ícono en el cliente de LoL. */
+export const RIOT_CHALLENGE_STEPS = [
+  'Abre tu Perfil en el cliente de LoL',
+  'Haz clic en tu ícono',
+  'Elige el ícono indicado y guarda',
+] as const;
+export const RIOT_CONFIRM_BUTTON = 'Ya puse el ícono';
+export const RIOT_RETRY_CHALLENGE_BUTTON = 'Pedir otro desafío';
+export const RIOT_BACK_BUTTON = 'Volver';
+export const RIOT_CHALLENGE_EXPIRED_TITLE = 'El desafío venció';
+/** RF-2: respaldo textual cuando la imagen del ícono asignado no carga desde Data Dragon. */
+export const riotIconFallbackText = (id: number): string => `Ícono n.º ${id}`;
+
 /** Sustituye a las promesas de relectura sin intervención del usuario (RF-26). */
 export const REREAD_TEXT = 'El rango se vuelve a leer al pulsar "Resincronizar".';
 
@@ -108,6 +155,22 @@ export const FIRST_READING_LABEL = 'Primera lectura:';
 export const RECENT_MATCHES_TITLE = 'Últimas partidas';
 export const WIN_RATE_SUFFIX = 'ganadas';
 
+/** Pestañas de las partidas de LoL por modo (spec 020, RF-5, RF-11). */
+export const MATCH_MODE_TABS_LABEL = 'Modo de partida';
+export const MATCH_MODE_LABELS = {
+  all: 'Todas',
+  solo: 'Solo/Dúo',
+  flex: 'Flex',
+  normal: 'Normales',
+  aram: 'ARAM',
+  other: 'Otros',
+} as const;
+
+/** Partidas de CS2 desde Leetify (spec 019, RF-5, RF-7, RF-8, RF-10). */
+export const LEETIFY_MATCHES_LABEL = 'Datos de Leetify';
+export const LEETIFY_MATCHES_LOADING = 'Cargando partidas de Leetify…';
+export const LEETIFY_MATCHES_EMPTY = 'No hay partidas disponibles en Leetify';
+
 /** Distancia de rango en la ficha y en la fila de coincidencias: "Δ <n> pts" (RF-6). */
 export const rankDistanceText = (n: number) => `Δ ${n} pts`;
 
@@ -118,6 +181,14 @@ export const CANCEL_DIALOG_BODY =
   'Se borrará para todos los participantes y no se puede deshacer.';
 export const CANCEL_DIALOG_CONFIRM = 'Sí, cancelar sesión';
 export const CANCEL_DIALOG_BACK = 'Volver';
+
+/**
+ * Ventana de desvincular una cuenta (spec 017, RF-23): el texto de la confirmación de hoy, partido en el título
+ * (`unlinkDialogTitle`, «¿Desvincular <identificador>?») y este mensaje, sin cambiar ninguna palabra.
+ */
+export const UNLINK_DIALOG_BODY = 'Dejarás de aparecer en las coincidencias de ese juego.';
+export const UNLINK_DIALOG_CONFIRM = 'Desvincular';
+export const UNLINK_DIALOG_BACK = 'Volver';
 
 /** Detalle de una sesión (spec 009, RF-3, RF-12). */
 export const SESSION_DETAIL_TITLE = 'Detalle de sesión';

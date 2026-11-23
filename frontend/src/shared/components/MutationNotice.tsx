@@ -2,6 +2,7 @@ import { AlertCircle } from 'lucide-react';
 import { ApiError, isSessionCleared } from '@/services/api';
 import { NO_MESSAGE_TEXT } from '@/shared/utils/copy';
 import { Icon } from './Icon';
+import { Notice } from './Notice';
 
 interface MutationNoticeProps {
   /** Error de una escritura (`mutation.error`); `null` o `undefined` si no hay. */
@@ -29,10 +30,10 @@ export function MutationNotice({ error, padded = false }: MutationNoticeProps) {
   if (error === null || error === undefined || isSessionCleared(error)) return null;
 
   const notice = (
-    <p className="notice notice--error" role="alert">
+    <Notice tone="error" role="alert">
       <Icon as={AlertCircle} size={15} />
       {mutationErrorText(error)}
-    </p>
+    </Notice>
   );
   return padded ? <div className="sheet__body">{notice}</div> : notice;
 }

@@ -39,12 +39,19 @@ import { validateProfileUpdate } from "../services/profile.ts";
 import { SESSION_COOKIE, sessionCookieOptions } from "../services/sessionToken.ts";
 import { USER_TARGET_MESSAGES, resolveUserTarget } from "../services/userTarget.ts";
 import { ACCOUNT_ERRORS } from "../domain/accountRules.ts";
-import { recentMatches, trend, winRate } from "../domain/accountState.ts";
+import { recentMatches, soloWinRate, trend, winRate } from "../domain/accountState.ts";
+import type { AccountMatch } from "../domain/accountState.ts";
 import { isGameId } from "../domain/games.ts";
-import type { SimulatedMatch } from "../domain/rankSimulator.ts";
+import { LEETIFY_MATCH_ERRORS } from "../domain/leetify.ts";
+import { blockOrigins } from "../domain/sources.ts";
+import type { LeetifyClient } from "../services/leetifyClient.ts";
+import { SOURCE_TIMEOUT_MS, readMatchesWithTimeout } from "../services/realSources.ts";
+import { hasMatchModes, storedMode } from "../domain/matchMode.ts";
 import { GameAccount, toGameAccountJson } from "../models/gameAccount.ts";
 import type { GameAccountDocument } from "../models/gameAccount.ts";
 import { PlaySession } from "../models/playSession.ts";
+import { RiotChallenge } from "../models/riotChallenge.ts";
+import { SteamAttempt } from "../models/steamAttempt.ts";
 import { removeUserFromSessions } from "../services/sessionWrites.ts";
 import type { NodeEnv } from "../utils/config.ts";
 import { createUserRoutesGuard, createWithUser } from "../utils/middleware.ts";
@@ -53,6 +60,10 @@ export interface UsersRouterOptions {
   jwtSecret: string;
   nodeEnv: NodeEnv; // atributos de la cookie al eliminar la cuenta (RF-11)
   now: () => number; // segundos Unix
+  /** Spec 019: cliente de Leetify para las partidas. Sin él, toda lectura es un fallo, sin red. */
+  leetify?: LeetifyClient | undefined;
+  /** Plazo de la lectura de partidas; por defecto 8 s (spec 015, RNF-4). */
+  leetifyTimeoutMs?: number | undefined;
 }
 
 type DuplicateMessage = typeof MESSAGES.emailTaken | typeof MESSAGES.usernameTaken;
@@ -73,31 +84,52 @@ function userJson(user: UserDocument, sessionUserId: string): OwnUserJson | Publ
   return user.id === sessionUserId.toLowerCase() ? toOwnUserJson(user) : toPublicUserJson(user);
 }
 
-// Resumen por juego (RF-12, RF-37; plan, sección 6): la cuenta (con `simulated`), las 8
-// primeras partidas guardadas en el orden de RF-28, la tasa de victorias de esas partidas y
-// la tendencia. `matchId` se entrega como `id`; `matches` y `readingNumber` no salen.
+// Resumen por juego (RF-12, RF-37; plan, sección 6): la cuenta, las 8 primeras partidas
+// guardadas en el orden de RF-28, la tasa de victorias de esas partidas y la tendencia.
+// `matchId` se entrega como `id`; `matches` y `readingNumber` no salen; `rankDelta` se omite si falta.
+// Spec 020 (RF-5, RF-12, RF-16; plan, §3.4 y §5): si el bloque de partidas tiene origen Riot, se entregan todas las
+// guardadas (hasta 20), cada una con su `mode` (las guardadas sin modo salen como `solo`, RF-3), y la tasa de
+// victorias es solo la de las 8 últimas de Solo/Dúo (`null` si no hay ninguna). El resto de cuentas, como siempre.
 function gameSummaryJson(account: GameAccountDocument) {
-  const matches: SimulatedMatch[] = account.matches.map(
-    ({ matchId, gameId, playedAt, result, summary, durationMinutes, rankDelta }) => ({
+  // Spec 019 (RF-2, RF-4): si las partidas las entrega Leetify, el resumen no lleva las simuladas
+  // guardadas ni la tasa de victorias; la interfaz las pide en vivo a `/leetify-matches`.
+  if (blockOrigins(account.verification).matches === "leetify") {
+    return {
+      account: toGameAccountJson(account),
+      recentMatches: [],
+      trend: trend(account.currentRank ?? null, account.rankHistory),
+    };
+  }
+  const accountJson = toGameAccountJson(account);
+  const withModes = hasMatchModes(accountJson.origins.matches);
+  const matches: AccountMatch[] = account.matches.map(
+    ({ matchId, gameId, playedAt, result, summary, durationMinutes, mode, rankDelta }) => ({
       id: matchId,
       gameId,
       playedAt,
       result,
       summary,
       durationMinutes,
-      rankDelta,
+      ...(withModes ? { mode: storedMode(mode) } : {}),
+      ...(rankDelta == null ? {} : { rankDelta }),
     }),
   );
-  const recent = recentMatches(matches);
+  const recent = withModes ? matches : recentMatches(matches);
   return {
-    account: toGameAccountJson(account),
+    account: accountJson,
     recentMatches: recent,
-    winRate: winRate(recent),
-    trend: trend(account.currentRank, account.rankHistory),
+    winRate: withModes ? soloWinRate(recent) : winRate(recent),
+    trend: trend(account.currentRank ?? null, account.rankHistory),
   };
 }
 
-export function createUsersRouter({ jwtSecret, nodeEnv, now }: UsersRouterOptions): Router {
+export function createUsersRouter({
+  jwtSecret,
+  nodeEnv,
+  now,
+  leetify,
+  leetifyTimeoutMs = SOURCE_TIMEOUT_MS,
+}: UsersRouterOptions): Router {
   const router = Router();
   const cookieOptions = sessionCookieOptions(nodeEnv);
   const withUser = createWithUser({ jwtSecret, now });
@@ -234,8 +266,16 @@ export function createUsersRouter({ jwtSecret, nodeEnv, now }: UsersRouterOption
     // eliminación ya da 401 "token inválido").
     await PlaySession.deleteMany({ host: sessionUserId });
     await removeUserFromSessions(sessionUserId);
-    // La cookie solo se borra si terminaron C1, C2, C3 y C4: tras un 500 en C1 o C2 la sesión
-    // sigue sirviendo para repetir la eliminación mientras el usuario exista.
+    // Spec 013, RF-26 (plan, 4.5): C5 borra el intento de verificación con Steam abierto. Va tras
+    // C4 y fuera del `finally`, igual que ella. Si lanzara, el intento residual es inservible
+    // (`withUser` responde 401 al usuario que ya no existe) y el índice TTL lo borra (RNF-7).
+    await SteamAttempt.deleteMany({ user: sessionUserId });
+    // Spec 014, RF-29 (plan, §3.1): C6 borra los desafíos de verificación con Riot del usuario.
+    // Va tras C5 y fuera del `finally`, igual que C4 y C5. Si lanzara, los desafíos residuales
+    // son inservibles (`withUser` responde 401) y el índice TTL en `deleteAt` los borra (RF-28).
+    await RiotChallenge.deleteMany({ user: sessionUserId });
+    // La cookie solo se borra si terminaron C1, C2, C3, C4, C5 y C6: tras un 500 en C1 o C2 la
+    // sesión sigue sirviendo para repetir la eliminación mientras el usuario exista.
     response.clearCookie(SESSION_COOKIE, cookieOptions); // mismos atributos que la emisión
     response.status(204).end();
   });
@@ -312,6 +352,41 @@ export function createUsersRouter({ jwtSecret, nodeEnv, now }: UsersRouterOption
       return;
     }
     response.status(200).json(gameSummaryJson(account));
+  });
+
+  // Spec 019 (plan, §3; RF-1, RF-2, RF-6, RF-7, RF-8): partidas de Leetify pedidas en vivo y nunca
+  // guardadas. Mismas comprobaciones que el resumen; un fallo de Leetify es 200 `available: false`
+  // (P19-2), así la ficha nunca se rompe.
+  router.get("/:id/games/:gameId/leetify-matches", async (request, response) => {
+    const sessionUserId = request.userId ?? "";
+    const target = resolveUserTarget(request.params.id, sessionUserId);
+    if (!target.ok) {
+      response.status(400).json({ error: ACCOUNT_ERRORS.invalidId });
+      return;
+    }
+    const { gameId } = request.params;
+    if (!isGameId(gameId)) {
+      response.status(400).json({ error: ACCOUNT_ERRORS.invalidGame });
+      return;
+    }
+    if ((await User.exists({ _id: target.id })) === null) {
+      response.status(404).json({ error: USER_TARGET_MESSAGES.userNotFound });
+      return;
+    }
+    const account = await GameAccount.findOne({ user: target.id, gameId });
+    if (account === null) {
+      response.status(404).json({ error: ACCOUNT_ERRORS.noAccountForGame });
+      return;
+    }
+    const steamId = account.verification?.externalId;
+    if (blockOrigins(account.verification).matches !== "leetify" || steamId === undefined) {
+      response.status(404).json({ error: LEETIFY_MATCH_ERRORS.notFromLeetify });
+      return;
+    }
+    const reading = await readMatchesWithTimeout(leetify, steamId, leetifyTimeoutMs);
+    response
+      .status(200)
+      .json(reading.kind === "matches" ? { available: true, matches: reading.matches } : { available: false, matches: [] });
   });
 
   return router;

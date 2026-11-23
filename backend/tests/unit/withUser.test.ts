@@ -99,3 +99,26 @@ describe("createWithUser: pasos 1 a 4 de la sesión (spec 002, RF-24)", () => {
     assert.strictEqual(exists.mock.callCount(), 0);
   });
 });
+
+describe("createWithUser: onRejected (spec 013, RF-7)", () => {
+  const failing = async (): Promise<void> => {
+    throw new Error("la base no responde");
+  };
+
+  test("si onRejected falla, sigue respondiendo el mismo 401 (no 500)", async () => {
+    userExists(true);
+    const app = await appWith(createWithUser({ jwtSecret: SECRET, now, onRejected: failing }));
+    const withoutCookie = await supertest(app).get("/protegida").set(CSRF_HEADER, CSRF);
+    assert.strictEqual(withoutCookie.status, 401);
+    assert.deepStrictEqual(withoutCookie.body, { error: "sesión no iniciada" });
+  });
+
+  test("también en el paso 5 (usuario inexistente)", async () => {
+    userExists(false);
+    const response = await sessionRequest(
+      await appWith(createWithUser({ jwtSecret: SECRET, now, onRejected: failing })),
+    );
+    assert.strictEqual(response.status, 401);
+    assert.deepStrictEqual(response.body, { error: "token inválido" });
+  });
+});

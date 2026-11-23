@@ -1,15 +1,18 @@
+import { Skeleton } from '@mantine/core';
 import { FileWarning, Inbox, RotateCw } from 'lucide-react';
 import { useEffect, useRef, type ReactNode, type Ref } from 'react';
+import { AppButton } from './AppButton';
 import { Icon } from './Icon';
+import { Spinner } from './Spinner';
 
 /** Esqueleto con la forma del contenido mientras llega. */
 export function SheetSkeleton({ rows = 4, height = 44 }: { rows?: number; height?: number }) {
   return (
     <div aria-hidden="true">
       {Array.from({ length: rows }, (_, index) => (
-        <div
+        <Skeleton
           key={index}
-          className="skeleton"
+          animate={false}
           style={{
             height,
             marginBottom: 1,
@@ -75,6 +78,8 @@ interface FailureProps {
   headingRef?: Ref<HTMLHeadingElement>;
   /** «Reintentar» con una lectura en curso: se ve bloqueado (`aria-disabled`) y no hace nada. */
   retryBusy?: boolean;
+  /** Nombre accesible del botón cuando debe distinguirse de otro «Reintentar»; el texto visible no cambia. */
+  retryLabel?: string;
 }
 
 export function Failure({
@@ -85,6 +90,7 @@ export function Failure({
   role,
   headingRef,
   retryBusy = false,
+  retryLabel,
 }: FailureProps) {
   const message = error instanceof Error ? error.message : 'Ocurrió un error inesperado.';
   const retryRef = useRef<HTMLButtonElement>(null);
@@ -111,16 +117,17 @@ export function Failure({
         )}
       </div>
       {onRetry ? (
-        <button
+        <AppButton
           ref={retryRef}
           type="button"
-          className="btn btn--sm"
-          onClick={retryBusy ? undefined : onRetry}
-          aria-disabled={retryBusy ? true : undefined}
+          size="sm"
+          blocked={retryBusy}
+          onClick={onRetry}
+          aria-label={retryLabel}
         >
-          {retryBusy ? <span className="btn__spin" /> : <Icon as={RotateCw} size={13} />}
+          {retryBusy ? <Spinner /> : <Icon as={RotateCw} size={13} />}
           Reintentar
-        </button>
+        </AppButton>
       ) : null}
     </div>
   );
@@ -129,7 +136,7 @@ export function Failure({
 export function Working({ label = 'Leyendo…' }: { label?: string }) {
   return (
     <div className="blank" role="status">
-      <span className="btn__spin" style={{ color: 'var(--pen)' }} />
+      <Spinner />
       <span className="note">{label}</span>
     </div>
   );

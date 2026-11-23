@@ -4,9 +4,42 @@ Registro dinámico. Se actualiza al cerrar cada fase SDD.
 
 ## Última actualización
 
-2026-10-19
+2026-11-22 (spec 020 implementada: T1–T12 hechas, pendiente de la revisión del usuario y del `reviewer`; ver «Próximo paso»)
+
+Anterior: 2026-11-22 (spec 018: plan y tareas aprobados; T1–T9 hechas y T10 hecha salvo la ejecución en macOS o Windows,
+que hace el usuario; `e2etests/` con 7 escenarios en verde en Linux; ver «Próximo paso»)
+
+Anterior: 2026-11-22 (spec 017 implementada: T1–T24 hechas y validadas por el implementador, pendiente de la revisión del
+usuario y del `reviewer`; spec 016 implementada y validada; 018 aprobada, sin plan ni tareas)
+
+Anterior: 2026-11-21 (encargo del último hito analizado; constitución enmendada con Vitest y
+Playwright; specs 016, 017 y 018 aprobadas).
+
+Anterior: 2026-11-20 (sesión nocturna: 010 recuperada y validada, prefijo `tmu_`, README de
+despliegue; 013 validada en navegador; 007, 008 y 009 validadas por el `reviewer`).
 
 ## Fase actual
+
+### Último hito (2026-11-21)
+- **Encargo del profesor:** SPA de producción con estado global (Zustand o Redux, ≥ 2 stores),
+  React Router (rutas públicas y protegidas, Atrás/Adelante y F5), E2E con Playwright en
+  `e2etests/` (login + acceso protegido y un CRUD) con instrucciones en el README, librería de
+  estilos, TS estricto sin `any`, errores JSON con códigos HTTP y secretos en `.env`; desplegada en
+  fullstack.dcc.uchile.cl. Texto íntegro: apéndice A de `specs/016-estado-global/spec.md`.
+- **Cumplimiento:** ya se cumplen ruteo (React Router v6; F5 en producción con la 010), TS estricto,
+  errores JSON y `.env`. Faltaban estado global, E2E y librería de estilos → specs 016, 017 y 018.
+  Orden de implementación aprobado: **016 → 017 → 018**.
+- **Constitución enmendada por el usuario** (`docs/constitution.md`, principios 1 y 4, 2026-11-21):
+  Vitest en el frontend (cuando una spec exige pruebas, también tests primero, rojo → verde) y
+  Playwright para E2E en `e2etests/` (no se escriben antes que el código, pero cada una se ve
+  fallar al romper a propósito lo que comprueba).
+- **010:** código hecho (`uiDir`, `build`, `build:ui`, `start`; T1–T8 y T10). Falta **T9: despliegue
+  real, lo hace el usuario** (avisos en «Deuda conocida»).
+- **016 Estado global (Zustand):** IMPLEMENTADA Y VALIDADA (2026-11-22), T1–T10 hechas (más T9b); `reviewer`
+  APROBADO RF por RF (105 pruebas). Detalle en su fila de la tabla y en `specs/016-estado-global/validation.md`.
+- **017 Librería de estilos (Mantine):** IMPLEMENTADA (2026-11-22), T1–T24 hechas; verde en el frontend (214 pruebas, typecheck, lint, build; `backend/` intacto). Validada por el implementador con Chrome 159 y los scripts de `specs/017-libreria-de-estilos/evidence/` (7186 elementos comparados con la línea base: solo las diferencias declaradas); **pendiente de la revisión del usuario y del `reviewer`**. Detalle y defectos menores D-1 a D-3 en `specs/017-libreria-de-estilos/validation.md`.
+- **018 E2E con Playwright:** spec APROBADA (2026-11-21); plan y tareas aprobados (2026-11-22); T1–T9 hechas, T10
+  hecha salvo la ejecución en macOS o Windows (usuario, RNF-9).
 
 Specs 001 (`001-crear-backend`), 002 (`002-autenticacion`) y 003
 (`003-usuarios-y-disponibilidad`) implementadas y validadas (reviewer: APROBADO).
@@ -66,8 +99,8 @@ validación del `reviewer` (`/sdd-validate 007-integrar-frontend`) y decidir lo 
 «Deuda conocida — spec 007». `spec.md`, `plan.md` y `tasks.md` pasan a «implementada».
 
 Orden global de implementación: 005 T9 → 004 T11…T25 → 005 T10 (hechas, validadas y
-commiteadas) → 006 (cambio de requisitos y T1–T10), todo hecho y validado → 007 (T1–T31, hecha) → siguiente: validarla con `reviewer` y
-hacer la 008.
+commiteadas) → 006 (cambio de requisitos y T1–T10), todo hecho y validado → 007 (T1–T31, hecha) → 008, 009,
+010 (local), 012–015 (ver la tabla) → siguiente (2026-11-21): 016 → 017 → 018.
 
 ## Spec 008 — ficha de jugador (estado 2026-10-20)
 - Estado: T1–T11 hechas y en verde (typecheck, lint, build; comprobaciones con Node y con
@@ -101,9 +134,17 @@ hacer la 008.
   la interfaz con la misma escala y puntaje que el servidor (`domain/rankScale.ts`, `matching.ts`;
   paridad comprobada en T27). Modo simulado: `mockApi.ts` responde como el servidor, con
   `simulatedProvider.ts` (mismo algoritmo que `backend/src/domain/rankSimulator.ts`) y datos ficticios en
-  `seed.ts` (16 jugadores, 25 cuentas, base `tmu.mock-db.v3`, cuenta `demo@teammatchup.gg`).
-  Sin runner de pruebas (RNF-3): lo probado vive en `specs/007-integrar-frontend/validation.md`
-  y `validation/{baseline,after}/`.
+  `seed.ts` (16 jugadores, 25 cuentas, base `tmu.mock-db.v4` desde la spec 012, cuenta `demo@teammatchup.gg`).
+  Lo probado de la 007 vive en `specs/007-integrar-frontend/validation.md` y `validation/{baseline,after}/`.
+  **Desde la spec 016 (2026-11-22):** estado global con Zustand 5.0.16 (exacta) en dos almacenes:
+  sesión iniciada (`features/auth/createAuthStore.ts` + `authStore.ts`; `useAuth()` es fachada;
+  `AuthProvider` y `AuthContext` ya no existen) y agenda (`features/sessions/createAgendaStore.ts`
+  + `agendaStore.ts` + `agendaResponses.ts`, con las reglas de `domain/agendaRules.ts`);
+  `app/StoreBridge.tsx` los conecta con el router, el aviso de 401 y la caché de TanStack Query;
+  devtools solo en desarrollo. Vitest 3.2.4 (exacta, entorno node; `npm test`, 105 pruebas; no hay
+  `jsdom`: las páginas no se prueban en Node). `SchedulePage` usa una copia local del borrador con
+  `useIsPresent` durante la animación de salida (D-016-2) y `fetchStatus !== 'idle'` para el error
+  retenido (D-016-3). D-016-1: `enter` va dentro de `flushSync`.
 - Backend (`backend/`): servidor base de la spec 001. Express 5.1.0 + Mongoose 8.24.5 +
   dotenv 17.2.3, TypeScript ejecutado directo con Node ≥ 22.18, ESM.
   - Configuración validada al arrancar (`src/utils/config.ts`): `NODE_ENV` obligatoria y
@@ -180,6 +221,35 @@ hacer la 008.
     dependencias nuevas desde entonces). Los tests de controlador montan el servidor en
     `127.0.0.1` (`listenOnLoopback`, T8b). Las cifras 1427, 1562 y 1567 eran de cierres
     anteriores.
+  - Verificación de League of Legends con Riot Games de la spec 014 (T1–T12 hechas, 2026-11-19):
+    `RIOT_API_KEY` opcional en `src/utils/config.ts` (comentada en `.env.example`, sin `PUBLIC_URL`,
+    renovación manual cada 24 h documentada en `README.md`). Dominio puro en `src/domain/`
+    (`riotRules.ts`, `riotChallenge.ts`, `riotRateLimiter.ts`, `riotData.ts`, `riotLpDelta.ts`, más
+    soporte de `currentRank: null` y `rankDelta?: number` en `accountState.ts` y `matching.ts`).
+    Modelo `RiotChallenge` (`src/models/riotChallenge.ts`, TTL 24 h tras cierre/anulación/vencimiento)
+    y campos internos en `GameAccount` (`pendingBlocks`, `lastSuccessfulSyncAt`, `riotLpBaseline`).
+    Cascada C6 en `DELETE /api/users/:id`. Servicios: `riotChallenges.ts`, `riotClient.ts` (única
+    pieza con red y `X-Riot-Token`, `fetchFn` inyectable, timeout 8 s), `riotLimiter.ts` (ventanas
+    deslizantes 20/s y 100/2 min, reservas 2/24/24 y liberación), `riotUserLock.ts` (lock en memoria)
+    y `riotSync.ts` (lectura y resincronización parcial RF-53). Rutas `/api/riot` (`GET /`,
+    `GET /challenges/current`, `POST /challenges`, `POST /challenges/:id/confirm`), integradas con
+    `/api/accounts` (RF-29/RF-51/RF-53), `/api/users/:id/games/:gameId` y `/api/matches` (409 RF-33/
+    RF-44). Prueba manual en `requests/riot.rest`. Frontend: `domain/riotDisplay.ts`,
+    `services/ddragon.ts`, timeout opcional de 65 s en `transport.ts`/`httpClient.ts`, contrato
+    `api.riot` (`mockApi.riot` nunca simula), ruta `/verificar/riot` (`features/riot/`) y bloque de
+    datos reales de Riot en Perfil, Configuración, Ficha de jugador y Coincidencias. Sin dependencias
+    nuevas (RNF-5). Al cerrar T12 (2026-11-19): 82 archivos de prueba del backend en verde con 0
+    fallos (217/217 nuevos de Riot en 13 archivos + 249/249 en 7 archivos modificados/clave; 2,786
+    pruebas totales en esos 82 archivos; salvedades de entorno ya conocidas: `ui.test.ts` de la 010
+    con 8/16 fallos y `process.test.ts` con 26/26 fallos por `NODE_OPTIONS` bajo Node `v22.14.0`),
+    `tsc --noEmit` (`src/`) y `npm run lint` del backend en verde (`tsc -p tests` solo falla en el
+    preexistente `ui.test.ts`), y `typecheck`, `lint` y `build` del frontend en verde. Corrección
+    de la validación (2026-11-19): `features/riot/pages/RiotVerifyPage.tsx` guarda el desafío
+    confirmado (`confirmedChallenge`) para que la redirección de RF-6 no reemplace la navegación
+    a `/perfil` durante la animación de salida y no borre el aviso de RF-7/RF-27
+    (`state.riotNotice`). Validada por `reviewer` y con recorrido real de LoL
+    (`specs/014-verificacion-riot/validation.md`); suite del backend 2963/2971 (solo los 8 de
+    `ui.test.ts`).
 
 ## Estado de las specs
 
@@ -191,12 +261,43 @@ hacer la 008.
 | `004-cuentas-de-juego` | Implementada y validada (reviewer APROBADO tras 2 vueltas, 2026-10-19) | Rework terminado: T1–T9 históricas (con T3b y T8b) y T10–T25 hechas; 1567 tests, typecheck y lint en verde. 1ª vuelta: CAMBIOS NECESARIOS por 2 bloqueantes solo de pruebas (B1 ejemplos de RF-6/DP-19, B2 literales de DP-26/RF-48), corregidos en tests; 2ª: APROBADO. T13 (lectura literal fija del simulador) es una excepción deliberada a P-13. Riesgo R3 vigente. `spec.md` pasa a «implementada» (la marca planner). Hecho en el cierre: prueba sin red tras el rework (1567/1567, usuario, 2026-10-19) y renombrado a `withUser.test.ts`. Pendiente de la 007: etiqueta visible de datos simulados (RF-37; la 007 ya la cubre: RF-11, RF-22, R19). Rework commiteado en `9b5cc87` (sin push). El usuario confirmó (2026-10-19) que su aprobación del 2026-10-18 cubría DP-19, DP-34, DP-35 y DP-38 a DP-41. |
 | `005-coincidencias` | Implementada y validada (reviewer APROBADO, 2026-10-19) | T1–T10 hechas (T1–T8 en el commit `31fdda2`, sin push). Cambio A (T9): 401 «token inválido» con la credencial de un usuario eliminado, incluida la carrera `noSession`. Cambio B (T10): textos propios en minúscula inicial y sin punto final (DP5-17). 1567 tests, typecheck y lint en verde; cambio A en `9b5cc87` y cambio B en `88af4cd` (sin push). `spec.md` «implementada». Riesgo A1 vigente. Pendiente además la casilla de la spec 007: etiqueta de datos simulados con el servidor real. |
 | `006-agenda` | Implementada y validada (reviewer APROBADO, 2026-10-19) | Spec aprobada el 2026-10-18 con el cambio del 2026-10-19 (Q1–Q4, DP6-39); plan y tareas ajustados al código real. T1–T10 hechas; 2235 tests al validarla (2276 con T26 y T11 de las 004 y 005), typecheck y lint en verde; RF-1 a RF-28 y RNF-1 a RNF-4 cumplen. `spec.md` «implementada». Commiteada (`007ded0`, `3834d36`; RF-16 con DP6-40 en `cf09bfb`; sin push). Pendientes fuera de la 006 en «Deuda conocida». |
-| `007-integrar-frontend` | Implementada (T1–T31, 2026-10-19); falta validación de `reviewer` | Interfaz conectada al servidor real (cookie HttpOnly + comprobante CSRF, plazo de 30 s, aviso entre pestañas, «Proponer»), con modo simulado alineado a 004–006 y datos ficticios. Recorrido manual T29 (5.A y 5.B) y capturas T28 en `validation.md`; defectos D-A2 y D-A1 corregidos en la T31. Excepción aprobada al RF-16: el simulado reproduce el literal «rango verificado» del servidor y la interfaz nunca lo muestra. Pendientes de decisión: «Deuda conocida — spec 007». Sin commitear. |
-| `008-ficha-de-jugador` | Spec, plan y tareas aprobados (2026-10-18) | Precondición cumplida: la 007 está implementada (T1–T31). Los enlaces de RF-2 son su T9. |
-| `009-detalle-de-sesion` | Spec, plan y tareas aprobados (2026-10-18) | 18 tareas (T0–T17), sin dividir la spec por decisión de la usuaria. T0 exige plan de la 007 aprobado, 007 hecha (cumplido) y la tarea de enlaces de la 008 hecha (pendiente). La validación de reviewer espera a que estén implementadas la 006, la 007 y la 008. No cambia el backend. |
-| `010-despliegue` | Borrador | Servirá la interfaz desde el servidor (rutas fuera de `/api`). |
+| `007-integrar-frontend` | Implementada y validada (`reviewer` APROBADO, 2026-11-20, contra el código actual; `validation.md` §7). D1 y D3 cerrados. Decisiones del usuario cerradas el 2026-11-20: RF-20 → R23 (la spec admite 65 s para resincronizar y Riot; sin código), O1 y O2 → R24 (aceptadas) | Interfaz conectada al servidor real (cookie HttpOnly + comprobante CSRF, plazo de 30 s, aviso entre pestañas, «Proponer»), con modo simulado alineado a 004–006 y datos ficticios. Recorrido manual T29 (5.A y 5.B) y capturas T28 en `validation.md`; defectos D-A2 y D-A1 corregidos en la T31. Excepción aprobada al RF-16: el simulado reproduce el literal «rango verificado» del servidor y la interfaz nunca lo muestra. Sin decisiones abiertas. Commiteada. |
+| `008-ficha-de-jugador` | Implementada y validada (`reviewer` APROBADO, 2026-11-20; `validation.md` §6). D10-1 y D10-2 cerrados en `2ec44a4` (tokens de estado, `--ink-3`, `--placeholder`, iniciales del avatar con `color-mix`); C10-1 resuelto por el cambio B. Pendiente solo NVDA (usuario) | Precondición cumplida: la 007 está implementada (T1–T31). Los enlaces de RF-2 son su T9. |
+| `009-detalle-de-sesion` | Implementada y validada (`reviewer` APROBADO, 2026-11-20; C4 resuelta por el cambio VC4, aprobado el 2026-11-20: excepción de contraste de RNF-5 para botones deshabilitados y bloqueados, como el P65 de la 008, sin código). Contraste corregido en `ecf12d2` y `7852a67` (hover de variantes de botón con `:where()`, marca de juego, `--danger` claro `#a83025`). Pendiente del usuario: solo NVDA | 18 tareas (T0–T17), sin dividir la spec por decisión de la usuaria. T0 exige plan de la 007 aprobado, 007 hecha (cumplido) y la tarea de enlaces de la 008 hecha (pendiente). La validación de reviewer espera a que estén implementadas la 006, la 007 y la 008. No cambia el backend. |
+| `010-despliegue` | Aprobada; implementación local validada por el `reviewer` (2026-11-20, tras 1 vuelta de correcciones de documentación). Commits: `6307b9a` (T2, T3: sirve `backend/dist` en producción; código 1 sin `index.html`), `fbb3314` (T10: prefijo `tmu_` fijo en las 5 colecciones, traído de `origin/deploy`; en el servidor no hay permiso para una base propia, código 13), `f63fd37` (T4–T8: README raíz con producción y despliegue en `~/reactivoActivo` / PM2 `reactivoActivo-7041`, `.env.example`, `frontend/README.md`, recorrido local), `f844a4d` (spec al día; HU-4 y RF-10 se mantienen por la 014). Pendiente solo T9 (despliegue real, lo hace el usuario) y que un compañero siga el README. `origin/deploy` tiene otra implementación de la 010 (`frontendDir`): no se fusiona; lo útil ya se trajo. Avisos para T9 (2026-11-21): según `origin/deploy` el servidor tiene Node 20 (el plan pide ≥ 22; lo compilado debería correr con aviso `EBADENGINE`, ver `validation.md` R-1); confirmar con el equipo qué colecciones `tmu_*` tienen datos en `fullstack`. | Sirve la interfaz desde el servidor (rutas fuera de `/api`) y documenta el despliegue. |
+| `012-origen-real-de-datos` | Implementada y validada (2026-11-18). T1–T11 hechas y commiteadas (`0ba0f99` T8–T10, `ad58178` T11). 1ª validación (2026-11-18): dos puntos (RF-6 identidad sin etiqueta; RF-14 sin prueba del endpoint), cerrados con la T11. 2ª validación (2026-11-18, Opus): cumplida; 706 tests de la 012 y suite completa 2379/2379 en verde, typecheck y lint del backend y build, typecheck y lint del frontend sin errores; interfaz por Chrome headless (CDP) a 1280 y 375 px con verificación escrita directo en una base temporal (no hay rutas de verificación hasta la 013/014). Observaciones sin bloquear: la aclaración de RF-6 es una línea sin número en `spec.md`; el bloque de perfil (avatar, nivel, horas) no se muestra en ninguna parte (para la 013) | Base común: cuenta verificada solo por verificación real (revoca RF-41 de la 004 y la decisión «Todo simulado» del 2026-10-17), origen por bloque de datos, exclusividad (primera verificación gana y desvincula las no verificadas de otros), resincronización bajo demanda con espera de 5 min, 503 si la fuente cae. Propone texto para el principio 5 de la constitución. Dudas D1–D3 cerradas el 2026-11-04 (visible para todos, «1 minuto», filtro «Solo cuentas verificadas»). Rama `feature/vinculacion-steam-riot`. |
+| `013-vinculacion-steam` | Implementada; validada en el navegador con un Steam falso (`reviewer` APROBADO, 2026-11-20, tras corregir el desborde del perfil a 375 px en `5fb89c7`). RF-7 corregido en `c7afc2f` y `91511b1`. T9 y T10 cerradas; T11 abierta hasta el recorrido con Steam real (usuario) | Verificar CS2 con el inicio de sesión de Steam; perfil y horas reales; rango CS2 sigue simulado. Depende de la 012. Clarificación del 2026-11-18: 29 hallazgos resueltos como D3–D12 y RF-18 a RF-26. Bloqueante resuelto con D3: la vuelta de Steam llega a una página de la app, que completa la verificación con la sesión y el comprobante anti-CSRF del usuario (la cookie `SameSite=Strict` no viaja en la navegación desde Steam); sin cambiar la spec 002. Absorbe los tres pendientes de la validación de la 012: aviso global solo en modo simulado (RF-24), texto de «Resincronizar» (RF-25) y bloque de perfil visible con «Datos de Steam» (RF-15). Sin clave de Steam no se ofrece verificar (D4, revoca el RNF-2 anterior). Sin dependencias nuevas (RNF-5). Los ajustes a las specs 002, 007 y 012 quedan en su sección «Impacto», sin editar esos archivos. **Plan redactado el 2026-11-18** (`plan.md`, borrador pendiente de aprobación): OpenID 2.0 de Steam con intento en MongoDB (TTL, hash del token, uno por usuario), `POST /api/steam/{start,complete}` y `GET /api/steam`, página de vuelta fuera de las rutas protegidas (RF-7), `STEAM_API_KEY` y `PUBLIC_URL` opcionales, `syncCooldown(null)` para RF-12; 11 tareas previstas. Observaciones O-1 a O-4 por confirmar (región de la cuenta nueva, texto «sin perfil», texto del rechazo de RF-3, 11 tareas). Plan aprobado el 2026-11-18 (O-1 a O-4 con los valores por defecto). **Tareas aprobadas el 2026-11-18** (`tasks.md`, T1 a T11). **T1 hecha** (`Config.steam`, `STEAM_API_KEY` y `PUBLIC_URL` opcionales y comentadas en `.env.example`; sin commitear). Salvedad: `tests/controllers/ui.test.ts` (spec 010) falla porque `uiDir` no está en `app.ts` de esta rama. **T2 hecha** (dominio puro: `steamAttempt`, `steamOpenId`, `steamProfile`, `steamRules` y `syncCooldown(null)`; 71 pruebas nuevas, sin commitear). **T1 a T7 hechas; backend de la 013 cerrado** (`/api/steam` con `GET /`, `POST /start` y `POST /complete`; cliente de Steam con `fetch` inyectable; `AppOptions.steamIntegration`; espera sin perfil; suite 2592/2600, los 8 fallos son de `ui.test.ts` de la spec 010; sin commitear). Detalle T3: modelo `SteamAttempt` con índice único por usuario y TTL, servicio `steamAttempts`, `SteamAttempt.init()` en `prepareDatabase` y C5 en la cascada; 28 pruebas nuevas, sin commitear). **T8 hecha.** T9 a T11 con el código y la documentación hechos (página de vuelta, botón, bloque de datos de Steam, aviso global solo en modo simulado; `typecheck`, `lint` y `build` del frontend sin errores) pero **sin verificar en un navegador ni con la cuenta real de Steam**: casillas abiertas, pendientes en `specs/013-vinculacion-steam/validation.md`. Siguiente: recorridos manuales del equipo (necesitan `STEAM_API_KEY` y `PUBLIC_URL`) y cerrar T9 a T11. |
+| `014-verificacion-riot` | Implementada y validada (2026-11-19): `reviewer` APROBADO tras 1 vuelta de corrección (aviso de RF-7/RF-27 en `/perfil`, corregido en `RiotVerifyPage.tsx`); recorrido real con cuenta de LoL OK (pasos 0–9 de `validation.md` §3) | Verificar LoL con ícono de inicio (0–28, distinto del actual, 10 min, máx. 10 confirmaciones); rango Solo/Dúo, partidas y perfil reales. Development key aceptada por el equipo pese a los términos de Riot. Depende de la 012. Spec aprobada el 2026-11-18 (D1–D104); plan y tareas (T1–T12) aprobados el 2026-11-19. **T1–T8 (backend) y T9–T12 (frontend, docs y cierre) hechas** (sin commitear): 82 archivos de prueba del backend en verde sin red ni clave real (0 fallos; 217/217 nuevos de Riot + 249/249 modificados/clave; ~2,786 pruebas; salvedades preexistentes/entorno: `ui.test.ts` de la 010 y `process.test.ts` bajo Node `v22.14.0`), `tsc --noEmit` (`src/`) y `lint` del backend en verde, y `typecheck`, `lint` y `build` del frontend en verde; auditoría estática limpia (sin dependencias nuevas, sin fugas de clave, sin `.only`/`any`). `README.md`, `AGENTS.md`, `PRODUCT.md` y `specs/014-verificacion-riot/validation.md` actualizados. `spec.md` en «implementada (2026-11-19)» con todas las casillas marcadas; suite del backend 2963/2971 (solo los 8 de `ui.test.ts`). Opcionales en «Deuda conocida — spec 014». |
+| `015-rango-premier` | Spec aprobada (2026-11-18); revisión tras la clarificación aprobada por el usuario (2026-11-19). Plan aprobado (2026-11-19). Tareas T1–T10 aprobadas (2026-11-19); cambio de requisitos D26–D30 y T11–T16 aprobadas (2026-11-19); T1–T16 hechas (2026-11-19, sin commitear): backend con la suite completa en verde salvo los 8 fallos conocidos de `ui.test.ts`; frontend con typecheck, lint y build en verde; T16 documentos, `leetify.rest` y comprobación (ver «Spec 015 (implementación T11–T16)»). Términos de Leetify leídos: la pauta de métricas no se cumplía; cambio D31–D32 (sin escala ni distancia con rangos de Leetify; RF-5 y RF-12 modificados, RF-25 nuevo), plan §13 y T17–T20 aprobados y hechos (2026-11-19, solo frontend). Validación del `reviewer` con navegador: CAMBIOS NECESARIOS (etiqueta del anillo de afinidad); cambio D33–D34 (RF-26, logo a 24 px), T21–T22 hechos y **validación APROBADA** (2026-11-19). **Implementada (2026-11-19).** **Pendiente (pospuesto por el usuario):** los dos recorridos manuales con cuentas reales; ver «Próximo paso» y `specs/015-rango-premier/validation.md` §2.2. | Rango Premier real de CS2 verificadas desde la API pública de Leetify. RF-1 a RF-26, RNF-1 a RNF-8. Clarificación: 31 hallazgos resueltos como D6–D25 (más D1–D5 de la entrevista); sin dudas abiertas. Claves: principio 5 de la constitución ampliado (terceros nombrados por una spec, atribuidos a quien entrega; aplicado en docs/constitution.md); tener rango = rating entero 1–99999 (0/vacío/sin perfil = «sin rango Premier», excepción a RF-21 de la 012); respuesta inválida o rechazo = fallo; «rango no disponible» = bloque de origen Leetify vacío; fuera de coincidencias sin rango (mensaje en Coincidencias CS2); resync: Steam primero, Leetify solo si Steam responde, máx. 16 s, 200 con indicador si Leetify falla (excepción a RF-19 de la 012), espera corre; concurrentes: solo una, la otra 429; historial: punto por cada cambio de rating; migración al arrancar: verificadas con rango simulado → «rango no disponible»; aviso junto a «Verificar con Steam»; «Datos de Leetify» enlaza al perfil en Leetify; clave opcional. Las excepciones a otras specs son RF propios (no se editan las otras specs). Depende de la 013. |
+| `016-estado-global` | **Implementada y validada (2026-11-22; `reviewer` APROBADO RF por RF, 105 pruebas; RF-21, RF-22, RNF-6, T4, T6 y T7 declarados por el usuario; T8, T9 y T9b automatizados, no reproducidos por el reviewer)**. Spec APROBADA (2026-11-21) con CR-1 (origen 017 Q8); `plan.md` y `tasks.md` aprobados. T1–T10 y T9b hechas, 105 pruebas en verde, typecheck, lint y build en verde, backend intacto. Defectos del recorrido D-016-1 (login con ruta de origen), D-016-2 (formulario al salir) y D-016-3 (error retenido con «Sin conexión») corregidos y cerrados; O-016-1 (solape de ~500 ms entre las dos ventanas) aceptada por el usuario. RF-21, RF-22 y RNF-6 con la extensión real en Firefox: declarado por el usuario (2026-11-22). `graphify update .` no se pudo correr (no instalado) | Dos almacenes Zustand: **sesión iniciada** (reemplaza `AuthProvider`; `useAuth()` queda como fachada) y **agenda** (solo estado de interfaz; TanStack Query sigue como caché del servidor). Vitest con entorno node; devtools solo en desarrollo. Decisiones: D1 la agenda conserva filtro y sesión abierta al volver (sustituye 009 R7); D2 «Proponer» por el almacén; D3 Vitest; D4 devtools solo en desarrollo; D5 al aplicar una propuesta el filtro pasa a «Todos los juegos»; D6 la sesión creada queda abierta; D7/D10 sesión «por confirmar»: decide la primera respuesta correcta del servidor; I-1 fallos de red o de plazo = error; I-2 «lista que se ve» = datos en memoria; Q1 no se cambia el montaje del router; CR-1 nunca dos ventanas: la propuesta espera a que se cierre la abierta («esperar y reabrir»). Plan: P1 retener el error durante «Reintentar»; P2 campo `visit` en el almacén; P3 corregir en T10 la referencia de `AGENTS.md` a `HITO2.md`. Versiones propuestas `zustand@5.0.16` y `vitest@3.2.4` (Vitest 4 no admite Vite 5): T1 las comprueba con `npm view` antes de instalar. Comportamiento de RF-27 comprobado en TanStack Query 5.102.8 (riesgo R5 del plan). |
+| `017-libreria-de-estilos` | **Implementada (2026-11-22; T1–T24; pendiente de la revisión del usuario y del `reviewer`)**. Spec APROBADA (2026-11-21); plan APROBADO (2026-11-22, un solo plan en 4 bloques A–D); `tasks.md` T1–T24 aprobado. 214 pruebas en verde (105 de la 016 + 109 nuevas: tema inicial, colores literales, deslizador, desvincular, foco de «Anotar una sesión», catálogo y tema), typecheck, lint y build en verde, `backend/` intacto. Desviaciones del plan: el script del tema inicial va al final de `<head>` (no al principio) por el límite de 1024 bytes de `<meta charset>`; `pending`, `icon` y `orb` de `AppButton` no son propiedades (el icono, el texto y el indicador son hijos, y «Enviando…» lo pone el llamador); `FilterChip` sobre `UnstyledButton`; Inicio y Fin de las pestañas también eligen (la librería solo mueve el foco). Coste (RNF-7): `/login` pasa de 411 a 510 kB de JS y de 34 a 90 kB de CSS | Mantine **8.3.18** exacta (la 9.x exige React 19) + `@mantine/hooks` explícito. Componentes base con tema desde los tokens; mismo aspecto (caja dibujada ±2 px). Decisiones: Q1 «Anotar una sesión» como modal estándar con foco dentro (sustituye 009 R10); Q2 «Solo cuentas verificadas» como interruptor; Q3 pestañas con el patrón de la ficha en las tres vistas; Q4 desvincular cuenta en ventana de Mantine (no la recomendada); Q5/Q7 un único tono de foco ≥ 3:1 en el tema claro en toda la página; Q6 Vitest solo para reglas puras; H1 colores sueltos → tokens nuevos con los mismos valores; H2 campos con borde y halo reforzados; H3 el panel de pestañas es parada de Tab; H6 `DemoTag`/`OriginTag` se quedan; Q8 nunca dos ventanas (CR-1 de la 016). Propuestas P1–P11 aceptadas. Su línea base visual se toma con la 016 ya implementada. |
+| `018-pruebas-e2e` | **Implementada en Linux (2026-11-22), pendiente de otra plataforma.** Spec APROBADA (2026-11-21, CR-1/U13 el 2026-11-22); plan y tareas aprobados (2026-11-22; P1 = A, E1 en `/e2e-sin-vista`; P2 = A, Playwright 1.57.0). T1–T9 hechas y T10 hecha salvo su parte **[usuario]**: ejecutar la suite completa en macOS o Windows siguiendo solo `e2etests/README.md` (lo anota en `validation.md` §T10 y en la tabla «Plataformas» del README). En Linux: `npm test` y `npm run test:reverse` 7 passed (~30 s con compilación), `test:unit` 88/88, typecheck y lint en verde, `frontend/` y `backend/` intactos. Casillas de los criterios de `spec.md` sin marcar (las marca el `planner`). typescript-eslint 8.70.0 se mantiene pese al aviso de `npm audit` (minimatch), como el servidor. Observación de la 007 RF-33 (`/` redirige con sesión) solo anotada | `e2etests/` independiente; build de producción en un solo puerto (modo producción, secreto generado por ejecución); solo Chromium; backend real con base E2E propia (nombre con «e2e», ubicación local); datos por la API pública y login siempre por el formulario (U8); cada escenario borra su usuario por la API (fallo de limpieza = escenario fallido con aviso claro, U6); en serie; 7 escenarios: E1–E4 (login, acceso protegido, F5, Atrás) y C1–C3 (crear, editar y cancelar una sesión de juego con F5, Atrás y Adelante); sesión testigo como ancla; ESLint + typescript-eslint + tipos; README propio enlazado desde el raíz. Riesgo U7: se supone que Chromium acepta la cookie `Secure` sobre `http://127.0.0.1`; lo comprueba la primera tarea del plan y, si falla, se para y se vuelve a la spec. Limitación conocida Q8: no protege la build de un servidor de producción levantado a mano desde el mismo checkout. |
+| `020-partidas-de-todos-los-modos` | **Implementada (2026-11-22; T1–T12), pendiente de la revisión del usuario y del `reviewer`.** Spec, plan y tareas APROBADOS (2026-11-22; D1 y D2 del usuario, D3 a D8 por defecto aprobadas). Backend (T1–T7) commiteado y subido; frontend (T8–T11) sin commitear al cerrar. Backend 3069 pruebas (3068 pasan, 1 omitida) con la 019 integrada; frontend 240 pruebas; typecheck, lint y build en verde. Validada por el implementador con Chrome 159 (89 comprobaciones, `specs/020-partidas-de-todos-los-modos/evidence/modes.mjs`); no comprobado: clave real de Riot (formato de `queueId`), NVDA, Firefox y Safari. | La ficha de LoL con datos de Riot enseña las partidas de cualquier modo en pestañas (Todas, Solo/Dúo, Flex, Normales, ARAM, Otros; solo los modos con partidas), hasta 8 por pestaña, sacadas de las 20 guardadas (opción A: mismas 24 consultas). El % de victorias y la variación de LP son solo de Solo/Dúo (`winRate: null` = «sin datos»). Corrige parcialmente la 014 (RF-11, RF-12, RF-30, RNF-1, D39) sin editarla. Las partidas guardadas sin modo se leen como Solo/Dúo. LoL simulado, CS2 y R6 no cambian. Detalle: `specs/020-partidas-de-todos-los-modos/validation.md`. |
 
 ## Deuda conocida
+
+- Pendiente del usuario y riesgos conocidos (2026-11-21):
+  - **Solo el usuario:**
+    - T9 de la 010 (despliegue real en `fullstack`: carpeta `~/reactivoActivo`, PM2
+      `reactivoActivo-7041`, puerto 7041). Antes: confirmar con el equipo qué colecciones `tmu_*`
+      tienen datos; el servidor tendría Node 20 (el plan pide ≥ 22; aviso `EBADENGINE` esperado).
+    - Recorridos con Steam real (013 T11) y con Steam y Leetify reales (015,
+      `validation.md` §2.2), pospuestos.
+    - NVDA (008 y 009, necesita Windows); que un compañero siga el README de despliegue.
+  - **Riesgos:**
+    - 018 U7: si Chromium no acepta la cookie `Secure` sobre `http://127.0.0.1`, la 018 vuelve a la
+      spec (lo comprueba su primera tarea).
+    - 016 R5: el plan depende de detalles internos de TanStack Query 5.102.8 (`manual`,
+      `placeholderData`, orden de avisos), pero `package.json` dice `^5.62.7` (el lock fija
+      5.102.8). Un `npm install` que suba la versión puede romperlo sin que lo detecten las pruebas
+      del almacén; solo los recorridos de T9 (repetirlos si se sube la versión).
+  - **Ramas:** `origin/deploy` tiene otra implementación de la 010 (`frontendDir`); lo útil ya se
+    trajo. No fusionarla.
+  - **Menores anotados (2026-11-20):** SteamID64 partido en la ficha a 375 px; pestaña elegida
+    fuera de vista a 360 px en la ficha; contraste de la agenda (`.week__session-meta` 4,19 en
+    oscuro, bloques en hover 1,1–1,85); foco con `--volt` en tema claro (< 3:1; lo resuelve la 017
+    Q5/Q7); `frontend/package.json` con `^` (la constitución pide versiones exactas);
+    `productionUi.test.ts` solo prueba uno de sus dos casos por ejecución; spec 011 en borrador.
 
 - Spec 004 (2026-10-19):
   - En Windows, `npm test` necesita `npm test --script-shell=bash` (el script usa sintaxis
@@ -259,10 +360,10 @@ hacer la 008.
   - `domain/games.ts:61`: el ejemplo del identificador de R6 es `tu-nombre-ubisoft` y
     `LinkAccountForm` lo repite en su mensaje de formato. No atribuye el rango, pero el texto
     visible contiene «ubisoft» fuera de la etiqueta «Ubisoft ID» (RF-15 leído a la letra). El
-    servidor tiene el mismo ejemplo. Decidir si pasa a algo neutro (p. ej. `tu-nombre`).
+    servidor tiene el mismo ejemplo. **Aceptado (2026-11-20, R24 de la 007).**
   - La barra muestra «DATOS DE DEMOSTRACIÓN» por una regla CSS previa (`text-transform:
     uppercase`) y la oculta por debajo de 1140 px (el pie siempre la muestra). Cambiarlo sería
-    tocar disposición (RNF-4).
+    tocar disposición (RNF-4). **Aceptado (2026-11-20, R24 de la 007).**
   - Títulos de la entrada y de la pantalla de acceso («Tu rango se lee, no se declara», «Rango
     leído, no declarado»): solo se cambiaron los cuerpos; los títulos no nombran fuentes ni
     prometen relectura automática.
@@ -270,7 +371,7 @@ hacer la 008.
     perfil (522) y coincidencias (361). Ya fallaba en la línea base (504, 425 y 361); el perfil
     empeora por la semilla nueva (`.rank-scale__rail`, absoluto). `body` tiene `overflow-x:
     hidden`, así que no se ve desplazamiento. El «Hecho cuando» de la T28 no se cumple a la letra.
-  - `mockApi.ts` escribe `tmu.mock-db.v3` en `localStorage` al importarse aunque el modo simulado
+  - `mockApi.ts` escribe `tmu.mock-db.v4` (`v3` hasta la spec 012) en `localStorage` al importarse aunque el modo simulado
     esté desactivado (`api.ts` lo importa de forma estática); no es credencial (`session: null`).
     Nada limpia un `tmu.token` ni un `tmu.mock-db.v2` antiguos: un navegador viejo los conserva
     sin que el código los use.
@@ -291,8 +392,6 @@ hacer la 008.
     pruebas automáticas).
 - Resuelto en la 007 (RF-2): la interfaz ya no guarda el JWT (solo la cookie HttpOnly y el
   comprobante `tmu.csrf`).
-- El frontend no tiene runner de test (el principio 4 aplica solo al backend por decisión
-  del usuario).
 - `frontend/src/domain` importa sin extensión `.ts`, así que no se puede ejecutar directo
   con `node --test`.
 - Mejoras menores detectadas por reviewer en la spec 001 (opcionales, requieren cambio de spec):
@@ -311,6 +410,14 @@ hacer la 008.
 - La base de desarrollo `teammatchup` no existía al validar: la verificación de «las
   pruebas no tocan la base de desarrollo» fue débil (reviewer lo confirmó revisando el código).
 
+- Spec 014 (2026-11-19), opcionales de la validación; ninguno bloquea:
+  - `/perfil` desborda a 375 px por `.rank-scale__rail` (preexistente, specs 007/008; ver
+    «Spec 007»). Para una spec aparte.
+  - Sin prueba automática del aviso tras el fundido de salida (RF-7/RF-27): el frontend no tiene
+    runner de pruebas; se comprobó con navegador y en el recorrido real.
+  - RNF-7: el temporizador de 60 s arranca tras las comprobaciones en base (`riot.ts:174`,
+    `riot.ts:362`, `riotSync.ts:372`); si el plazo vence a mitad de las partidas, el bloque se lee
+    con omisiones (`riotSync.ts:169-177`, defendible por D83).
 - Spec 005 (2026-10-19):
   - Hecha con 1427 tests (cifra histórica, anterior al rework de la 004 y a los cambios A y
     B de la 005): el usuario corrió la suite completa sin conexión a Internet y pasó (cubre la
@@ -327,6 +434,128 @@ hacer la 008.
 
 ## Decisiones recientes
 
+- Spec 014 (validación y cierre, 2026-11-19):
+  - 1ª validación de `reviewer`: CAMBIOS NECESARIOS por un defecto (RF-7/RF-27): el aviso tras
+    confirmar no llegaba a `/perfil` porque el `<Navigate replace>` de `RiotVerifyPage` se
+    ejecutaba durante la animación de salida de `AuthLayout` y borraba `state.riotNotice`.
+    Vuelta 1: estado `confirmedChallenge` solo en `RiotVerifyPage.tsx`. Revalidación APROBADA.
+  - Recorrido manual con cuenta real de LoL (pasos 0–9 de `validation.md` §3): todo OK según el
+    usuario. `spec.md` pasa a «implementada (2026-11-19)».
+  - Opcionales sin bloquear en «Deuda conocida — spec 014» (desborde de `/perfil` a 375 px, sin
+    prueba automática del aviso, dos matices de RNF-7).
+
+- Spec 015 (T21–T22, cambio D33–D34, 2026-11-19):
+  - T21 (solo frontend): `scoreOriginLabel` (`premierDisplay.ts`): el anillo de afinidad nunca
+    lleva «Datos de Leetify»; «Datos de demostración» si algún rango es simulado, sin etiqueta si
+    los dos son de Leetify. Logo de Leetify a 24 px; rama muerta de `RankDistanceBlock` quitada.
+  - T22: `reviewer` APROBADO con navegador (`validation.md` §3.8). Pruebas como antes (solo los 8
+    de `ui.test.ts`). Opcional fuera de la 015: `/perfil` del modo simulado desborda a 375 px
+    (`.tabs__tab`, `.rank-scale__rail`).
+  - Cierre: el usuario pospuso el paso 4 (recorridos con cuentas reales) y pidió cerrar y
+    commitear. `spec.md` pasa a implementada con esa salvedad.
+
+- Spec 015 (validación con navegador y cambio D33–D34, 2026-11-19) — **traspaso a otro agente**:
+  - Paso 3 ejecutado: `reviewer` CAMBIOS NECESARIOS. Todo cumple en pruebas y en navegador
+    (Chrome headless por CDP; no hay MCP de DevTools) salvo el defecto 1: el anillo de afinidad
+    de Coincidencias mostraba «Datos de Leetify» (R8 era falso). Detalle en `validation.md` §3.7.
+  - Cambio aprobado por el usuario: D33 / RF-26 (afinidad sin Leetify: «Datos de demostración»
+    si algún rango es simulado, sin etiqueta si los dos son de Leetify) y D34 (logo a ~24 px);
+    también quitar la rama muerta de `RankDistanceBlock`. Plan §14, tareas T21–T22 escritas.
+  - **Siguiente:** T21 (implementer), T22 (reviewer), pasos 4–6 de la guía. Instrucciones
+    completas, entorno visual y restricciones del usuario en `validation.md` §5. Nada commiteado.
+
+- Spec 015 (términos de Leetify contra lo construido y cambio D31–D32, 2026-11-19):
+  - Paso 2 de la guía de `validation.md` hecho (§3.5): 8 pautas cumplen; R6 (guardar el rating
+    vigente) no se reabre porque «please refrain from storing» es una petición. **No cumplía**
+    la de métricas: la escala 0–100 y «Δ n pts» se derivaban del rating y salían junto al logo.
+  - Cambio de requisitos aprobado por el usuario (opción A): D31 (ninguna cifra reescalada en
+    pantalla), D32 (el filtro «n pts» no cambia), RF-5 y RF-12 modificados, RF-25 nuevo. Solo
+    frontend. Plan §13 y tareas T17–T20 aprobados por el usuario (2026-11-19).
+  - T17–T20 hechas (2026-11-19, sin commitear): `showsRankDistance` y
+    `LEETIFY_HIDDEN_DISTANCE_TEXT` en `premierDisplay.ts`; caso `leetifyHidden` en `playerSheet.ts`
+    y `RankDistanceBlock`; `MatchEntry` sin «Δ» si alguno de los rangos es de Leetify
+    (`ownRankOrigin` desde `MatchesPage`); `GameSummaryPanel` con rango de Leetify solo con
+    `LEETIFY_NO_HISTORY_TEXT` (sin escala). `MatchFiltersPanel` (D32), backend y contrato sin
+    cambios. `PRODUCT.md` actualizado; `AGENTS.md` sin cambios (no describe la escala de CS2
+    verificado).
+  - Decisión no prevista en el plan (T18): sin cuenta propia del juego activo, `ownRankOrigin` vale
+    `'simulated'` por defecto; solo ocurre en un render de transición (sin cuenta la lista no se
+    pinta) y el origen del candidato se comprueba igual en cada fila.
+  - Comprobación de T20: backend 2971 pruebas, 2963 pasan, 8 fallan (todas de `ui.test.ts`);
+    typecheck con el único error `ui.test.ts(28,83)`; lint de backend y frontend, typecheck y build
+    del frontend, en verde. Sin `.only`, `any` ni dependencias nuevas. Detalle en
+    `validation.md` §3.6.
+  - **Pendiente:** paso 3 de la guía (navegador, con RF-12 y RF-25 en las cuatro combinaciones
+    propia/candidato) y validación del `reviewer` de T17–T20.
+  - Riesgo R8 a confirmar por el usuario: el puntaje «Afinidad n de 100» (spec 005) usa la
+    distancia; se considera puntaje de la plataforma y RF-25 no lo toca.
+
+- Spec 015 (implementación T11–T16, 2026-11-19):
+  - Estado real: T1–T16 marcadas. Sin historial real (D27): el guardado queda vacío al leer y la
+    migración de RF-24 lo vacía en las cuentas existentes; atribución con el logo «Data Provided by
+    Leetify» y «View on Leetify» (`LeetifyAttribution`, logos en `frontend/src/assets/leetify/`);
+    bloqueo y D28 en `cs2Sync.ts`. T16: `backend/requests/leetify.rest` (la clave es la variable
+    `leetifyKey`, nunca escrita; la cabecera `_leetify_key` solo sale de `leetifyClient.ts` en
+    `backend/src`), `AGENTS.md`, `PRODUCT.md`, `validation.md`. El `README.md` no menciona el
+    historial: sin cambios.
+  - Comprobado: backend `npm test` 2971 pruebas, 2963 pasan, 8 fallan (todas `ui.test.ts`, spec
+    010); typecheck con un único error (`ui.test.ts(28,83)`); lint de backend y frontend, y
+    typecheck y build del frontend, en verde. Salvedad vigente: `ui.test.ts`, previa a la 015.
+  - **No** ejecutado: navegador (1280 y 375 px, tema oscuro y claro), recorridos con cuentas reales
+    y lectura de los términos de Leetify tras el cambio. La spec **no** pasa a «implementada» hasta
+    cerrarlos y la validación del `reviewer`. Sin commit ni `graphify update` (pendiente según
+    `CLAUDE.md`).
+  - Desvíos a revisar por el `reviewer`:
+    - (a) T13 relee la cuenta dentro del bloqueo de `cs2Sync.ts` para cerrar una carrera que el
+      plan no cubría (una consulta más por resincronización). Aceptada por el usuario el
+      2026-11-19 y anotada en el plan, §12.2.
+    - (b) T12 ajustó tres pruebas existentes a RF-8 y RF-24.
+    - (c) El contador «N lecturas registradas» de `GameSummaryPanel` se oculta con rango de
+      Leetify (diría «0 lecturas registradas»; los casos límite piden solo el texto de RF-12).
+      Decidido por el usuario el 2026-11-19; corrección dentro de T15, sin cambio de requisitos.
+    - (d) `LEETIFY_NO_HISTORY_TEXT` («Leetify solo entrega el rango vigente: no hay historial») se
+      definió en T15 en `premierDisplay.ts`.
+
+- Spec 015 (validación, 2026-11-19):
+  - El `reviewer` da CAMBIOS NECESARIOS:
+    - Bloqueante: «Último rango registrado» en `GameSummaryPanel` en lugar del gráfico (RF-12).
+    - Menor: segunda lectura de Leetify antes de 5 min si falló el perfil de Steam (RNF-7).
+    - Las decisiones a, b y c, aceptadas.
+  - Términos de Leetify (Developer Guidelines) incompatibles con la spec:
+    - logo «Data Provided by Leetify» enlazado a leetify.com;
+    - enlace «View on Leetify»;
+    - no almacenar los datos de la API (choca con RF-9, RF-11 y RF-18);
+    - métricas tal como las presenta Leetify.
+    Hace falta un cambio de requisitos. Detalle en `validation.md` §2.3 y §2.4.
+  - Cambio de requisitos aprobado el 2026-11-19 (D26 a D30): logo «Data Provided by Leetify»
+    y «View on Leetify»; sin historial real (RF-24 vacía el guardado); dos lecturas toleradas
+    (D28); escala y distancia se mantienen (D30). Plan §12 y tareas T11 a T16 aprobados; el
+    usuario confirmó `leetify.rest`.
+  - Siguiente paso: hecho (T11 a T16 implementadas el 2026-11-19; ver la entrada siguiente). Los
+    logos oficiales estaban en `~/Desktop/leetify/`; T14 copió los «Small».
+  - P15-3 confirmado: Leetify responde 404 `text/plain` a un SteamID64 no registrado (una
+    petición sin clave, autorizada por el usuario).
+  - Navegador sin ejecutar: queda para después de T16.
+
+- Spec 015 (implementación T6–T10, 2026-11-19):
+  - **Cuentas de CS2 verificadas con Steam sin `premier`** (anteriores a la 015; en producción no
+    existen por la migración de T3, pero las pruebas antiguas las crean): no entran como candidatas
+    y, como cuenta propia, dan el 409 de «rango no disponible» hasta resincronizar. Una verificada
+    con Steam solo es candidata con `premier: "rated"`; las de CS2 sin verificar (sin `premier`,
+    simuladas) siguen entrando (RF-22). Motivo: el filtro del plan (`$nin`) las habría dejado
+    pasar con un rango simulado atribuido a Leetify (constitución, principio 5). Cubierto en
+    `matchInputs.test.ts` y `matches.test.ts`; es una precisión sobre §4.5 del plan, que decía
+    `$nin`.
+  - Estado real: T1–T10 marcadas. T6 con pruebas primero (9 en rojo por la razón correcta, luego
+    verde). T7–T9 solo con typecheck, lint y build (sin navegador). T10: documentos y
+    comprobación; **no** ejecutado: navegador (1280 y 375 px), recorridos con cuentas reales,
+    términos de Leetify. Salvedad vigente: 8 fallos y 1 error de typecheck de `ui.test.ts`
+    (spec 010), previos a la 015.
+  - Dos desvíos menores del plan, para el `reviewer`: `LEETIFY_PRIVACY_TEXT` vive en
+    `copy.ts` (lo dice T7) y no en `premierDisplay.ts` (§3 del plan); la nota de RF-21 se muestra
+    también junto al botón desactivado del modo simulado. T8 añade «Último rango registrado»
+    para una cuenta que pasó a sin rango con historial (RF-9), sin texto en la spec.
+
 - Spec 007 (implementación, 2026-10-19):
   - El usuario aprobó el plan y las 30 tareas (T1–T30) y pidió hacerlas todas de corrido, en
     paralelo donde se pudiera. Se añadió la T31 (corrección de D-A2 y D-A1) tras la T29.
@@ -339,7 +568,7 @@ hacer la 008.
     cabeceras del login; `normalizeRank` se importa de `domain/rankScale.ts` (sin reexportar desde
     `games.ts`, por el ciclo de imports); `simulatedProvider.ts` copia el algoritmo completo del
     servidor, así que sus valores coinciden exactamente; el simulado deja el número de lectura en
-    `readings` dentro de la base; la clave de la base simulada es `tmu.mock-db.v3`.
+    `readings` dentro de la base; la clave de la base simulada es `tmu.mock-db.v4` (era `v3` hasta la spec 012, que la subió para descartar cuentas guardadas con `verified: true` y sin `origins`).
   - Plan 3.9: la sesión simulada vive dentro de la base simulada (`{ userId, csrf }`); la
     interfaz no la lee.
 
@@ -472,7 +701,9 @@ hacer la 008.
 - Spec 001: `HITO2.md` no está en el repositorio; la spec no se contrastó con el enunciado.
 - Las dependencias se justifican en el `plan.md` de cada spec aprobada (principio 1).
 - Los 6 principios de la constitución quedan aprobados.
-- Principio 4 (tests primero) aplica solo al backend por ahora.
+- Principio 4 (tests primero) aplicaba solo al backend; enmendado por el usuario el 2026-11-21
+  (principios 1 y 4): Vitest en el frontend cuando una spec exige pruebas (tests primero) y
+  Playwright para E2E en `e2etests/`.
 - implementer escribe los archivos fuera de `specs/**`; planner solo escribe en `specs/**`.
 
 ## Notas técnicas para las specs siguientes
@@ -526,17 +757,29 @@ hacer la 008.
 
 ## Próximo paso
 
-Hecho: la 007 implementada (T1–T31, 2026-10-19), con recorrido manual (T29), capturas (T28) y
-defectos D-A2 y D-A1 corregidos. Antes: la 006 implementada y validada; el paso del cuerpo antes del
-401 adoptado en las specs 004 y 005 (DP-43, DP5-18; 2276 tests en verde); la laguna de RF-16
-resuelta (DP6-40).
+**Spec 020 «Partidas de todos los modos» (2026-11-22): IMPLEMENTADA, pendiente de la revisión del usuario y del `reviewer`.** T1–T12 hechas. Backend en el commit `f964af7` (subido); el frontend (T8–T11), `AGENTS.md`, `MEMORY.md` y la evidencia de `specs/020-partidas-de-todos-los-modos/` quedan sin commitear. Para repetir la validación visual: servidor real con una base desechable (`MONGODB_DBNAME=<otra>`), `npm run dev` del frontend y `evidence/modes.mjs` (`playwright-core` fuera del proyecto; intercepta el resumen de LoL, porque el mock nunca produce datos de Riot). Pendiente del usuario: revisar `validation.md`, probar con una clave real de Riot (el formato real de `queueId`) y NVDA. Las capturas `.jpg` de `evidence/modes/` pesan 0,3 MB y sí se versionan.
 
-Siguiente: (1) decidir lo pendiente de «Deuda conocida — spec 007»; (2) validar la 007 con
-`reviewer` (`/sdd-validate 007-integrar-frontend`); (3) commitear (hoy nada de la 007 está
-commiteado); (4) la tarea de enlaces de la 008 (T9) y el resto de la 008; después, la 009 desde su
-T0 (`/sdd-implement 009-detalle-de-sesion T0`); (5) la 010 (despliegue).
-Requisito local para ejecutar los tests del backend: `backend/.env` (copiado de `.env.example`,
-con `JWT_SECRET`) y MongoDB en `mongodb://127.0.0.1:27017`.
+Actualizado el 2026-11-22, para el compañero que continúa. Flujo: skill `sdd` con los agentes
+`planner` (spec, plan, tareas), `implementer` (una tarea) y `reviewer` (validación). **Ninguna
+fase se salta la aprobación explícita del usuario.** Rama `feature/vinculacion-steam-riot`.
+
+1. **016 validada (2026-11-22, `reviewer` APROBADO).** Nada pendiente de validación. Correr `graphify update .` donde
+   `graphify` esté instalado (no lo estaba al cerrar T10).
+2. **017 implementada (2026-11-22):** el usuario revisa `specs/017-libreria-de-estilos/validation.md` (lo no comprobado
+   está en T23: Firefox y Safari, Express real, casos 13 y 14 de la 009) y el `reviewer` la valida RF por RF si quiere
+   segunda opinión. Para repetir las medidas: servidor de desarrollo con `VITE_USE_MOCK_API=true` y los scripts de
+   `evidence/` (`capture.mjs`, `compare.mjs`, `keys.mjs`, `tokens.mjs`, `themecheck.mjs`; `playwright-core` fuera del proyecto).
+3. **018 (2026-11-22): falta solo lo del usuario.** Un integrante que no escribió la suite la ejecuta en macOS o
+   Windows siguiendo `e2etests/README.md` («Plataformas»: `npm run test:unit`, `typecheck`, `lint`, `npm test`,
+   `npm run test:reverse`) y lo anota en `specs/018-pruebas-e2e/validation.md` §T10 y en el README; después el
+   `planner` marca las casillas de `spec.md` y el `reviewer` valida. Comandos E2E: `cd e2etests && npm test`
+   (MongoDB local en marcha; base `teammatchup_e2e`, puerto 3901).
+4. **En paralelo, cuando el usuario pueda:** T9 de la 010 (despliegue; avisos en «Deuda
+   conocida»). El resto de lo que solo puede hacer el usuario también está allí.
+
+Decisiones del 2026-11-20 (009 C4 → VC4; 007 RF-20 → R23; 007 O1 y O2 → R24): cerradas, sin
+código. `graphify` ya está instalado (`graphify-out/` existe): tras modificar código, `graphify
+update .`.
 
 ## Notas de la spec 004 (2026-10-19)
 

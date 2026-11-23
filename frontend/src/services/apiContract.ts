@@ -2,12 +2,16 @@ import type {
   Credentials,
   GameAccount,
   GameId,
+  LeetifyMatches,
   MatchCandidate,
   MatchFilters,
   MatchRecord,
   PlaySession,
   PublicUser,
   RegisterPayload,
+  RiotChallenge,
+  RiotConfirmResult,
+  SyncAccountResult,
   TimeBlock,
   User,
   WeekDay,
@@ -16,6 +20,12 @@ import type {
 export interface LinkAccountPayload {
   gameId: GameId;
   handle: string;
+  region: string;
+}
+
+/** Datos para pedir un desafío de verificación con Riot Games (spec 014, RF-1). */
+export interface CreateRiotChallengePayload {
+  riotId: string;
   region: string;
 }
 
@@ -48,11 +58,28 @@ export interface UpdateProfilePayload {
 /** Resumen que alimenta la vista de perfil para un juego concreto. */
 export interface GameProfileSummary {
   account: GameAccount;
+  /**
+   * Las 8 primeras partidas guardadas; en una cuenta de LoL con datos de Riot, todas las guardadas (hasta 20), cada
+   * una con su `mode` (spec 020, RF-12; plan, §5).
+   */
   recentMatches: MatchRecord[];
-  winRate: number;
+  /**
+   * Ausente cuando las partidas las entrega Leetify (spec 019, RF-4). En LoL con datos de Riot es solo el de las 8
+   * últimas de Solo/Dúo, o `null` si no hay ninguna (spec 020, RF-12).
+   */
+  winRate?: number | null;
   /** Variación del rango normalizado en los últimos 30 días. */
   trend: number;
 }
+
+/**
+ * Resultado de completar la verificación con Steam (spec 013, RF-4, RF-5). Los demás desenlaces
+ * (RF-6, RF-8, RF-9) llegan como error con el texto del servidor. `notice` es el aviso de que
+ * Leetify no respondió al verificar (spec 015, RF-15).
+ */
+export type SteamCompleteResult =
+  | { outcome: 'verified'; account: GameAccount; notice?: string }
+  | { outcome: 'cancelled' };
 
 /**
  * Contrato que la interfaz consume. Existen dos implementaciones
@@ -76,7 +103,7 @@ export interface ApiContract {
     linkAccount(payload: LinkAccountPayload): Promise<GameAccount>;
     unlinkAccount(accountId: string): Promise<void>;
     /** Fuerza una relectura del rango desde la fuente externa del juego. */
-    syncAccount(accountId: string): Promise<GameAccount>;
+    syncAccount(accountId: string): Promise<SyncAccountResult>;
     getAvailability(): Promise<TimeBlock[]>;
     /** Horas marcadas por otro jugador; las usa "Proponer" (plan 3.11, R-6). */
     getAvailabilityOf(userId: string): Promise<TimeBlock[]>;
@@ -94,6 +121,37 @@ export interface ApiContract {
     listAccounts(userId: string): Promise<GameAccount[]>;
     /** `GET /api/users/:id/games/:gameId`. */
     getGameSummary(userId: string, gameId: GameId): Promise<GameProfileSummary>;
+    /**
+     * `GET /api/users/:id/games/:gameId/leetify-matches` (spec 019, RF-1): partidas de CS2 pedidas
+     * en vivo a Leetify. `userId` admite `me`.
+     */
+    getLeetifyMatches(userId: string, gameId: GameId): Promise<LeetifyMatches>;
+  };
+  /** Verificación de la cuenta de CS2 con Steam (spec 013): `/api/steam`. */
+  steam: {
+    /** `GET /api/steam`: ¿la instancia tiene Steam configurado? (RF-22). */
+    status(): Promise<{ available: boolean }>;
+    /** `POST /api/steam/start`: abre el intento y devuelve la página de inicio de sesión de Steam (RF-1). */
+    start(): Promise<{ url: string }>;
+    /** `POST /api/steam/complete`: completa la verificación con lo que trajo la dirección de vuelta (RF-4). */
+    complete(query: Record<string, string>): Promise<SteamCompleteResult>;
+    /**
+     * Vuelta de Steam **sin sesión** (RF-7, D11): pide al servidor que descarte el intento de ese
+     * token (`POST /api/steam/complete` con solo `{ attempt }`). Nunca rechaza ni avisa de sesión
+     * vencida: su resultado no cambia lo que se muestra.
+     */
+    abandon(attempt: string): Promise<void>;
+  };
+  /** Verificación de la cuenta de LoL con Riot Games (spec 014): `/api/riot`. */
+  riot: {
+    /** `GET /api/riot`: ¿la instancia tiene Riot Games configurado? (RF-38). */
+    status(): Promise<{ available: boolean }>;
+    /** `GET /api/riot/challenges/current`: recupera el desafío abierto del usuario o `null` (RF-45). */
+    currentChallenge(): Promise<RiotChallenge | null>;
+    /** `POST /api/riot/challenges`: crea un desafío con ícono de inicio (RF-1). */
+    createChallenge(payload: CreateRiotChallengePayload): Promise<RiotChallenge>;
+    /** `POST /api/riot/challenges/:id/confirm`: comprueba el ícono y verifica la cuenta (RF-7, RF-27). */
+    confirmChallenge(challengeId: string): Promise<RiotConfirmResult>;
   };
   matches: {
     list(filters: MatchFilters): Promise<MatchCandidate[]>;

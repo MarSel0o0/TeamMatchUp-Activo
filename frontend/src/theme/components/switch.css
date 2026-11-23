@@ -1,0 +1,85 @@
+/*
+ * Interruptor «Solo cuentas verificadas» (spec 017, M8; RF-2, RF-3, RF-11, RF-20; plan 4.3), sobre el `Switch`
+ * de la librería (`mantineTheme.ts` le pone las clases `tmu-switch*`). Se anuncia como interruptor (rol `switch`)
+ * y se maneja con Espacio o con un clic en el texto, como la casilla de siempre. Solo tokens.
+ */
+.tmu-switch {
+  position: relative;
+  display: inline-flex;
+}
+
+.tmu-switch__body {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s3);
+  font-size: var(--t-small);
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.tmu-switch__labelwrap {
+  display: inline-block;
+  order: 0;
+  line-height: inherit;
+  font-size: inherit;
+  cursor: pointer;
+}
+
+.tmu-switch__label {
+  padding: 0;
+  color: inherit;
+  cursor: pointer;
+}
+
+.tmu-switch__track {
+  position: relative;
+  flex-shrink: 0;
+  overflow: visible;
+  width: 36px;
+  min-width: 36px;
+  height: 20px;
+  border-radius: var(--r-pill);
+  background: var(--surface-3);
+  border: 1px solid var(--line-strong);
+  color: inherit;
+  font: inherit;
+  order: -1;
+  cursor: pointer;
+  transition:
+    background var(--base) var(--ease),
+    border-color var(--base) var(--ease);
+}
+
+.tmu-switch__thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  inset-inline-start: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--ink-2);
+  transition:
+    transform var(--base) var(--spring),
+    background var(--base) var(--ease);
+}
+
+.tmu-switch__input:checked + .tmu-switch__track {
+  background: var(--volt);
+  border-color: var(--volt);
+}
+
+.tmu-switch__input:checked + .tmu-switch__track .tmu-switch__thumb {
+  transform: translateX(16px);
+  background: var(--volt-ink);
+}
+
+/* El campo de la librería ocupa todo el interruptor y es invisible: el indicador de foco va en la pista. */
+.tmu-switch__input:focus-visible {
+  outline: none;
+}
+
+.tmu-switch__input:focus-visible + .tmu-switch__track {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 3px;
+}

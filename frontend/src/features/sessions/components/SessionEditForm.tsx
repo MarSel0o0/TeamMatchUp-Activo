@@ -10,6 +10,11 @@ import {
 } from '@/domain/sessionDetail';
 import { NOTES_MAX_LENGTH, TITLE_MAX_LENGTH } from '@/domain/sessionRules';
 import type { PlaySession, WeekDay } from '@/domain/types';
+import { AppButton } from '@/shared/components/AppButton';
+import { Notice } from '@/shared/components/Notice';
+import { SelectField } from '@/shared/components/SelectField';
+import { TextAreaField } from '@/shared/components/TextAreaField';
+import { Spinner } from '@/shared/components/Spinner';
 import { Icon } from '@/shared/components/Icon';
 import { TextField } from '@/shared/components/TextField';
 import { useCodePointLimit } from '@/shared/hooks/useCodePointLimit';
@@ -70,10 +75,10 @@ export function SessionEditForm({
     <section className="sheet session-detail__sheet">
       <form id="edit-session-form" onSubmit={handleSubmit} noValidate>
         {message ? (
-          <p className="notice notice--error" role="alert">
+          <Notice tone="error" role="alert">
             <Icon as={AlertCircle} size={15} />
             {message}
-          </p>
+          </Notice>
         ) : null}
 
         <ol className="draft">
@@ -97,120 +102,78 @@ export function SessionEditForm({
 
           <li className="draft__row">
             <div className="draft__pair">
-              <div className="field grow">
-                <label className="label" htmlFor="edit-day">
-                  Día
-                </label>
-                <select
-                  id="edit-day"
-                  className="select"
-                  value={values.day}
-                  onChange={(event) => onChange({ day: Number(event.target.value) as WeekDay })}
-                >
-                  {WEEK_DAYS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <SelectField
+                id="edit-day"
+                label="Día"
+                value={values.day}
+                onChange={(value) => onChange({ day: Number(value) as WeekDay })}
+                options={WEEK_DAYS.map((option) => ({ value: option.value, label: option.label }))}
+                className="grow"
+              />
 
-              <div className="field grow">
-                <label className="label" htmlFor="edit-hour">
-                  Hora de inicio
-                </label>
-                <select
-                  id="edit-hour"
-                  className="select"
-                  value={values.startHour}
-                  onChange={(event) => onChange({ startHour: Number(event.target.value) })}
-                >
-                  {startHourOptions(session.startHour).map((hour) => (
-                    <option key={hour} value={hour}>
-                      {formatHour(hour)}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <SelectField
+                id="edit-hour"
+                label="Hora de inicio"
+                value={values.startHour}
+                onChange={(value) => onChange({ startHour: Number(value) })}
+                options={startHourOptions(session.startHour).map((hour) => ({ value: hour, label: formatHour(hour) }))}
+                className="grow"
+              />
             </div>
           </li>
 
           <li className="draft__row">
             <div className="draft__pair">
-              <div className="field grow">
-                <label className="label" htmlFor="edit-duration">
-                  Duración (horas)
-                </label>
-                <select
-                  id="edit-duration"
-                  className="select"
-                  value={values.durationHours}
-                  onChange={(event) => onChange({ durationHours: Number(event.target.value) })}
-                >
-                  {[1, 2, 3, 4].map((hours) => (
-                    <option key={hours} value={hours}>
-                      {hours}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <SelectField
+                id="edit-duration"
+                label="Duración (horas)"
+                value={values.durationHours}
+                onChange={(value) => onChange({ durationHours: Number(value) })}
+                options={[1, 2, 3, 4].map((hours) => ({ value: hours, label: String(hours) }))}
+                className="grow"
+              />
 
-              <div className="field grow">
-                <label className="label" htmlFor="edit-slots">
-                  Cupos
-                </label>
-                <select
-                  id="edit-slots"
-                  className="select"
-                  value={values.slots}
-                  onChange={(event) => onChange({ slots: Number(event.target.value) })}
-                >
-                  {slotOptions(slotRange(session)).map((count) => (
-                    <option key={count} value={count}>
-                      {count}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <SelectField
+                id="edit-slots"
+                label="Cupos"
+                value={values.slots}
+                onChange={(value) => onChange({ slots: Number(value) })}
+                options={slotOptions(slotRange(session)).map((count) => ({ value: count, label: String(count) }))}
+                className="grow"
+              />
             </div>
           </li>
 
           <li className="draft__row">
-            <div className="field">
-              <label className="label" htmlFor="edit-notes">
-                Notas (opcional)
-              </label>
-              <textarea
-                id="edit-notes"
-                className="textarea"
-                placeholder="Requisitos, tono de la sesión, canal de voz…"
-                value={values.notes}
-                {...notesLimit}
-              />
-            </div>
+            <TextAreaField
+              id="edit-notes"
+              label="Notas (opcional)"
+              placeholder="Requisitos, tono de la sesión, canal de voz…"
+              value={values.notes}
+              limit={notesLimit}
+            />
           </li>
         </ol>
 
         <div className="session-detail__actions">
-          <button
+          <AppButton
             type="button"
-            className="btn"
             onClick={saving ? undefined : onDiscard}
             aria-disabled={saving ? true : undefined}
           >
             {DISCARD_LABEL}
-          </button>
-          <button
+          </AppButton>
+          <AppButton
             ref={saveRef}
             type="submit"
-            className="btn btn--pen"
+            tone="pen"
             disabled={saving}
             aria-disabled={rereading ? true : undefined}
             onClick={rereading ? (event) => event.preventDefault() : undefined}
           >
-            {saving ? <span className="btn__spin" /> : null}
+            {saving ? <Spinner /> : null}
             {saving ? SENDING_TEXT : SAVE_CHANGES_LABEL}
-          </button>
+          </AppButton>
         </div>
       </form>
     </section>

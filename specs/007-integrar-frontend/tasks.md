@@ -95,6 +95,8 @@ presentación, Proponer sesión), con una tarea previa (línea base) y un cierre
     tildes); `typecheck`, `lint` y `build` en verde.
 
 - [x] **T4. Transporte con plazo de 30 s y clasificación de errores.** RF-5, RF-7, RF-9, RF-20, RNF-1
+  - Nota (2026-11-20, R23): la spec 014 añadió el plazo de 65 s para resincronizar y Riot (P14-11),
+    ahora recogido en RF-20; no reabre la tarea.
   - Hecha (2026-10-19): `errorBody.ts` y `transport.ts` nuevos; `ApiError` (con `hasMessage`),
     `SessionClearedError` e `isSessionCleared` viven en `transport.ts` y `httpClient.ts` los
     reexporta (evita un ciclo de imports; el mock sigue importando de `httpClient`); `request()` sobre

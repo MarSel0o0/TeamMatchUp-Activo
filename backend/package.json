@@ -8,6 +8,9 @@
   },
   "scripts": {
     "dev": "node --watch src/index.ts",
+    "build": "tsc",
+    "build:ui": "npm --prefix ../frontend run build && node scripts/copyUi.ts",
+    "start": "node out/index.js",
     "test": "NODE_ENV=test node --test --test-concurrency=1 'tests/**/*.test.ts'",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tests",
     "lint": "eslint ."

@@ -12,9 +12,23 @@ export type QueryUserId = string | null;
 
 export const queryKeys = {
   accounts: (userId: QueryUserId) => ['u', userId, 'profile', 'accounts'] as const,
+  /** ¿Tiene la instancia Steam configurado? (spec 013, RF-22). */
+  steamStatus: (userId: QueryUserId) => ['u', userId, 'steam', 'status'] as const,
+  /** ¿Tiene la instancia Riot Games configurado? (spec 014, RF-38). */
+  riotStatus: (userId: QueryUserId) => ['u', userId, 'riot', 'status'] as const,
+  /** Desafío abierto de verificación con Riot Games del usuario (spec 014, RF-45). */
+  riotChallenge: (userId: QueryUserId) => ['u', userId, 'riot', 'challenge'] as const,
+  /** Versión más reciente de Data Dragon para los íconos de LoL (spec 014, D93, O-3). */
+  ddragonVersion: ['ddragon', 'version'] as const,
   availability: (userId: QueryUserId) => ['u', userId, 'profile', 'availability'] as const,
   gameSummary: (userId: QueryUserId, gameId: GameId) =>
     ['u', userId, 'profile', 'summary', gameId] as const,
+  /**
+   * Partidas de CS2 pedidas en vivo a Leetify (spec 019, RF-1): `targetId` es el dueño de la
+   * cuenta. Sin caché propia: con `staleTime: 0` se vuelven a pedir en cada montaje.
+   */
+  leetifyMatches: (userId: QueryUserId, targetId: string, gameId: GameId) =>
+    ['u', userId, 'leetify-matches', targetId, gameId] as const,
   /** Prefijo de todos los resúmenes de perfil del usuario. */
   gameSummaries: (userId: QueryUserId) => ['u', userId, 'profile', 'summary'] as const,
   matches: (userId: QueryUserId, filters: MatchFilters) =>

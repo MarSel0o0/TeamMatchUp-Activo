@@ -16,6 +16,7 @@ import type {
   Credentials,
   GameAccount,
   GameId,
+  LeetifyMatches,
   MatchCandidate,
   MatchFilters,
   MatchRecord,
@@ -23,17 +24,26 @@ import type {
   PublicUser,
   RankSnapshot,
   RegisterPayload,
+  RiotChallenge,
+  RiotConfirmResult,
+  SyncAccountResult,
   TimeBlock,
   User,
   WeekDay,
 } from '@/domain/types';
-import { BAD_CREDENTIALS_TEXT, NO_MESSAGE_TEXT } from '@/shared/utils/copy';
+import {
+  BAD_CREDENTIALS_TEXT,
+  NO_MESSAGE_TEXT,
+  RIOT_MOCK_DISABLED_TEXT,
+  STEAM_MOCK_DISABLED_TEXT,
+} from '@/shared/utils/copy';
 import type {
   ApiContract,
   CreateSessionPayload,
   SessionEditPayload,
   GameProfileSummary,
   LinkAccountPayload,
+  SteamCompleteResult,
   UpdateProfilePayload,
 } from '../apiContract';
 import { readCsrf, saveCsrf } from '../http/csrfStorage';
@@ -41,7 +51,13 @@ import { ApiError, CSRF_HEADER } from '../http/httpClient';
 import { execute, type HeaderReader, type RawResponse } from '../http/transport';
 import { resolveMockSessionId } from './mockSessionTarget';
 import { resolveMockUserTarget } from './mockUserTarget';
-import { createSeedDatabase, matchJson, snapshotJson, type MockDatabase } from './seed';
+import {
+  createSeedDatabase,
+  matchJson,
+  SIMULATED_ORIGINS,
+  snapshotJson,
+  type MockDatabase,
+} from './seed';
 import { canonicalHandle, readAccountState } from './simulatedProvider';
 
 /* -------------------------------------------------------------------------- */
@@ -175,8 +191,14 @@ const MESSAGES = {
   } satisfies Record<GameId, string>,
   invalidRegion: (gameId: GameId): string => `región no válida para ${GAMES[gameId].name}`,
   duplicateAccount: 'ya tienes una cuenta vinculada en este juego',
+  // Spec 012 (`ACCOUNT_ERRORS` del servidor). El modo simulado no tiene cuentas verificadas,
+  // así que hoy ninguna operación los produce; quedan iguales a los del servidor (RF-12, RF-14).
+  verifiedElsewhere: 'esta cuenta ya está verificada por otro usuario',
+  verifiedNotEditable: 'una cuenta verificada no se puede editar: desvincúlala y vuelve a verificarla',
   accountNotFound: 'cuenta no encontrada',
   noAccountForGame: 'el jugador no tiene una cuenta vinculada en este juego',
+  // Spec 019 (`LEETIFY_MATCH_ERRORS` del backend).
+  notFromLeetify: 'esta cuenta no obtiene sus partidas de Leetify',
   forbidden: 'no tienes permiso para esta operación',
   // Spec 003 (`PROFILE_MESSAGES` y `AVAILABILITY_MESSAGES` del backend).
   displayNameType: 'el nombre visible debe ser un texto',
@@ -196,13 +218,12 @@ const MESSAGES = {
   userNotFound: 'usuario no encontrado',
   // Spec 005 (`MATCH_ERRORS` de `backend/src/domain/matchQuery.ts`, DP5-2, DP5-3 y DP5-17):
   // minúscula inicial y sin punto final; los rótulos entre « » conservan su mayúscula. El del
-  // filtro de verificadas conserva «rango verificado»: excepción al RF-16 de la spec 007 aprobada
-  // por el usuario el 2026-10-19 (R21); es el literal del servidor y la interfaz nunca lo muestra.
+  // filtro de verificadas dice «Solo cuentas verificadas» como el servidor (spec 012, RF-23).
   matchMaxRankDistance:
     'filtro «Diferencia máxima de rango» no válido: usa un número entero de 0 a 100',
   matchMinSharedHours:
     'filtro «Horas en común por semana» no válido: usa un número entero de 0 a 168',
-  matchOnlyVerified: 'filtro «Solo cuentas con rango verificado» no válido: usa true o false',
+  matchOnlyVerified: 'filtro «Solo cuentas verificadas» no válido: usa true o false',
   matchSearch: 'filtro «Buscar jugador» no válido',
   matchNoAccount: 'no tienes una cuenta vinculada en este juego',
   // Spec 006 (`SESSION_ERRORS` de `backend/src/domain/sessionRules.ts`): mayúscula inicial y
@@ -384,7 +405,10 @@ function gameSummaryOf(account: GameAccount): GameProfileSummary {
     account,
     recentMatches,
     winRate: winRateOf(recentMatches),
-    trend: first === undefined ? 0 : account.currentRank.normalized - first.normalized,
+    trend:
+      account.currentRank === null || first === undefined
+        ? 0
+        : account.currentRank.normalized - first.normalized,
   };
 }
 
@@ -801,8 +825,9 @@ export const mockApi: ApiContract = {
           currentRank: snapshot,
           rankHistory: [snapshot],
           lastSyncedAt: at.toISOString(),
-          verified: reading.verified,
-          simulated: true,
+          // Spec 012, RF-2: el modo simulado nunca verifica; todos los bloques son simulados.
+          verified: false,
+          origins: { ...SIMULATED_ORIGINS },
         };
 
         database.accounts.push(account);
@@ -828,7 +853,7 @@ export const mockApi: ApiContract = {
       }),
 
     syncAccount: (accountId: string) =>
-      protectedOperation<GameAccount>((user) => {
+      protectedOperation<SyncAccountResult>((user) => {
         // Spec 004, RF-10 y RF-11: existencia (404) y luego propiedad (403).
         const account = database.accounts.find((candidate) => candidate.id === accountId);
         if (account === undefined) return fail(404, MESSAGES.accountNotFound);
@@ -845,12 +870,11 @@ export const mockApi: ApiContract = {
           now: at,
         });
         const snapshot = snapshotJson(reading.snapshot);
-        if (shouldAppendSnapshot(account.currentRank, snapshot)) {
+        if (account.currentRank === null || shouldAppendSnapshot(account.currentRank, snapshot)) {
           account.rankHistory = [...account.rankHistory, snapshot];
         }
         account.currentRank = snapshot;
         account.lastSyncedAt = at.toISOString();
-        account.verified = reading.verified;
         database.matchHistory[account.id] = mergeMatches(
           database.matchHistory[account.id] ?? [],
           reading.matches.map(matchJson),
@@ -938,6 +962,23 @@ export const mockApi: ApiContract = {
         if (!account) return fail(404, MESSAGES.noAccountForGame);
         return reply(200, gameSummaryOf(account));
       }),
+
+    // Spec 019 (RF-11): el modo simulado nunca verifica con Steam (spec 013, D10), así que ninguna
+    // cuenta obtiene partidas de Leetify; responde como el servidor a una cuenta que no es de Leetify.
+    getLeetifyMatches: (userId: string, gameId: GameId) =>
+      protectedOperation<LeetifyMatches>((user) => {
+        const target = resolveMockUserTarget(userId, user.id);
+        if (!target.ok) return fail(400, MESSAGES.invalidId);
+        if (!isKnownGame(gameId)) return fail(400, MESSAGES.invalidGame);
+        if (!database.users.some((candidate) => candidate.id === target.id)) {
+          return fail(404, MESSAGES.userNotFound);
+        }
+        const account = database.accounts.find(
+          (candidate) => candidate.userId === target.id && candidate.gameId === gameId,
+        );
+        if (!account) return fail(404, MESSAGES.noAccountForGame);
+        return fail(404, MESSAGES.notFromLeetify);
+      }),
   },
 
   matches: {
@@ -963,7 +1004,7 @@ export const mockApi: ApiContract = {
             return [
               {
                 user: toPublicUser(owner),
-                account: { ...account, simulated: true },
+                account,
                 blocks: database.availability[owner.id] ?? [],
               },
             ];
@@ -1100,5 +1141,27 @@ export const mockApi: ApiContract = {
         persist();
         return reply(204);
       }),
+  },
+
+  // Spec 013, RF-21 y D10: en modo simulado nunca se simula una verificación con Steam ni datos de
+  // Steam (constitución, principio 5). La interfaz muestra el botón desactivado; si algo llamara
+  // igual a `start` o `complete`, rechazan con el mismo texto.
+  steam: {
+    status: () => protectedOperation<{ available: boolean }>(() => reply(200, { available: false })),
+    start: () => protectedOperation<{ url: string }>(() => fail(503, STEAM_MOCK_DISABLED_TEXT)),
+    complete: () => protectedOperation<SteamCompleteResult>(() => fail(503, STEAM_MOCK_DISABLED_TEXT)),
+    // Sin intentos simulados no hay nada que descartar (RF-7).
+    abandon: () => Promise.resolve(),
+  },
+
+  // Spec 014, RF-42: en modo simulado nunca se simula una verificación con Riot ni datos de Riot
+  // (constitución, principio 5).
+  riot: {
+    status: () => protectedOperation<{ available: boolean }>(() => reply(200, { available: false })),
+    currentChallenge: () => protectedOperation<RiotChallenge | null>(() => reply(200, null)),
+    createChallenge: () =>
+      protectedOperation<RiotChallenge>(() => fail(503, RIOT_MOCK_DISABLED_TEXT)),
+    confirmChallenge: () =>
+      protectedOperation<RiotConfirmResult>(() => fail(503, RIOT_MOCK_DISABLED_TEXT)),
   },
 };

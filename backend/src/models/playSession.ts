@@ -13,6 +13,7 @@ import type { HydratedDocument, Types } from "mongoose";
 import { GAME_IDS } from "../domain/games.ts";
 import type { GameId } from "../domain/games.ts";
 import type { SessionStatus } from "../domain/sessionState.ts";
+import { COLLECTIONS } from "./collections.ts";
 
 export interface PlaySessionFields {
   gameId: GameId;
@@ -69,4 +70,4 @@ const PlaySessionSchema = new Schema<PlaySessionFields>(
   },
 );
 
-export const PlaySession = model<PlaySessionFields>("PlaySession", PlaySessionSchema);
+export const PlaySession = model<PlaySessionFields>("PlaySession", PlaySessionSchema, COLLECTIONS.playSessions);

@@ -1,0 +1,110 @@
+/*
+ * Pestañas de juego (spec 017, M11; RF-2, RF-3, RF-13, RF-20; plan 4.5), sobre el `Tabs` de la librería
+ * (`mantineTheme.ts` le pone las clases `tmu-tabs*`). Segmento en píldora con la píldora de la pestaña elegida
+ * (`motion`, tinta del juego), el punto de color y el panel como parada del recorrido con Tab. Solo tokens.
+ */
+.tmu-tabs {
+  display: contents;
+}
+
+.tmu-tabs__list {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  align-self: flex-start;
+  max-width: 100%;
+  gap: 2px;
+  padding: 4px;
+  border-radius: var(--r-pill);
+  background: var(--surface-sunk);
+  border: 1px solid var(--line);
+  box-shadow: var(--inset);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+/* La línea de la variante por defecto de la librería no se usa. */
+.tmu-tabs__list::before {
+  content: none;
+}
+
+.tmu-tabs__list::-webkit-scrollbar {
+  display: none;
+}
+
+.tmu-tabs__tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  height: 38px;
+  padding: 0 var(--s4);
+  border: 0;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--ink-2);
+  font-size: var(--t-small);
+  font-weight: 540;
+  line-height: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--base) var(--ease);
+}
+
+.tmu-tabs__tab:hover {
+  color: var(--ink);
+}
+
+/* La estructura interna de la librería no existe para la disposición. */
+.tmu-tabs__tablabel {
+  display: contents;
+}
+
+.tmu-tabs__tab .tmu-tabs__dot,
+.tmu-tabs__tab .tmu-tabs__name {
+  position: relative;
+  z-index: 1;
+}
+
+.tmu-tabs__pill {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: var(--tab-pill-shadow);
+}
+
+.tmu-tabs__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  transition: background var(--base) var(--ease);
+}
+
+.tmu-tabs__tab[aria-selected='true'] {
+  color: var(--tab-ink);
+  font-weight: 620;
+}
+
+.tmu-tabs__tab[aria-selected='true'] .tmu-tabs__dot {
+  background: var(--tab-ink) !important;
+}
+
+/* El panel recibe el foco por teclado: el indicador de siempre, por dentro, para que el recorte de la hoja no lo
+   oculte. */
+.tmu-tabs__panel:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: -2px;
+}
+
+/*
+ * Pestañas de partidas por modo (spec 020, RF-5, RF-11, RNF-3), `PillTabs`: la misma píldora, más baja y con menos
+ * relleno para que las seis quepan en una ficha estrecha; si aun así no caben, la lista se desplaza (ya lo hace
+ * `.tmu-tabs__list`) sin desbordar. Separación respecto de la lista de partidas con un token.
+ */
+.tmu-tabs__list--compact {
+  margin-block-end: var(--s3);
+}
+
+.tmu-tabs__list--compact .tmu-tabs__tab {
+  height: 34px;
+  padding: 0 var(--s3);
+}

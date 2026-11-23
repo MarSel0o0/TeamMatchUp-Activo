@@ -148,3 +148,16 @@ vite.config.ts.timestamp-*
 # Evidencia transitoria de las rondas de inspección visual (capturas, diffs).
 .impeccable/review/
 .impeccable/mocks/
+
+# Claude Code: configuración local por desarrollador (hooks de graphify, etc.)
+.claude/settings.local.json
+.claude/*.graphify-bak
+
+# macOS
+.DS_Store
+
+# Pruebas E2E (spec 018): informes, trazas y capturas de Playwright.
+e2etests/playwright-report/
+e2etests/playwright-report-json/
+e2etests/test-results/
+e2etests/blob-report/
