@@ -1,39 +1,39 @@
-# Pruebas E2E de TeamMatchUp
+# TeamMatchUp E2E tests
 
-Suite de pruebas de extremo a extremo con [Playwright](https://playwright.dev/) (spec 018,
-`specs/018-pruebas-e2e/`). Recorre la aplicación en un navegador real, contra el servidor real
-compilado y una base MongoDB propia, con siete escenarios que se ejecutan en serie:
+End-to-end test suite with [Playwright](https://playwright.dev/). It walks through the
+application in a real browser, against the real compiled server and its own MongoDB database,
+with seven scenarios that run serially:
 
-| Código | Escenario |
+| Code | Scenario |
 | --- | --- |
-| E1 | ruta protegida sin sesión y vuelta a la ruta de origen |
-| E2 | credenciales incorrectas |
-| E3 | ruta protegida con sesión y recarga |
-| E4 | cierre de sesión |
-| C1 | crear y listar una sesión de juego |
-| C2 | ver y editar, con Atrás, Adelante y recarga |
-| C3 | eliminar (= cancelar) una sesión de juego |
+| E1 | protected route without a session and return to the original route |
+| E2 | wrong credentials |
+| E3 | protected route with a session and reload |
+| E4 | logout |
+| C1 | create and list a game session |
+| C2 | view and edit, with Back, Forward and reload |
+| C3 | delete (= cancel) a game session |
 
-Esta carpeta es independiente de `frontend/` y `backend/`: tiene sus propias dependencias, su
-configuración, su comprobación de tipos y su lint, y no importa código de las otras dos. Llega a
-la aplicación solo por el navegador y por la API HTTP.
+This folder is independent of `frontend/` and `backend/`: it has its own dependencies,
+configuration, type checking and lint, and it imports no code from the other two. It reaches the
+application only through the browser and the HTTP API.
 
-Todos los comandos de este documento se escriben **desde la carpeta `e2etests/`** salvo que se
-diga otra cosa, y valen igual en Linux, macOS y Windows (bash, zsh, PowerShell o `cmd`): ningún
-script usa sintaxis propia de una consola.
+All commands in this document are run **from the `e2etests/` folder** unless stated otherwise,
+and work the same on Linux, macOS and Windows (bash, zsh, PowerShell or `cmd`): no script uses
+shell-specific syntax.
 
-## Condiciones previas
+## Prerequisites
 
-| Qué | Cómo comprobarlo | Cómo cumplirlo |
+| What | How to check | How to meet it |
 | --- | --- | --- |
-| Node.js **22.18 o superior** | `node --version` | Instalar Node 22 LTS (22.18 o posterior) |
-| MongoDB local en marcha en `127.0.0.1:27017` | que el servicio esté iniciado (ver abajo) | Servicio de MongoDB o contenedor Docker (ver abajo) |
-| Dependencias de `frontend/` | — | `npm ci` dentro de `frontend/` |
-| Dependencias de `backend/` | — | `npm ci` dentro de `backend/` |
-| Dependencias de `e2etests/` | — | `npm ci` dentro de `e2etests/` |
-| Chromium de Playwright | — | `npm run browser:install` dentro de `e2etests/` |
+| Node.js **22.18 or later** | `node --version` | Install Node 22 LTS (22.18 or later) |
+| Local MongoDB running at `127.0.0.1:27017` | that the service is started (see below) | MongoDB service or Docker container (see below) |
+| `frontend/` dependencies | — | `npm ci` inside `frontend/` |
+| `backend/` dependencies | — | `npm ci` inside `backend/` |
+| `e2etests/` dependencies | — | `npm ci` inside `e2etests/` |
+| Playwright Chromium | — | `npm run browser:install` inside `e2etests/` |
 
-Desde la raíz del repositorio, la primera vez:
+From the repository root, the first time:
 
 ```bash
 cd frontend
@@ -45,191 +45,193 @@ npm ci
 npm run browser:install
 ```
 
-- `npm run browser:install` descarga Chromium en la caché de Playwright del usuario, fuera del
-  repositorio. En Linux, si al ejecutar la suite falta alguna biblioteca del sistema, instálalas
-  con `npx playwright install --with-deps chromium` (pide permisos de administrador).
-- MongoDB: basta con cualquier MongoDB local escuchando en `127.0.0.1:27017` (el mismo que usas
-  para desarrollar). Si no tienes uno, con Docker:
-  `docker run -d --name tmu-mongo-e2e -p 127.0.0.1:27017:27017 mongo` (y después
-  `docker start tmu-mongo-e2e` para volver a arrancarlo).
-- **No hace falta `backend/.env`** ni ningún archivo de variables: la suite fija todo lo que
-  necesita en el entorno del proceso. Si `backend/.env` o `frontend/.env*` existen, no los modifica
-  y lo que digan no cambia lo que se prueba (ver «Qué no toca»).
+- `npm run browser:install` downloads Chromium into the user's Playwright cache, outside the
+  repository. On Linux, if a system library is missing when running the suite, install them with
+  `npx playwright install --with-deps chromium` (it asks for administrator permissions).
+- MongoDB: any local MongoDB listening on `127.0.0.1:27017` is enough (the same one you use for
+  development). If you do not have one, with Docker:
+  `docker run -d --name tmu-mongo-e2e -p 127.0.0.1:27017:27017 mongo` (and later
+  `docker start tmu-mongo-e2e` to start it again).
+- **`backend/.env` is not needed**, nor any variables file: the suite sets everything it needs in
+  the process environment. If `backend/.env` or `frontend/.env*` exist, it does not modify them
+  and what they say does not change what is tested (see "What it does not touch").
 
-Si faltan dependencias de `frontend/` o `backend/`, Chromium no está instalado o el puerto está
-ocupado, la suite lo dice y termina con un código distinto de 0 **antes de compilar**. Si faltan
-las dependencias de `e2etests/`, quien falla es npm (algo como «playwright: orden no encontrada» o
-«'playwright' is not recognized»): ejecuta `npm ci` en `e2etests/`.
+If `frontend/` or `backend/` dependencies are missing, Chromium is not installed or the port is
+busy, the suite says so and exits with a non-zero code **before building**. If the `e2etests/`
+dependencies are missing, it is npm that fails (something like "playwright: command not found" or
+"'playwright' is not recognized"): run `npm ci` in `e2etests/`.
 
-### Herramienta opcional: mongosh
+### Optional tool: mongosh
 
-El intérprete de MongoDB (`mongosh`) **no hace falta para ejecutar la suite**. Sirve para
-inspeccionar o borrar a mano la base E2E. Para comprobar si lo tienes:
+The MongoDB shell (`mongosh`) is **not needed to run the suite**. It is useful for inspecting or
+manually deleting the E2E database. To check whether you have it:
 
 ```bash
 mongosh --version
 ```
 
-Si usas MongoDB en Docker, el contenedor ya lo trae: `docker exec -it tmu-mongo-e2e mongosh`.
+If you use MongoDB in Docker, the container already includes it:
+`docker exec -it tmu-mongo-e2e mongosh`.
 
-## Comandos
+## Commands
 
-| Para | Comando |
+| To | Command |
 | --- | --- |
-| Ejecutar la suite completa | `npm test` |
-| Ejecutar un solo escenario | `npm test -- --grep C2` (cualquier código: E1, E2, E3, E4, C1, C2, C3) |
-| Ejecutar los escenarios en orden inverso (C3 → E1) | `npm run test:reverse` |
-| Abrir el informe de la última ejecución | `npm run report` |
-| Comprobación de tipos | `npm run typecheck` |
+| Run the full suite | `npm test` |
+| Run a single scenario | `npm test -- --grep C2` (any code: E1, E2, E3, E4, C1, C2, C3) |
+| Run the scenarios in reverse order (C3 → E1) | `npm run test:reverse` |
+| Open the report of the last run | `npm run report` |
+| Type checking | `npm run typecheck` |
 | Lint | `npm run lint` |
-| Pruebas de las reglas propias de la suite (`node:test`) | `npm run test:unit` |
+| Tests of the suite's own rules (`node:test`) | `npm run test:unit` |
 
-Si en alguna consola `npm test -- --grep C2` ejecuta los siete escenarios en lugar de uno (algunas
-versiones de PowerShell se comen el `--`), usa la forma equivalente sin `--`:
+If in some shell `npm test -- --grep C2` runs all seven scenarios instead of one (some PowerShell
+versions swallow the `--`), use the equivalent form without `--`:
 `npx playwright test --project=chromium --grep C2`.
 
-`npm test` hace, en este orden:
+`npm test` does, in this order:
 
-1. comprueba, sin compilar ni arrancar nada, el nombre y la ubicación de la base E2E, las
-   dependencias, Chromium y que el puerto esté libre;
-2. compila la interfaz y el servidor a partir del código actual;
-3. arranca el servidor compilado en modo producción en `http://127.0.0.1:3901` con la base E2E y
-   espera a que responda (como mucho 60 s);
-4. ejecuta los siete escenarios en Chromium, de uno en uno;
-5. detiene el servidor al terminar, también si un escenario falla o si interrumpes con Ctrl+C;
-6. termina con código 0 si pasan todos y con otro código si falla alguno.
+1. checks, without building or starting anything, the name and location of the E2E database, the
+   dependencies, Chromium and that the port is free;
+2. builds the interface and the server from the current code;
+3. starts the compiled server in production mode at `http://127.0.0.1:3901` with the E2E database
+   and waits for it to respond (60 s at most);
+4. runs the seven scenarios in Chromium, one at a time;
+5. stops the server when finished, also if a scenario fails or if you interrupt with Ctrl+C;
+6. exits with code 0 if all pass and another code if any fails.
 
-Sin reintentos automáticos: un escenario que falla una vez cuenta como fallido.
+No automatic retries: a scenario that fails once counts as failed.
 
-### Cada ejecución sustituye las construcciones
+### Each run replaces the builds
 
-Cada ejecución compila la interfaz y el servidor y **sustituye las construcciones que hubiera**:
-`frontend/dist/` (salida de la interfaz), `backend/dist/` (la interfaz que sirve el servidor) y
-`backend/out/` (el servidor compilado). Son las mismas carpetas del procedimiento de producción de
-la spec 010; no se suben al repositorio y, si las necesitas como estaban, vuelve a generarlas con
-ese procedimiento (`npm run build:ui` y `npm run build` en `backend/`, ver el README raíz).
+Each run builds the interface and the server and **replaces any existing builds**:
+`frontend/dist/` (interface output), `backend/dist/` (the interface the server serves) and
+`backend/out/` (the compiled server). They are the same folders as in the production procedure;
+they are not committed and, if you need them as they were, regenerate them with that procedure
+(`npm run build:ui` and `npm run build` in `backend/`, see the root README).
 
-> **Aviso (limitación conocida, Q8).** No ejecutes la suite mientras tengas en marcha un servidor
-> de producción local arrancado a mano desde este mismo checkout en otro puerto (por ejemplo, el
-> procedimiento de la spec 010 en el 3001). La suite solo comprueba su propio puerto, no detecta
-> ese servidor y sustituiría las construcciones que está sirviendo. Detén ese servidor antes. El
-> entorno de desarrollo (`npm run dev` del servidor en 3001 y de la interfaz en 5173) no tiene
-> este problema: no usa las construcciones y la suite puede correr a la vez.
+> **Warning (known limitation).** Do not run the suite while a local production server, started by
+> hand from this same checkout, is running on another port (for example, the production procedure
+> on 3001). The suite only checks its own port, does not detect that server and would replace the
+> builds it is serving. Stop that server first. The development environment (`npm run dev` for the
+> server on 3001 and the interface on 5173) does not have this problem: it does not use the builds
+> and the suite can run at the same time.
 
-## Base de datos E2E
+## E2E database
 
-- La suite usa la base **`teammatchup_e2e`** en `mongodb://127.0.0.1:27017`, distinta de la de
-  desarrollo (`teammatchup`) y de la de pruebas del servidor (`teammatchup_test`).
-- Antes de compilar exige que el nombre contenga «e2e» (sin distinguir mayúsculas), que no
-  coincida con la base de desarrollo ni con la de pruebas configuradas (en el entorno o en
-  `backend/.env`) y que la ubicación sea local (`127.0.0.1` o `localhost`, sin `mongodb+srv://`).
-  Si no, termina con un mensaje que dice qué regla falla, sin mostrar la ubicación.
-- Cada escenario crea su propio usuario de prueba por la API (con correo y nombre únicos), y al
-  terminar, pase o falle, lo elimina por la API, lo que borra en cascada sus cuentas de juego y sus
-  sesiones de juego. **Tras una ejecución completa la base queda sin documentos** (las colecciones
-  `tmu_*` pueden existir, vacías).
-- Pueden quedar restos si interrumpes una ejecución en un mal momento o si falla la limpieza de un
-  escenario. En ese caso el informe lo dice («Falló la limpieza, no el escenario») con el correo y
-  el nombre del usuario que quedó y el código recibido. Los restos no hacen fallar las ejecuciones
-  siguientes. Para borrarlos, elimina la base E2E entera:
+- The suite uses the **`teammatchup_e2e`** database at `mongodb://127.0.0.1:27017`, distinct from
+  the development one (`teammatchup`) and the server's test one (`teammatchup_test`).
+- Before building it requires that the name contains "e2e" (case-insensitive), that it does not
+  match the configured development or test databases (in the environment or in `backend/.env`)
+  and that the location is local (`127.0.0.1` or `localhost`, no `mongodb+srv://`). Otherwise it
+  exits with a message saying which rule fails, without showing the location.
+- Each scenario creates its own test user through the API (with a unique email and name), and when
+  finished, whether it passes or fails, deletes it through the API, which cascades to its game
+  accounts and game sessions. **After a full run the database is left with no documents** (the
+  `tmu_*` collections may exist, empty).
+- Leftovers can remain if you interrupt a run at a bad moment or if a scenario's cleanup fails. In
+  that case the report says so ("Falló la limpieza, no el escenario": the cleanup failed, not the
+  scenario) with the email and name of the user left behind and the code received. Leftovers do
+  not make later runs fail. To remove them, drop the whole E2E database:
 
   ```bash
   mongosh "mongodb://127.0.0.1:27017/teammatchup_e2e" --eval "db.dropDatabase()"
   ```
 
-  (con Docker: `docker exec tmu-mongo-e2e mongosh "mongodb://127.0.0.1:27017/teammatchup_e2e" --eval "db.dropDatabase()"`).
-  Si cambiaste el nombre con `E2E_MONGODB_DBNAME`, usa ese nombre.
+  (with Docker: `docker exec tmu-mongo-e2e mongosh "mongodb://127.0.0.1:27017/teammatchup_e2e" --eval "db.dropDatabase()"`).
+  If you changed the name with `E2E_MONGODB_DBNAME`, use that name.
 
-## Variables opcionales
+## Optional variables
 
-Ninguna es obligatoria y **ninguna es un secreto**. No hay archivo de variables propio de la
-suite.
+None is required and **none is a secret**. The suite has no variables file of its own.
 
-| Variable | Valor por defecto | Para qué |
+| Variable | Default | Purpose |
 | --- | --- | --- |
-| `E2E_PORT` | `3901` | Puerto del sistema bajo prueba (siempre en `127.0.0.1`) |
-| `E2E_MONGODB_URI` | `mongodb://127.0.0.1:27017` | Ubicación de MongoDB; debe ser local |
-| `E2E_MONGODB_DBNAME` | `teammatchup_e2e` | Nombre de la base E2E; debe contener «e2e» |
+| `E2E_PORT` | `3901` | Port of the system under test (always on `127.0.0.1`) |
+| `E2E_MONGODB_URI` | `mongodb://127.0.0.1:27017` | MongoDB location; must be local |
+| `E2E_MONGODB_DBNAME` | `teammatchup_e2e` | E2E database name; must contain "e2e" |
 
-Cómo fijarlas para una ejecución:
+How to set them for one run:
 
-- bash o zsh (Linux, macOS): `E2E_PORT=3902 npm test`
-- PowerShell (Windows): `$env:E2E_PORT="3902"; npm test` (queda fijada en esa ventana hasta que
-  la cierres o ejecutes `Remove-Item Env:E2E_PORT`)
-- `cmd` (Windows): `set E2E_PORT=3902` y después `npm test`
+- bash or zsh (Linux, macOS): `E2E_PORT=3902 npm test`
+- PowerShell (Windows): `$env:E2E_PORT="3902"; npm test` (it stays set in that window until you
+  close it or run `Remove-Item Env:E2E_PORT`)
+- `cmd` (Windows): `set E2E_PORT=3902` and then `npm test`
 
-## Puerto
+## Port
 
-El sistema bajo prueba escucha solo en `127.0.0.1`, en el puerto **3901** (o el de `E2E_PORT`),
-distinto de los de desarrollo (3001 del servidor y 5173 de la interfaz). Si el puerto está
-ocupado, por otra ejecución de la suite o por cualquier otro programa, la suite termina antes de
-compilar; nunca reutiliza un servidor que ya esté escuchando.
+The system under test listens only on `127.0.0.1`, on port **3901** (or `E2E_PORT`), distinct
+from the development ones (3001 for the server and 5173 for the interface). If the port is busy,
+because of another run of the suite or any other program, the suite exits before building; it
+never reuses a server that is already listening.
 
-## Solo Chromium
+## Chromium only
 
-La suite solo usa el Chromium que instala Playwright. Prueba la construcción de producción
-servida por el servidor real en modo producción (Q1), y en ese modo la cookie de sesión lleva el
-atributo `Secure`; la suite la abre en `http://127.0.0.1`, sin HTTPS, y Chromium acepta y envía
-esa cookie en `127.0.0.1` (comprobado en la tarea T1), pero Firefox y WebKit no lo garantizan
-(Q2). Además, Chromium es el navegador del equipo y del evaluador y el más rápido de ejecutar.
+The suite only uses the Chromium that Playwright installs. It tests the production build served by
+the real server in production mode, and in that mode the session cookie carries the `Secure`
+attribute; the suite opens it at `http://127.0.0.1`, without HTTPS, and Chromium accepts and sends
+that cookie on `127.0.0.1`, but Firefox and WebKit do not guarantee it. Besides, Chromium is the
+team's browser and the fastest to run.
 
-## Qué no toca
+## What it does not touch
 
-- Ni la base de desarrollo, ni la de pruebas del servidor, ni la de producción: solo la base E2E.
-- Ni el modo simulado de la interfaz: compila siempre con `VITE_USE_MOCK_API=false` y la API en
-  `/api` del mismo servidor, aunque `frontend/.env*` diga otra cosa.
-- Ni ningún servicio externo: arranca el servidor sin claves de Steam, Riot Games ni Leetify
-  (aunque `backend/.env` las tenga) y, mientras corre un escenario, el navegador bloquea toda
-  petición a otro origen. La suite pasa sin conexión a Internet una vez instalado todo.
-- Ni los archivos de variables (`backend/.env`, `frontend/.env*`): todo lo pasa por el entorno del
-  proceso. El secreto de firma de las sesiones se genera al azar en cada ejecución y no se escribe
-  en ningún archivo, informe ni salida.
-- Ni el código de `frontend/` ni de `backend/`.
+- Neither the development database, nor the server's test one, nor the production one: only the
+  E2E database.
+- Nor the interface's mock mode: it always builds with `VITE_USE_MOCK_API=false` and the API at
+  `/api` on the same server, even if `frontend/.env*` says otherwise.
+- Nor any external service: it starts the server without Steam, Riot Games or Leetify keys (even
+  if `backend/.env` has them) and, while a scenario runs, the browser blocks any request to
+  another origin. The suite passes without an Internet connection once everything is installed.
+- Nor the variables files (`backend/.env`, `frontend/.env*`): everything is passed through the
+  process environment. The session signing secret is generated at random on each run and is not
+  written to any file, report or output.
+- Nor the code of `frontend/` or `backend/`.
 
-## Informe y trazas de un escenario fallido
+## Report and traces of a failed scenario
 
-- La consola muestra qué escenario falló, en qué paso y qué comprobación (con su archivo y línea).
-- `npm run report` abre el informe HTML de la última ejecución (`playwright-report/`). En cada
-  escenario fallido están el error, la captura de pantalla y la traza.
-- La traza (`trace.zip`) y la captura (`test-failed-1.png`) quedan también en
-  `test-results/<escenario>/`. Para abrir una traza: `npx playwright show-trace <ruta del
-  trace.zip>`. Solo se guardan de los escenarios que fallan.
-- Hay además un informe JSON en `playwright-report-json/report.json`.
-- `playwright-report/`, `playwright-report-json/` y `test-results/` no se suben al repositorio
-  (están en `.gitignore`); cada ejecución las sustituye.
+- The console shows which scenario failed, at which step and which assertion (with its file and
+  line).
+- `npm run report` opens the HTML report of the last run (`playwright-report/`). Each failed
+  scenario has the error, the screenshot and the trace.
+- The trace (`trace.zip`) and the screenshot (`test-failed-1.png`) are also left in
+  `test-results/<scenario>/`. To open a trace: `npx playwright show-trace <path to
+  trace.zip>`. They are only saved for scenarios that fail.
+- There is also a JSON report in `playwright-report-json/report.json`.
+- `playwright-report/`, `playwright-report-json/` and `test-results/` are not committed (they are
+  in `.gitignore`); each run replaces them.
 
-## Duración
+## Duration
 
-Medida el 2026-11-22 en un equipo de desarrollo con Linux (Node 22.20.0, MongoDB 9.0.8 en Docker),
-con dependencias y Chromium ya instalados: **unos 30 segundos** por ejecución completa,
-compilación de la interfaz y del servidor incluida (tres ejecuciones seguidas: 29,1 s, 27,2 s y
-26,5 s). Un escenario solo tarda entre 10 y 15 segundos, casi todo compilación.
+Measured on 2026-11-22 on a Linux development machine (Node 22.20.0, MongoDB 9.0.8 in Docker),
+with dependencies and Chromium already installed: **about 30 seconds** per full run, including
+building the interface and the server (three consecutive runs: 29.1 s, 27.2 s and 26.5 s). A
+single scenario takes between 10 and 15 seconds, mostly building.
 
-## Plataformas
+## Platforms
 
-| Plataforma | ¿Ejecutada de verdad? | Fecha | Resultado |
+| Platform | Actually run? | Date | Result |
 | --- | --- | --- | --- |
-| Linux (Arch, Node 22.20.0) | Sí | 2026-11-22 | 7 passed, también en orden inverso |
-| macOS o Windows | **Pendiente** | — | Falta que la ejecute un integrante del equipo |
+| Linux (Arch, Node 22.20.0) | Yes | 2026-11-22 | 7 passed, also in reverse order |
+| macOS or Windows | **Pending** | — | Needs a team member to run it |
 
-A día de hoy la suite **solo se ha ejecutado de verdad en Linux**. En macOS y Windows la regla de
-no usar sintaxis de una consola se ha comprobado solo leyendo los scripts.
+As of today the suite has **only actually been run on Linux**. On macOS and Windows the rule of
+using no shell-specific syntax has only been checked by reading the scripts.
 
-**Para quien la ejecute en macOS o Windows** (idealmente alguien que no escribió la suite,
-siguiendo solo este README):
+**For whoever runs it on macOS or Windows** (ideally someone who did not write the suite,
+following only this README):
 
-1. Cumple las condiciones previas (Node, MongoDB, `npm ci` en las tres carpetas y
+1. Meet the prerequisites (Node, MongoDB, `npm ci` in the three folders and
    `npm run browser:install`).
-2. Desde `e2etests/`, ejecuta y guarda el resultado de:
+2. From `e2etests/`, run and save the result of:
    - `node --version`
    - `npm run test:unit`
    - `npm run typecheck`
    - `npm run lint`
-   - `npm test` (anota la última línea, por ejemplo `7 passed (30.0s)`, y si terminó sin error)
+   - `npm test` (note the last line, for example `7 passed (30.0s)`, and whether it ended without
+     error)
    - `npm run test:reverse`
-3. Comprueba que, al terminar, ya no hay nada escuchando en el puerto 3901 (en macOS:
-   `lsof -i :3901` no muestra nada; en Windows PowerShell: `Get-NetTCPConnection -LocalPort 3901`
-   da error de que no hay ninguna).
-4. Anota la plataforma (sistema y versión, consola usada), la fecha, las salidas anteriores y
-   cualquier paso de este README que no te sirviera tal cual en la tabla de arriba y en
-   `specs/018-pruebas-e2e/validation.md` (sección T10, «Otra plataforma»).
+3. Check that, when finished, nothing is listening on port 3901 (on macOS: `lsof -i :3901` shows
+   nothing; on Windows PowerShell: `Get-NetTCPConnection -LocalPort 3901` errors that there is
+   none).
+4. Note the platform (system and version, shell used), the date, the outputs above and any step
+   of this README that did not work as written, and report it to the team.

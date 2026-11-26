@@ -175,3 +175,4 @@ e2etests/blob-report/
 /install-plugins.sh
 /package-lock.json
 /*.pdf
+/backend/plan-de-cosas-que-faltan.md
