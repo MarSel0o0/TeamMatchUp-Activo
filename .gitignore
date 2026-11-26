@@ -161,3 +161,17 @@ e2etests/playwright-report/
 e2etests/playwright-report-json/
 e2etests/test-results/
 e2etests/blob-report/
+
+# Material de proceso y de uso personal (sigue en disco, no se publica)
+/specs/
+/docs/
+/.claude/
+/.idea/
+/.impeccable/
+/MEMORY.md
+/AGENTS.md
+/CLAUDE.md
+/skills-lock.json
+/install-plugins.sh
+/package-lock.json
+/*.pdf
