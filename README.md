@@ -48,7 +48,7 @@ Proyecto del curso **CC5003 – Aplicaciones Web Reactivas** (DCC, FCFM, Univers
 19. [Construcción de producción](#construcción-de-producción)
 20. [Despliegue en el servidor del curso](#despliegue-en-el-servidor-del-curso)
 21. [Seguridad](#seguridad)
-22. [Metodología: desarrollo guiado por specs](#metodología-desarrollo-guiado-por-specs)
+22. [Metodología](#metodología)
 23. [Convenciones de código](#convenciones-de-código)
 24. [Solución de problemas](#solución-de-problemas)
 25. [Documentación adicional](#documentación-adicional)
@@ -90,14 +90,14 @@ El detalle de usuarios, propósito y principios de producto está en [`PRODUCT.m
 
 ## Requisitos del hito y dónde se cumplen
 
-| Requisito del enunciado | Implementación | Spec |
-| --- | --- | --- |
-| **Estado global** (Zustand o Redux, ≥ 2 stores) | Zustand 5: almacén de la **sesión iniciada** y almacén de la **agenda** (entidad principal). Ver [Estado global](#estado-global). | [016](specs/016-estado-global/spec.md) |
-| **Ruteo** con rutas públicas y protegidas; Atrás, Adelante y F5 | React Router 6, `ProtectedRoute` + `SessionGate`, vuelta a la ruta de origen tras iniciar sesión; el servidor entrega la SPA en cualquier ruta fuera de `/api`. | [007](specs/007-integrar-frontend/spec.md), [010](specs/010-despliegue/spec.md) |
-| **Pruebas E2E** con Playwright en `e2etests/` (login + acceso protegido, CRUD) | 7 escenarios: E1–E4 (autenticación y rutas protegidas) y C1–C3 (crear, listar, editar y cancelar sesiones de juego). Ver [Pruebas E2E](#pruebas-e2e-e2etests). | [018](specs/018-pruebas-e2e/spec.md) |
-| **Librería de estilos** | Mantine 8.3.18 con un tema construido solo con referencias a los tokens de diseño. | [017](specs/017-libreria-de-estilos/spec.md) |
-| **Buenas prácticas** | TypeScript estricto sin `any` ni `@ts-ignore`; errores en JSON `{ "error": "…" }` con su código HTTP; secretos solo en `.env` (no versionado). | [001](specs/001-crear-backend/spec.md)–[015](specs/015-rango-premier/spec.md) |
-| **Despliegue** en `fullstack.dcc.uchile.cl` | Puerto 7041, proceso PM2 `reactivoActivo-7041`. | [010](specs/010-despliegue/spec.md) |
+| Requisito del enunciado | Implementación |
+| --- | --- |
+| **Estado global** (Zustand o Redux, ≥ 2 stores) | Zustand 5: almacén de la **sesión iniciada** y almacén de la **agenda** (entidad principal). Ver [Estado global](#estado-global). |
+| **Ruteo** con rutas públicas y protegidas; Atrás, Adelante y F5 | React Router 6, `ProtectedRoute` + `SessionGate`, vuelta a la ruta de origen tras iniciar sesión; el servidor entrega la SPA en cualquier ruta fuera de `/api`. |
+| **Pruebas E2E** con Playwright en `e2etests/` (login + acceso protegido, CRUD) | 7 escenarios: E1–E4 (autenticación y rutas protegidas) y C1–C3 (crear, listar, editar y cancelar sesiones de juego). Ver [Pruebas E2E](#pruebas-e2e-e2etests). |
+| **Librería de estilos** | Mantine 8.3.18 con un tema construido solo con referencias a los tokens de diseño. |
+| **Buenas prácticas** | TypeScript estricto sin `any` ni `@ts-ignore`; errores en JSON `{ "error": "…" }` con su código HTTP; secretos solo en `.env` (no versionado). |
+| **Despliegue** en `fullstack.dcc.uchile.cl` | Puerto 7041, proceso PM2 `reactivoActivo-7041`. |
 
 ## Stack tecnológico
 
@@ -200,11 +200,7 @@ Decisiones que sostienen el diseño:
 │   ├── lib/                  Reglas puras de la suite (con node:test)
 │   ├── scripts/start-server.ts  Compila y arranca el sistema bajo prueba
 │   └── README.md             Guía completa de la suite
-├── specs/                    Specs 001–018 (spec, plan, tareas y validación de cada una)
-├── docs/constitution.md      Principios innegociables del proyecto
-├── PRODUCT.md                Usuarios, propósito y principios de producto
-├── AGENTS.md                 Guía estática para agentes de IA
-└── MEMORY.md                 Estado actual del trabajo
+└── PRODUCT.md                Usuarios, propósito y principios de producto
 ```
 
 ## Requisitos previos
@@ -738,39 +734,11 @@ cuentas reales del equipo.
 - Sin `dangerouslySetInnerHTML` en la interfaz.
 - Nunca se suben `.env`, `dist/` ni `out/`.
 
-## Metodología: desarrollo guiado por specs
+## Metodología
 
-El proyecto sigue **Spec-Driven Development (SDD)**. La
-[constitución](docs/constitution.md) fija los principios innegociables, y cada cambio recorre:
-
-```
-Constitución → Spec → Clarificación → Plan → Tareas → Implementación → Validación → Cambio
-```
-
-Ninguna fase avanza sin aprobación explícita, no se escribe código sin un requisito (RF) de una
-spec aprobada, y cada tarea cita sus RF. Cada carpeta de `specs/` contiene `spec.md`, `plan.md`,
-`tasks.md` y, cuando corresponde, `validation.md`.
-
-| Spec | Tema |
-| --- | --- |
-| [001](specs/001-crear-backend) | Servidor base, configuración y errores |
-| [002](specs/002-autenticacion) | Registro, inicio y cierre de sesión |
-| [003](specs/003-usuarios-y-disponibilidad) | Perfil de usuario y disponibilidad |
-| [004](specs/004-cuentas-de-juego) | Cuentas de juego y rango simulado |
-| [005](specs/005-coincidencias) | Coincidencias en el servidor |
-| [006](specs/006-agenda) | Agenda de sesiones de juego |
-| [007](specs/007-integrar-frontend) | Conectar la interfaz al servidor real |
-| [008](specs/008-ficha-de-jugador) | Ficha de jugador |
-| [009](specs/009-detalle-de-sesion) | Detalle de sesión |
-| [010](specs/010-despliegue) | Producción, despliegue y documentación |
-| [011](specs/011-datos-de-demostracion) | Datos de demostración en el servidor (borrador, no implementada) |
-| [012](specs/012-origen-real-de-datos) | Origen real de los datos y cuentas verificadas |
-| [013](specs/013-vinculacion-steam) | Verificación de CS2 con Steam |
-| [014](specs/014-verificacion-riot) | Verificación de LoL con Riot Games |
-| [015](specs/015-rango-premier) | Rango Premier real de CS2 con Leetify |
-| [016](specs/016-estado-global) | Estado global con Zustand |
-| [017](specs/017-libreria-de-estilos) | Librería de estilos (Mantine) |
-| [018](specs/018-pruebas-e2e) | Pruebas E2E con Playwright |
+El proyecto se desarrolla con **Spec-Driven Development (SDD)**: cada cambio parte de un
+requisito escrito y aprobado antes de tocar código, y se valida contra ese requisito. Los
+documentos de trabajo (specs, planes y tareas) se mantienen fuera del repositorio.
 
 ## Convenciones de código
 
@@ -805,12 +773,8 @@ spec aprobada, y cada tarea cita sus RF. Cada carpeta de `specs/` contiene `spec
 | Documento | Contenido |
 | --- | --- |
 | [`PRODUCT.md`](PRODUCT.md) | Usuarios, propósito, posicionamiento y principios de producto |
-| [`docs/constitution.md`](docs/constitution.md) | Principios innegociables del proyecto |
 | [`frontend/README.md`](frontend/README.md) | Vistas, arquitectura de la interfaz y uso de la API |
 | [`e2etests/README.md`](e2etests/README.md) | Guía completa de las pruebas E2E |
-| [`specs/010-despliegue/demo.md`](specs/010-despliegue/demo.md) | Guion de la demostración |
-| [`AGENTS.md`](AGENTS.md) | Mapa del código para agentes de IA |
-| [`MEMORY.md`](MEMORY.md) | Estado actual del trabajo |
 
 ## Equipo
 
